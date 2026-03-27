@@ -114,6 +114,25 @@ gantt
    JWT_SECRET=
    ```
 
+**Prompt:**
+```
+Baca file README.md untuk memahami tech stack dan monorepo structure project Jeevatix.
+
+Kerjakan Task T-0.1: Initialize Root Monorepo.
+
+Buat file-file berikut di root project:
+1. `package.json` — private: true, packageManager: pnpm@9.x, scripts kosong (build, dev, lint, test via turbo).
+2. `pnpm-workspace.yaml` — packages: ["apps/*", "packages/*"].
+3. `turbo.json` — pipeline: build, dev, lint, test.
+4. `tsconfig.base.json` — strict: true, paths alias @jeevatix/* ke packages/*.
+5. `.nvmrc` — isi: 22.
+6. `.gitignore` — node_modules, .env, dist, .turbo, .sst, .wrangler.
+7. `.env.example` — variabel: DATABASE_URL, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, JWT_SECRET.
+
+Jangan buat folder apps/ atau packages/ dulu — itu task berikutnya.
+Pastikan `pnpm install` bisa berjalan tanpa error setelah selesai.
+```
+
 ### Task 0.2 — Setup SST Config
 
 | Key         | Value                                                      |
@@ -126,6 +145,21 @@ gantt
 1. `pnpm add -Dw sst@latest aws-cdk-lib constructs`.
 2. Buat `sst.config.ts` — definisikan app name `jeevatix`, stage dari env.
 3. Placeholder untuk Cloudflare Workers, Hyperdrive, Durable Objects, Queues.
+
+**Prompt:**
+```
+Baca file README.md untuk memahami arsitektur Jeevatix.
+
+Kerjakan Task T-0.2: Setup SST Config.
+Dependensi: T-0.1 sudah selesai.
+
+1. Install SST: `pnpm add -Dw sst@latest aws-cdk-lib constructs`.
+2. Buat file `sst.config.ts` di root project.
+3. Definisikan app name: "jeevatix", stage dari environment variable.
+4. Tambahkan placeholder/komentar untuk resource yang akan dibuat nanti: Cloudflare Workers (API), Hyperdrive (DB connection pooling), Durable Objects (TicketReserver), Queues (email, reservation cleanup).
+
+Pastikan file valid TypeScript dan tidak ada error.
+```
 
 ### Task 0.3 — Create Package: `packages/types`
 
@@ -141,6 +175,22 @@ gantt
    - `UserRole`, `UserStatus`, `EventStatus`, `TicketTierStatus`, `OrderStatus`, `PaymentStatus`, `PaymentMethod`, `ReservationStatus`, `TicketStatus`, `NotificationType`.
 3. Export interface untuk setiap entity (User, SellerProfile, Event, TicketTier, Reservation, Order, OrderItem, Payment, Ticket, TicketCheckin, Notification, Category).
 4. Export API response types generik: `ApiResponse<T>`, `PaginatedResponse<T>`, `ErrorResponse`.
+
+**Prompt:**
+```
+Baca file DATABASE_DESIGN.md untuk memahami semua enum dan tabel.
+
+Kerjakan Task T-0.3: Create Package packages/types.
+Dependensi: T-0.1 sudah selesai.
+
+1. Buat folder `packages/types/` dengan `package.json` (name: @jeevatix/types) dan `tsconfig.json` (extends root tsconfig.base.json).
+2. Buat `packages/types/src/index.ts` yang meng-export:
+   a. TypeScript enum/union types untuk semua 10 enum di DATABASE_DESIGN.md: UserRole, UserStatus, EventStatus, TicketTierStatus, OrderStatus, PaymentStatus, PaymentMethod, ReservationStatus, TicketStatus, NotificationType.
+   b. Interface untuk setiap entity: User, SellerProfile, Event, Category, EventCategory, EventImage, TicketTier, Reservation, Order, OrderItem, Payment, Ticket, TicketCheckin, Notification, RefreshToken.
+   c. Generic API response types: ApiResponse<T>, PaginatedResponse<T>, ErrorResponse.
+
+Gunakan exact kolom dan tipe dari DATABASE_DESIGN.md. Jangan mengarang field.
+```
 
 ### Task 0.4 — Create Package: `packages/core`
 
@@ -158,6 +208,22 @@ gantt
 5. Buat placeholder `src/db/index.ts` untuk koneksi database.
 6. Buat placeholder folder `src/db/schema/` (akan diisi di Phase 1).
 
+**Prompt:**
+```
+Kerjakan Task T-0.4: Create Package packages/core.
+Dependensi: T-0.1 dan T-0.3 sudah selesai.
+
+1. Buat folder `packages/core/` dengan `package.json` (name: @jeevatix/core).
+2. Install dependencies: `pnpm add drizzle-orm postgres` dan `pnpm add -D drizzle-kit` di packages/core.
+3. Buat `packages/core/drizzle.config.ts` — PostgreSQL dialect, baca DATABASE_URL dari env, schema path: ./src/db/schema/*.
+4. Buat `packages/core/tsconfig.json` (extends root tsconfig.base.json).
+5. Buat placeholder `packages/core/src/db/index.ts` — export kosong, akan diisi koneksi DB di Phase 1.
+6. Buat folder kosong `packages/core/src/db/schema/` (akan diisi schema Drizzle di Phase 1).
+7. Buat `packages/core/src/index.ts` — re-export dari db.
+
+Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
+```
+
 ### Task 0.5 — Create App: `apps/api`
 
 | Key         | Value                                                      |
@@ -172,6 +238,24 @@ gantt
 3. Buat `src/index.ts` — Hono app dengan health check route `GET /health` → `{ status: "ok" }`.
 4. Buat `wrangler.toml` — config untuk Cloudflare Workers.
 5. Setup script: `"dev": "wrangler dev src/index.ts"`.
+
+**Prompt:**
+```
+Baca file README.md untuk memahami tech stack API (Hono + Cloudflare Workers).
+
+Kerjakan Task T-0.5: Create App apps/api.
+Dependensi: T-0.1 dan T-0.4 sudah selesai.
+
+1. Buat folder `apps/api/` dengan `package.json` (name: @jeevatix/api).
+2. Install: `pnpm add hono` di apps/api.
+3. Install dev: `pnpm add -D wrangler @cloudflare/workers-types` di apps/api.
+4. Buat `apps/api/tsconfig.json` (extends root, types: @cloudflare/workers-types).
+5. Buat `apps/api/wrangler.toml` — name: jeevatix-api, compatibility_date terbaru, main: src/index.ts.
+6. Buat `apps/api/src/index.ts` — Hono app dengan satu route: GET /health → { status: "ok" }. Export default app.
+7. Tambahkan script di package.json: "dev": "wrangler dev src/index.ts".
+
+Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localhost:8787/health harus return { status: "ok" }.
+```
 
 ### Task 0.6 — Create App: `apps/buyer`
 
@@ -189,6 +273,23 @@ gantt
 5. Buat `src/pages/index.astro` → placeholder homepage.
 6. Port dev: `4301`.
 
+**Prompt:**
+```
+Baca file README.md untuk memahami tech stack Buyer portal (Astro + Cloudflare).
+
+Kerjakan Task T-0.6: Create App apps/buyer.
+Dependensi: T-0.1 sudah selesai.
+
+1. Initialize Astro project di `apps/buyer/` dengan template minimal.
+2. Tambahkan TailwindCSS integration ke Astro.
+3. Setup `apps/buyer/astro.config.mjs` — output: "server" (SSR), adapter: @astrojs/cloudflare.
+4. Buat layout: `src/layouts/BaseLayout.astro` dengan HTML boilerplate, TailwindCSS, dan <slot />.
+5. Buat `src/pages/index.astro` — gunakan BaseLayout, tampilkan heading "Jeevatix — Menghidupkan Setiap Momenmu" sebagai placeholder.
+6. Konfigurasi dev port: 4301 di astro.config.mjs (server.port: 4301).
+
+Verifikasi: `cd apps/buyer && pnpm dev` harus start di http://localhost:4301 tanpa error.
+```
+
 ### Task 0.7 — Create App: `apps/admin`
 
 | Key         | Value                                                      |
@@ -204,6 +305,23 @@ gantt
 4. Buat layout dasar: `src/routes/+layout.svelte` dengan sidebar navigation.
 5. Buat `src/routes/+page.svelte` → placeholder dashboard.
 6. Port dev: `4302`.
+
+**Prompt:**
+```
+Baca file README.md untuk memahami tech stack Admin portal (SvelteKit + shadcn-svelte).
+
+Kerjakan Task T-0.7: Create App apps/admin.
+Dependensi: T-0.1 sudah selesai.
+
+1. Initialize SvelteKit project di `apps/admin/`.
+2. Tambahkan TailwindCSS + shadcn-svelte.
+3. Setup `apps/admin/svelte.config.js` — adapter: @sveltejs/adapter-cloudflare.
+4. Buat layout: `src/routes/+layout.svelte` dengan sidebar navigation (menu: Dashboard, Users, Sellers, Events, Orders, Payments, Categories, Notifications, Reservations).
+5. Buat `src/routes/+page.svelte` — placeholder dashboard "Admin Dashboard".
+6. Konfigurasi dev port: 4302 di vite.config.ts (server.port: 4302).
+
+Verifikasi: `cd apps/admin && pnpm dev` harus start di http://localhost:4302 tanpa error.
+```
 
 ### Task 0.8 — Create App: `apps/seller`
 
@@ -221,6 +339,23 @@ gantt
 5. Buat `src/routes/+page.svelte` → placeholder dashboard.
 6. Port dev: `4303`.
 
+**Prompt:**
+```
+Baca file README.md untuk memahami tech stack Seller portal (SvelteKit + shadcn-svelte).
+
+Kerjakan Task T-0.8: Create App apps/seller.
+Dependensi: T-0.1 sudah selesai.
+
+1. Initialize SvelteKit project di `apps/seller/`.
+2. Tambahkan TailwindCSS + shadcn-svelte.
+3. Setup `apps/seller/svelte.config.js` — adapter: @sveltejs/adapter-cloudflare.
+4. Buat layout: `src/routes/+layout.svelte` dengan sidebar navigation (menu: Dashboard, Events, Orders, Check-in, Notifications, Profile).
+5. Buat `src/routes/+page.svelte` — placeholder "Seller Dashboard".
+6. Konfigurasi dev port: 4303 di vite.config.ts (server.port: 4303).
+
+Verifikasi: `cd apps/seller && pnpm dev` harus start di http://localhost:4303 tanpa error.
+```
+
 ### Task 0.9 — Create Package: `packages/ui`
 
 | Key         | Value                                                      |
@@ -234,6 +369,21 @@ gantt
 2. Setup dengan shadcn-svelte sebagai base.
 3. Export shared components: Button, Input, Card, Badge, Modal, Toast, DataTable.
 4. Export shared TailwindCSS preset/theme (warna brand Jeevatix).
+
+**Prompt:**
+```
+Kerjakan Task T-0.9: Create Package packages/ui.
+Dependensi: T-0.1 sudah selesai.
+
+1. Buat folder `packages/ui/` dengan `package.json` (name: @jeevatix/ui).
+2. Setup dengan shadcn-svelte sebagai base component library.
+3. Tambahkan TailwindCSS config/preset dengan warna brand Jeevatix.
+4. Buat dan export shared components placeholder: Button, Input, Card, Badge, Modal, Toast, DataTable.
+5. Buat `packages/ui/src/index.ts` — re-export semua components.
+6. Buat `packages/ui/tsconfig.json` (extends root tsconfig.base.json).
+
+Package ini akan digunakan oleh apps/admin dan apps/seller. Pastikan bisa di-import via @jeevatix/ui.
+```
 
 **Checkpoint Phase 0:**
 ```bash
@@ -261,6 +411,31 @@ pnpm run dev          # semua app harus start di port masing-masing
 2. Lihat enum definitions di DATABASE_DESIGN.md → bagian "Enum Definitions".
 3. Export semua enum.
 
+**Prompt:**
+```
+Baca file DATABASE_DESIGN.md bagian "Enum Definitions" untuk melihat semua 10 enum yang harus dibuat.
+
+Kerjakan Task T-1.1: Drizzle Enum Definitions.
+Dependensi: T-0.4 sudah selesai.
+
+Buat file `packages/core/src/db/schema/enums.ts`:
+1. Import `pgEnum` dari drizzle-orm/pg-core.
+2. Definisikan semua 10 enum PERSIS sesuai DATABASE_DESIGN.md:
+   - userRole: buyer, seller, admin
+   - userStatus: active, suspended, banned
+   - eventStatus: draft, pending_review, published, rejected, ongoing, completed, cancelled
+   - ticketTierStatus: available, sold_out, hidden
+   - orderStatus: pending, confirmed, expired, cancelled, refunded
+   - paymentStatus: pending, success, failed, refunded
+   - paymentMethod: bank_transfer, e_wallet, credit_card, virtual_account
+   - reservationStatus: active, converted, expired, cancelled
+   - ticketStatus: valid, used, cancelled, refunded
+   - notificationType: order_confirmed, payment_reminder, event_reminder, new_order, event_approved, event_rejected, info
+3. Export semua enum.
+
+Jangan menambah atau mengurangi value enum dari yang ada di DATABASE_DESIGN.md.
+```
+
 ### Task 1.2 — Drizzle Table Schemas
 
 | Key         | Value                                                      |
@@ -286,6 +461,32 @@ Setiap file harus:
 - Definisikan `relations()` (Drizzle relational query builder).
 - Export tabel dan relations.
 
+**Prompt:**
+```
+Baca file DATABASE_DESIGN.md bagian "Tables" secara lengkap untuk melihat semua 15 tabel beserta kolom, tipe, constraint, dan index.
+
+Kerjakan Task T-1.2: Drizzle Table Schemas.
+Dependensi: T-1.1 sudah selesai (enum sudah ada di packages/core/src/db/schema/enums.ts).
+
+Buat file schema per domain di `packages/core/src/db/schema/`:
+
+1. `users.ts` — tabel: users, seller_profiles, refresh_tokens.
+2. `events.ts` — tabel: events, event_categories, event_images, categories.
+3. `tickets.ts` — tabel: ticket_tiers (dengan CHECK constraint: sold_count >= 0 AND sold_count <= quota), tickets, ticket_checkins.
+4. `orders.ts` — tabel: orders, order_items, payments.
+5. `reservations.ts` — tabel: reservations.
+6. `notifications.ts` — tabel: notifications.
+7. `index.ts` — re-export semua schema + enums.
+
+Untuk SETIAP file:
+- Ikuti PERSIS kolom, tipe data, constraint, dan index dari DATABASE_DESIGN.md. Jangan mengarang kolom.
+- Import enum dari ./enums.ts.
+- Definisikan relations() menggunakan Drizzle relational query builder.
+- Export tabel dan relations.
+
+Gunakan: pgTable, uuid, varchar, text, boolean, integer, numeric, serial, timestamptz, jsonb, primaryKey, uniqueIndex, index dari drizzle-orm/pg-core.
+```
+
 ### Task 1.3 — Database Connection
 
 | Key         | Value                                                      |
@@ -299,6 +500,24 @@ Setiap file harus:
 2. Buat `drizzle()` instance dengan schema.
 3. Export `db` instance dan type `Database`.
 4. Untuk edge (Cloudflare Workers): koneksi via Hyperdrive URL yang di-pass sebagai binding.
+
+**Prompt:**
+```
+Kerjakan Task T-1.3: Database Connection.
+Dependensi: T-1.2 sudah selesai (semua schema sudah ada di packages/core/src/db/schema/).
+
+Update file `packages/core/src/db/index.ts`:
+1. Import `drizzle` dari drizzle-orm/postgres-js dan `postgres` dari postgres.
+2. Buat fungsi `createDb(databaseUrl: string)` yang:
+   - Buat koneksi PostgreSQL menggunakan postgres driver dengan databaseUrl.
+   - Buat drizzle() instance dengan schema (import dari ./schema/index.ts).
+   - Return db instance.
+3. Export fungsi `createDb` dan type `Database` (ReturnType dari createDb).
+4. Untuk development lokal: baca DATABASE_URL dari process.env.
+5. Untuk Cloudflare Workers (edge): koneksi menerima Hyperdrive URL yang di-pass sebagai parameter.
+
+Pastikan compatible dengan Cloudflare Workers runtime (jangan gunakan Node.js-only APIs).
+```
 
 ### Task 1.4 — Run Migration
 
@@ -316,6 +535,25 @@ Setiap file harus:
    - 5 kategori dummy (Musik, Olahraga, Workshop, Konser, Festival).
    - 1 seller user + seller_profile.
    - 2 events dummy dengan masing-masing 2-3 ticket_tiers.
+
+**Prompt:**
+```
+Kerjakan Task T-1.4: Run Migration & Seed.
+Dependensi: T-1.3 sudah selesai (DB connection sudah tersedia).
+
+1. Pastikan PostgreSQL lokal sudah running dan DATABASE_URL di .env sudah benar.
+2. Jalankan `cd packages/core && pnpm drizzle-kit push` untuk membuat semua tabel di database.
+3. Verifikasi dengan `pnpm drizzle-kit studio` — harus terlihat 15 tabel dan 10 enum.
+4. Buat file `packages/core/src/db/seed.ts` yang:
+   - Import db dari ./index.ts dan semua schema.
+   - Insert 1 admin user (email: admin@jeevatix.id, password: hash dari "Admin123!", role: admin, email_verified_at: now).
+   - Insert 5 kategori: Musik, Olahraga, Workshop, Konser, Festival (dengan slug masing-masing).
+   - Insert 1 seller user (email: seller@jeevatix.id, role: seller) + 1 seller_profile (org_name: "EventPro Indonesia", is_verified: true).
+   - Insert 2 events dummy (status: published, dengan data lengkap venue, tanggal, dll) + event_categories + masing-masing 2-3 ticket_tiers.
+5. Jalankan `pnpm tsx src/db/seed.ts` dan pastikan data masuk tanpa error.
+
+Gunakan bcryptjs untuk hash password. Pastikan seed idempotent (cek dulu apakah data sudah ada sebelum insert).
+```
 
 **Checkpoint Phase 1:**
 ```bash
@@ -347,6 +585,28 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
    - Export `authMiddleware` (wajib login) dan `roleMiddleware(role)` (cek role).
 4. `cors.ts` — Setup CORS middleware menggunakan `hono/cors`. Whitelist origin: `localhost:4301`, `localhost:4302`, `localhost:4303` (dev). Production: domain frontend sesungguhnya.
 
+**Prompt:**
+```
+Baca file DATABASE_DESIGN.md (tabel users, refresh_tokens) dan PAGES.md (Auth API E1-E7, E63).
+
+Kerjakan Task T-2.1: Auth Middleware & Utilities.
+Dependensi: T-0.5 dan T-1.3 sudah selesai.
+
+Buat file-file berikut di `apps/api/src/`:
+
+1. `lib/password.ts` — fungsi hashPassword(password) dan verifyPassword(password, hash). Gunakan bcryptjs atau Web Crypto API yang edge-compatible (Cloudflare Workers). JANGAN gunakan Node.js native crypto.
+
+2. `lib/jwt.ts` — fungsi generateAccessToken(payload, secret), generateRefreshToken(payload, secret), verifyToken(token, secret). Gunakan hono/jwt atau jose library. Access token expiry: 15 menit, refresh token expiry: 7 hari.
+
+3. `middleware/auth.ts` — Hono middleware:
+   - authMiddleware: extract JWT dari header Authorization: Bearer <token>, verify, attach user (id, email, role) ke Hono context (c.set('user', ...)).
+   - roleMiddleware(...roles): cek apakah user.role termasuk dalam roles yang diizinkan, return 403 jika tidak.
+
+4. `middleware/cors.ts` — Setup CORS menggunakan hono/cors. Whitelist origin: http://localhost:4301, http://localhost:4302, http://localhost:4303. Allow credentials. Methods: GET, POST, PATCH, DELETE, OPTIONS.
+
+Semua library HARUS compatible dengan Cloudflare Workers runtime.
+```
+
 ### Task 2.2 — Auth API Endpoints
 
 | Key         | Value                                                      |
@@ -370,6 +630,29 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 3. Input validation menggunakan `zod` (pnpm add zod di apps/api).
 4. Access token expiry: 15 menit. Refresh token expiry: 7 hari.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Auth API (E1-E7, E63) dan DATABASE_DESIGN.md (tabel users, seller_profiles, refresh_tokens).
+
+Kerjakan Task T-2.2: Auth API Endpoints.
+Dependensi: T-2.1 sudah selesai (middleware auth, password, jwt sudah ada).
+
+Buat file `apps/api/src/routes/auth.ts` sebagai Hono router:
+
+1. POST /auth/register — Input: {email, password, full_name, phone?}. Validasi dengan zod (email valid, password min 8 char). Hash password, insert ke users (role: buyer). Return access token + refresh token.
+2. POST /auth/register/seller — Input: {email, password, full_name, phone?, org_name, org_description?}. Insert ke users (role: seller) + insert ke seller_profiles. Return tokens.
+3. POST /auth/login — Input: {email, password}. Cek email ada, verify password. Simpan refresh token hash ke tabel refresh_tokens. Return {access_token, refresh_token, user}.
+4. POST /auth/refresh — Input: {refresh_token}. Verify token, cek hash ada di refresh_tokens dan belum expired/revoked. Generate access token baru + rotate refresh token baru. Revoke token lama.
+5. POST /auth/forgot-password — Input: {email}. Generate reset token, placeholder untuk enqueue email.
+6. POST /auth/reset-password — Input: {token, password}. Verify token, update password_hash.
+7. POST /auth/verify-email — Input: {token}. Update email_verified_at = now().
+8. POST /auth/logout — Revoke refresh token di tabel refresh_tokens. Hapus/expire.
+
+Install zod: `pnpm add zod` di apps/api.
+Semua response format: { success: boolean, data?: T, error?: { code: string, message: string } }.
+Mount router di apps/api/src/index.ts.
+```
+
 ### Task 2.3 — User API Endpoints
 
 | Key         | Value                                                      |
@@ -383,6 +666,22 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 1. `GET /users/me` → return current user dari JWT context.
 2. `PATCH /users/me` → update full_name, phone, avatar_url.
 3. `PATCH /users/me/password` → verify old password, hash & update new password.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian User API (E8-E10) dan DATABASE_DESIGN.md (tabel users).
+
+Kerjakan Task T-2.3: User API Endpoints.
+Dependensi: T-2.2 sudah selesai.
+
+Buat file `apps/api/src/routes/users.ts` sebagai Hono router:
+
+1. GET /users/me — Protected (authMiddleware). Return current user data dari JWT context (id, email, full_name, phone, avatar_url, role, status, email_verified_at, created_at). Jangan return password_hash.
+2. PATCH /users/me — Protected. Input: {full_name?, phone?, avatar_url?}. Validasi dengan zod. Update fields yang dikirim saja.
+3. PATCH /users/me/password — Protected. Input: {old_password, new_password}. Verify old_password terhadap hash di DB. Hash new_password dan update.
+
+Mount router di apps/api/src/index.ts.
+```
 
 ### Task 2.4 — Auth Unit Tests
 
@@ -401,6 +700,29 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 6. Test: akses admin route dengan role buyer → 403 Forbidden.
 7. Test: refresh token flow → access token baru valid.
 
+**Prompt:**
+```
+Kerjakan Task T-2.4: Auth Unit Tests.
+Dependensi: T-2.2 dan T-2.3 sudah selesai.
+
+1. Setup Vitest di `apps/api`: install vitest, tambahkan script "test": "vitest run" di package.json.
+2. Buat file `apps/api/src/routes/__tests__/auth.test.ts`.
+3. Tulis test cases:
+   a. Register buyer → harus return 201 + access_token + refresh_token.
+   b. Register dengan email duplikat → harus return 409 Conflict.
+   c. Login dengan credentials valid → harus return 200 + access_token + refresh_token + user data.
+   d. Login dengan password salah → harus return 401 Unauthorized.
+   e. GET /users/me dengan valid token → harus return 200 + user data.
+   f. GET /users/me tanpa token → harus return 401.
+   g. PATCH /users/me → update full_name berhasil.
+   h. PATCH /users/me/password → ubah password berhasil, login dengan password baru berhasil.
+   i. POST /auth/refresh dengan valid refresh token → return access token baru.
+   j. Akses admin endpoint dengan role buyer → harus return 403 Forbidden.
+
+Gunakan Hono test helper (app.request()) untuk test tanpa server.
+Pastikan semua test pass: `cd apps/api && pnpm test`.
+```
+
 ### Task 2.5 — File Upload Service (Cloudflare R2)
 
 | Key         | Value                                                      |
@@ -418,6 +740,29 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 5. Endpoint ini digunakan oleh semua form yang butuh upload gambar (avatar, logo, banner, galeri event).
 6. Proteksi: harus authenticated.
 
+**Prompt:**
+```
+Kerjakan Task T-2.5: File Upload Service (Cloudflare R2).
+Dependensi: T-2.1 sudah selesai (auth middleware tersedia).
+
+1. Tambahkan R2 bucket binding di `apps/api/wrangler.toml`:
+   ```toml
+   [[r2_buckets]]
+   binding = "BUCKET"
+   bucket_name = "jeevatix-uploads"
+   ```
+2. Buat file `apps/api/src/routes/upload.ts` sebagai Hono router:
+   - POST /upload — Protected (authMiddleware).
+   - Terima multipart form data dengan field "file".
+   - Validasi: tipe file hanya image/jpeg, image/png, image/webp. Max size: 5MB.
+   - Generate key unik: `uploads/{uuid}.{extension}`.
+   - Upload ke R2 bucket via c.env.BUCKET.put(key, file).
+   - Return { success: true, data: { url: "https://{R2_PUBLIC_URL}/{key}" } }.
+3. Mount router di apps/api/src/index.ts.
+
+Endpoint ini akan digunakan oleh semua form upload gambar: avatar user, logo seller, banner event, galeri event.
+```
+
 ### Task 2.6 — Email Service
 
 | Key         | Value                                                      |
@@ -432,6 +777,27 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 3. Integrasikan dengan Cloudflare Queue: email dikirim secara async melalui queue consumer.
 4. Template email: verifikasi email, reset password, e-ticket konfirmasi.
 5. Konfigurasi API key via environment variable / SST secret.
+
+**Prompt:**
+```
+Kerjakan Task T-2.6: Email Service.
+Dependensi: T-0.5 sudah selesai (apps/api sudah ada).
+
+Buat file `apps/api/src/services/email.ts`:
+
+1. Buat class/module EmailService dengan method:
+   - sendEmail(to: string, subject: string, htmlBody: string): Promise<void>
+2. Gunakan Resend SDK atau fetch ke Resend/Mailgun API (pilih salah satu). API key dibaca dari environment variable (c.env.EMAIL_API_KEY).
+3. Buat email template functions:
+   - buildVerificationEmail(userName: string, verifyUrl: string): {subject, html}
+   - buildResetPasswordEmail(userName: string, resetUrl: string): {subject, html}
+   - buildOrderConfirmationEmail(userName: string, orderNumber: string, items: Array): {subject, html}
+   - buildETicketEmail(userName: string, tickets: Array): {subject, html}
+4. Email akan dikirim secara async melalui Cloudflare Queue (consumer akan memanggil sendEmail). Untuk saat ini buat service-nya dulu, integrasi Queue di Phase 6 (T-6.5).
+5. Tambahkan EMAIL_API_KEY dan EMAIL_FROM ke .env.example.
+
+Pastikan compatible dengan Cloudflare Workers runtime (gunakan fetch, bukan nodemailer).
+```
 
 **Checkpoint Phase 2:**
 ```bash
@@ -463,6 +829,25 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 3. Auto-generate slug dari name.
 4. Validasi: jangan hapus kategori yang masih punya event.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Event API Public (E14-E15) dan Admin API (E57-E60) dan DATABASE_DESIGN.md (tabel categories, event_categories).
+
+Kerjakan Task T-3.1: Category API.
+Dependensi: T-2.1 sudah selesai.
+
+Buat file `apps/api/src/routes/admin/categories.ts` sebagai Hono router:
+
+1. GET /categories — Public. List semua kategori. Return: id, name, slug, icon.
+2. GET /categories/:slug/events — Public. List events berdasarkan kategori slug. Hanya events status published/ongoing. Include ticket_tiers info. Pagination.
+3. GET /admin/categories — Admin only. List kategori + jumlah event per kategori.
+4. POST /admin/categories — Admin only. Input: {name, icon?}. Auto-generate slug dari name (lowercase, replace spasi dengan dash). Validasi: name unique.
+5. PATCH /admin/categories/:id — Admin only. Input: {name?, icon?}. Re-generate slug jika name berubah.
+6. DELETE /admin/categories/:id — Admin only. Validasi: jangan hapus jika masih ada event yang terhubung via event_categories. Return error jika masih ada.
+
+Gunakan zod untuk validasi input. Mount di index.ts.
+```
+
 ### Task 3.2 — Admin Auth UI (Login)
 
 | Key         | Value                                                      |
@@ -477,6 +862,23 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 3. Buat `apps/admin/src/lib/auth.ts` — simpan JWT di cookie/localStorage, redirect logic.
 4. Buat auth guard di `+layout.server.ts` → redirect ke `/login` jika belum login, redirect ke `/` jika sudah login dan role = admin.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Admin Portal Auth (A1).
+
+Kerjakan Task T-3.2: Admin Auth UI (Login).
+Dependensi: T-0.7 dan T-2.2 sudah selesai.
+
+Di `apps/admin/`:
+
+1. Buat `src/lib/api.ts` — HTTP client wrapper (fetch) untuk call API di localhost:8787. Fungsi: apiGet, apiPost, apiPatch, apiDelete. Otomatis attach Authorization header dari stored token. Handle error response.
+2. Buat `src/lib/auth.ts` — fungsi login(email, password), logout(), getUser(), isAuthenticated(). Simpan access_token dan refresh_token di cookie (httpOnly) atau localStorage. Implementasi auto-refresh: jika access token expired, panggil POST /auth/refresh.
+3. Buat `src/routes/login/+page.svelte` — form email + password + tombol Login. Panggil API POST /auth/login. Jika sukses dan role=admin, redirect ke /. Jika role bukan admin, tampilkan error.
+4. Buat auth guard di `src/routes/+layout.server.ts` atau `+layout.ts` — cek apakah user sudah login dan role=admin. Jika belum, redirect ke /login. Exclude halaman /login dari guard.
+
+Gunakan shadcn-svelte components (Button, Input, Card) dari @jeevatix/ui jika tersedia.
+```
+
 ### Task 3.3 — Admin Category Management UI
 
 | Key         | Value                                                      |
@@ -490,6 +892,26 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
    - Tabel: nama, slug, icon, jumlah event.
    - Tombol: Tambah, Edit (modal), Hapus (konfirmasi).
 2. Gunakan DataTable dari `@jeevatix/ui`.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Admin Portal (A13 — Manajemen Kategori).
+
+Kerjakan Task T-3.3: Admin Category Management UI.
+Dependensi: T-3.1 dan T-3.2 sudah selesai.
+
+Di `apps/admin/`:
+
+Buat `src/routes/categories/+page.svelte`:
+1. Fetch GET /admin/categories saat page load.
+2. Tampilkan DataTable dengan kolom: Nama, Slug, Icon, Jumlah Event, Aksi.
+3. Tombol "Tambah Kategori" → buka modal form (name, icon). Submit POST /admin/categories.
+4. Tombol Edit per row → buka modal form pre-filled. Submit PATCH /admin/categories/:id.
+5. Tombol Hapus per row → konfirmasi dialog. Submit DELETE /admin/categories/:id. Tampilkan error toast jika kategori masih punya event.
+6. Setelah setiap aksi CRUD, refresh tabel.
+
+Gunakan shadcn-svelte components: DataTable, Button, Input, Dialog/Modal, Toast.
+```
 
 ### Task 3.4 — Admin User Management API
 
@@ -507,6 +929,24 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 4. `GET /admin/sellers` → list seller + is_verified status.
 5. `PATCH /admin/sellers/:id/verify` → set is_verified = true/false.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Admin API (E45-E49) dan DATABASE_DESIGN.md (tabel users, seller_profiles).
+
+Kerjakan Task T-3.4: Admin User Management API.
+Dependensi: T-2.1 sudah selesai.
+
+Buat file `apps/api/src/routes/admin/users.ts` sebagai Hono router (semua endpoint admin-only via roleMiddleware('admin')):
+
+1. GET /admin/users — List users. Query params: role (filter), status (filter), search (ILIKE name/email), page, limit. Return paginated response dengan meta: {total, page, limit, totalPages}.
+2. GET /admin/users/:id — Detail user. Join seller_profiles jika role=seller. Include order count dan ticket count.
+3. PATCH /admin/users/:id/status — Input: {status: 'active'|'suspended'|'banned'}. Update user status. Jangan bisa ubah status admin sendiri.
+4. GET /admin/sellers — List seller (users dengan role=seller) + join seller_profiles. Filter: is_verified (true/false). Pagination.
+5. PATCH /admin/sellers/:id/verify — Input: {is_verified: boolean}. Update seller_profiles.is_verified, set verified_at = now() dan verified_by = current admin user id jika true. Set verified_at = null dan verified_by = null jika false.
+
+Mount di index.ts.
+```
+
 ### Task 3.5 — Admin User Management UI
 
 | Key         | Value                                                      |
@@ -520,6 +960,23 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 2. `apps/admin/src/routes/users/[id]/+page.svelte` — detail user + aksi suspend/ban.
 3. `apps/admin/src/routes/sellers/+page.svelte` — daftar seller.
 4. `apps/admin/src/routes/sellers/[id]/+page.svelte` — detail seller + tombol verify/reject.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Admin Portal (A3-A6: Users dan Sellers).
+
+Kerjakan Task T-3.5: Admin User Management UI.
+Dependensi: T-3.4 dan T-3.2 sudah selesai.
+
+Di `apps/admin/`:
+
+1. `src/routes/users/+page.svelte` — DataTable semua user. Filter dropdown: role (all/buyer/seller/admin), status (all/active/suspended/banned). Search bar. Pagination. Klik row → navigate ke /users/[id].
+2. `src/routes/users/[id]/+page.svelte` — Detail user: info profil, seller profile (jika seller), statistik order/tiket. Tombol aksi: Suspend, Ban, Activate (PATCH /admin/users/:id/status). Konfirmasi dialog sebelum aksi.
+3. `src/routes/sellers/+page.svelte` — DataTable seller. Filter: verified/unverified. Kolom: Nama Organisasi, Email, Status Verifikasi, Jumlah Event. Klik row → navigate ke /sellers/[id].
+4. `src/routes/sellers/[id]/+page.svelte` — Detail seller: data organisasi, data bank, daftar event. Tombol "Verify" (set is_verified=true) dan "Reject" (set is_verified=false). Konfirmasi dialog.
+
+Gunakan shadcn-svelte components dari @jeevatix/ui.
+```
 
 **Checkpoint Phase 3:**
 ```bash
@@ -549,6 +1006,21 @@ open http://localhost:4302/sellers    # verifikasi seller
 1. `GET /seller/profile` → return seller_profiles + users data.
 2. `PATCH /seller/profile` → update org_name, org_description, logo_url, bank info.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Profile API (E39-E40) dan DATABASE_DESIGN.md (tabel users, seller_profiles).
+
+Kerjakan Task T-4.1: Seller Auth & Profile API.
+Dependensi: T-2.2 sudah selesai.
+
+Buat file `apps/api/src/routes/seller/profile.ts` sebagai Hono router (semua endpoint via authMiddleware + roleMiddleware('seller')):
+
+1. GET /seller/profile — Return data gabungan: user fields (full_name, email, phone, avatar_url) + seller_profiles fields (org_name, org_description, logo_url, bank_name, bank_account_number, bank_account_holder, is_verified, verified_at). Join users dan seller_profiles berdasarkan user_id dari JWT.
+2. PATCH /seller/profile — Input: {org_name?, org_description?, logo_url?, bank_name?, bank_account_number?, bank_account_holder?}. Validasi dengan zod. Update fields yang dikirim saja di tabel seller_profiles.
+
+Mount di apps/api/src/index.ts dengan prefix /seller.
+```
+
 ### Task 4.2 — Seller Event CRUD API
 
 | Key         | Value                                                      |
@@ -566,6 +1038,25 @@ open http://localhost:4302/sellers    # verifikasi seller
 5. `DELETE /seller/events/:id` → hapus event (hanya status `draft`). Cascade ke event_categories, event_images, ticket_tiers.
 6. **Event status flow:** Seller membuat event (`draft`) → submit untuk review (`pending_review`) → Admin approve (`published`) atau tolak (`rejected`). Seller bisa edit event `rejected` lalu submit ulang.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Event API (E16-E20) dan DATABASE_DESIGN.md (tabel events, event_categories, event_images, ticket_tiers, seller_profiles).
+
+Kerjakan Task T-4.2: Seller Event CRUD API.
+Dependensi: T-2.1 dan T-1.3 sudah selesai.
+
+Buat file `apps/api/src/routes/seller/events.ts` sebagai Hono router (seller-only):
+
+1. GET /seller/events — List events milik seller (berdasarkan seller_profile_id dari JWT user). Filter query param: status. Join ticket_tiers untuk statistik: total_quota, total_sold. Pagination.
+2. POST /seller/events — Input: {title, description, venue_name, venue_address, venue_city, venue_latitude?, venue_longitude?, start_at, end_at, sale_start_at, sale_end_at, banner_url?, max_tickets_per_order?, category_ids: number[], images: {image_url, sort_order}[], tiers: {name, description?, price, quota, sort_order, sale_start_at?, sale_end_at?}[]}. Database transaction: insert event (status: draft) + event_categories + event_images + ticket_tiers. Auto-generate slug dari title. Validasi temporal: end_at > start_at, sale_end_at > sale_start_at, sale_start_at <= start_at.
+3. GET /seller/events/:id — Detail event + images + categories + tiers + statistik penjualan per tier. Validasi: event milik seller ini.
+4. PATCH /seller/events/:id — Update event fields. Validasi ownership. Jika seller submit untuk review, ubah status draft/rejected → pending_review.
+5. DELETE /seller/events/:id — Hapus event. Hanya boleh jika status = draft. Cascade: delete event_categories, event_images, ticket_tiers.
+
+Event status flow: draft → pending_review (seller submit) → published/rejected (admin review). Seller bisa edit event rejected lalu submit ulang ke pending_review.
+Mount di index.ts.
+```
+
 ### Task 4.3 — Ticket Tier CRUD API
 
 | Key         | Value                                                      |
@@ -580,6 +1071,23 @@ open http://localhost:4302/sellers    # verifikasi seller
 2. Validasi: jangan hapus tier yang sudah ada penjualan (sold_count > 0).
 3. Validasi: seller hanya bisa kelola tier dari eventnya sendiri.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Ticket Tier API (E21-E24) dan DATABASE_DESIGN.md (tabel ticket_tiers).
+
+Kerjakan Task T-4.3: Ticket Tier CRUD API.
+Dependensi: T-4.2 sudah selesai.
+
+Buat file `apps/api/src/routes/seller/tiers.ts` sebagai Hono router (seller-only):
+
+1. GET /seller/events/:id/tiers — List semua tier tiket dari event tertentu. Validasi: event milik seller ini. Return: id, name, description, price, quota, sold_count, sort_order, status, sale_start_at, sale_end_at.
+2. POST /seller/events/:id/tiers — Input: {name, description?, price, quota, sort_order?, sale_start_at?, sale_end_at?}. Validasi ownership. Insert ke ticket_tiers dengan event_id.
+3. PATCH /seller/events/:id/tiers/:tierId — Input: {name?, description?, price?, quota?, sort_order?, status?, sale_start_at?, sale_end_at?}. Validasi ownership. Jangan izinkan quota < sold_count. Jangan izinkan ubah price jika sold_count > 0.
+4. DELETE /seller/events/:id/tiers/:tierId — Validasi ownership. Jangan hapus tier jika sold_count > 0 (return error).
+
+Mount di index.ts.
+```
+
 ### Task 4.4 — Seller Auth & Layout UI
 
 | Key         | Value                                                      |
@@ -592,6 +1100,28 @@ open http://localhost:4302/sellers    # verifikasi seller
 1. Login, Register (with org data), Forgot/Reset Password pages.
 2. Sidebar layout dengan menu: Dashboard, Events, Orders, Check-in, Profile.
 3. Auth guard: hanya role `seller`.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Portal Auth (S1-S4).
+
+Kerjakan Task T-4.4: Seller Auth & Layout UI.
+Dependensi: T-0.8 dan T-2.2 sudah selesai.
+
+Di `apps/seller/`:
+
+1. Buat `src/lib/api.ts` — HTTP client wrapper (mirip admin, tapi untuk seller). Fungsi: apiGet, apiPost, apiPatch, apiDelete. Attach Authorization header. Handle error. Auto-refresh token jika expired.
+2. Buat `src/lib/auth.ts` — login, logout, getUser, isAuthenticated. Simpan tokens di cookie/localStorage.
+3. Buat auth pages:
+   - `src/routes/login/+page.svelte` — form email + password. Call POST /auth/login. Validasi role=seller.
+   - `src/routes/register/+page.svelte` — form: email, password, full_name, phone, org_name, org_description. Call POST /auth/register/seller.
+   - `src/routes/forgot-password/+page.svelte` — form email. Call POST /auth/forgot-password.
+   - `src/routes/reset-password/+page.svelte` — form password baru. Call POST /auth/reset-password.
+4. Update `src/routes/+layout.svelte` — sidebar menu: Dashboard, Events, Orders, Check-in, Notifications, Profile.
+5. Auth guard di layout: redirect ke /login jika belum login atau role bukan seller.
+
+Gunakan shadcn-svelte components.
+```
 
 ### Task 4.5 — Seller Event Management UI
 
@@ -608,6 +1138,29 @@ open http://localhost:4302/sellers    # verifikasi seller
 4. `apps/seller/src/routes/events/[id]/edit/+page.svelte` → edit event.
 5. `apps/seller/src/routes/events/[id]/tiers/+page.svelte` → kelola tier tiket.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Portal (S6-S10: Event Management).
+
+Kerjakan Task T-4.5: Seller Event Management UI.
+Dependensi: T-4.2, T-4.3, T-4.4 sudah selesai.
+
+Di `apps/seller/`:
+
+1. `src/routes/events/+page.svelte` — DataTable daftar event milik seller. Kolom: Title, Status (badge warna), Tanggal, Tiket Terjual (sold/quota), Aksi. Filter by status: all/draft/pending_review/published/rejected/completed. Klik row → navigate ke detail.
+2. `src/routes/events/create/+page.svelte` — Form multi-step:
+   - Step 1: Info dasar (title, description/rich text, kategori multi-select).
+   - Step 2: Lokasi & waktu (venue_name, venue_address, venue_city, koordinat, start_at, end_at, sale_start_at, sale_end_at).
+   - Step 3: Gambar (banner upload via POST /upload, galeri images upload).
+   - Step 4: Tier tiket (tambah/hapus tier: name, description, price, quota).
+   - Step 5: Review & simpan (POST /seller/events).
+3. `src/routes/events/[id]/+page.svelte` — Detail event: info, statistik penjualan per tier (progress bar sold/quota), grafik, daftar pesanan terbaru. Tombol: Edit, Submit Review (jika draft/rejected).
+4. `src/routes/events/[id]/edit/+page.svelte` — Form edit event (sama dengan create, pre-filled).
+5. `src/routes/events/[id]/tiers/+page.svelte` — CRUD tier tiket: tabel tier + form tambah/edit. Tampilkan sold_count. Disable delete jika sold_count > 0.
+
+Gunakan shadcn-svelte components. Upload gambar via POST /upload (T-2.5).
+```
+
 ### Task 4.6 — Seller Profile UI
 
 | Key         | Value                                                      |
@@ -619,6 +1172,25 @@ open http://localhost:4302/sellers    # verifikasi seller
 **Instruksi:**
 1. `apps/seller/src/routes/profile/+page.svelte` → edit profil organisasi.
 2. `apps/seller/src/routes/profile/password/+page.svelte` → ubah password.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Portal (S14-S15: Profile & Settings).
+
+Kerjakan Task T-4.6: Seller Profile UI.
+Dependensi: T-4.1 dan T-4.4 sudah selesai.
+
+Di `apps/seller/`:
+
+1. `src/routes/profile/+page.svelte` — Form edit profil organisasi. Fetch GET /seller/profile saat load. Fields:
+   - Org Name, Org Description (textarea), Logo (upload via POST /upload, preview gambar).
+   - Data Bank: Bank Name, Account Number, Account Holder.
+   - Tampilkan status verifikasi: Verified ✅ / Pending ⏳.
+   - Tombol Simpan → PATCH /seller/profile.
+2. `src/routes/profile/password/+page.svelte` — Form ubah password: Old Password, New Password, Confirm New Password. Submit PATCH /users/me/password.
+
+Gunakan shadcn-svelte components.
+```
 
 **Checkpoint Phase 4:**
 ```bash
@@ -652,6 +1224,32 @@ open http://localhost:4303/events         # list events
 6. Hanya return events dengan `status = 'published'` atau `'ongoing'` untuk endpoint publik.
 7. **Search strategy:** Gunakan PostgreSQL `ILIKE` untuk pencarian title. Untuk performa lebih baik, tambahkan `tsvector` column + GIN index pada `events.title` dan `events.description` untuk full-text search.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Event API Public (E11-E15) dan DATABASE_DESIGN.md (tabel events, categories, event_categories, event_images, ticket_tiers, seller_profiles).
+
+Kerjakan Task T-5.1: Public Event API.
+Dependensi: T-1.3 sudah selesai.
+
+Buat file `apps/api/src/routes/events.ts` sebagai Hono router (semua public/tanpa auth):
+
+1. GET /events — List events (hanya status published/ongoing). Query params:
+   - search: ILIKE pada title (contoh: WHERE title ILIKE '%keyword%').
+   - category: filter by category slug (join event_categories + categories).
+   - city: filter by venue_city.
+   - date_from, date_to: filter by start_at range.
+   - price_min, price_max: filter event yang punya tier dengan price dalam range.
+   - page, limit (default 20, max 100).
+   Return: events + min_price dari ticket_tiers + kategori names. Paginated response.
+2. GET /events/featured — Events where is_featured = true, status published/ongoing. Limit 10. Include event_images (banner).
+3. GET /events/:slug — Detail event by slug. Join: event_images, event_categories + categories, ticket_tiers (with availability: quota - sold_count), seller_profiles (org_name, logo_url). Return semua data.
+4. GET /categories — List semua kategori (id, name, slug, icon).
+5. GET /categories/:slug/events — Events by kategori slug. Hanya published/ongoing. Pagination.
+
+Search strategy: gunakan ILIKE untuk sekarang. Jika perlu performa lebih baik, tambahkan tsvector + GIN index di events.title nanti.
+Mount di index.ts.
+```
+
 ### Task 5.2 — Buyer Auth Pages
 
 | Key         | Value                                                      |
@@ -664,6 +1262,28 @@ open http://localhost:4303/events         # list events
 1. Buat halaman Astro: register, login, forgot-password, reset-password, verify-email.
 2. Gunakan client-side fetch ke API (Astro island dengan Svelte/React atau vanilla JS).
 3. Simpan JWT di cookie (httpOnly jika SSR).
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Buyer Portal Auth (B1-B5).
+
+Kerjakan Task T-5.2: Buyer Auth Pages.
+Dependensi: T-0.6 dan T-2.2 sudah selesai.
+
+Di `apps/buyer/`:
+
+1. Buat `src/lib/api.ts` — HTTP client wrapper untuk call API di localhost:8787. Attach Authorization header. Auto-refresh token jika expired.
+2. Buat `src/lib/auth.ts` — login, logout, getUser, isAuthenticated. Simpan tokens di cookie (httpOnly jika SSR Astro).
+3. Buat halaman Astro (gunakan Svelte island components untuk interaktivitas):
+   - `src/pages/register.astro` — Form: email, password, full_name, phone. Call POST /auth/register.
+   - `src/pages/login.astro` — Form: email, password. Call POST /auth/login. Redirect ke / jika sukses.
+   - `src/pages/forgot-password.astro` — Form: email. Call POST /auth/forgot-password.
+   - `src/pages/reset-password.astro` — Form: new password. Baca token dari URL query param. Call POST /auth/reset-password.
+   - `src/pages/verify-email.astro` — Baca token dari URL. Call POST /auth/verify-email. Tampilkan sukses/gagal.
+4. Gunakan BaseLayout.astro untuk semua halaman.
+
+Desain bersih dan responsive. Gunakan TailwindCSS.
+```
 
 ### Task 5.3 — Homepage & Explore
 
@@ -679,6 +1299,39 @@ open http://localhost:4303/events         # list events
 3. `apps/buyer/src/pages/events/[slug].astro` → Detail event: deskripsi, galeri, map, tier tiket + harga, info seller. Tombol "Beli Tiket" (link ke checkout).
 4. `apps/buyer/src/pages/categories/[slug].astro` → Event per kategori.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Buyer Portal Public (B6-B9).
+
+Kerjakan Task T-5.3: Homepage & Explore.
+Dependensi: T-5.1 dan T-5.2 sudah selesai.
+
+Di `apps/buyer/`:
+
+1. `src/pages/index.astro` — Homepage:
+   - Hero banner section (gambar besar + tagline Jeevatix).
+   - Featured events carousel/grid (fetch GET /events/featured). Tampilkan: banner, title, tanggal, venue_city, harga mulai dari.
+   - Kategori grid (fetch GET /categories). Tampilkan icon + nama kategori, klik → /categories/[slug].
+   - Upcoming events section (fetch GET /events?limit=8). Card event: banner, title, tanggal, kota, harga dari.
+
+2. `src/pages/events/index.astro` — Explore Events:
+   - Search bar (ketik → filter).
+   - Filter sidebar/top-bar: kategori (multi-select), kota (dropdown), tanggal (date range picker), harga (range slider).
+   - Grid/list event cards. Pagination (load more atau page numbers).
+   - Fetch GET /events dengan query params sesuai filter.
+
+3. `src/pages/events/[slug].astro` — Event Detail:
+   - Banner utama + galeri gambar (dari event_images).
+   - Info event: title, deskripsi (rich text), tanggal & waktu, lokasi (venue_name, address, city, embedded map jika ada koordinat).
+   - Info penyelenggara: org_name, logo dari seller_profiles.
+   - Tier tiket: tabel/card per tier (name, description, price, available = quota - sold_count). Badge: Available / Sold Out.
+   - Tombol "Beli Tiket" → link ke /checkout/[slug] (perlu login).
+
+4. `src/pages/categories/[slug].astro` — Event per kategori. Fetch GET /categories/:slug/events. Re-use event card component.
+
+Desain modern, responsive. Gunakan TailwindCSS. Buat reusable Astro component: EventCard.astro.
+```
+
 ### Task 5.4 — Buyer Profile & Notifications UI
 
 | Key         | Value                                                      |
@@ -690,6 +1343,30 @@ open http://localhost:4303/events         # list events
 **Instruksi:**
 1. `apps/buyer/src/pages/profile.astro` → edit profil buyer.
 2. `apps/buyer/src/pages/notifications.astro` → daftar notifikasi.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Buyer Portal Protected (B16-B17).
+
+Kerjakan Task T-5.4: Buyer Profile & Notifications UI.
+Dependensi: T-5.2 dan T-2.3 sudah selesai.
+
+Di `apps/buyer/`:
+
+1. `src/pages/profile.astro` — Halaman profil buyer (protected, perlu login):
+   - Fetch GET /users/me saat load.
+   - Form edit: Full Name, Phone, Avatar (upload via POST /upload, preview).
+   - Tombol Simpan → PATCH /users/me.
+   - Section ubah password: Old Password, New Password, Confirm. Submit PATCH /users/me/password.
+
+2. `src/pages/notifications.astro` — Halaman notifikasi (protected):
+   - Fetch GET /notifications saat load.
+   - List notifikasi: icon per type, title, body, waktu (relative: "2 jam lalu"), badge unread.
+   - Klik notifikasi → mark as read (PATCH /notifications/:id/read).
+   - Tombol "Mark All as Read" → PATCH /notifications/read-all.
+
+Gunakan Svelte island untuk interaktivitas. Protect halaman: redirect ke /login jika belum login.
+```
 
 **Checkpoint Phase 5:**
 ```bash
@@ -725,6 +1402,38 @@ open http://localhost:4301/events/slug-event # detail event
 7. Method `getAvailability(tierId)` → return remaining = quota - soldCount - pendingReservations.
 8. Daftarkan di `wrangler.toml` sebagai Durable Object binding.
 
+**Prompt:**
+```
+Baca file DATABASE_DESIGN.md bagian "Concurrency & War Ticket Flow" (sequence diagram) dan tabel reservations, ticket_tiers.
+
+Kerjakan Task T-6.1: Durable Object TicketReserver.
+Dependensi: T-0.5 dan T-1.3 sudah selesai.
+
+Buat file `apps/api/src/durable-objects/ticket-reserver.ts`:
+
+1. Export class TicketReserver (extends DurableObject).
+2. In-memory state per tier: Map<tierId, { quota: number, soldCount: number, pendingReservations: number }>.
+3. Method initialize(tierId: string) — load data dari PostgreSQL (via Hyperdrive binding): SELECT quota, sold_count FROM ticket_tiers WHERE id = tierId. Simpan ke in-memory state.
+4. Method reserve(userId: string, tierId: string, quantity: number):
+   - Cek state: (quota - soldCount - pendingReservations) >= quantity.
+   - Jika ya: increment pendingReservations. Insert ke DB: reservations (status: active, expires_at: now + 10 menit). Update DB: ticket_tiers SET sold_count = sold_count + quantity. Return { reservation_id, expires_at }.
+   - Jika tidak: return { error: 'SOLD_OUT' }.
+5. Method cancelReservation(reservationId: string) — decrement pendingReservations. Update DB: reservations SET status = cancelled. Update DB: ticket_tiers SET sold_count = sold_count - quantity.
+6. Method confirmReservation(reservationId: string) — decrement pendingReservations (tiket sudah terjual, bukan pending lagi). Update DB: reservations SET status = converted.
+7. Method getAvailability(tierId: string) — return { remaining: quota - soldCount - pendingReservations }.
+
+8. Tambahkan di `wrangler.toml`:
+   ```toml
+   [durable_objects]
+   bindings = [{ name = "TICKET_RESERVER", class_name = "TicketReserver" }]
+   [[migrations]]
+   tag = "v1"
+   new_classes = ["TicketReserver"]
+   ```
+
+INI ADALAH BAGIAN PALING KRITIS. Pastikan semua operasi stok atomik dan concurrent-safe.
+```
+
 ### Task 6.2 — Reservation API
 
 | Key         | Value                                                      |
@@ -741,6 +1450,30 @@ open http://localhost:4301/events/slug-event # detail event
 4. Validasi: user hanya bisa punya 1 active reservation per event.
 5. Set `expires_at` = now + 10 menit.
 6. **Anti-abuse:** Cek total tiket yang sudah dimiliki user untuk event ini (dari order sebelumnya). Tolak jika melebihi `max_tickets_per_order` yang di-set di `events`.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Reservation API (E25-E27) dan DATABASE_DESIGN.md (tabel reservations, ticket_tiers, events).
+
+Kerjakan Task T-6.2: Reservation API.
+Dependensi: T-6.1 sudah selesai.
+
+Buat file `apps/api/src/routes/reservations.ts` sebagai Hono router (buyer-only via authMiddleware + roleMiddleware('buyer')):
+
+1. POST /reservations — Input: {ticket_tier_id, quantity}. Logika:
+   - Cek user tidak punya active reservation lain untuk event yang sama.
+   - Anti-abuse: query total tiket user untuk event ini (dari orders confirmed + reservations active). Tolak jika total + quantity > events.max_tickets_per_order.
+   - Dapatkan Durable Object instance: c.env.TICKET_RESERVER.get(c.env.TICKET_RESERVER.idFromName(tierId)).
+   - Delegate ke TicketReserver.reserve(userId, tierId, quantity).
+   - Return { reservation_id, expires_at } atau error SOLD_OUT (409).
+
+2. GET /reservations/:id — Return reservation data + remaining time (expires_at - now). Validasi: reservation milik user ini.
+
+3. DELETE /reservations/:id — Validasi: reservation milik user ini, status masih active. Delegate ke TicketReserver.cancelReservation().
+
+Set expires_at = now + 10 menit.
+Mount di index.ts.
+```
 
 ### Task 6.3 — Order API
 
@@ -760,6 +1493,33 @@ open http://localhost:4301/events/slug-event # detail event
    - Set `expires_at` = now + 30 menit (batas waktu pembayaran).
 2. `GET /orders` → list order milik buyer + pagination.
 3. `GET /orders/:id` → detail order + items + payment + tickets.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Order API (E28-E30) dan DATABASE_DESIGN.md (tabel orders, order_items, payments, reservations, ticket_tiers).
+
+Kerjakan Task T-6.3: Order API.
+Dependensi: T-6.2 sudah selesai.
+
+Buat file `apps/api/src/routes/orders.ts` sebagai Hono router (buyer-only):
+
+1. POST /orders — Input: {reservation_id}. Logika dalam database transaction:
+   - Validasi reservation: status = active, expires_at > now, milik user ini.
+   - Ambil data reservation: ticket_tier_id, quantity.
+   - Ambil data tier: price.
+   - Generate order_number: format JVX-YYYYMMDD-XXXXX (XXXXX = 5 digit random angka).
+   - Insert order: user_id, reservation_id, order_number, total_amount = price * quantity, service_fee = 0, status = pending, expires_at = now + 30 menit.
+   - Insert order_items: order_id, ticket_tier_id, quantity, unit_price = price, subtotal = price * quantity.
+   - Insert payment: order_id, method = default, status = pending, amount = total_amount.
+   - Update reservation: status = converted.
+   - Return order data.
+
+2. GET /orders — List order milik buyer. Pagination (page, limit). Join: order_items, payments, events (via ticket_tiers). Return status, order_number, total_amount, created_at.
+
+3. GET /orders/:id — Detail order + order_items (join ticket_tiers, events) + payment + tickets. Validasi: order milik user.
+
+Mount di index.ts.
+```
 
 ### Task 6.4 — Payment API
 
@@ -784,6 +1544,33 @@ open http://localhost:4301/events/slug-event # detail event
    - Trigger ticket generation (Phase 7).
    - Enqueue email send via Cloudflare Queue.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Payment API (E31-E32) dan DATABASE_DESIGN.md (tabel payments, orders, tickets, order_items).
+
+Kerjakan Task T-6.4: Payment API.
+Dependensi: T-6.3 sudah selesai.
+
+Buat file `apps/api/src/routes/payments.ts` sebagai Hono router:
+
+1. POST /payments/:orderId/pay — Buyer-only. Input: {method: 'bank_transfer'|'e_wallet'|'credit_card'|'virtual_account'}. Logika:
+   - Validasi: order milik user, status = pending, expires_at > now.
+   - Update payment method.
+   - Integrasikan dengan payment gateway (GUNAKAN MOCK/PLACEHOLDER dulu: langsung set payment status = success untuk development).
+   - Return { payment_url } atau { status: 'success' } jika mock.
+
+2. POST /webhooks/payment — Public (tapi verify webhook signature). Logika:
+   - Verify webhook signature dari payment gateway header (keamanan!).
+   - Idempotency: cek payment.status — jika sudah success, return 200 OK tanpa aksi. Gunakan external_ref sebagai idempotency key.
+   - Update payment: status = success, paid_at = now, external_ref = dari gateway.
+   - Update order: status = confirmed, confirmed_at = now.
+   - Call ticket generation service: generateTickets(orderId) — dari T-7.1 (placeholder dulu, implementasi di Phase 7).
+   - Enqueue email via Cloudflare Queue: kirim e-ticket ke buyer.
+   - Enqueue notification: sendNotification(buyer, 'order_confirmed', ...) — placeholder.
+
+Mount di index.ts.
+```
+
 ### Task 6.5 — Cloudflare Queue: Reservation Cleanup
 
 | Key         | Value                                                      |
@@ -800,6 +1587,38 @@ open http://localhost:4301/events/slug-event # detail event
    - Call Durable Object → restore availability.
 4. Daftarkan di `wrangler.toml` sebagai Queue binding.
 
+**Prompt:**
+```
+Baca file DATABASE_DESIGN.md (tabel reservations, ticket_tiers) dan diagram "Concurrency & War Ticket Flow".
+
+Kerjakan Task T-6.5: Cloudflare Queue Reservation Cleanup.
+Dependensi: T-6.2 sudah selesai.
+
+Buat file `apps/api/src/queues/reservation-cleanup.ts`:
+
+1. Export fungsi queue handler sesuai Cloudflare Queue consumer pattern.
+2. Logika cleanup (berjalan periodik):
+   - Query: SELECT * FROM reservations WHERE status = 'active' AND expires_at < now().
+   - Untuk setiap reservation expired:
+     a. Update reservations SET status = 'expired'.
+     b. Get Durable Object instance dan call cancelReservation(reservationId) untuk restore in-memory counter.
+     c. (Opsional) Send notification ke buyer: 'payment_reminder' jika mendekati expire, atau info bahwa reservasi sudah expired.
+3. Daftarkan Queue consumer di `wrangler.toml`:
+   ```toml
+   [[queues.consumers]]
+   queue = "reservation-cleanup"
+   max_batch_size = 10
+   max_batch_timeout = 30
+   ```
+4. Juga setup cron trigger di wrangler.toml untuk menjalankan cleanup setiap 1 menit:
+   ```toml
+   [triggers]
+   crons = ["* * * * *"]
+   ```
+
+Pastikan cleanup idempotent (jangan proses reservation yang sudah expired).
+```
+
 ### Task 6.6 — Checkout & Payment UI (Buyer)
 
 | Key         | Value                                                      |
@@ -813,6 +1632,34 @@ open http://localhost:4301/events/slug-event # detail event
 2. `apps/buyer/src/pages/payment/[orderId].astro` → ringkasan order, pilih metode bayar, submit → redirect ke payment gateway.
 3. Countdown timer yang real-time (Svelte island atau JS).
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Buyer Portal Protected (B10-B11: Checkout & Payment).
+
+Kerjakan Task T-6.6: Checkout & Payment UI (Buyer).
+Dependensi: T-6.2, T-6.3, T-6.4, T-5.3 sudah selesai.
+
+Di `apps/buyer/`:
+
+1. `src/pages/checkout/[slug].astro` — Checkout page (protected):
+   - Fetch event detail (GET /events/:slug) untuk menampilkan info event + tier tiket.
+   - Form: pilih tier (radio/card selection), pilih jumlah (number input, max = max_tickets_per_order).
+   - Tombol "Reservasi Tiket" → call POST /reservations.
+   - Jika sukses: tampilkan countdown timer (10 menit dari expires_at). Timer real-time (Svelte island dengan setInterval).
+   - Tombol "Lanjut ke Pembayaran" → call POST /orders, lalu redirect ke /payment/[orderId].
+   - Jika SOLD_OUT: tampilkan alert "Tiket habis".
+   - Tombol "Batalkan" → call DELETE /reservations/:id.
+
+2. `src/pages/payment/[orderId].astro` — Payment page (protected):
+   - Fetch order detail (GET /orders/:id).
+   - Ringkasan: event name, tier, quantity, harga, total.
+   - Pilih metode bayar (bank_transfer, e_wallet, credit_card, virtual_account).
+   - Countdown batas waktu bayar (30 menit dari order.expires_at).
+   - Tombol "Bayar Sekarang" → call POST /payments/:orderId/pay. Redirect ke payment gateway URL (atau show success jika mock).
+
+Gunakan Svelte island components untuk countdown timer dan form interaktif.
+```
+
 ### Task 6.7 — Order History UI (Buyer)
 
 | Key         | Value                                                      |
@@ -824,6 +1671,32 @@ open http://localhost:4301/events/slug-event # detail event
 **Instruksi:**
 1. `apps/buyer/src/pages/orders/index.astro` → list order + badge status.
 2. `apps/buyer/src/pages/orders/[id].astro` → detail order + items + payment info.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Buyer Portal Protected (B12-B13: Order History).
+
+Kerjakan Task T-6.7: Order History UI (Buyer).
+Dependensi: T-6.3 dan T-5.2 sudah selesai.
+
+Di `apps/buyer/`:
+
+1. `src/pages/orders/index.astro` — Order list page (protected):
+   - Fetch GET /orders (paginated).
+   - Tabel/card list: order_number, event name, tanggal order, total_amount, status (badge berwarna: pending=kuning, confirmed=hijau, expired=abu, cancelled=merah, refunded=biru).
+   - Klik row → navigate ke /orders/[id].
+   - Pagination.
+
+2. `src/pages/orders/[id].astro` — Order detail page (protected):
+   - Fetch GET /orders/:id.
+   - Info order: order_number, status badge, tanggal.
+   - Item list: tier name, quantity, unit_price, subtotal.
+   - Payment info: method, status, paid_at.
+   - Jika status confirmed: link ke tiket (/tickets).
+   - Jika status pending: tombol "Bayar Sekarang" → redirect ke /payment/[orderId].
+
+Protect kedua halaman: redirect ke /login jika belum login.
+```
 
 **Checkpoint Phase 6:**
 ```bash
@@ -855,6 +1728,34 @@ open http://localhost:4301/events/slug-event # detail event
 3. API: `GET /tickets` → list tiket milik buyer.
 4. API: `GET /tickets/:id` → detail tiket + QR data.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Ticket API (E33-E34) dan DATABASE_DESIGN.md (tabel tickets, order_items, orders).
+
+Kerjakan Task T-7.1: Ticket Generation.
+Dependensi: T-6.4 sudah selesai.
+
+Buat file `apps/api/src/services/ticket-generator.ts`:
+
+1. Export fungsi generateTickets(orderId: string):
+   - Query order_items WHERE order_id = orderId (join ticket_tiers untuk nama tier).
+   - Untuk setiap order_item, loop quantity kali:
+     - Generate ticket_code = 'JVX-' + nanoid(12) (install nanoid).
+     - Insert ke tabel tickets: order_item_id, ticket_code, status = 'valid'.
+   - Return array of generated tickets.
+
+2. Integrasikan di payment webhook (apps/api/src/routes/payments.ts):
+   - Setelah payment status = success dan order = confirmed, panggil generateTickets(orderId).
+
+Buat file `apps/api/src/routes/tickets.ts` sebagai Hono router (buyer-only):
+
+3. GET /tickets — List semua tiket milik buyer (join orders, order_items, ticket_tiers, events). Filter: orders.user_id = currentUser.id. Return: ticket_code, event name, tier name, status, event date.
+
+4. GET /tickets/:id — Detail tiket: ticket_code (untuk QR), event info, tier info, status, checkin info jika ada. Validasi: tiket milik user.
+
+Mount di index.ts.
+```
+
 ### Task 7.2 — Ticket UI (Buyer)
 
 | Key         | Value                                                      |
@@ -866,6 +1767,34 @@ open http://localhost:4301/events/slug-event # detail event
 **Instruksi:**
 1. `apps/buyer/src/pages/tickets/index.astro` → list tiket aktif.
 2. `apps/buyer/src/pages/tickets/[id].astro` → detail tiket + QR code rendered dari `ticket_code`. Gunakan QR code library (misal `qrcode`).
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Buyer Portal Protected (B14-B15: Tickets).
+
+Kerjakan Task T-7.2: Ticket UI (Buyer).
+Dependensi: T-7.1 dan T-5.2 sudah selesai.
+
+Di `apps/buyer/`:
+
+1. Install QR code library: pnpm add qrcode (di workspace apps/buyer).
+
+2. `src/pages/tickets/index.astro` — Ticket list page (protected):
+   - Fetch GET /tickets.
+   - Card grid: setiap tiket tampilkan event name, tier name, tanggal event, ticket_code (sebagian, misal JVX-XXXX****), status badge (valid=hijau, used=abu).
+   - Klik card → navigate ke /tickets/[id].
+   - Group by event (jika punya beberapa tiket untuk event yang sama).
+
+3. `src/pages/tickets/[id].astro` — Ticket detail page (protected):
+   - Fetch GET /tickets/:id.
+   - Tampilkan: event name, event date & venue, tier name, ticket_code.
+   - QR Code besar (render dari ticket_code menggunakan library qrcode). Gunakan Svelte island untuk QR rendering.
+   - Status badge: valid/used.
+   - Jika used: tampilkan checkin time.
+   - Tombol "Download QR" (save as PNG).
+
+Protect kedua halaman: redirect ke /login jika belum login.
+```
 
 ### Task 7.3 — Check-in API & UI (Seller)
 
@@ -887,6 +1816,42 @@ open http://localhost:4301/events/slug-event # detail event
    - Tampilkan status: Valid ✅ / Already Used ⚠️ / Invalid ❌.
    - Live statistik check-in.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Portal (S13) dan Check-in API (E35-E36), DATABASE_DESIGN.md (tabel tickets, ticket_checkins).
+
+Kerjakan Task T-7.3: Check-in API & UI (Seller).
+Dependensi: T-7.1 dan T-4.4 sudah selesai.
+
+Buat/tambahkan di `apps/api/src/routes/seller.ts` (atau file terpisah `seller-checkin.ts`):
+
+1. POST /seller/events/:id/checkin — Input: {ticket_code}. Logika:
+   - Validasi: seller adalah pemilik event ini.
+   - Query ticket by ticket_code (join order_items, ticket_tiers) WHERE ticket_tiers.event_id = :id.
+   - Cek: ticket ada → jika tidak: return { status: 'INVALID' }.
+   - Cek: ticket.status = 'valid' → jika 'used': return { status: 'ALREADY_USED', checkin_time }.
+   - Insert ke ticket_checkins: ticket_id, checked_in_by = seller.id, checked_in_at = now.
+   - Update ticket: status = 'used'.
+   - Return { status: 'SUCCESS', ticket_code, buyer_name, tier_name }.
+
+2. GET /seller/events/:id/checkin/stats — Return:
+   - total_tickets: count tickets for this event.
+   - checked_in: count tickets with status = 'used'.
+   - remaining: total_tickets - checked_in.
+   - percentage: (checked_in / total_tickets * 100).
+
+Di `apps/seller/`:
+
+3. `src/routes/events/[id]/checkin/+page.svelte`:
+   - Input field besar untuk scan/ketik ticket_code + tombol "Check-in".
+   - Call POST /seller/events/:id/checkin.
+   - Tampilkan hasil: SUCCESS (hijau + buyer name + tier), ALREADY_USED (kuning + waktu checkin), INVALID (merah).
+   - Live statistik di sidebar: total, checked-in, remaining, progress bar.
+   - History list: 10 terakhir check-in.
+
+Mount API routes di index.ts.
+```
+
 ### Task 7.4 — Notification System
 
 | Key         | Value                                                      |
@@ -907,6 +1872,38 @@ open http://localhost:4301/events/slug-event # detail event
 3. API: `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`.
 4. Admin API: `POST /admin/notifications/broadcast`.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Notification API (E41-E43, E61) dan DATABASE_DESIGN.md (tabel notifications, enum notification_type).
+
+Kerjakan Task T-7.4: Notification System.
+Dependensi: T-6.5 dan T-2.1 sudah selesai.
+
+Buat file `apps/api/src/services/notification-service.ts`:
+
+1. Export fungsi sendNotification(userId: string, type: NotificationType, title: string, body: string, metadata?: object):
+   - Insert ke tabel notifications: user_id, type, title, body, metadata (jsonb), is_read = false.
+   - Return notification record.
+
+2. Integrasikan trigger di berbagai tempat (update file yang sudah ada):
+   - `routes/payments.ts` (payment webhook success): sendNotification(buyerId, 'order_confirmed', 'Pesanan Dikonfirmasi', 'Order {order_number} berhasil dibayar.').
+   - `routes/payments.ts` (payment webhook success): sendNotification(sellerId, 'new_order', 'Pesanan Baru', 'Ada pesanan baru untuk event {event_name}.').
+   - `queues/reservation-cleanup.ts` (menjelang expire): sendNotification(buyerId, 'payment_reminder', 'Segera Bayar', 'Reservasi Anda akan expired dalam 2 menit.').
+   - `routes/admin.ts` (approve event): sendNotification(sellerId, 'event_approved', 'Event Disetujui', 'Event {event_name} sudah dipublikasikan.').
+   - `routes/admin.ts` (reject event): sendNotification(sellerId, 'event_rejected', 'Event Ditolak', 'Event {event_name} ditolak. Alasan: {reason}.').
+
+Buat file `apps/api/src/routes/notifications.ts` sebagai Hono router (authenticated):
+
+3. GET /notifications — List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
+4. PATCH /notifications/:id/read — Mark satu notifikasi as read. Validasi: milik user.
+5. PATCH /notifications/read-all — Mark semua notifikasi user as read.
+
+Buat di admin routes:
+6. POST /admin/notifications/broadcast — Admin kirim notifikasi ke semua user atau by role. Input: {title, body, target_role?: 'buyer'|'seller'|'all'}.
+
+Mount di index.ts.
+```
+
 ### Task 7.5 — Seller Order View
 
 | Key         | Value                                                      |
@@ -921,6 +1918,40 @@ open http://localhost:4301/events/slug-event # detail event
 3. UI: `apps/seller/src/routes/orders/+page.svelte` → tabel pesanan.
 4. UI: `apps/seller/src/routes/orders/[id]/+page.svelte` → detail pesanan.
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Portal (S11-S12) dan Seller Order API (E37-E38), DATABASE_DESIGN.md (tabel orders, order_items, events, ticket_tiers).
+
+Kerjakan Task T-7.5: Seller Order View.
+Dependensi: T-4.4 dan T-6.3 sudah selesai.
+
+Buat/tambahkan di `apps/api/src/routes/seller.ts`:
+
+1. GET /seller/orders — List order untuk event milik seller. Logika:
+   - Query orders JOIN order_items JOIN ticket_tiers JOIN events WHERE events.seller_id = currentUser.seller_profile_id.
+   - Pagination (page, limit). Filter by: event_id (optional), status (optional).
+   - Return: order_number, buyer name, event name, total_amount, status, created_at.
+
+2. GET /seller/orders/:id — Detail order. Validasi: order untuk event milik seller.
+   - Return: order data + order_items (tier name, quantity, unit_price) + buyer info (name, email) + payment status.
+
+Di `apps/seller/`:
+
+3. `src/routes/orders/+page.svelte`:
+   - Tabel pesanan: kolom order_number, event, buyer, total, status (badge), tanggal.
+   - Filter dropdown: by event, by status.
+   - Pagination.
+   - Klik row → navigate ke /orders/[id].
+
+4. `src/routes/orders/[id]/+page.svelte`:
+   - Detail pesanan: order_number, status badge, tanggal.
+   - Buyer info: nama, email.
+   - Item list: tier, quantity, harga, subtotal.
+   - Payment info: method, status, paid_at.
+
+Mount API routes di index.ts.
+```
+
 ### Task 7.6 — Seller Notification UI
 
 | Key         | Value                                                      |
@@ -933,6 +1964,30 @@ open http://localhost:4301/events/slug-event # detail event
 1. `apps/seller/src/routes/notifications/+page.svelte` → daftar notifikasi seller.
 2. Tampilkan notifikasi: pesanan baru, event approved/rejected, dll.
 3. Mark as read / mark all as read.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Portal (S16: Notifications).
+
+Kerjakan Task T-7.6: Seller Notification UI.
+Dependensi: T-7.4 dan T-4.4 sudah selesai.
+
+Di `apps/seller/`:
+
+1. `src/routes/notifications/+page.svelte`:
+   - Fetch GET /notifications (pagination).
+   - List notifikasi: icon berdasarkan type (new_order=shopping-cart, event_approved=check-circle, event_rejected=x-circle, dll), title, body, waktu (relative: "5 menit lalu").
+   - Notifikasi unread: background highlight (misalnya bg-blue-50).
+   - Klik notifikasi → mark as read (PATCH /notifications/:id/read).
+   - Tombol "Mark All as Read" di atas → PATCH /notifications/read-all.
+   - Badge unread count di sidebar navigation (notification icon + count badge).
+
+2. Update layout `src/routes/+layout.svelte`:
+   - Di sidebar/topbar, tambahkan notification bell icon.
+   - Fetch unread count dari GET /notifications (ambil total unread dari response).
+   - Badge merah di atas bell icon jika ada unread.
+   - Klik bell → navigate ke /notifications.
+```
 
 **Checkpoint Phase 7:**
 ```bash
@@ -960,6 +2015,35 @@ open http://localhost:4301/events/slug-event # detail event
 3. Server broadcast message format: `{ type: "availability", data: { tierId: string, remaining: number }[] }`.
 4. API → PartyKit: setelah Durable Object update availability, POST ke PartyKit room untuk broadcast ke semua connected clients.
 
+**Prompt:**
+```
+Baca file README.md bagian "Real-time" (PartyKit) dan DATABASE_DESIGN.md (tabel ticket_tiers).
+
+Kerjakan Task T-8.1: PartyKit Server Setup.
+Dependensi: T-6.1 sudah selesai.
+
+1. Setup PartyKit di monorepo:
+   - Buat folder `apps/partykit/` (atau `packages/partykit/`).
+   - `pnpm init` + install partykit: `pnpm add partykit partysocket`.
+   - Buat `partykit.json`: { "name": "jeevatix-realtime", "main": "src/server.ts" }.
+
+2. Buat `apps/partykit/src/server.ts`:
+   - Export default class Server implements Party.Server.
+   - Room naming: `event-{eventId}`.
+   - onConnect(conn): kirim current availability ke client baru.
+   - onMessage(message, sender): handle request dari API.
+   - Method broadcastAvailability(data: { tierId: string, remaining: number }[]):
+     - this.room.broadcast(JSON.stringify({ type: 'availability', data })).
+   - HTTP handler (onRequest): menerima POST dari API untuk trigger broadcast.
+     - Validasi secret token dari header (keamanan: hanya API yang boleh trigger).
+
+3. Update Durable Object (`apps/api/src/durable-objects/ticket-reserver.ts`):
+   - Setelah reserve() atau cancelReservation() berhasil: POST ke PartyKit room:
+     fetch(`https://{PARTYKIT_HOST}/parties/main/event-{eventId}`, { method: 'POST', headers: { 'X-Party-Secret': env.PARTY_SECRET }, body: JSON.stringify({ type: 'availability', data: [{ tierId, remaining }] }) }).
+
+4. Tambahkan script di root package.json: "dev:partykit": "cd apps/partykit && npx partykit dev".
+```
+
 ### Task 8.2 — PartyKit Client Integration
 
 | Key         | Value                                                      |
@@ -972,6 +2056,37 @@ open http://localhost:4301/events/slug-event # detail event
 1. `apps/buyer/src/pages/events/[slug].astro` → Svelte island yang connect ke PartyKit room, update jumlah tiket tersedia secara live.
 2. `apps/buyer/src/pages/checkout/[slug].astro` → live stock countdown, jika sold out saat checkout maka tampilkan alert.
 3. Gunakan `partysocket` client library.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Buyer Portal (B7: Event Detail, B10: Checkout).
+
+Kerjakan Task T-8.2: PartyKit Client Integration.
+Dependensi: T-8.1, T-5.3, dan T-6.6 sudah selesai.
+
+Di `apps/buyer/`:
+
+1. Install: pnpm add partysocket (di workspace apps/buyer).
+
+2. Buat Svelte island component `src/components/LiveAvailability.svelte`:
+   - Props: eventId (string), initialTiers (array of { tierId, remaining }).
+   - onMount: connect ke PartyKit room menggunakan partysocket:
+     const socket = new PartySocket({ host: PARTYKIT_HOST, room: `event-${eventId}` }).
+   - socket.onmessage: parse JSON, jika type = 'availability' → update reactive state tiers.
+   - onDestroy: socket.close().
+   - Render: untuk setiap tier, tampilkan nama tier + "Sisa: {remaining} tiket" (warna berubah: hijau > 50%, kuning 10-50%, merah < 10%, hitam 0).
+
+3. Update `src/pages/events/[slug].astro`:
+   - Render LiveAvailability island dengan client:visible directive.
+   - Pass initialTiers dari server-side fetch.
+
+4. Update `src/pages/checkout/[slug].astro`:
+   - Embed LiveAvailability di bagian atas checkout.
+   - Jika remaining = 0 saat user sedang checkout: tampilkan modal alert "Tiket habis, reservasi Anda mungkin tidak berhasil".
+   - Disable tombol "Reservasi" jika remaining = 0.
+
+Pastikan WebSocket auto-reconnect jika koneksi terputus.
+```
 
 **Checkpoint Phase 8:**
 ```bash
@@ -999,6 +2114,34 @@ open http://localhost:4301/events/slug-event # detail event
    - Tabel: pesanan terbaru (5 terbaru).
    - Grafik: penjualan tiket per hari (30 hari terakhir).
 
+**Prompt:**
+```
+Baca file PAGES.md bagian Seller Portal (S5: Dashboard, E39-E40).
+
+Kerjakan Task T-9.1: Seller Dashboard.
+Dependensi: T-7.5 sudah selesai.
+
+Buat/tambahkan API di `apps/api/src/routes/seller.ts`:
+
+1. GET /seller/dashboard — Aggregate data untuk seller:
+   - total_events: count events WHERE seller_id = current.
+   - total_revenue: sum orders.total_amount WHERE order status = confirmed, event milik seller.
+   - total_tickets_sold: sum order_items.quantity WHERE order confirmed, event milik seller.
+   - upcoming_events: count events WHERE start_date > now, seller_id = current.
+   - recent_orders: 5 order terbaru (join events).
+   - daily_sales: array of { date, tickets_sold, revenue } untuk 30 hari terakhir (GROUP BY DATE(orders.created_at)).
+
+Di `apps/seller/`:
+
+2. `src/routes/+page.svelte` (dashboard halaman utama):
+   - Fetch GET /seller/dashboard di load function.
+   - Cards (grid 2x2): Total Event, Total Revenue (format Rupiah), Total Tiket Terjual, Event Mendatang.
+   - Tabel "Pesanan Terbaru": order_number, event, buyer, total, status, tanggal. Link ke /orders/[id].
+   - Grafik line chart: penjualan tiket per hari 30 hari terakhir. Gunakan library chart sederhana (Chart.js atau custom SVG).
+
+Install chart library jika perlu: pnpm add chart.js (di workspace apps/seller).
+```
+
 ### Task 9.2 — Admin Dashboard
 
 | Key         | Value                                                      |
@@ -1013,6 +2156,39 @@ open http://localhost:4301/events/slug-event # detail event
    - Cards: total user, total seller, total event, total revenue.
    - Grafik: transaksi harian (30 hari).
    - Tabel: event terbaru, pesanan terbaru.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Admin Portal (A2: Dashboard, E44).
+
+Kerjakan Task T-9.2: Admin Dashboard.
+Dependensi: T-3.5 sudah selesai.
+
+Buat/tambahkan API di `apps/api/src/routes/admin.ts`:
+
+1. GET /admin/dashboard — Aggregate seluruh platform:
+   - total_users: count users.
+   - total_sellers: count users WHERE role = seller.
+   - total_buyers: count users WHERE role = buyer.
+   - total_events: count events.
+   - total_events_published: count events WHERE status = published.
+   - total_revenue: sum orders.total_amount WHERE status = confirmed.
+   - total_tickets_sold: sum order_items.quantity WHERE order confirmed.
+   - daily_transactions: array of { date, orders_count, revenue } 30 hari (GROUP BY DATE).
+   - recent_events: 5 event terbaru.
+   - recent_orders: 5 order terbaru.
+
+Di `apps/admin/`:
+
+2. `src/routes/+page.svelte` (dashboard):
+   - Fetch GET /admin/dashboard di load function.
+   - Cards (grid 2x3): Total User, Total Seller, Total Event, Total Revenue, Tiket Terjual, Event Published.
+   - Grafik bar chart: transaksi harian 30 hari.
+   - Tabel "Event Terbaru": name, seller, status, tanggal.
+   - Tabel "Pesanan Terbaru": order_number, buyer, total, status.
+
+Install chart library jika perlu.
+```
 
 ### Task 9.3 — Admin Order & Payment Management
 
@@ -1029,6 +2205,51 @@ open http://localhost:4301/events/slug-event # detail event
 4. Admin Notification page: `A14`.
 5. Admin Reservation monitor: `A15`.
 6. Implement semua API endpoints E50–E56, E62.
+
+**Prompt:**
+```
+Baca file PAGES.md bagian Admin Portal (A7-A12, A14-A15) dan API (E50-E56, E62).
+Baca file DATABASE_DESIGN.md (tabel events, orders, payments, notifications, reservations).
+
+Kerjakan Task T-9.3: Admin Order & Payment Management.
+Dependensi: T-3.2, T-6.3, T-6.4 sudah selesai.
+
+Buat/tambahkan API di `apps/api/src/routes/admin.ts`:
+
+1. Event Management:
+   - GET /admin/events — List semua event. Filter: status, seller_id, search. Pagination.
+   - GET /admin/events/:id — Detail event + tiers + seller info.
+   - PATCH /admin/events/:id/status — Ubah status (publish, reject, dll). Trigger notifikasi ke seller.
+
+2. Order Management:
+   - GET /admin/orders — List semua order. Filter: status, event_id, search. Pagination.
+   - GET /admin/orders/:id — Detail order + items + payment + buyer info.
+   - POST /admin/orders/:id/refund — Proses refund: update order status = refunded, payment status = refunded. Trigger notifikasi.
+   - POST /admin/orders/:id/cancel — Cancel order: update order, restore stok.
+
+3. Payment Management:
+   - GET /admin/payments — List payments. Filter: status, method. Pagination.
+   - GET /admin/payments/:id — Detail payment.
+   - PATCH /admin/payments/:id/status — Manual update status (untuk resolve masalah).
+
+4. Notification Management:
+   - GET /admin/notifications — List semua notifikasi platform.
+
+5. Reservation Monitor:
+   - GET /admin/reservations — List active reservations. Monitor health.
+
+Di `apps/admin/`, buat halaman untuk setiap fitur:
+- A7: `src/routes/events/+page.svelte` — tabel event + filter.
+- A8: `src/routes/events/[id]/+page.svelte` — detail event + aksi status.
+- A9: `src/routes/orders/+page.svelte` — tabel order.
+- A10: `src/routes/orders/[id]/+page.svelte` — detail order + aksi.
+- A11: `src/routes/payments/+page.svelte` — tabel payment.
+- A12: `src/routes/payments/[id]/+page.svelte` — detail payment.
+- A14: `src/routes/notifications/+page.svelte` — broadcast notification.
+- A15: `src/routes/reservations/+page.svelte` — monitoring.
+
+Gunakan komponen tabel dari shadcn-svelte. Setiap halaman punya filter, pagination, dan aksi.
+```
 
 **Checkpoint Phase 9:**
 ```bash
@@ -1066,6 +2287,34 @@ open http://localhost:4301/events/slug-event # detail event
    - Check-in flow (scan code → validate → record).
 4. Target: minimal 80% coverage pada `apps/api`.
 
+**Prompt:**
+```
+Baca file DEVELOPMENT_PLAN.md secara keseluruhan untuk memahami semua fitur yang sudah diimplementasi.
+
+Kerjakan Task T-10.1: Unit & Integration Tests.
+Dependensi: Phase 1–9 sudah selesai.
+
+1. Setup Vitest di semua apps & packages:
+   - Install: pnpm add -D vitest @vitest/coverage-v8 di root.
+   - Buat vitest.config.ts di apps/api, packages/core.
+   - Tambahkan script: "test": "vitest run", "test:coverage": "vitest run --coverage".
+
+2. Unit tests (buat di folder __tests__/ di setiap module):
+   - `packages/core/src/__tests__/password.test.ts`: hash & verify password.
+   - `packages/core/src/__tests__/jwt.test.ts`: generate, verify, expired token.
+   - `apps/api/src/__tests__/order-number.test.ts`: format JVX-YYYYMMDD-XXXXX.
+   - `apps/api/src/__tests__/ticket-code.test.ts`: format JVX- + 12 char, uniqueness.
+   - `apps/api/src/__tests__/ticket-reserver.test.ts`: Durable Object reservation logic (mock), concurrency, sold out, cancel.
+
+3. Integration tests (gunakan Vitest + miniflare atau mock DB):
+   - `apps/api/src/__tests__/auth.integration.test.ts`: register → verify email → login → refresh token → access protected endpoint.
+   - `apps/api/src/__tests__/events.integration.test.ts`: seller create event → admin approve → buyer list (should appear) → buyer detail.
+   - `apps/api/src/__tests__/transaction.integration.test.ts`: reserve → order → pay → ticket generated.
+   - `apps/api/src/__tests__/checkin.integration.test.ts`: scan code → validate → record → scan again (already used).
+
+4. Run: pnpm run test. Target: minimal 80% coverage di apps/api.
+```
+
 ### Task 10.2 — E2E Tests (Playwright)
 
 | Key         | Value                                                      |
@@ -1082,6 +2331,48 @@ open http://localhost:4301/events/slug-event # detail event
    - **Buyer:** Register → browse event → checkout → bayar → lihat tiket.
 3. Minimal 1 E2E test per halaman.
 
+**Prompt:**
+```
+Kerjakan Task T-10.2: E2E Tests (Playwright).
+Dependensi: T-10.1 sudah selesai.
+
+1. Setup Playwright:
+   - Install: pnpm add -D @playwright/test di root.
+   - npx playwright install (install browsers).
+   - Buat playwright.config.ts di root: baseURL per portal (buyer :4301, admin :4302, seller :4303).
+   - Buat folder `tests/e2e/`.
+
+2. Test files:
+   - `tests/e2e/admin-flow.spec.ts`:
+     - Login sebagai admin.
+     - Buat kategori baru.
+     - Verifikasi seller → cek status seller berubah.
+     - Lihat dashboard → cek cards tampil.
+     - Logout.
+
+   - `tests/e2e/seller-flow.spec.ts`:
+     - Register sebagai seller.
+     - Login.
+     - Buat event baru + tier tiket.
+     - Lihat event di list.
+     - Lihat pesanan (setelah ada transaksi).
+     - Scan check-in.
+     - Logout.
+
+   - `tests/e2e/buyer-flow.spec.ts`:
+     - Register sebagai buyer.
+     - Login.
+     - Browse events di homepage.
+     - Buka event detail.
+     - Checkout: reservasi + order + bayar.
+     - Lihat tiket → QR code muncul.
+     - Lihat order history.
+     - Logout.
+
+3. Tambahkan script: "test:e2e": "playwright test".
+4. Jalankan: pnpm run test:e2e.
+```
+
 ### Task 10.3 — Load Testing (K6)
 
 | Key         | Value                                                      |
@@ -1097,6 +2388,34 @@ open http://localhost:4301/events/slug-event # detail event
    - Response time P95 < 2 detik.
    - Durable Object menangani concurrency dengan benar.
 3. Simulasi checkout flow: 500 users end-to-end (reserve → order → pay).
+
+**Prompt:**
+```
+Kerjakan Task T-10.3: Load Testing (K6).
+Dependensi: T-10.1 sudah selesai.
+
+1. Install K6 (brew install k6 atau download binary).
+2. Buat folder `tests/load/`.
+
+3. `tests/load/war-ticket.js`:
+   - Import { check, sleep } from 'k6'.
+   - Import http from 'k6/http'.
+   - Options: { stages: [{ duration: '10s', target: 1000 }], thresholds: { http_req_duration: ['p(95)<2000'], http_req_failed: ['rate<0.3'] } }.
+   - Setup: login sebagai pre-created test users (buat skrip seed 1000 test user).
+   - Default function: POST /reservations { ticket_tier_id: TARGET_TIER, quantity: 1 }.
+   - Setiap user coba reservasi 1 tiket ke tier yang sama.
+   - Check: response status 200 atau 409 (sold out).
+   - Teardown: query DB: SELECT sold_count FROM ticket_tiers WHERE id = TARGET_TIER. Assert: sold_count <= quota (TIDAK ADA OVERSELLING).
+
+4. `tests/load/checkout-flow.js`:
+   - 500 virtual users.
+   - Flow: POST /reservations → POST /orders → POST /payments/:orderId/pay.
+   - Verifikasi: setiap step return expected status.
+   - Thresholds: P95 < 3 detik untuk full flow.
+
+5. Tambahkan script: "test:load": "k6 run tests/load/war-ticket.js".
+6. Jalankan dan analisis hasil.
+```
 
 ### Task 10.4 — Security Review
 
@@ -1121,6 +2440,44 @@ open http://localhost:4301/events/slug-event # detail event
 - [ ] CORS configuration.
 - [ ] Sensitive data tidak masuk log.
 
+**Prompt:**
+```
+Kerjakan Task T-10.4: Security Review.
+Dependensi: T-10.1 sudah selesai.
+
+Lakukan security review menyeluruh pada seluruh codebase. Gunakan checklist berikut:
+
+1. Input Validation: Pastikan semua API endpoint menggunakan Zod schema validation.
+   - Cek setiap route: apakah ada body/params/query validation.
+   - Fix yang belum ada.
+
+2. SQL Injection: Verifikasi semua query menggunakan Drizzle ORM (parameterized). Cari raw SQL query dan pastikan tidak ada string concatenation.
+
+3. XSS Prevention: Di semua frontend (buyer, seller, admin), pastikan tidak ada {@html ...} tanpa sanitization untuk user-generated content.
+
+4. CSRF Protection: Verifikasi token-based auth (JWT) sudah cukup atau perlu tambahan CSRF token untuk cookie-based sessions.
+
+5. Rate Limiting: Tambahkan rate limiter di:
+   - POST /auth/login (max 5 per menit per IP).
+   - POST /auth/register (max 3 per menit per IP).
+   - POST /reservations (max 10 per menit per user).
+   Gunakan Cloudflare Rate Limiting atau implementation di middleware.
+
+6. Webhook Security: Verifikasi POST /webhooks/payment memvalidasi signature header.
+
+7. Authorization: Cek setiap endpoint: user hanya akses data miliknya, seller hanya event miliknya, admin check di semua admin routes.
+
+8. Password: Verifikasi menggunakan bcrypt atau argon2 (BUKAN md5/sha).
+
+9. JWT: Verifikasi expiry, refresh token rotation, dan token tidak mengandung sensitive data.
+
+10. CORS: Verifikasi allowedOrigins hanya berisi domain yang valid.
+
+11. Logging: Pastikan password, JWT token, dan data sensitif tidak masuk ke log/error tracking.
+
+Buat file `SECURITY_REVIEW.md` berisi hasil review dan status setiap item.
+```
+
 ### Task 10.5 — CI/CD Pipeline
 
 | Key         | Value                                                      |
@@ -1141,6 +2498,72 @@ open http://localhost:4301/events/slug-event # detail event
    - Deploy via SST: `pnpm run deploy --stage production`.
    - Post-deploy: run smoke tests.
 
+**Prompt:**
+```
+Kerjakan Task T-10.5: CI/CD Pipeline.
+Dependensi: T-10.1 dan T-10.2 sudah selesai.
+
+1. Buat `.github/workflows/ci.yml`:
+   ```yaml
+   name: CI
+   on:
+     pull_request:
+       branches: [main]
+   jobs:
+     ci:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: pnpm/action-setup@v4
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 20
+             cache: pnpm
+         - run: pnpm install --frozen-lockfile
+         - run: pnpm run lint
+         - run: pnpm run typecheck
+         - run: pnpm run test
+         - run: pnpm run build
+   ```
+
+2. Buat `.github/workflows/deploy.yml`:
+   ```yaml
+   name: Deploy
+   on:
+     push:
+       branches: [main]
+   jobs:
+     deploy:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - uses: pnpm/action-setup@v4
+         - uses: actions/setup-node@v4
+           with:
+             node-version: 20
+             cache: pnpm
+         - run: pnpm install --frozen-lockfile
+         - run: pnpm run lint
+         - run: pnpm run typecheck
+         - run: pnpm run test
+         - run: pnpm run build
+         - run: pnpm run deploy --stage production
+           env:
+             CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+         - name: Smoke Test
+           run: |
+             curl -f https://api.jeevatix.com/health || exit 1
+             curl -f https://jeevatix.com || exit 1
+   ```
+
+3. Tambahkan scripts di root package.json:
+   - "lint": "turbo run lint"
+   - "typecheck": "turbo run typecheck"
+   - "test": "turbo run test"
+   - "build": "turbo run build"
+   - "deploy": "sst deploy"
+```
+
 ### Task 10.6 — Production Deploy
 
 | Key         | Value                                                      |
@@ -1156,6 +2579,42 @@ open http://localhost:4301/events/slug-event # detail event
 4. Deploy: `pnpm run deploy --stage production`.
 5. Verify: semua 3 portal accessible, API responding, WebSocket connected.
 
+**Prompt:**
+```
+Kerjakan Task T-10.6: Production Deploy.
+Dependensi: T-10.5 sudah selesai.
+
+1. Environment Variables — Set di Cloudflare Dashboard atau SST secrets:
+   - DATABASE_URL: connection string PostgreSQL production.
+   - JWT_SECRET: random 64 char string (generate dengan openssl rand -hex 32).
+   - JWT_REFRESH_SECRET: random 64 char berbeda.
+   - PARTY_SECRET: random string untuk PartyKit auth.
+   - PAYMENT_WEBHOOK_SECRET: dari payment gateway.
+   - RESEND_API_KEY: dari Resend (atau Mailgun API key).
+   - R2_BUCKET_NAME: nama bucket R2.
+   Jalankan: sst secret set JWT_SECRET "xxxxx" --stage production (untuk setiap secret).
+
+2. Cloudflare Hyperdrive:
+   - Buat Hyperdrive config di Cloudflare dashboard: point ke production PostgreSQL.
+   - Update wrangler.toml / sst.config.ts: hyperdrive binding = production config ID.
+
+3. Database Migration:
+   - pnpm --filter api run db:migrate (terhadap production DB).
+   - Verifikasi: 15 tabel + 10 enum terbuat.
+   - Seed admin user: INSERT INTO users (name, email, password_hash, role) VALUES ('Admin', 'admin@jeevatix.com', HASHED_PASSWORD, 'admin').
+
+4. Deploy:
+   - pnpm run deploy --stage production.
+   - Atau: sst deploy --stage production.
+
+5. Verify:
+   - API: curl https://api.jeevatix.com/health → 200 OK.
+   - Buyer: buka https://jeevatix.com → homepage load.
+   - Admin: buka https://admin.jeevatix.com → login page.
+   - Seller: buka https://seller.jeevatix.com → login page.
+   - WebSocket: buka event detail, verifikasi PartyKit connection di DevTools.
+```
+
 ### Task 10.7 — Monitoring & Error Tracking
 
 | Key         | Value                                                      |
@@ -1169,6 +2628,42 @@ open http://localhost:4301/events/slug-event # detail event
 2. Konfigurasi Cloudflare Analytics untuk traffic monitoring.
 3. Setup alert untuk error rate tinggi dan response time anomali.
 4. Pastikan sensitive data (password, token) tidak masuk ke log.
+
+**Prompt:**
+```
+Kerjakan Task T-10.7: Monitoring & Error Tracking.
+Dependensi: T-10.6 sudah selesai.
+
+1. Error Tracking (pilih salah satu):
+   Option A — Sentry:
+   - Install: pnpm add @sentry/cloudflare di apps/api.
+   - Buat `apps/api/src/middleware/sentry.ts`: init Sentry dengan DSN dari env.
+   - Wrap Hono app: app.use('*', sentryMiddleware).
+   - Setup Sentry project di sentry.io untuk frontend juga:
+     - pnpm add @sentry/svelte di apps/admin, apps/seller.
+     - pnpm add @sentry/browser di apps/buyer.
+
+   Option B — Cloudflare Logpush:
+   - Aktifkan Logpush di Cloudflare dashboard.
+   - Target: ke R2 bucket atau external logging service.
+
+2. Cloudflare Analytics:
+   - Aktifkan Cloudflare Web Analytics di dashboard untuk ketiga domain.
+   - Tambahkan analytics snippet di layout HTML setiap portal.
+
+3. Health Check Endpoint:
+   - Pastikan GET /health ada di API: return { status: 'ok', timestamp, version }.
+   - Setup uptime monitoring (Cloudflare Health Check atau UptimeRobot):
+     - Monitor: https://api.jeevatix.com/health (interval: 1 menit).
+     - Alert: email/Slack jika down.
+
+4. Alerting:
+   - Setup alert di Sentry: error rate > 10/menit → notifikasi.
+   - Setup alert di Cloudflare: response time P95 > 3s → notifikasi.
+   - Pastikan password_hash, JWT token, refresh_token tidak pernah muncul di log/error report.
+
+5. Verifikasi: trigger error 500 (misal hit endpoint dengan invalid data). Cek apakah muncul di Sentry/Logpush.
+```
 
 **Checkpoint Phase 10:**
 ```bash
