@@ -160,3 +160,34 @@ pnpm run deploy --stage production
 ## 📝 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## 🤖 AI Development Setup (MCP Servers)
+
+Project ini dikonfigurasi dengan **Model Context Protocol (MCP) servers** untuk mempercepat development menggunakan AI agent. Konfigurasi tersimpan di `.vscode/mcp.json`.
+
+| MCP Server | Fungsi | Penggunaan |
+| ---------- | ------ | ---------- |
+| **filesystem-mcp-server** | Operasi filesystem (baca, tulis, cari, navigasi file dalam project) | Membuat file, membaca struktur project, menulis kode |
+| **shadcn-ui-mcp-server** | Referensi komponen, block, dan tema shadcn/ui | Mendapatkan source code komponen, contoh demo, block template (dashboard, login, sidebar), dan menerapkan tema |
+| **github-mcp-server** | Interaksi dengan GitHub (issues, PR, commits, branch) | Membuat branch, commit, pull request, membaca issues, code review |
+
+### Kapabilitas MCP yang tersedia:
+
+**shadcn-ui-mcp:**
+- `list_components` — Daftar semua komponen shadcn/ui yang tersedia
+- `get_component` / `get_component_demo` — Source code dan contoh penggunaan komponen
+- `list_blocks` / `get_block` — Template block siap pakai (dashboard, login, sidebar, calendar, products)
+- `list_themes` / `apply_theme` — Tema visual yang bisa diterapkan ke project
+
+**github-mcp:**
+- Branch management, commit, push
+- Create & manage pull requests
+- Issue tracking & search
+- Code search across repository
+
+**filesystem-mcp:**
+- Read, write, create, move files
+- Directory tree & file search
+- Multi-file read & edit operations

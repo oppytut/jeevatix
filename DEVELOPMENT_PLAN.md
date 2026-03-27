@@ -5,9 +5,14 @@
 > AI agent harus mengeksekusi task **secara berurutan per fase**, kecuali task dalam fase yang sama boleh paralel jika tidak ada dependensi.
 
 **Dokumen referensi:**
-- `README.md` — Tech stack, arsitektur, monorepo structure
+- `README.md` — Tech stack, arsitektur, monorepo structure, MCP servers
 - `DATABASE_DESIGN.md` — Skema database, 15 tabel, enum, ERD
 - `PAGES.md` — 48 halaman frontend + 64 API endpoints
+
+**MCP Tools tersedia:**
+- `filesystem-mcp-server` — Operasi filesystem (baca/tulis/cari file dalam project)
+- `shadcn-ui-mcp-server` — Referensi komponen, block, dan tema shadcn/ui (gunakan untuk semua task UI)
+- `github-mcp-server` — Interaksi GitHub (branch, commit, PR, issues)
 
 ---
 
@@ -20,6 +25,11 @@
 5. **Ikuti DATABASE_DESIGN.md** untuk skema database. Jangan modifikasi kolom/tabel tanpa instruksi eksplisit.
 6. **Ikuti PAGES.md** untuk route dan API endpoint. Jangan tambah/kurangi halaman tanpa instruksi.
 7. **Setiap fase punya checkpoint.** Jalankan checkpoint command sebelum lanjut ke fase berikutnya.
+8. **Gunakan MCP tools** yang tersedia:
+   - **shadcn-ui MCP**: Untuk semua task UI — gunakan `list_components` untuk melihat komponen tersedia, `get_component` / `get_component_demo` untuk mendapatkan source code & contoh penggunaan, `list_blocks` / `get_block` untuk template block siap pakai (dashboard, login, sidebar), dan `list_themes` / `apply_theme` untuk menerapkan tema.
+   - **filesystem MCP**: Untuk operasi file — gunakan `read_file`, `write_file`, `directory_tree`, `search_files` untuk navigasi dan manipulasi file project.
+   - **github MCP**: Untuk version control — gunakan `create_branch`, `push_files`, `create_pull_request` untuk setiap task/fase yang selesai.
+9. **Satu task = satu commit, satu branch per fase.** Gunakan github MCP untuk membuat branch `feat/phase-X` dan commit setiap task selesai.
 
 ---
 
@@ -321,6 +331,11 @@ Dependensi: T-0.1 sudah selesai.
 5. Buat `src/routes/+page.svelte` — placeholder dashboard "Admin Dashboard".
 6. Konfigurasi dev port: 4302 di vite.config.ts (server.port: 4302).
 
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_components() untuk melihat semua komponen shadcn-svelte yang tersedia.
+- Gunakan shadcn-ui MCP → get_component("sidebar") untuk mendapatkan source code sidebar component.
+- Gunakan shadcn-ui MCP → list_blocks(category: "sidebar") lalu get_block() untuk mendapatkan template sidebar layout.
+
 Verifikasi: `cd apps/admin && pnpm dev` harus start di http://localhost:4302 tanpa error.
 ```
 
@@ -354,6 +369,11 @@ Dependensi: T-0.1 sudah selesai.
 5. Buat `src/routes/+page.svelte` — placeholder "Seller Dashboard".
 6. Konfigurasi dev port: 4303 di vite.config.ts (server.port: 4303).
 
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_components() untuk melihat semua komponen shadcn-svelte yang tersedia.
+- Gunakan shadcn-ui MCP → get_component("sidebar") untuk mendapatkan source code sidebar component.
+- Gunakan shadcn-ui MCP → list_blocks(category: "sidebar") lalu get_block() untuk mendapatkan template sidebar layout.
+
 Verifikasi: `cd apps/seller && pnpm dev` harus start di http://localhost:4303 tanpa error.
 ```
 
@@ -384,6 +404,12 @@ Dependensi: T-0.1 sudah selesai.
 6. Buat `packages/ui/tsconfig.json` (extends root tsconfig.base.json).
 
 Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastikan bisa di-import via @jeevatix/ui.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_components() untuk melihat daftar lengkap semua komponen shadcn-svelte.
+- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card"), dll untuk mendapatkan source code setiap komponen.
+- Gunakan shadcn-ui MCP → list_themes() dan apply_theme() untuk setup tema brand Jeevatix.
+- Gunakan shadcn-ui MCP → get_component_demo("data-table") untuk melihat contoh penggunaan DataTable.
 ```
 
 **Checkpoint Phase 0:**
@@ -878,6 +904,11 @@ Di `apps/admin/`:
 4. Buat auth guard di `src/routes/+layout.server.ts` atau `+layout.ts` — cek apakah user sudah login dan role=admin. Jika belum, redirect ke /login. Exclude halaman /login dari guard.
 
 Gunakan shadcn-svelte components (Button, Input, Card) dari @jeevatix/ui jika tersedia.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_blocks(category: "login") untuk melihat template login page.
+- Gunakan shadcn-ui MCP → get_block("login-01") untuk mendapatkan source code login page lengkap.
+- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card") untuk referensi komponen.
 ```
 
 ### Task 3.3 — Admin Category Management UI
@@ -912,6 +943,10 @@ Buat `src/routes/categories/+page.svelte`:
 6. Setelah setiap aksi CRUD, refresh tabel.
 
 Gunakan shadcn-svelte components: DataTable, Button, Input, Dialog/Modal, Toast.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → get_component("data-table") dan get_component_demo("data-table") untuk referensi dan contoh DataTable.
+- Gunakan shadcn-ui MCP → get_component("dialog"), get_component("toast"), get_component("input") untuk source code komponen.
 ```
 
 ### Task 3.4 — Admin User Management API
@@ -1122,6 +1157,11 @@ Di `apps/seller/`:
 5. Auth guard di layout: redirect ke /login jika belum login atau role bukan seller.
 
 Gunakan shadcn-svelte components.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_blocks(category: "login") lalu get_block() untuk mendapatkan template halaman login.
+- Gunakan shadcn-ui MCP → list_blocks(category: "sidebar") lalu get_block() untuk template sidebar layout.
+- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card") untuk referensi komponen.
 ```
 
 ### Task 4.5 — Seller Event Management UI
@@ -1160,6 +1200,11 @@ Di `apps/seller/`:
 5. `src/routes/events/[id]/tiers/+page.svelte` — CRUD tier tiket: tabel tier + form tambah/edit. Tampilkan sold_count. Disable delete jika sold_count > 0.
 
 Gunakan shadcn-svelte components. Upload gambar via POST /upload (T-2.5).
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → get_component("data-table") dan get_component_demo("data-table") untuk referensi DataTable.
+- Gunakan shadcn-ui MCP → get_component("tabs"), get_component("form"), get_component("select") untuk multi-step form components.
+- Gunakan shadcn-ui MCP → get_component("badge") untuk status badges.
 ```
 
 ### Task 4.6 — Seller Profile UI
@@ -1285,6 +1330,10 @@ Di `apps/buyer/`:
 5. Gunakan komponen shadcn-svelte (Button, Input, Card) dari @jeevatix/ui.
 
 Desain bersih dan responsive. Gunakan TailwindCSS.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_blocks(category: "login") lalu get_block() untuk mendapatkan template halaman login/register.
+- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card") untuk referensi komponen.
 ```
 
 ### Task 5.3 — Homepage & Explore
@@ -1333,6 +1382,12 @@ Di `apps/buyer/`:
 4. `src/routes/categories/[slug]/+page.svelte` + `+page.server.ts` — Event per kategori. Fetch GET /categories/:slug/events. Re-use EventCard component.
 
 Desain modern, responsive. Gunakan TailwindCSS + shadcn-svelte components. Buat reusable Svelte component: EventCard.svelte di `src/lib/components/`.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → get_component("card") dan get_component_demo("card") untuk referensi dan contoh Card component.
+- Gunakan shadcn-ui MCP → get_component("carousel") untuk featured events carousel.
+- Gunakan shadcn-ui MCP → get_component("badge"), get_component("pagination") untuk komponen pendukung.
+- Gunakan shadcn-ui MCP → list_blocks() untuk melihat apakah ada block template yang cocok untuk layout homepage.
 ```
 
 ### Task 5.4 — Buyer Profile & Notifications UI
@@ -1369,6 +1424,10 @@ Di `apps/buyer/`:
    - Tombol "Mark All as Read" → PATCH /notifications/read-all.
 
 Gunakan shadcn-svelte components. Protect halaman: redirect ke /login jika belum login (via +page.server.ts load guard atau hooks).
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → get_component("avatar"), get_component("form"), get_component("input") untuk halaman profil.
+- Gunakan shadcn-ui MCP → get_component("badge") untuk badge notifikasi unread.
 ```
 
 **Checkpoint Phase 5:**
@@ -1661,6 +1720,10 @@ Di `apps/buyer/`:
    - Tombol "Bayar Sekarang" → call POST /payments/:orderId/pay. Redirect ke payment gateway URL (atau show success jika mock).
 
 Gunakan shadcn-svelte components (Button, Card, RadioGroup, Input).
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → get_component("radio-group"), get_component("card"), get_component("button") untuk referensi komponen checkout.
+- Gunakan shadcn-ui MCP → get_component("alert") untuk alert sold out.
 ```
 
 ### Task 6.7 — Order History UI (Buyer)
@@ -2143,6 +2206,10 @@ Di `apps/seller/`:
    - Grafik line chart: penjualan tiket per hari 30 hari terakhir. Gunakan library chart sederhana (Chart.js atau custom SVG).
 
 Install chart library jika perlu: pnpm add chart.js (di workspace apps/seller).
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_blocks(category: "dashboard") lalu get_block() untuk mendapatkan template dashboard layout.
+- Gunakan shadcn-ui MCP → get_component("card"), get_component("data-table") untuk komponen statistik dan tabel.
 ```
 
 ### Task 9.2 — Admin Dashboard
@@ -2191,6 +2258,10 @@ Di `apps/admin/`:
    - Tabel "Pesanan Terbaru": order_number, buyer, total, status.
 
 Install chart library jika perlu.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → list_blocks(category: "dashboard") lalu get_block() untuk mendapatkan template dashboard layout.
+- Gunakan shadcn-ui MCP → get_component("card"), get_component("data-table") untuk komponen statistik dan tabel.
 ```
 
 ### Task 9.3 — Admin Order & Payment Management
@@ -2252,6 +2323,11 @@ Di `apps/admin/`, buat halaman untuk setiap fitur:
 - A15: `src/routes/reservations/+page.svelte` — monitoring.
 
 Gunakan komponen tabel dari shadcn-svelte. Setiap halaman punya filter, pagination, dan aksi.
+
+⚡ MCP Tools:
+- Gunakan shadcn-ui MCP → get_component("data-table") dan get_component_demo("data-table") untuk referensi DataTable.
+- Gunakan shadcn-ui MCP → get_component("badge"), get_component("dialog"), get_component("select") untuk komponen pendukung.
+- Gunakan shadcn-ui MCP → get_component("pagination") untuk navigasi halaman.
 ```
 
 **Checkpoint Phase 9:**
@@ -2565,6 +2641,11 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
    - "test": "turbo run test"
    - "build": "turbo run build"
    - "deploy": "sst deploy"
+
+⚡ MCP Tools:
+- Gunakan github MCP → create_branch("ci/setup-pipeline") untuk buat branch baru.
+- Gunakan github MCP → push_files() untuk commit dan push workflow files.
+- Gunakan github MCP → create_pull_request() untuk membuat PR setelah selesai.
 ```
 
 ### Task 10.6 — Production Deploy
@@ -2834,7 +2915,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 ## Notes for AI Agents
 
 - **Selalu baca dokumen referensi** (DATABASE_DESIGN.md, PAGES.md) sebelum mengerjakan task. Jangan mengarang kolom, route, atau endpoint.
-- **Satu task = satu commit** (jika memungkinkan). Commit message: `feat(T-X.X): <deskripsi singkat>`.
+- **Satu task = satu commit** (jika memungkinkan). Commit message: `feat(T-X.X): <deskripsi singkat>`. Gunakan **github MCP** (`push_files`, `create_pull_request`) untuk version control.
 - **Edge compatibility**: Semua library di `apps/api` HARUS compatible dengan Cloudflare Workers runtime (no Node.js-only APIs). Cek sebelum install.
 - **Validasi input**: Gunakan `zod` di semua API endpoint. Definisikan schema validasi berdekatan dengan route handler.
 - **Error handling**: Gunakan Hono error handler. Response format konsisten: `{ success: boolean, data?: T, error?: { code: string, message: string } }`.
@@ -2842,3 +2923,41 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 - **Concurrent-safe**: Untuk operasi yang melibatkan `sold_count` pada `ticket_tiers`, SELALU gunakan Durable Object. JANGAN langsung update dari API handler.
 - **File upload**: Semua upload gambar harus melalui `POST /upload` (T-2.5) ke Cloudflare R2. Jangan simpan file di filesystem lokal.
 - **Email**: Semua pengiriman email harus async melalui Cloudflare Queue + email service (T-2.6). Jangan kirim email secara sinkron di request handler.
+
+### MCP Tools Cheat Sheet
+
+**Untuk task UI (semua task di Phase 3-9 yang membuat halaman frontend):**
+```
+# Lihat semua komponen shadcn/ui yang tersedia
+shadcn-ui MCP → list_components
+
+# Dapatkan source code komponen (misal: button, data-table, dialog, card)
+shadcn-ui MCP → get_component(componentName: "button")
+shadcn-ui MCP → get_component_demo(componentName: "data-table")
+
+# Template block siap pakai (sangat berguna untuk dashboard, login, sidebar)
+shadcn-ui MCP → list_blocks(category: "dashboard")  # untuk T-9.1, T-9.2
+shadcn-ui MCP → list_blocks(category: "login")       # untuk T-3.2, T-4.4, T-5.2
+shadcn-ui MCP → list_blocks(category: "sidebar")     # untuk layout admin/seller
+shadcn-ui MCP → get_block(blockName: "dashboard-01")  # dapatkan source code block
+
+# Tema visual
+shadcn-ui MCP → list_themes
+shadcn-ui MCP → apply_theme(query: "modern")          # untuk T-0.9
+```
+
+**Untuk file operations:**
+```
+# Navigasi project
+filesystem MCP → directory_tree(path: "/home/gmedia/bench/jeevatix")
+filesystem MCP → search_files(path: "...", pattern: "*.svelte")
+filesystem MCP → read_file / write_file / edit_file
+```
+
+**Untuk version control:**
+```
+# Workflow per fase
+github MCP → create_branch(branch: "feat/phase-0")
+github MCP → push_files(...)                          # commit setiap task selesai
+github MCP → create_pull_request(...)                  # PR setelah fase selesai
+```

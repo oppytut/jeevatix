@@ -408,3 +408,9 @@ Matriks berikut menunjukkan tabel mana yang digunakan oleh portal mana. Berguna 
 - **JWT refresh flow**: Client harus memanggil E63 (`POST /auth/refresh`) sebelum access token expire untuk mendapat token baru tanpa login ulang.
 - **Prioritas implementasi yang disarankan**: Auth → Categories CRUD (Admin) → Event CRUD (Seller) → Event list & detail (Buyer) → Reservation & Checkout → Order & Payment → Tiket & Check-in → Notifikasi → Dashboard analytics.
 - **Shared components** (`packages/ui`): Navbar, Footer, Card Event, Tabel Data, Form Input, Modal, Toast, Badge Status, QR Code Viewer, Countdown Timer.
+
+### MCP Tools
+
+- **shadcn-ui MCP**: Gunakan `list_components()` untuk melihat semua komponen tersedia. Gunakan `get_component(name)` untuk source code dan `get_component_demo(name)` untuk contoh penggunaan. Gunakan `list_blocks(category)` dan `get_block(name)` untuk template halaman lengkap (login, dashboard, sidebar).
+- **filesystem MCP**: Gunakan untuk membaca file project (`read_file`), navigasi struktur (`list_directory`), dan menulis file (`write_file`).
+- **github MCP**: Gunakan untuk version control: `create_branch`, `push_files`, `create_pull_request`, `list_issues`.
