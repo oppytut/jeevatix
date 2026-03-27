@@ -12,6 +12,7 @@ erDiagram
     users ||--o| seller_profiles : has
     users ||--o{ reservations : holds
     users ||--o{ notifications : receives
+    users ||--o{ refresh_tokens : has
 
     seller_profiles ||--o{ events : organizes
 
@@ -41,14 +42,14 @@ Berikut semua enum/type yang digunakan dalam skema. Definisikan sebagai `pgEnum`
 | -------------------- | -------------------------------------------------------------- | ----------------------------------- |
 | `user_role`          | `buyer`, `seller`, `admin`                                     | Peran pengguna dalam sistem         |
 | `user_status`        | `active`, `suspended`, `banned`                                | Status akun pengguna                |
-| `event_status`       | `draft`, `published`, `ongoing`, `completed`, `cancelled`      | Siklus hidup event                  |
+| `event_status`       | `draft`, `pending_review`, `published`, `rejected`, `ongoing`, `completed`, `cancelled` | Siklus hidup event                  |
 | `ticket_tier_status` | `available`, `sold_out`, `hidden`                              | Status tier tiket                   |
 | `order_status`       | `pending`, `confirmed`, `expired`, `cancelled`, `refunded`     | Status pesanan                      |
 | `payment_status`     | `pending`, `success`, `failed`, `refunded`                     | Status pembayaran                   |
 | `payment_method`     | `bank_transfer`, `e_wallet`, `credit_card`, `virtual_account`  | Metode pembayaran                   |
-| `reservation_status` | `active`, `converted`, `expired`                               | Status reservasi tiket sementara    |
+| `reservation_status` | `active`, `converted`, `expired`, `cancelled`                  | Status reservasi tiket sementara    |
 | `ticket_status`      | `valid`, `used`, `cancelled`, `refunded`                       | Status tiket individu setelah beli  |
-| `notification_type`  | `order_confirmed`, `payment_reminder`, `event_reminder`, `info`| Jenis notifikasi                    |
+| `notification_type`  | `order_confirmed`, `payment_reminder`, `event_reminder`, `new_order`, `event_approved`, `event_rejected`, `info` | Jenis notifikasi                    |
 
 ---
 
@@ -91,6 +92,8 @@ Profil tambahan khusus user dengan role `seller`. Berisi data organisasi/penyele
 | `bank_account_number` | `varchar(50)`      | NULLABLE                       | Nomor rekening pencairan        |
 | `bank_account_holder` | `varchar(150)`     | NULLABLE                       | Nama pemilik rekening           |
 | `is_verified`    | `boolean`               | NOT NULL, default `false`      | Apakah seller sudah diverifikasi|
+| `verified_at`    | `timestamptz`           | NULLABLE                       | Waktu verifikasi oleh admin     |
+| `verified_by`    | `uuid`                  | FK → `users.id`, NULLABLE      | Admin yang memverifikasi        |
 | `created_at`     | `timestamptz`           | NOT NULL, default `now()`      | Waktu dibuat                    |
 | `updated_at`     | `timestamptz`           | NOT NULL, default `now()`      | Waktu diperbarui                |
 
@@ -140,6 +143,8 @@ Tabel event/acara yang dijual tiketnya.
 | `updated_at`     | `timestamptz`           | NOT NULL, default `now()`      |                                   |
 
 **Indexes:** `idx_events_slug` (UNIQUE), `idx_events_status`, `idx_events_seller_profile_id`, `idx_events_start_at`, `idx_events_sale_start_at`
+
+**Validasi temporal:** Pastikan `end_at > start_at`, `sale_end_at > sale_start_at`, dan `sale_start_at <= start_at`. Validasi ini diterapkan di Zod schema pada API layer.
 
 ---
 
@@ -195,6 +200,8 @@ Tier/jenis tiket dalam satu event (contoh: VIP, Regular, Early Bird). Kolom `quo
 **Indexes:** `idx_ticket_tiers_event_id`, `idx_ticket_tiers_status`
 
 **Catatan penting:** Field `sold_count` di-update secara atomik menggunakan `SET sold_count = sold_count + N` setelah Durable Object memberikan lock. Jangan pernah ambil nilai → tambah di aplikasi → simpan kembali (race condition).
+
+**CHECK constraint:** Tambahkan `CHECK (sold_count >= 0 AND sold_count <= quota)` sebagai safety net di level database, meskipun Durable Object sudah menangani concurrency.
 
 ---
 
@@ -334,6 +341,23 @@ Notifikasi yang dikirim ke user (konfirmasi order, pengingat event, dll). Di-enq
 
 ---
 
+### 15. `refresh_tokens`
+
+Tabel untuk menyimpan refresh token JWT. Digunakan untuk memperbarui access token tanpa login ulang.
+
+| Column       | Type                    | Constraint                     | Keterangan                     |
+| ------------ | ----------------------- | ------------------------------ | ------------------------------ |
+| `id`         | `uuid`                  | PK, default `gen_random_uuid()`| ID token                       |
+| `user_id`    | `uuid`                  | FK → `users.id`, NOT NULL      | Pemilik token                  |
+| `token_hash` | `varchar(255)`          | UNIQUE, NOT NULL               | Hash dari refresh token        |
+| `expires_at` | `timestamptz`           | NOT NULL                       | Waktu kedaluwarsa token        |
+| `revoked_at` | `timestamptz`           | NULLABLE                       | Waktu token dicabut (jika ada) |
+| `created_at` | `timestamptz`           | NOT NULL, default `now()`      |                                |
+
+**Indexes:** `idx_refresh_tokens_user_id`, `idx_refresh_tokens_token_hash` (UNIQUE), `idx_refresh_tokens_expires_at`
+
+---
+
 ## Concurrency & War Ticket Flow
 
 Diagram alur saat terjadi *war ticket* (lonjakan request bersamaan):
@@ -397,12 +421,16 @@ sequenceDiagram
 | `jsonb metadata` di notifications | Fleksibel untuk menyimpan context data tanpa alter table |
 | `timestamptz` untuk semua waktu | Penting untuk sistem multi-timezone, selalu simpan dalam UTC |
 | Separate `ticket_checkins` | Audit trail check-in terpisah, tidak mencampur data tiket dengan data operasional venue |
+| `refresh_tokens` terpisah | Memungkinkan token rotation dan revocation tanpa invalidate semua sesi user |
+| `verified_at` + `verified_by` di seller_profiles | Audit trail verifikasi seller: kapan dan oleh siapa |
+| `pending_review` + `rejected` di event_status | Memberi visibilitas seller atas status review event oleh admin |
+| CHECK constraint `sold_count <= quota` | Safety net di level database sebagai perlindungan tambahan di luar Durable Object |
 
 ---
 
 ## Notes for AI Agents
 
-- **Drizzle ORM schema** harus didefinisikan di `packages/core/` sesuai monorepo structure.
+- **Drizzle ORM schema** harus didefinisikan di `packages/core/` sesuai monorepo structure. Total ada **15 tabel** dan **10 enum**.
 - Semua tabel menggunakan **snake_case** naming convention.
 - Semua foreign key harus memiliki **ON DELETE** behavior yang eksplisit:
   - `users` deletion → soft delete (jangan cascade, gunakan `status = banned`).
@@ -411,3 +439,5 @@ sequenceDiagram
 - **Migrasi** menggunakan `drizzle-kit` (`push` untuk dev, `migrate` untuk production).
 - Field `sold_count` pada `ticket_tiers` **hanya boleh diupdate** melalui SQL atomik atau Durable Object sync, **bukan** dari application-level read-modify-write.
 - Semua `created_at` dan `updated_at` menggunakan `$defaultFn(() => new Date())` di Drizzle, bukan database trigger.
+- **File upload** menggunakan **Cloudflare R2** sebagai object storage. Endpoint upload mengembalikan URL publik R2.
+- **Email service** menggunakan provider transactional email (Resend/Mailgun), diintegrasikan via Cloudflare Queue untuk pengiriman async.

@@ -140,7 +140,13 @@ graph LR
 | S14 | Profil Organisasi    | `/profile`           | `users`, `seller_profiles`      | Edit profil organisasi: nama, deskripsi, logo, data bank pencairan |
 | S15 | Ubah Password        | `/profile/password`  | `users`                         | Form ubah password akun                                            |
 
-**Total halaman Seller Portal: 15**
+### Notifications
+
+| #   | Halaman              | Route                | Tabel Terlibat                  | Deskripsi                                                          |
+| --- | -------------------- | -------------------- | ------------------------------- | ------------------------------------------------------------------ |
+| S16 | Notifikasi           | `/notifications`     | `notifications`                 | Daftar notifikasi seller (pesanan baru, event approved/rejected). Mark as read |
+
+**Total halaman Seller Portal: 16**
 
 ---
 
@@ -223,6 +229,7 @@ graph LR
 | E5  | POST   | `/auth/reset-password`    | `users`                    | Reset password dengan token        | Public        |
 | E6  | POST   | `/auth/verify-email`      | `users`                    | Verifikasi email                   | Public        |
 | E7  | POST   | `/auth/logout`            | —                          | Logout / invalidate session        | Authenticated |
+| E63 | POST   | `/auth/refresh`           | `refresh_tokens`           | Refresh access token via refresh token | Public        |
 
 ### User API
 
@@ -231,6 +238,12 @@ graph LR
 | E8  | GET    | `/users/me`               | `users`                    | Get current user profile        | Authenticated |
 | E9  | PATCH  | `/users/me`               | `users`                    | Update profil (nama, phone, avatar) | Authenticated |
 | E10 | PATCH  | `/users/me/password`      | `users`                    | Ubah password                   | Authenticated |
+
+### File Upload API
+
+| #   | Method | Endpoint                  | Tabel Terlibat             | Deskripsi                                     | Akses         |
+| --- | ------ | ------------------------- | -------------------------- | --------------------------------------------- | ------------- |
+| E64 | POST   | `/upload`                 | — (Cloudflare R2)          | Upload file (image) ke R2, return URL publik  | Authenticated |
 
 ### Event API (Public)
 
@@ -353,10 +366,10 @@ graph LR
 | Komponen       | Jumlah Halaman/Endpoint |
 | -------------- | ----------------------: |
 | Buyer Portal   |                      17 |
-| Seller Portal  |                      15 |
+| Seller Portal  |                      16 |
 | Admin Portal   |                      15 |
-| API Endpoints  |                      62 |
-| **TOTAL**      |                 **109** |
+| API Endpoints  |                      64 |
+| **TOTAL**      |                 **112** |
 
 ---
 
@@ -379,7 +392,8 @@ Matriks berikut menunjukkan tabel mana yang digunakan oleh portal mana. Berguna 
 | `payments`         |  ✅   |   ✅   |  ✅   | Informasi pembayaran                          |
 | `tickets`          |  ✅   |   ✅   |  ✅   | Tiket individu                                |
 | `ticket_checkins`  |  ✅*  |   ✅   |  ❌   | Seller CRUD, Buyer read-only (status check-in)|
-| `notifications`    |  ✅   |   ❌   |  ✅   | Buyer terima, Admin kirim                     |
+| `notifications`    |  ✅   |   ✅   |  ✅   | Buyer & Seller terima, Admin kirim            |
+| `refresh_tokens`   |  ✅   |   ✅   |  ✅   | Dipakai semua portal (auth refresh)           |
 
 ---
 
@@ -390,5 +404,7 @@ Matriks berikut menunjukkan tabel mana yang digunakan oleh portal mana. Berguna 
 - **Halaman yang melibatkan Durable Objects**: B10 (Checkout), E25 (POST /reservations), E27 (DELETE /reservations/:id). Ini adalah halaman kritis untuk *war ticket*.
 - **Halaman yang melibatkan PartyKit WebSocket**: B8 (Event Detail — live availability), B10 (Checkout — live stock countdown).
 - **Halaman yang melibatkan Cloudflare Queues**: E32 (Payment webhook → generate tiket → enqueue email), background cleanup expired reservations.
+- **Halaman yang melibatkan Cloudflare R2**: Semua form yang mengupload gambar (event banner, galeri, avatar, logo organisasi) menggunakan E64 (`POST /upload`).
+- **JWT refresh flow**: Client harus memanggil E63 (`POST /auth/refresh`) sebelum access token expire untuk mendapat token baru tanpa login ulang.
 - **Prioritas implementasi yang disarankan**: Auth → Categories CRUD (Admin) → Event CRUD (Seller) → Event list & detail (Buyer) → Reservation & Checkout → Order & Payment → Tiket & Check-in → Notifikasi → Dashboard analytics.
 - **Shared components** (`packages/ui`): Navbar, Footer, Card Event, Tabel Data, Form Input, Modal, Toast, Badge Status, QR Code Viewer, Countdown Timer.

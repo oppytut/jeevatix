@@ -6,8 +6,8 @@
 
 **Dokumen referensi:**
 - `README.md` — Tech stack, arsitektur, monorepo structure
-- `DATABASE_DESIGN.md` — Skema database, 14 tabel, enum, ERD
-- `PAGES.md` — 47 halaman frontend + 62 API endpoints
+- `DATABASE_DESIGN.md` — Skema database, 15 tabel, enum, ERD
+- `PAGES.md` — 48 halaman frontend + 64 API endpoints
 
 ---
 
@@ -40,6 +40,7 @@ gantt
     section Phase 2 - API Core
     Auth API                 :p2a, after p1, 2d
     User & Profile API       :p2b, after p2a, 1d
+    File Upload & Email      :p2c, after p2a, 1d
     
     section Phase 3 - Admin CRUD
     Category API + Admin UI  :p3a, after p2b, 2d
@@ -64,9 +65,10 @@ gantt
     Ticket Generation        :p7a, after p6c, 2d
     Check-in System          :p7b, after p7a, 1d
     Notification System      :p7c, after p7b, 1d
+    Seller Notification UI   :p7d, after p7c, 1d
     
     section Phase 8 - Realtime
-    PartyKit WebSocket       :p8, after p7c, 2d
+    PartyKit WebSocket       :p8, after p7d, 2d
     
     section Phase 9 - Polish
     Dashboards & Analytics   :p9a, after p8, 2d
@@ -75,6 +77,7 @@ gantt
     section Phase 10 - QA & Deploy
     Testing                  :p10a, after p9b, 3d
     CI/CD & Deploy           :p10b, after p10a, 2d
+    Monitoring               :p10c, after p10b, 1d
 ```
 
 ---
@@ -243,7 +246,7 @@ pnpm run dev          # semua app harus start di port masing-masing
 
 ## Phase 1: Database Schema & Migration
 
-**Tujuan:** Definisikan seluruh 14 tabel + 10 enum di Drizzle ORM, jalankan push ke PostgreSQL.
+**Tujuan:** Definisikan seluruh 15 tabel + 10 enum di Drizzle ORM, jalankan push ke PostgreSQL.
 
 ### Task 1.1 — Drizzle Enum Definitions
 
@@ -271,7 +274,7 @@ Buat file schema per domain. Ikuti **persis** kolom, tipe, constraint, dan index
 
 | File                    | Tabel yang didefinisikan                     |
 | ----------------------- | -------------------------------------------- |
-| `users.ts`              | `users`, `seller_profiles`                   |
+| `users.ts`              | `users`, `seller_profiles`, `refresh_tokens` |
 | `events.ts`             | `events`, `event_categories`, `event_images`, `categories` |
 | `tickets.ts`            | `ticket_tiers`, `tickets`, `ticket_checkins` |
 | `orders.ts`             | `orders`, `order_items`, `payments`          |
@@ -303,7 +306,7 @@ Setiap file harus:
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-1.4`                                                   |
 | Dependensi  | `T-1.3`                                                   |
-| Deliverables| Database PostgreSQL lokal berisi 14 tabel + 10 enum        |
+| Deliverables| Database PostgreSQL lokal berisi 15 tabel + 10 enum        |
 
 **Instruksi:**
 1. Jalankan `pnpm drizzle-kit push` dari `packages/core` untuk development.
@@ -342,6 +345,7 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
    - Extract JWT dari `Authorization: Bearer <token>` header.
    - Verify token → attach `user` ke Hono context.
    - Export `authMiddleware` (wajib login) dan `roleMiddleware(role)` (cek role).
+4. `cors.ts` — Setup CORS middleware menggunakan `hono/cors`. Whitelist origin: `localhost:4301`, `localhost:4302`, `localhost:4303` (dev). Production: domain frontend sesungguhnya.
 
 ### Task 2.2 — Auth API Endpoints
 
@@ -350,19 +354,21 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 | ID          | `T-2.2`                                                   |
 | Dependensi  | `T-2.1`                                                   |
 | Deliverables| `apps/api/src/routes/auth.ts`                              |
-| Endpoints   | E1–E7 (lihat PAGES.md → Auth API)                          |
+| Endpoints   | E1–E7, E63 (lihat PAGES.md → Auth API)                     |
 
 **Instruksi:**
 1. Buat Hono router di `routes/auth.ts`.
 2. Implementasi:
-   - `POST /auth/register` → validasi input, hash password, insert ke `users`, return JWT.
+   - `POST /auth/register` → validasi input, hash password, insert ke `users`, return access token + refresh token.
    - `POST /auth/register/seller` → insert ke `users` (role=seller) + insert ke `seller_profiles`.
-   - `POST /auth/login` → cek email+password, return JWT + user data.
-   - `POST /auth/forgot-password` → generate token, enqueue email (placeholder).
+   - `POST /auth/login` → cek email+password, return access token + refresh token + user data. Simpan refresh token hash ke `refresh_tokens`.
+   - `POST /auth/refresh` → verify refresh token, generate access token baru + rotate refresh token baru. Revoke token lama.
+   - `POST /auth/forgot-password` → generate token, enqueue email.
    - `POST /auth/reset-password` → verify token, update password_hash.
    - `POST /auth/verify-email` → update `email_verified_at`.
-   - `POST /auth/logout` → invalidate (jika stateful) atau no-op (jika stateless JWT).
+   - `POST /auth/logout` → revoke refresh token di tabel `refresh_tokens`.
 3. Input validation menggunakan `zod` (pnpm add zod di apps/api).
+4. Access token expiry: 15 menit. Refresh token expiry: 7 hari.
 
 ### Task 2.3 — User API Endpoints
 
@@ -393,6 +399,39 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 4. Test: login dengan password salah → 401 Unauthorized.
 5. Test: akses protected route tanpa token → 401.
 6. Test: akses admin route dengan role buyer → 403 Forbidden.
+7. Test: refresh token flow → access token baru valid.
+
+### Task 2.5 — File Upload Service (Cloudflare R2)
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-2.5`                                                   |
+| Dependensi  | `T-2.1`                                                   |
+| Deliverables| `apps/api/src/routes/upload.ts`, R2 bucket config di `wrangler.toml` |
+| Endpoints   | E64 (lihat PAGES.md → File Upload API)                     |
+
+**Instruksi:**
+1. Konfigurasi R2 bucket binding di `wrangler.toml`.
+2. `POST /upload` → terima file multipart (image), validasi tipe (jpg/png/webp) & ukuran (max 5MB).
+3. Upload ke R2 dengan key unik (uuid + extension).
+4. Return URL publik R2.
+5. Endpoint ini digunakan oleh semua form yang butuh upload gambar (avatar, logo, banner, galeri event).
+6. Proteksi: harus authenticated.
+
+### Task 2.6 — Email Service
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-2.6`                                                   |
+| Dependensi  | `T-0.5`                                                   |
+| Deliverables| `apps/api/src/services/email.ts`                           |
+
+**Instruksi:**
+1. Buat email service menggunakan provider transactional email (Resend atau Mailgun).
+2. Method: `sendEmail(to, subject, htmlBody)`.
+3. Integrasikan dengan Cloudflare Queue: email dikirim secara async melalui queue consumer.
+4. Template email: verifikasi email, reset password, e-ticket konfirmasi.
+5. Konfigurasi API key via environment variable / SST secret.
 
 **Checkpoint Phase 2:**
 ```bash
@@ -525,6 +564,7 @@ open http://localhost:4302/sellers    # verifikasi seller
 3. `GET /seller/events/:id` → detail event + statistik penjualan.
 4. `PATCH /seller/events/:id` → update semua field event. Validasi: hanya event milik seller ini.
 5. `DELETE /seller/events/:id` → hapus event (hanya status `draft`). Cascade ke event_categories, event_images, ticket_tiers.
+6. **Event status flow:** Seller membuat event (`draft`) → submit untuk review (`pending_review`) → Admin approve (`published`) atau tolak (`rejected`). Seller bisa edit event `rejected` lalu submit ulang.
 
 ### Task 4.3 — Ticket Tier CRUD API
 
@@ -610,6 +650,7 @@ open http://localhost:4303/events         # list events
 4. `GET /categories` → list semua kategori.
 5. `GET /categories/:slug/events` → events by kategori.
 6. Hanya return events dengan `status = 'published'` atau `'ongoing'` untuk endpoint publik.
+7. **Search strategy:** Gunakan PostgreSQL `ILIKE` untuk pencarian title. Untuk performa lebih baik, tambahkan `tsvector` column + GIN index pada `events.title` dan `events.description` untuk full-text search.
 
 ### Task 5.2 — Buyer Auth Pages
 
@@ -699,6 +740,7 @@ open http://localhost:4301/events/slug-event # detail event
 3. `DELETE /reservations/:id` → delegate ke `TicketReserver.cancelReservation()`.
 4. Validasi: user hanya bisa punya 1 active reservation per event.
 5. Set `expires_at` = now + 10 menit.
+6. **Anti-abuse:** Cek total tiket yang sudah dimiliki user untuk event ini (dari order sebelumnya). Tolak jika melebihi `max_tickets_per_order` yang di-set di `events`.
 
 ### Task 6.3 — Order API
 
@@ -715,6 +757,7 @@ open http://localhost:4301/events/slug-event # detail event
    - Database transaction: insert order + order_items + payment (pending).
    - Update reservation status → `converted`.
    - Generate `order_number` format `JVX-YYYYMMDD-XXXXX`.
+   - Set `expires_at` = now + 30 menit (batas waktu pembayaran).
 2. `GET /orders` → list order milik buyer + pagination.
 3. `GET /orders/:id` → detail order + items + payment + tickets.
 
@@ -735,6 +778,7 @@ open http://localhost:4301/events/slug-event # detail event
    - Return payment URL / instructions.
 2. `POST /webhooks/payment` → callback dari payment gateway:
    - Verify webhook signature (keamanan!).
+   - **Idempotency:** Cek `payment.status` sebelum update — jika sudah `success`, skip. Gunakan `external_ref` sebagai idempotency key.
    - Update payment status → `success`.
    - Update order status → `confirmed`.
    - Trigger ticket generation (Phase 7).
@@ -854,9 +898,12 @@ open http://localhost:4301/events/slug-event # detail event
 **Instruksi:**
 1. Service: `sendNotification(userId, type, title, body, metadata)` → insert ke `notifications`.
 2. Di-trigger oleh:
-   - Payment success → `order_confirmed`.
-   - Reservation expiring soon → `payment_reminder` (via Queue).
-   - Event H-1 → `event_reminder` (via Queue cron).
+   - Payment success → `order_confirmed` (ke buyer).
+   - Reservation expiring soon → `payment_reminder` (ke buyer, via Queue).
+   - Event H-1 → `event_reminder` (ke buyer, via Queue cron).
+   - New order masuk → `new_order` (ke seller).
+   - Event approved → `event_approved` (ke seller).
+   - Event rejected → `event_rejected` (ke seller).
 3. API: `GET /notifications`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`.
 4. Admin API: `POST /admin/notifications/broadcast`.
 
@@ -873,6 +920,19 @@ open http://localhost:4301/events/slug-event # detail event
 2. API: `GET /seller/orders/:id` → detail order + buyer info.
 3. UI: `apps/seller/src/routes/orders/+page.svelte` → tabel pesanan.
 4. UI: `apps/seller/src/routes/orders/[id]/+page.svelte` → detail pesanan.
+
+### Task 7.6 — Seller Notification UI
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-7.6`                                                   |
+| Dependensi  | `T-7.4`, `T-4.4`                                          |
+| Deliverables| Seller notification page (S16 dari PAGES.md)               |
+
+**Instruksi:**
+1. `apps/seller/src/routes/notifications/+page.svelte` → daftar notifikasi seller.
+2. Tampilkan notifikasi: pesanan baru, event approved/rejected, dll.
+3. Mark as read / mark all as read.
 
 **Checkpoint Phase 7:**
 ```bash
@@ -1096,6 +1156,20 @@ open http://localhost:4301/events/slug-event # detail event
 4. Deploy: `pnpm run deploy --stage production`.
 5. Verify: semua 3 portal accessible, API responding, WebSocket connected.
 
+### Task 10.7 — Monitoring & Error Tracking
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-10.7`                                                  |
+| Dependensi  | `T-10.6`                                                  |
+| Deliverables| Monitoring setup                                           |
+
+**Instruksi:**
+1. Setup error tracking (Sentry atau Cloudflare Logpush) di `apps/api`.
+2. Konfigurasi Cloudflare Analytics untuk traffic monitoring.
+3. Setup alert untuk error rate tinggi dan response time anomali.
+4. Pastikan sensitive data (password, token) tidak masuk ke log.
+
 **Checkpoint Phase 10:**
 ```bash
 pnpm run test          # semua test pass
@@ -1130,6 +1204,8 @@ graph TD
     T22[T-2.2 Auth API]
     T23[T-2.3 User API]
     T24[T-2.4 Auth Tests]
+    T25[T-2.5 File Upload R2]
+    T26[T-2.6 Email Service]
 
     T31[T-3.1 Category API]
     T32[T-3.2 Admin Auth UI]
@@ -1162,6 +1238,7 @@ graph TD
     T73[T-7.3 Check-in]
     T74[T-7.4 Notifications]
     T75[T-7.5 Seller Orders]
+    T76[T-7.6 Seller Notif UI]
 
     T81[T-8.1 PartyKit Server]
     T82[T-8.2 PartyKit Client]
@@ -1177,6 +1254,8 @@ graph TD
 
     T05 & T13 --> T21 --> T22 --> T23
     T22 & T23 --> T24
+    T21 --> T25
+    T05 --> T26
 
     T21 --> T31
     T07 & T22 --> T32
@@ -1205,6 +1284,7 @@ graph TD
     T71 & T44 --> T73
     T65 & T21 --> T74
     T44 & T63 --> T75
+    T74 & T44 --> T76
 
     T61 --> T81
     T81 & T53 & T66 --> T82
@@ -1213,6 +1293,8 @@ graph TD
     T35 --> T92
     T32 & T63 & T64 --> T93
 ```
+
+> **Catatan:** Task T-10.7 (Monitoring) bergantung pada T-10.6 (Production Deploy). Tidak digambarkan di graph untuk menjaga keterbacaan.
 
 ---
 
@@ -1230,9 +1312,10 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | `packages/core/src/db/schema/`         | T-1.1, T-1.2   | Database schema                    |
 | `packages/core/src/db/seed.ts`         | T-1.4          | Seed data                          |
 | `packages/ui/`                         | T-0.9          | Shared UI components               |
-| `apps/api/src/middleware/`             | T-2.1          | Auth middleware                    |
+| `apps/api/src/middleware/`             | T-2.1          | Auth & CORS middleware             |
 | `apps/api/src/routes/auth.ts`          | T-2.2          | Auth endpoints                     |
 | `apps/api/src/routes/users.ts`         | T-2.3          | User profile endpoints             |
+| `apps/api/src/routes/upload.ts`        | T-2.5          | File upload (R2) endpoint          |
 | `apps/api/src/routes/events.ts`        | T-5.1          | Public event endpoints             |
 | `apps/api/src/routes/seller/`          | T-4.1–T-4.3    | Seller endpoints                   |
 | `apps/api/src/routes/admin/`           | T-3.1, T-3.4   | Admin endpoints                    |
@@ -1242,10 +1325,10 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | `apps/api/src/routes/tickets.ts`       | T-7.1          | Ticket endpoints                   |
 | `apps/api/src/durable-objects/`        | T-6.1          | Durable Object (TicketReserver)    |
 | `apps/api/src/queues/`                 | T-6.5          | Cloudflare Queue consumers         |
-| `apps/api/src/services/`              | T-7.1, T-7.4   | Business logic services            |
+| `apps/api/src/services/`              | T-2.6, T-7.1, T-7.4 | Business logic & email services    |
 | `apps/buyer/src/pages/`               | T-5.2–T-5.4, T-6.6–T-6.7, T-7.2 | Buyer pages         |
 | `apps/admin/src/routes/`              | T-3.2–T-3.5, T-9.2–T-9.3 | Admin pages                |
-| `apps/seller/src/routes/`             | T-4.4–T-4.6, T-7.3, T-7.5, T-9.1 | Seller pages          |
+| `apps/seller/src/routes/`             | T-4.4–T-4.6, T-7.3, T-7.5, T-7.6, T-9.1 | Seller pages   |
 | `.github/workflows/`                  | T-10.5         | CI/CD pipelines                    |
 
 ---
@@ -1259,3 +1342,5 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 - **Error handling**: Gunakan Hono error handler. Response format konsisten: `{ success: boolean, data?: T, error?: { code: string, message: string } }`.
 - **Pagination**: Gunakan cursor-based atau offset pagination. Default limit: 20, max: 100. Response: `{ data: T[], meta: { total, page, limit, totalPages } }`.
 - **Concurrent-safe**: Untuk operasi yang melibatkan `sold_count` pada `ticket_tiers`, SELALU gunakan Durable Object. JANGAN langsung update dari API handler.
+- **File upload**: Semua upload gambar harus melalui `POST /upload` (T-2.5) ke Cloudflare R2. Jangan simpan file di filesystem lokal.
+- **Email**: Semua pengiriman email harus async melalui Cloudflare Queue + email service (T-2.6). Jangan kirim email secara sinkron di request handler.
