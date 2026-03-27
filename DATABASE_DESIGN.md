@@ -446,4 +446,3 @@ sequenceDiagram
 
 - **filesystem MCP**: Gunakan untuk membaca file schema (`read_file`), navigasi folder `packages/core/src/db/schema/` (`list_directory`), dan menulis file migrasi/schema (`write_file`).
 - **shadcn-ui MCP**: Tidak relevan untuk database design.
-- **github MCP**: Gunakan `create_branch` untuk branching saat membuat schema baru, `push_files` untuk commit, `create_pull_request` untuk review.

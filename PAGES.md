@@ -413,4 +413,3 @@ Matriks berikut menunjukkan tabel mana yang digunakan oleh portal mana. Berguna 
 
 - **shadcn-ui MCP**: Gunakan `list_components()` untuk melihat semua komponen tersedia. Gunakan `get_component(name)` untuk source code dan `get_component_demo(name)` untuk contoh penggunaan. Gunakan `list_blocks(category)` dan `get_block(name)` untuk template halaman lengkap (login, dashboard, sidebar).
 - **filesystem MCP**: Gunakan untuk membaca file project (`read_file`), navigasi struktur (`list_directory`), dan menulis file (`write_file`).
-- **github MCP**: Gunakan untuk version control: `create_branch`, `push_files`, `create_pull_request`, `list_issues`.

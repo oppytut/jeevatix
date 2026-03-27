@@ -12,7 +12,6 @@
 **MCP Tools tersedia:**
 - `filesystem-mcp-server` — Operasi filesystem (baca/tulis/cari file dalam project)
 - `shadcn-ui-mcp-server` — Referensi komponen, block, dan tema shadcn/ui (gunakan untuk semua task UI)
-- `github-mcp-server` — Interaksi GitHub (branch, commit, PR, issues)
 
 ---
 
@@ -28,8 +27,7 @@
 8. **Gunakan MCP tools** yang tersedia:
    - **shadcn-ui MCP**: Untuk semua task UI — gunakan `list_components` untuk melihat komponen tersedia, `get_component` / `get_component_demo` untuk mendapatkan source code & contoh penggunaan, `list_blocks` / `get_block` untuk template block siap pakai (dashboard, login, sidebar), dan `list_themes` / `apply_theme` untuk menerapkan tema.
    - **filesystem MCP**: Untuk operasi file — gunakan `read_file`, `write_file`, `directory_tree`, `search_files` untuk navigasi dan manipulasi file project.
-   - **github MCP**: Untuk version control — gunakan `create_branch`, `push_files`, `create_pull_request` untuk setiap task/fase yang selesai.
-9. **Satu task = satu commit, satu branch per fase.** Gunakan github MCP untuk membuat branch `feat/phase-X` dan commit setiap task selesai.
+9. **Satu task = satu commit, satu branch per fase.** Gunakan `git` CLI untuk membuat branch `feat/phase-X` dan commit setiap task selesai.
 
 ---
 
@@ -2642,10 +2640,6 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
    - "build": "turbo run build"
    - "deploy": "sst deploy"
 
-⚡ MCP Tools:
-- Gunakan github MCP → create_branch("ci/setup-pipeline") untuk buat branch baru.
-- Gunakan github MCP → push_files() untuk commit dan push workflow files.
-- Gunakan github MCP → create_pull_request() untuk membuat PR setelah selesai.
 ```
 
 ### Task 10.6 — Production Deploy
@@ -2915,7 +2909,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 ## Notes for AI Agents
 
 - **Selalu baca dokumen referensi** (DATABASE_DESIGN.md, PAGES.md) sebelum mengerjakan task. Jangan mengarang kolom, route, atau endpoint.
-- **Satu task = satu commit** (jika memungkinkan). Commit message: `feat(T-X.X): <deskripsi singkat>`. Gunakan **github MCP** (`push_files`, `create_pull_request`) untuk version control.
+- **Satu task = satu commit** (jika memungkinkan). Commit message: `feat(T-X.X): <deskripsi singkat>`. Gunakan `git` CLI untuk version control.
 - **Edge compatibility**: Semua library di `apps/api` HARUS compatible dengan Cloudflare Workers runtime (no Node.js-only APIs). Cek sebelum install.
 - **Validasi input**: Gunakan `zod` di semua API endpoint. Definisikan schema validasi berdekatan dengan route handler.
 - **Error handling**: Gunakan Hono error handler. Response format konsisten: `{ success: boolean, data?: T, error?: { code: string, message: string } }`.
@@ -2955,9 +2949,9 @@ filesystem MCP → read_file / write_file / edit_file
 ```
 
 **Untuk version control:**
-```
+```bash
 # Workflow per fase
-github MCP → create_branch(branch: "feat/phase-0")
-github MCP → push_files(...)                          # commit setiap task selesai
-github MCP → create_pull_request(...)                  # PR setelah fase selesai
+git checkout -b feat/phase-0
+git add . && git commit -m "feat(T-X.X): deskripsi"   # commit setiap task selesai
+git push origin feat/phase-0 && gh pr create           # PR setelah fase selesai
 ```
