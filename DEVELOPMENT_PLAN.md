@@ -263,29 +263,30 @@ Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localh
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-0.6`                                                   |
 | Dependensi  | `T-0.1`                                                   |
-| Deliverables| `apps/buyer/` (Astro project yang bisa `dev`)              |
+| Deliverables| `apps/buyer/` (SvelteKit project yang bisa `dev`)          |
 
 **Instruksi:**
-1. Initialize Astro project di `apps/buyer` dengan template `minimal`.
-2. Tambah TailwindCSS integration.
-3. Setup `astro.config.mjs` — output `server` (SSR), adapter Cloudflare.
-4. Buat layout dasar: `src/layouts/BaseLayout.astro` dengan `<slot />`.
-5. Buat `src/pages/index.astro` → placeholder homepage.
+1. Initialize SvelteKit project di `apps/buyer` dengan `npx sv create`.
+2. Tambah TailwindCSS via `npx sv add tailwindcss`.
+3. Setup `svelte.config.js` — adapter `@sveltejs/adapter-cloudflare`.
+4. Buat layout dasar: `src/routes/+layout.svelte` dengan `<slot />`.
+5. Buat `src/routes/+page.svelte` → placeholder homepage.
 6. Port dev: `4301`.
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack Buyer portal (Astro + Cloudflare).
+Baca file README.md untuk memahami tech stack Buyer portal (SvelteKit + Cloudflare).
 
 Kerjakan Task T-0.6: Create App apps/buyer.
 Dependensi: T-0.1 sudah selesai.
 
-1. Initialize Astro project di `apps/buyer/` dengan template minimal.
-2. Tambahkan TailwindCSS integration ke Astro.
-3. Setup `apps/buyer/astro.config.mjs` — output: "server" (SSR), adapter: @astrojs/cloudflare.
-4. Buat layout: `src/layouts/BaseLayout.astro` dengan HTML boilerplate, TailwindCSS, dan <slot />.
-5. Buat `src/pages/index.astro` — gunakan BaseLayout, tampilkan heading "Jeevatix — Menghidupkan Setiap Momenmu" sebagai placeholder.
-6. Konfigurasi dev port: 4301 di astro.config.mjs (server.port: 4301).
+1. Initialize SvelteKit project di `apps/buyer/` menggunakan `npx sv create` (skeleton project, TypeScript).
+2. Tambahkan TailwindCSS: `npx sv add tailwindcss`.
+3. Setup `apps/buyer/svelte.config.js` — adapter: @sveltejs/adapter-cloudflare. Install: pnpm add -D @sveltejs/adapter-cloudflare.
+4. Buat layout: `src/routes/+layout.svelte` dengan HTML boilerplate, TailwindCSS import, dan <slot />.
+5. Buat `src/routes/+page.svelte` — tampilkan heading "Jeevatix — Menghidupkan Setiap Momenmu" sebagai placeholder.
+6. Konfigurasi dev port: 4301 di vite.config.ts (server.port: 4301).
+7. Setup shadcn-svelte: `npx shadcn-svelte@latest init` — sehingga buyer juga bisa pakai komponen dari packages/ui.
 
 Verifikasi: `cd apps/buyer && pnpm dev` harus start di http://localhost:4301 tanpa error.
 ```
@@ -382,7 +383,7 @@ Dependensi: T-0.1 sudah selesai.
 5. Buat `packages/ui/src/index.ts` — re-export semua components.
 6. Buat `packages/ui/tsconfig.json` (extends root tsconfig.base.json).
 
-Package ini akan digunakan oleh apps/admin dan apps/seller. Pastikan bisa di-import via @jeevatix/ui.
+Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastikan bisa di-import via @jeevatix/ui.
 ```
 
 **Checkpoint Phase 0:**
@@ -1259,9 +1260,9 @@ Mount di index.ts.
 | Deliverables| Buyer auth pages (B1–B5 dari PAGES.md)                     |
 
 **Instruksi:**
-1. Buat halaman Astro: register, login, forgot-password, reset-password, verify-email.
-2. Gunakan client-side fetch ke API (Astro island dengan Svelte/React atau vanilla JS).
-3. Simpan JWT di cookie (httpOnly jika SSR).
+1. Buat halaman SvelteKit: register, login, forgot-password, reset-password, verify-email.
+2. Gunakan SvelteKit load functions dan form actions untuk interaktivitas.
+3. Simpan JWT di cookie (httpOnly via server hooks).
 
 **Prompt:**
 ```
@@ -1273,14 +1274,15 @@ Dependensi: T-0.6 dan T-2.2 sudah selesai.
 Di `apps/buyer/`:
 
 1. Buat `src/lib/api.ts` — HTTP client wrapper untuk call API di localhost:8787. Attach Authorization header. Auto-refresh token jika expired.
-2. Buat `src/lib/auth.ts` — login, logout, getUser, isAuthenticated. Simpan tokens di cookie (httpOnly jika SSR Astro).
-3. Buat halaman Astro (gunakan Svelte island components untuk interaktivitas):
-   - `src/pages/register.astro` — Form: email, password, full_name, phone. Call POST /auth/register.
-   - `src/pages/login.astro` — Form: email, password. Call POST /auth/login. Redirect ke / jika sukses.
-   - `src/pages/forgot-password.astro` — Form: email. Call POST /auth/forgot-password.
-   - `src/pages/reset-password.astro` — Form: new password. Baca token dari URL query param. Call POST /auth/reset-password.
-   - `src/pages/verify-email.astro` — Baca token dari URL. Call POST /auth/verify-email. Tampilkan sukses/gagal.
-4. Gunakan BaseLayout.astro untuk semua halaman.
+2. Buat `src/lib/auth.ts` — login, logout, getUser, isAuthenticated. Simpan tokens di cookie (httpOnly via SvelteKit hooks).
+3. Buat halaman SvelteKit:
+   - `src/routes/register/+page.svelte` — Form: email, password, full_name, phone. Call POST /auth/register.
+   - `src/routes/login/+page.svelte` — Form: email, password. Call POST /auth/login. Redirect ke / jika sukses.
+   - `src/routes/forgot-password/+page.svelte` — Form: email. Call POST /auth/forgot-password.
+   - `src/routes/reset-password/+page.svelte` — Form: new password. Baca token dari URL query param. Call POST /auth/reset-password.
+   - `src/routes/verify-email/+page.svelte` — Baca token dari URL. Call POST /auth/verify-email. Tampilkan sukses/gagal.
+4. Gunakan +layout.svelte sebagai shared layout untuk semua halaman.
+5. Gunakan komponen shadcn-svelte (Button, Input, Card) dari @jeevatix/ui.
 
 Desain bersih dan responsive. Gunakan TailwindCSS.
 ```
@@ -1294,10 +1296,10 @@ Desain bersih dan responsive. Gunakan TailwindCSS.
 | Deliverables| Buyer public pages (B6–B9 dari PAGES.md)                   |
 
 **Instruksi:**
-1. `apps/buyer/src/pages/index.astro` → Hero banner, featured events carousel, kategori grid, upcoming events.
-2. `apps/buyer/src/pages/events/index.astro` → Daftar event + filter sidebar (kategori, kota, tanggal, harga) + search bar + pagination.
-3. `apps/buyer/src/pages/events/[slug].astro` → Detail event: deskripsi, galeri, map, tier tiket + harga, info seller. Tombol "Beli Tiket" (link ke checkout).
-4. `apps/buyer/src/pages/categories/[slug].astro` → Event per kategori.
+1. `apps/buyer/src/routes/+page.svelte` → Hero banner, featured events carousel, kategori grid, upcoming events.
+2. `apps/buyer/src/routes/events/+page.svelte` → Daftar event + filter sidebar (kategori, kota, tanggal, harga) + search bar + pagination.
+3. `apps/buyer/src/routes/events/[slug]/+page.svelte` → Detail event: deskripsi, galeri, map, tier tiket + harga, info seller. Tombol "Beli Tiket" (link ke checkout).
+4. `apps/buyer/src/routes/categories/[slug]/+page.svelte` → Event per kategori.
 
 **Prompt:**
 ```
@@ -1308,28 +1310,29 @@ Dependensi: T-5.1 dan T-5.2 sudah selesai.
 
 Di `apps/buyer/`:
 
-1. `src/pages/index.astro` — Homepage:
+1. `src/routes/+page.svelte` + `+page.server.ts` — Homepage:
+   - Load function: fetch GET /events/featured dan GET /categories.
    - Hero banner section (gambar besar + tagline Jeevatix).
-   - Featured events carousel/grid (fetch GET /events/featured). Tampilkan: banner, title, tanggal, venue_city, harga mulai dari.
-   - Kategori grid (fetch GET /categories). Tampilkan icon + nama kategori, klik → /categories/[slug].
+   - Featured events carousel/grid. Tampilkan: banner, title, tanggal, venue_city, harga mulai dari.
+   - Kategori grid. Tampilkan icon + nama kategori, klik → /categories/[slug].
    - Upcoming events section (fetch GET /events?limit=8). Card event: banner, title, tanggal, kota, harga dari.
 
-2. `src/pages/events/index.astro` — Explore Events:
+2. `src/routes/events/+page.svelte` + `+page.server.ts` — Explore Events:
    - Search bar (ketik → filter).
    - Filter sidebar/top-bar: kategori (multi-select), kota (dropdown), tanggal (date range picker), harga (range slider).
    - Grid/list event cards. Pagination (load more atau page numbers).
    - Fetch GET /events dengan query params sesuai filter.
 
-3. `src/pages/events/[slug].astro` — Event Detail:
+3. `src/routes/events/[slug]/+page.svelte` + `+page.server.ts` — Event Detail:
    - Banner utama + galeri gambar (dari event_images).
    - Info event: title, deskripsi (rich text), tanggal & waktu, lokasi (venue_name, address, city, embedded map jika ada koordinat).
    - Info penyelenggara: org_name, logo dari seller_profiles.
    - Tier tiket: tabel/card per tier (name, description, price, available = quota - sold_count). Badge: Available / Sold Out.
    - Tombol "Beli Tiket" → link ke /checkout/[slug] (perlu login).
 
-4. `src/pages/categories/[slug].astro` — Event per kategori. Fetch GET /categories/:slug/events. Re-use event card component.
+4. `src/routes/categories/[slug]/+page.svelte` + `+page.server.ts` — Event per kategori. Fetch GET /categories/:slug/events. Re-use EventCard component.
 
-Desain modern, responsive. Gunakan TailwindCSS. Buat reusable Astro component: EventCard.astro.
+Desain modern, responsive. Gunakan TailwindCSS + shadcn-svelte components. Buat reusable Svelte component: EventCard.svelte di `src/lib/components/`.
 ```
 
 ### Task 5.4 — Buyer Profile & Notifications UI
@@ -1341,8 +1344,8 @@ Desain modern, responsive. Gunakan TailwindCSS. Buat reusable Astro component: E
 | Deliverables| Buyer profile & notification pages (B16–B17 dari PAGES.md) |
 
 **Instruksi:**
-1. `apps/buyer/src/pages/profile.astro` → edit profil buyer.
-2. `apps/buyer/src/pages/notifications.astro` → daftar notifikasi.
+1. `apps/buyer/src/routes/profile/+page.svelte` → edit profil buyer.
+2. `apps/buyer/src/routes/notifications/+page.svelte` → daftar notifikasi.
 
 **Prompt:**
 ```
@@ -1353,19 +1356,19 @@ Dependensi: T-5.2 dan T-2.3 sudah selesai.
 
 Di `apps/buyer/`:
 
-1. `src/pages/profile.astro` — Halaman profil buyer (protected, perlu login):
+1. `src/routes/profile/+page.svelte` — Halaman profil buyer (protected, perlu login):
    - Fetch GET /users/me saat load.
    - Form edit: Full Name, Phone, Avatar (upload via POST /upload, preview).
    - Tombol Simpan → PATCH /users/me.
    - Section ubah password: Old Password, New Password, Confirm. Submit PATCH /users/me/password.
 
-2. `src/pages/notifications.astro` — Halaman notifikasi (protected):
+2. `src/routes/notifications/+page.svelte` — Halaman notifikasi (protected):
    - Fetch GET /notifications saat load.
    - List notifikasi: icon per type, title, body, waktu (relative: "2 jam lalu"), badge unread.
    - Klik notifikasi → mark as read (PATCH /notifications/:id/read).
    - Tombol "Mark All as Read" → PATCH /notifications/read-all.
 
-Gunakan Svelte island untuk interaktivitas. Protect halaman: redirect ke /login jika belum login.
+Gunakan shadcn-svelte components. Protect halaman: redirect ke /login jika belum login (via +page.server.ts load guard atau hooks).
 ```
 
 **Checkpoint Phase 5:**
@@ -1628,9 +1631,9 @@ Pastikan cleanup idempotent (jangan proses reservation yang sudah expired).
 | Deliverables| Buyer checkout & payment pages (B10–B11 dari PAGES.md)     |
 
 **Instruksi:**
-1. `apps/buyer/src/pages/checkout/[slug].astro` → pilih tier, jumlah → submit reservation → show countdown timer (10 menit) → redirect ke payment.
-2. `apps/buyer/src/pages/payment/[orderId].astro` → ringkasan order, pilih metode bayar, submit → redirect ke payment gateway.
-3. Countdown timer yang real-time (Svelte island atau JS).
+1. `apps/buyer/src/routes/checkout/[slug]/+page.svelte` → pilih tier, jumlah → submit reservation → show countdown timer (10 menit) → redirect ke payment.
+2. `apps/buyer/src/routes/payment/[orderId]/+page.svelte` → ringkasan order, pilih metode bayar, submit → redirect ke payment gateway.
+3. Countdown timer yang real-time (reactive Svelte).
 
 **Prompt:**
 ```
@@ -1641,23 +1644,23 @@ Dependensi: T-6.2, T-6.3, T-6.4, T-5.3 sudah selesai.
 
 Di `apps/buyer/`:
 
-1. `src/pages/checkout/[slug].astro` — Checkout page (protected):
-   - Fetch event detail (GET /events/:slug) untuk menampilkan info event + tier tiket.
+1. `src/routes/checkout/[slug]/+page.svelte` + `+page.server.ts` — Checkout page (protected):
+   - Load function: fetch event detail (GET /events/:slug) untuk menampilkan info event + tier tiket.
    - Form: pilih tier (radio/card selection), pilih jumlah (number input, max = max_tickets_per_order).
    - Tombol "Reservasi Tiket" → call POST /reservations.
-   - Jika sukses: tampilkan countdown timer (10 menit dari expires_at). Timer real-time (Svelte island dengan setInterval).
-   - Tombol "Lanjut ke Pembayaran" → call POST /orders, lalu redirect ke /payment/[orderId].
+   - Jika sukses: tampilkan countdown timer (10 menit dari expires_at). Timer reactive Svelte (onMount + setInterval).
+   - Tombol "Lanjut ke Pembayaran" → call POST /orders, lalu goto(`/payment/${orderId}`).
    - Jika SOLD_OUT: tampilkan alert "Tiket habis".
    - Tombol "Batalkan" → call DELETE /reservations/:id.
 
-2. `src/pages/payment/[orderId].astro` — Payment page (protected):
-   - Fetch order detail (GET /orders/:id).
+2. `src/routes/payment/[orderId]/+page.svelte` + `+page.server.ts` — Payment page (protected):
+   - Load function: fetch order detail (GET /orders/:id).
    - Ringkasan: event name, tier, quantity, harga, total.
    - Pilih metode bayar (bank_transfer, e_wallet, credit_card, virtual_account).
    - Countdown batas waktu bayar (30 menit dari order.expires_at).
    - Tombol "Bayar Sekarang" → call POST /payments/:orderId/pay. Redirect ke payment gateway URL (atau show success jika mock).
 
-Gunakan Svelte island components untuk countdown timer dan form interaktif.
+Gunakan shadcn-svelte components (Button, Card, RadioGroup, Input).
 ```
 
 ### Task 6.7 — Order History UI (Buyer)
@@ -1669,8 +1672,8 @@ Gunakan Svelte island components untuk countdown timer dan form interaktif.
 | Deliverables| Buyer order pages (B12–B13 dari PAGES.md)                  |
 
 **Instruksi:**
-1. `apps/buyer/src/pages/orders/index.astro` → list order + badge status.
-2. `apps/buyer/src/pages/orders/[id].astro` → detail order + items + payment info.
+1. `apps/buyer/src/routes/orders/+page.svelte` → list order + badge status.
+2. `apps/buyer/src/routes/orders/[id]/+page.svelte` → detail order + items + payment info.
 
 **Prompt:**
 ```
@@ -1681,14 +1684,14 @@ Dependensi: T-6.3 dan T-5.2 sudah selesai.
 
 Di `apps/buyer/`:
 
-1. `src/pages/orders/index.astro` — Order list page (protected):
-   - Fetch GET /orders (paginated).
+1. `src/routes/orders/+page.svelte` + `+page.server.ts` — Order list page (protected):
+   - Load function: fetch GET /orders (paginated).
    - Tabel/card list: order_number, event name, tanggal order, total_amount, status (badge berwarna: pending=kuning, confirmed=hijau, expired=abu, cancelled=merah, refunded=biru).
    - Klik row → navigate ke /orders/[id].
    - Pagination.
 
-2. `src/pages/orders/[id].astro` — Order detail page (protected):
-   - Fetch GET /orders/:id.
+2. `src/routes/orders/[id]/+page.svelte` + `+page.server.ts` — Order detail page (protected):
+   - Load function: fetch GET /orders/:id.
    - Info order: order_number, status badge, tanggal.
    - Item list: tier name, quantity, unit_price, subtotal.
    - Payment info: method, status, paid_at.
@@ -1765,8 +1768,8 @@ Mount di index.ts.
 | Deliverables| Buyer ticket pages (B14–B15 dari PAGES.md)                 |
 
 **Instruksi:**
-1. `apps/buyer/src/pages/tickets/index.astro` → list tiket aktif.
-2. `apps/buyer/src/pages/tickets/[id].astro` → detail tiket + QR code rendered dari `ticket_code`. Gunakan QR code library (misal `qrcode`).
+1. `apps/buyer/src/routes/tickets/+page.svelte` → list tiket aktif.
+2. `apps/buyer/src/routes/tickets/[id]/+page.svelte` → detail tiket + QR code rendered dari `ticket_code`. Gunakan QR code library (misal `qrcode`).
 
 **Prompt:**
 ```
@@ -1779,16 +1782,16 @@ Di `apps/buyer/`:
 
 1. Install QR code library: pnpm add qrcode (di workspace apps/buyer).
 
-2. `src/pages/tickets/index.astro` — Ticket list page (protected):
-   - Fetch GET /tickets.
+2. `src/routes/tickets/+page.svelte` + `+page.server.ts` — Ticket list page (protected):
+   - Load function: fetch GET /tickets.
    - Card grid: setiap tiket tampilkan event name, tier name, tanggal event, ticket_code (sebagian, misal JVX-XXXX****), status badge (valid=hijau, used=abu).
    - Klik card → navigate ke /tickets/[id].
    - Group by event (jika punya beberapa tiket untuk event yang sama).
 
-3. `src/pages/tickets/[id].astro` — Ticket detail page (protected):
-   - Fetch GET /tickets/:id.
+3. `src/routes/tickets/[id]/+page.svelte` + `+page.server.ts` — Ticket detail page (protected):
+   - Load function: fetch GET /tickets/:id.
    - Tampilkan: event name, event date & venue, tier name, ticket_code.
-   - QR Code besar (render dari ticket_code menggunakan library qrcode). Gunakan Svelte island untuk QR rendering.
+   - QR Code besar (render dari ticket_code menggunakan library qrcode). Gunakan onMount untuk QR rendering.
    - Status badge: valid/used.
    - Jika used: tampilkan checkin time.
    - Tombol "Download QR" (save as PNG).
@@ -2053,8 +2056,8 @@ Dependensi: T-6.1 sudah selesai.
 | Deliverables| WebSocket integration di halaman Event Detail & Checkout   |
 
 **Instruksi:**
-1. `apps/buyer/src/pages/events/[slug].astro` → Svelte island yang connect ke PartyKit room, update jumlah tiket tersedia secara live.
-2. `apps/buyer/src/pages/checkout/[slug].astro` → live stock countdown, jika sold out saat checkout maka tampilkan alert.
+1. `apps/buyer/src/routes/events/[slug]/+page.svelte` → connect ke PartyKit room, update jumlah tiket tersedia secara live.
+2. `apps/buyer/src/routes/checkout/[slug]/+page.svelte` → live stock countdown, jika sold out saat checkout maka tampilkan alert.
 3. Gunakan `partysocket` client library.
 
 **Prompt:**
@@ -2068,7 +2071,7 @@ Di `apps/buyer/`:
 
 1. Install: pnpm add partysocket (di workspace apps/buyer).
 
-2. Buat Svelte island component `src/components/LiveAvailability.svelte`:
+2. Buat Svelte component `src/lib/components/LiveAvailability.svelte`:
    - Props: eventId (string), initialTiers (array of { tierId, remaining }).
    - onMount: connect ke PartyKit room menggunakan partysocket:
      const socket = new PartySocket({ host: PARTYKIT_HOST, room: `event-${eventId}` }).
@@ -2076,11 +2079,11 @@ Di `apps/buyer/`:
    - onDestroy: socket.close().
    - Render: untuk setiap tier, tampilkan nama tier + "Sisa: {remaining} tiket" (warna berubah: hijau > 50%, kuning 10-50%, merah < 10%, hitam 0).
 
-3. Update `src/pages/events/[slug].astro`:
-   - Render LiveAvailability island dengan client:visible directive.
-   - Pass initialTiers dari server-side fetch.
+3. Update `src/routes/events/[slug]/+page.svelte`:
+   - Import dan render LiveAvailability component.
+   - Pass initialTiers dari load function data.
 
-4. Update `src/pages/checkout/[slug].astro`:
+4. Update `src/routes/checkout/[slug]/+page.svelte`:
    - Embed LiveAvailability di bagian atas checkout.
    - Jika remaining = 0 saat user sedang checkout: tampilkan modal alert "Tiket habis, reservasi Anda mungkin tidak berhasil".
    - Disable tombol "Reservasi" jika remaining = 0.
@@ -2821,7 +2824,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | `apps/api/src/durable-objects/`        | T-6.1          | Durable Object (TicketReserver)    |
 | `apps/api/src/queues/`                 | T-6.5          | Cloudflare Queue consumers         |
 | `apps/api/src/services/`              | T-2.6, T-7.1, T-7.4 | Business logic & email services    |
-| `apps/buyer/src/pages/`               | T-5.2–T-5.4, T-6.6–T-6.7, T-7.2 | Buyer pages         |
+| `apps/buyer/src/routes/`              | T-5.2–T-5.4, T-6.6–T-6.7, T-7.2 | Buyer pages         |
 | `apps/admin/src/routes/`              | T-3.2–T-3.5, T-9.2–T-9.3 | Admin pages                |
 | `apps/seller/src/routes/`             | T-4.4–T-4.6, T-7.3, T-7.5, T-7.6, T-9.1 | Seller pages   |
 | `.github/workflows/`                  | T-10.5         | CI/CD pipelines                    |

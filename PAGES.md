@@ -9,7 +9,7 @@
 
 | Portal   | App       | Framework  | Base URL                  | Target User          |
 | -------- | --------- | ---------- | ------------------------- | -------------------- |
-| Buyer    | `apps/buyer`  | Astro      | `http://localhost:4301` | Pembeli tiket        |
+| Buyer    | `apps/buyer`  | SvelteKit  | `http://localhost:4301` | Pembeli tiket        |
 | Admin    | `apps/admin`  | SvelteKit  | `http://localhost:4302` | Administrator Jeevatix |
 | Seller   | `apps/seller` | SvelteKit  | `http://localhost:4303` | Penyelenggara event  |
 | API      | `apps/api`    | Hono       | `http://localhost:8787` | Semua portal (backend) |
@@ -65,7 +65,7 @@ graph LR
 
 ---
 
-## A. Buyer Portal (`apps/buyer` — Astro)
+## A. Buyer Portal (`apps/buyer` — SvelteKit)
 
 ### Auth Pages (Publik, tanpa login)
 

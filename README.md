@@ -13,7 +13,7 @@ Platform ini menggunakan pendekatan *monorepo* dengan perpaduan teknologi beriku
 * **Build System:** [Turborepo](https://turbo.build/) (Manajemen eksekusi *task* monorepo yang sangat cepat & *incremental*)
 * **Edge Compute:** Cloudflare Workers
 * **Backend / API:** [Hono](https://hono.dev/) (Super-fast, lightweight web framework)
-* **Frontend:** [Astro](https://astro.build/) (Portal Web Pembeli) + [SvelteKit](https://svelte.dev/) (Portal Admin & Seller) + [shadcn-svelte](https://shadcn-svelte.com/)
+* **Frontend:** [SvelteKit](https://svelte.dev/) (Portal Pembeli, Admin & Seller) + [shadcn-svelte](https://shadcn-svelte.com/)
 * **Database & Connection Pooling:** PostgreSQL (Self-Hosted) + Cloudflare Hyperdrive
 * **ORM & Database Client:** [Drizzle ORM](https://orm.drizzle.team/) (Edge-ready, Type-safe SQL builder)
 * **State Management & Concurrency:** [Cloudflare Durable Objects](https://developers.cloudflare.com/workers/runtime-apis/durable-objects/) (Mencegah *overselling* dan memastikan konsistensi transaksi)
@@ -30,7 +30,7 @@ graph TD
     CF_Edge[Cloudflare Edge Network]
     
     subgraph Frontend & API
-        Buyer[Astro Frontend]
+        Buyer[SvelteKit Buyer]
         Admin[SvelteKit Admin/Seller]
         PartyKit[PartyKit WebSocket]
         API[Hono API + Drizzle ORM]
@@ -75,7 +75,7 @@ Repositori ini diatur ke dalam beberapa *workspace* untuk memisahkan logika bisn
 jeevatix/
 ├── apps/
 │   ├── api/            # Hono backend API (berjalan di Cloudflare Workers)
-│   ├── buyer/          # Astro portal untuk pembeli tiket (berbasis konten, sangat cepat)
+│   ├── buyer/          # SvelteKit portal untuk pembeli tiket
 │   ├── admin/          # SvelteKit portal untuk dashboard admin Jeevatix
 │   └── seller/         # SvelteKit portal untuk penjual / penyelenggara event
 ├── packages/
@@ -125,7 +125,7 @@ pnpm run dev
 ```
 
 Anda bisa mengakses aplikasi di port berikut:
-* **Portal Pembeli (Astro):** [http://localhost:4301](http://localhost:4301)
+* **Portal Pembeli (SvelteKit):** [http://localhost:4301](http://localhost:4301)
 * **Portal Admin (SvelteKit):** [http://localhost:4302](http://localhost:4302)
 * **Portal Penjual/Seller (SvelteKit):** [http://localhost:4303](http://localhost:4303)
 * **Backend API (Hono):** `http://localhost:8787` (atau port dinamis wrangler)
