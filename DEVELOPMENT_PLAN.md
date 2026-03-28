@@ -40,6 +40,12 @@
     - Handler menerima `c` dengan tipe yang sudah di-infer dari `createRoute`. Gunakan `c.req.valid('json')`, `c.req.valid('param')`, `c.req.valid('query')` — BUKAN manual `c.req.json()`.
     - `apps/api/src/index.ts` menggunakan `OpenAPIHono` (bukan `new Hono()`), expose `/doc` (JSON spec) dan `/reference` (Scalar UI).
     - Dependencies: `@hono/zod-openapi`, `@scalar/hono-api-reference`.
+12. **Gunakan ESLint + Prettier untuk code quality dari awal:**
+    - **ESLint** — Flat config (`eslint.config.js` di root). Pakai `@typescript-eslint/eslint-plugin` + `eslint-plugin-svelte`. Setiap app bisa extend config root.
+    - **Prettier** — Config `.prettierrc` di root. Plugin: `prettier-plugin-svelte`, `prettier-plugin-tailwindcss` (urutan plugin penting — svelte dulu, tailwindcss terakhir).
+    - Jalankan `pnpm run lint` dan `pnpm run format:check` sebagai bagian dari checkpoint setiap fase.
+    - CI/CD wajib lint + format check sebelum build.
+13. **Playwright E2E sudah di-setup di Phase 0** — Phase 10 (T-10.2) fokus menulis test cases, bukan setup.
 
 ---
 
@@ -52,7 +58,7 @@ gantt
     axisFormat  %b %d
     
     section Phase 0 - Foundation
-    Monorepo Setup           :p0, 2026-03-27, 2d
+    Monorepo Setup           :p0, 2026-03-27, 3d
     
     section Phase 1 - Database
     Drizzle Schema & Migrate :p1, after p0, 2d
@@ -122,7 +128,7 @@ gantt
      - "apps/*"
      - "packages/*"
    ```
-3. Buat `turbo.json` dengan pipeline `build`, `dev`, `lint`, `test`.
+3. Buat `turbo.json` dengan pipeline `build`, `dev`, `lint`, `lint:fix`, `format`, `format:check`, `test`.
 4. Buat `tsconfig.base.json` (shared TypeScript config, `strict: true`, paths alias `@jeevatix/*`).
 5. Buat `.nvmrc` → `22`.
 6. Buat `.gitignore` (node_modules, .env, dist, .turbo, .sst).
@@ -157,9 +163,9 @@ Baca file README.md untuk memahami tech stack dan monorepo structure project Jee
 Kerjakan Task T-0.1: Initialize Root Monorepo.
 
 Buat file-file berikut di root project:
-1. `package.json` — private: true, packageManager: pnpm@9.x, scripts kosong (build, dev, lint, test via turbo).
+1. `package.json` — private: true, packageManager: pnpm@9.x, scripts kosong (build, dev, lint, lint:fix, format, format:check, test via turbo).
 2. `pnpm-workspace.yaml` — packages: ["apps/*", "packages/*"].
-3. `turbo.json` — pipeline: build, dev, lint, test.
+3. `turbo.json` — pipeline: build, dev, lint, lint:fix, format, format:check, test.
 4. `tsconfig.base.json` — strict: true, paths alias @jeevatix/* ke packages/*.
 5. `.nvmrc` — isi: 22.
 6. `.gitignore` — node_modules, .env, dist, .turbo, .sst, .wrangler.
@@ -468,10 +474,139 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
 - Gunakan shadcn-ui MCP → get_component_demo("data-table") untuk melihat contoh penggunaan DataTable.
 ```
 
+### Task 0.10 — Setup Prettier, ESLint & Playwright
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-0.10`                                                  |
+| Dependensi  | `T-0.1`, `T-0.5`, `T-0.6`, `T-0.7`, `T-0.8`             |
+| Deliverables| `.prettierrc`, `.prettierignore`, `eslint.config.js`, `playwright.config.ts`, `tests/e2e/.gitkeep` |
+
+**Instruksi:**
+1. **Prettier:**
+   - Install di root: `pnpm add -Dw prettier prettier-plugin-svelte prettier-plugin-tailwindcss`.
+   - Buat `.prettierrc`:
+     ```json
+     {
+       "semi": true,
+       "singleQuote": true,
+       "tabWidth": 2,
+       "trailingComma": "all",
+       "printWidth": 100,
+       "plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
+       "overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }]
+     }
+     ```
+   - Buat `.prettierignore`: `node_modules`, `dist`, `.svelte-kit`, `.turbo`, `build`, `*.min.js`, `pnpm-lock.yaml`.
+   - Tambah script di root `package.json`: `"format": "turbo run format"`, `"format:check": "turbo run format:check"`.
+   - Tambah script di setiap app/package `package.json`:
+     - `"format": "prettier --write ."`.
+     - `"format:check": "prettier --check ."`.
+2. **ESLint (Flat Config):**
+   - Install di root: `pnpm add -Dw eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-svelte svelte-eslint-parser globals eslint-config-prettier`.
+   - Buat `eslint.config.js` di root (flat config):
+     ```js
+     import globals from 'globals';
+     import tseslint from '@typescript-eslint/eslint-plugin';
+     import tsparser from '@typescript-eslint/parser';
+     import svelte from 'eslint-plugin-svelte';
+     import svelteParser from 'svelte-eslint-parser';
+     import prettier from 'eslint-config-prettier';
+
+     export default [
+       { ignores: ['**/dist/**', '**/.svelte-kit/**', '**/.turbo/**', '**/build/**'] },
+       {
+         files: ['**/*.ts'],
+         languageOptions: { parser: tsparser, parserOptions: { ecmaVersion: 'latest', sourceType: 'module' }, globals: { ...globals.browser, ...globals.node } },
+         plugins: { '@typescript-eslint': tseslint },
+         rules: { ...tseslint.configs.recommended.rules, '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }] },
+       },
+       ...svelte.configs['flat/recommended'],
+       {
+         files: ['**/*.svelte'],
+         languageOptions: { parser: svelteParser, parserOptions: { parser: tsparser } },
+       },
+       prettier,
+     ];
+     ```
+   - Tambah script di root `package.json`: `"lint": "turbo run lint"`, `"lint:fix": "turbo run lint:fix"`.
+   - Tambah script di setiap app/package `package.json`:
+     - `"lint": "eslint ."`.
+     - `"lint:fix": "eslint . --fix"`.
+   - `eslint-config-prettier` wajib ada di posisi terakhir agar Prettier rules menang (tidak bentrok).
+3. **Playwright:**
+   - Install di root: `pnpm add -Dw @playwright/test`.
+   - Install browsers: `npx playwright install --with-deps chromium` (hanya Chromium untuk dev, hemat disk).
+   - Buat `playwright.config.ts` di root:
+     ```typescript
+     import { defineConfig, devices } from '@playwright/test';
+     export default defineConfig({
+       testDir: './tests/e2e',
+       fullyParallel: true,
+       forbidOnly: !!process.env.CI,
+       retries: process.env.CI ? 2 : 0,
+       workers: process.env.CI ? 1 : undefined,
+       reporter: 'html',
+       use: { trace: 'on-first-retry' },
+       projects: [
+         { name: 'buyer', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4301' } },
+         { name: 'admin', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4302' } },
+         { name: 'seller', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4303' } },
+       ],
+       webServer: [
+         { command: 'pnpm run dev', url: 'http://localhost:4301', reuseExistingServer: !process.env.CI },
+       ],
+     });
+     ```
+   - Buat folder `tests/e2e/` dengan `.gitkeep`.
+   - Tambah script di root `package.json`: `"test:e2e": "playwright test"`.
+   - Tambah ke `.gitignore`: `test-results/`, `playwright-report/`, `blob-report/`.
+
+**Prompt:**
+```
+Baca file README.md untuk memahami tech stack (ESLint, Prettier, Playwright) dan monorepo structure.
+
+Kerjakan Task T-0.10: Setup Prettier, ESLint & Playwright.
+Dependensi: T-0.1, T-0.5, T-0.6, T-0.7, T-0.8 sudah selesai (semua apps & packages sudah ada).
+
+1. PRETTIER:
+   - Install di root: pnpm add -Dw prettier prettier-plugin-svelte prettier-plugin-tailwindcss.
+   - Buat `.prettierrc` di root:
+     { "semi": true, "singleQuote": true, "tabWidth": 2, "trailingComma": "all", "printWidth": 100, "plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"], "overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }] }
+   - Buat `.prettierignore`: node_modules, dist, .svelte-kit, .turbo, build, *.min.js, pnpm-lock.yaml.
+   - Tambah script di setiap app/package package.json: "format": "prettier --write .", "format:check": "prettier --check .".
+   - Tambah script di root package.json: "format": "turbo run format", "format:check": "turbo run format:check".
+
+2. ESLINT (Flat Config):
+   - Install di root: pnpm add -Dw eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-svelte svelte-eslint-parser globals eslint-config-prettier.
+   - Buat `eslint.config.js` di root — flat config dengan @typescript-eslint + eslint-plugin-svelte + eslint-config-prettier (posisi terakhir, agar tidak bentrok dengan Prettier).
+   - Ignore: dist, .svelte-kit, .turbo, build.
+   - Rules: recommended + no-unused-vars warn (ignore _ prefix).
+   - Tambah script di setiap app/package package.json: "lint": "eslint .", "lint:fix": "eslint . --fix".
+   - Tambah script di root package.json: "lint": "turbo run lint", "lint:fix": "turbo run lint:fix".
+
+3. PLAYWRIGHT:
+   - Install di root: pnpm add -Dw @playwright/test.
+   - Install browsers: npx playwright install --with-deps chromium.
+   - Buat `playwright.config.ts` di root — 3 projects: buyer (:4301), admin (:4302), seller (:4303). testDir: ./tests/e2e. webServer: pnpm run dev.
+   - Buat folder `tests/e2e/` dengan .gitkeep.
+   - Tambah script di root: "test:e2e": "playwright test".
+   - Tambah ke .gitignore: test-results/, playwright-report/, blob-report/.
+
+4. Update turbo.json pipeline — tambah: format, format:check, lint:fix (selain lint dan test yang sudah ada).
+
+5. Jalankan format pada semua file: pnpm run format (auto-fix semua formatting).
+6. Jalankan lint: pnpm run lint (harus pass tanpa error).
+
+Verifikasi: pnpm run format:check && pnpm run lint harus pass tanpa error.
+```
+
 **Checkpoint Phase 0:**
 ```bash
 pnpm install          # harus sukses tanpa error
 pnpm run build        # semua app harus build sukses
+pnpm run format:check # Prettier — formatting konsisten
+pnpm run lint         # ESLint — tidak ada lint errors
 pnpm run dev          # semua app harus start di port masing-masing
 ```
 
@@ -2566,56 +2701,54 @@ Dependensi: Phase 1–9 sudah selesai.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-10.2`                                                  |
 | Dependensi  | `T-10.1`                                                  |
-| Deliverables| Playwright test suite per portal                           |
+| Deliverables| Playwright test suite per portal di `tests/e2e/`           |
 
 **Instruksi:**
-1. Setup Playwright di `apps/admin`, `apps/seller`, `apps/buyer`.
-2. Test flows kritis:
+> **Note:** Playwright sudah di-setup di Phase 0 (T-0.10) — `playwright.config.ts`, `tests/e2e/`, dan `@playwright/test` sudah ter-install. Task ini fokus **menulis test cases**.
+
+1. Test flows kritis:
    - **Admin:** Login → buat kategori → verifikasi seller → lihat dashboard.
    - **Seller:** Register → buat event + tier → lihat pesanan → scan check-in.
    - **Buyer:** Register → browse event → checkout → bayar → lihat tiket.
-3. Minimal 1 E2E test per halaman.
+2. Minimal 1 E2E test per halaman.
 
 **Prompt:**
 ```
 Kerjakan Task T-10.2: E2E Tests (Playwright).
 Dependensi: T-10.1 sudah selesai.
 
-1. Setup Playwright:
-   - Install: pnpm add -D @playwright/test di root.
-   - npx playwright install (install browsers).
-   - Buat playwright.config.ts di root: baseURL per portal (buyer :4301, admin :4302, seller :4303).
-   - Buat folder `tests/e2e/`.
+> Playwright sudah di-setup di T-0.10 (playwright.config.ts + tests/e2e/ + @playwright/test sudah ter-install).
+> Fokus task ini: menulis E2E test cases.
 
-2. Test files:
-   - `tests/e2e/admin-flow.spec.ts`:
-     - Login sebagai admin.
-     - Buat kategori baru.
-     - Verifikasi seller → cek status seller berubah.
-     - Lihat dashboard → cek cards tampil.
-     - Logout.
+Test files (buat di `tests/e2e/`):
 
-   - `tests/e2e/seller-flow.spec.ts`:
-     - Register sebagai seller.
-     - Login.
-     - Buat event baru + tier tiket.
-     - Lihat event di list.
-     - Lihat pesanan (setelah ada transaksi).
-     - Scan check-in.
-     - Logout.
+1. `tests/e2e/admin-flow.spec.ts`:
+   - Login sebagai admin.
+   - Buat kategori baru.
+   - Verifikasi seller → cek status seller berubah.
+   - Lihat dashboard → cek cards tampil.
+   - Logout.
 
-   - `tests/e2e/buyer-flow.spec.ts`:
-     - Register sebagai buyer.
-     - Login.
-     - Browse events di homepage.
-     - Buka event detail.
-     - Checkout: reservasi + order + bayar.
-     - Lihat tiket → QR code muncul.
-     - Lihat order history.
-     - Logout.
+2. `tests/e2e/seller-flow.spec.ts`:
+   - Register sebagai seller.
+   - Login.
+   - Buat event baru + tier tiket.
+   - Lihat event di list.
+   - Lihat pesanan (setelah ada transaksi).
+   - Scan check-in.
+   - Logout.
 
-3. Tambahkan script: "test:e2e": "playwright test".
-4. Jalankan: pnpm run test:e2e.
+3. `tests/e2e/buyer-flow.spec.ts`:
+   - Register sebagai buyer.
+   - Login.
+   - Browse events di homepage.
+   - Buka event detail.
+   - Checkout: reservasi + order + bayar.
+   - Lihat tiket → QR code muncul.
+   - Lihat order history.
+   - Logout.
+
+Jalankan: pnpm run test:e2e. Semua tests harus pass.
 ```
 
 ### Task 10.3 — Load Testing (K6)
@@ -2734,6 +2867,7 @@ Buat file `SECURITY_REVIEW.md` berisi hasil review dan status setiap item.
 **Instruksi:**
 1. **CI pipeline** (on PR):
    - Install dependencies.
+   - Format check (`pnpm run format:check`).
    - Lint (`pnpm run lint`).
    - Type check (`pnpm run typecheck`).
    - Unit & integration tests (`pnpm run test`).
@@ -2765,6 +2899,7 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
              node-version: 20
              cache: pnpm
          - run: pnpm install --frozen-lockfile
+         - run: pnpm run format:check
          - run: pnpm run lint
          - run: pnpm run typecheck
          - run: pnpm run test
@@ -2788,6 +2923,7 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
              node-version: 20
              cache: pnpm
          - run: pnpm install --frozen-lockfile
+         - run: pnpm run format:check
          - run: pnpm run lint
          - run: pnpm run typecheck
          - run: pnpm run test
@@ -2802,9 +2938,13 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
    ```
 
 3. Tambahkan scripts di root package.json:
+   - "format": "turbo run format"
+   - "format:check": "turbo run format:check"
    - "lint": "turbo run lint"
+   - "lint:fix": "turbo run lint:fix"
    - "typecheck": "turbo run typecheck"
    - "test": "turbo run test"
+   - "test:e2e": "playwright test"
    - "build": "turbo run build"
    - "deploy": "sst deploy"
 
@@ -2935,6 +3075,7 @@ graph TD
     T07[T-0.7 apps/admin]
     T08[T-0.8 apps/seller]
     T09[T-0.9 packages/ui]
+    T010[T-0.10 Prettier/ESLint/Playwright]
 
     T11[T-1.1 Enum Definitions]
     T12[T-1.2 Table Schemas]
@@ -2989,6 +3130,7 @@ graph TD
     T93[T-9.3 Admin Orders/Payments]
 
     T01 --> T02 & T03 & T04 & T05 & T06 & T07 & T08 & T09
+    T01 & T05 & T06 & T07 & T08 --> T010
     T03 --> T04
     T04 --> T11
     T11 --> T12 --> T13 --> T14
@@ -3047,6 +3189,11 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | -------------------------------------- | -------------- | ---------------------------------- |
 | `package.json` (root)                  | T-0.1          | Root monorepo config               |
 | `turbo.json`                           | T-0.1          | Turborepo pipeline                 |
+| `eslint.config.js`                     | T-0.10         | ESLint flat config (shared)        |
+| `.prettierrc`                          | T-0.10         | Prettier config (shared)           |
+| `.prettierignore`                      | T-0.10         | Prettier ignore patterns           |
+| `playwright.config.ts`                 | T-0.10         | Playwright E2E config              |
+| `tests/e2e/`                           | T-0.10, T-10.2 | Playwright E2E test suites         |
 | `docker-compose.yml`                   | T-0.1          | PostgreSQL lokal (Docker)          |
 | `sst.config.ts`                        | T-0.2          | SST infrastructure                 |
 | `packages/types/`                      | T-0.3          | Shared TypeScript types            |
@@ -3096,6 +3243,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 - **Edge compatibility**: Semua library di `apps/api` HARUS compatible dengan Cloudflare Workers runtime (no Node.js-only APIs). Cek sebelum install.
 - **Validasi input**: Gunakan `z` dari `@hono/zod-openapi` (BUKAN dari `zod` langsung) di semua API endpoint. Definisikan schema validasi di folder `schemas/` (`schemas/*.schema.ts`). Setiap schema harus diberi `.openapi('SchemaName')`. Route handler menggunakan `c.req.valid('json'|'query'|'param')` — BUKAN manual `schema.parse(await c.req.json())`.
 - **Arsitektur 3-layer + OpenAPI**: Route (OpenAPIHono + `createRoute()` + `app.openapi()`) → Service (business logic + DB) → Schema (Zod + `.openapi()` = DTO + OpenAPI spec). Lihat Execution Rules #10 dan #11 untuk detail.
+- **Code quality**: Jalankan `pnpm run format:check` dan `pnpm run lint` sebelum commit. ESLint flat config (`eslint.config.js`) + Prettier (`.prettierrc`). Lihat Execution Rules #12 dan #13.
 - **Error handling**: Gunakan Hono error handler. Response format konsisten: `{ success: boolean, data?: T, error?: { code: string, message: string } }`.
 - **Pagination**: Gunakan cursor-based atau offset pagination. Default limit: 20, max: 100. Response: `{ data: T[], meta: { total, page, limit, totalPages } }`.
 - **Concurrent-safe**: Untuk operasi yang melibatkan `sold_count` pada `ticket_tiers`, SELALU gunakan Durable Object. JANGAN langsung update dari API handler.

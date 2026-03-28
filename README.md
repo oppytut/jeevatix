@@ -20,6 +20,8 @@ Platform ini menggunakan pendekatan *monorepo* dengan perpaduan teknologi beriku
 * **State Management & Concurrency:** [Cloudflare Durable Objects](https://developers.cloudflare.com/workers/runtime-apis/durable-objects/) (Mencegah *overselling* dan memastikan konsistensi transaksi)
 * **Background Processing:** [Cloudflare Queues](https://developers.cloudflare.com/queues/) (Menangani tugas asinkron seperti antrean pengiriman email e-ticket dan pembaruan laporan analitik)
 * **Real-time WebSocket:** [PartyKit](https://www.partykit.io/) (Menyiarkan status ketersediaan tiket secara *live* dan mengelola ruang antrean tanpa membebani database)
+* **Code Quality:** [ESLint](https://eslint.org/) (Flat Config) + [Prettier](https://prettier.io/) (`prettier-plugin-svelte`, `prettier-plugin-tailwindcss`)
+* **Testing:** [Vitest](https://vitest.dev/) (Unit & Integration) + [Playwright](https://playwright.dev/) (E2E) + [K6](https://k6.io/) (Load Testing)
 
 ---
 
@@ -91,9 +93,15 @@ jeevatix/
 │   ├── core/           # Logika bisnis utama, Drizzle schema, koneksi database
 │   ├── ui/             # Shared UI components (TailwindCSS, shadcn-svelte)
 │   └── types/          # Shared TypeScript interfaces (Event, Ticket, dll)
+├── tests/
+│   ├── e2e/            # Playwright E2E test suites
+│   └── load/           # K6 load testing scripts
 ├── docker-compose.yml  # PostgreSQL untuk local development
 ├── sst.config.ts       # Konfigurasi infrastruktur SST
 ├── turbo.json          # Pipeline eksekusi Turborepo
+├── eslint.config.js    # ESLint flat config (shared)
+├── .prettierrc         # Prettier config (shared)
+├── playwright.config.ts # Playwright E2E config
 ├── package.json        # Root package (Workspaces config)
 └── README.md
 ```
@@ -155,17 +163,28 @@ Anda bisa mengakses aplikasi di port berikut:
 
 ---
 
-## 🧪 Testing
+## 🧪 Code Quality & Testing
 
-Aplikasi berskala tinggi membutuhkan pengujian yang ketat. Anda dapat menjalankan beberapa tipe pengujian:
+Project ini menggunakan ESLint + Prettier untuk menjaga konsistensi kode, dan tiga level pengujian:
 
-* **E2E Testing (Playwright):** Menjalankan pengujian UI / Layout untuk memastikan halaman berfungsi di browser. Contoh pada portal admin:
-  ```bash
-  cd apps/admin
-  npx playwright test
-  ```
-* **Unit & Integration Test:** `pnpm run test` (menggunakan Vitest)
-* **Load Testing:** `pnpm run test:load` (menggunakan K6 untuk mensimulasikan *war ticket*)
+```bash
+# Linting & Formatting
+pnpm run lint              # ESLint — cek semua apps & packages
+pnpm run lint:fix          # ESLint — auto-fix
+pnpm run format:check      # Prettier — cek formatting
+pnpm run format            # Prettier — auto-format
+
+# Testing
+pnpm run test              # Vitest — unit & integration tests
+pnpm run test:e2e          # Playwright — E2E tests (semua portal)
+pnpm run test:load         # K6 — load testing (war ticket simulation)
+```
+
+* **Linting (ESLint):** Flat config (`eslint.config.js`) dengan `@typescript-eslint` + `eslint-plugin-svelte`. Semua apps & packages di-lint via Turborepo.
+* **Formatting (Prettier):** Shared `.prettierrc` dengan `prettier-plugin-svelte` + `prettier-plugin-tailwindcss` (plugin order matters).
+* **Unit & Integration Test (Vitest):** Target minimal 80% coverage pada `apps/api`.
+* **E2E Testing (Playwright):** Test flows kritis di ketiga portal (Buyer :4301, Admin :4302, Seller :4303).
+* **Load Testing (K6):** Simulasi *war ticket* dengan 1000 virtual users untuk memastikan tidak ada *overselling*.
 
 ---
 
