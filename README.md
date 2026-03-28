@@ -75,6 +75,14 @@ Repositori ini diatur ke dalam beberapa *workspace* untuk memisahkan logika bisn
 jeevatix/
 ├── apps/
 │   ├── api/            # Hono backend API (berjalan di Cloudflare Workers)
+│   │   └── src/
+│   │       ├── routes/          # Thin HTTP handlers (parse request → call service → return response)
+│   │       ├── services/        # Business logic & DB operations (*.service.ts)
+│   │       ├── schemas/         # Zod validation schemas = request/response DTO (*.schema.ts)
+│   │       ├── middleware/      # Auth, CORS, error handler
+│   │       ├── durable-objects/ # Cloudflare Durable Objects (TicketReserver)
+│   │       ├── queues/          # Cloudflare Queue consumers
+│   │       └── lib/             # Pure utilities (jwt, password, helpers)
 │   ├── buyer/          # SvelteKit portal untuk pembeli tiket
 │   ├── admin/          # SvelteKit portal untuk dashboard admin Jeevatix
 │   └── seller/         # SvelteKit portal untuk penjual / penyelenggara event

@@ -28,6 +28,11 @@
    - **shadcn-ui MCP**: Untuk semua task UI — gunakan `list_components` untuk melihat komponen tersedia, `get_component` / `get_component_demo` untuk mendapatkan source code & contoh penggunaan, `list_blocks` / `get_block` untuk template block siap pakai (dashboard, login, sidebar), dan `list_themes` / `apply_theme` untuk menerapkan tema.
    - **filesystem MCP**: Untuk operasi file — gunakan `read_file`, `write_file`, `directory_tree`, `search_files` untuk navigasi dan manipulasi file project.
 9. **Satu task = satu commit, satu branch per fase.** Gunakan `git` CLI untuk membuat branch `feat/phase-X` dan commit setiap task selesai.
+10. **Ikuti arsitektur 3-layer untuk semua API endpoint:**
+    - **Route** (`routes/`) — Thin HTTP handler (~30 baris). Hanya: parse request body/params → panggil service → return response. JANGAN taruh business logic di route.
+    - **Service** (`services/*.service.ts`) — Semua business logic, DB queries, orchestration. Bisa di-test tanpa HTTP context.
+    - **Schema** (`schemas/*.schema.ts`) — Zod validation schemas untuk request/response. Berfungsi sebagai DTO. Export inferred types (`z.infer<typeof schema>`).
+    - Contoh: `routes/auth.ts` → import `authService` dari `services/auth.service.ts` + import schemas dari `schemas/auth.schema.ts`.
 
 ---
 
@@ -255,7 +260,7 @@ Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-0.5`                                                   |
 | Dependensi  | `T-0.1`, `T-0.4`                                          |
-| Deliverables| `apps/api/package.json`, `apps/api/src/index.ts`, `apps/api/wrangler.toml` |
+| Deliverables| `apps/api/package.json`, `apps/api/src/index.ts`, `apps/api/wrangler.toml`, folder structure `routes/`, `services/`, `schemas/`, `middleware/`, `lib/` |
 
 **Instruksi:**
 1. Buat package `@jeevatix/api`.
@@ -263,10 +268,11 @@ Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
 3. Buat `src/index.ts` — Hono app dengan health check route `GET /health` → `{ status: "ok" }`.
 4. Buat `wrangler.toml` — config untuk Cloudflare Workers.
 5. Setup script: `"dev": "wrangler dev src/index.ts"`.
+6. **Scaffold arsitektur 3-layer:** Buat folder `src/routes/`, `src/services/`, `src/schemas/`, `src/middleware/`, `src/lib/`, `src/durable-objects/`, `src/queues/` (masing-masing dengan `.gitkeep`).
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack API (Hono + Cloudflare Workers).
+Baca file README.md untuk memahami tech stack API (Hono + Cloudflare Workers) dan arsitektur 3-layer (routes → services → schemas).
 
 Kerjakan Task T-0.5: Create App apps/api.
 Dependensi: T-0.1 dan T-0.4 sudah selesai.
@@ -277,7 +283,15 @@ Dependensi: T-0.1 dan T-0.4 sudah selesai.
 4. Buat `apps/api/tsconfig.json` (extends root, types: @cloudflare/workers-types).
 5. Buat `apps/api/wrangler.toml` — name: jeevatix-api, compatibility_date terbaru, main: src/index.ts.
 6. Buat `apps/api/src/index.ts` — Hono app dengan satu route: GET /health → { status: "ok" }. Export default app.
-7. Tambahkan script di package.json: "dev": "wrangler dev src/index.ts".
+7. Scaffold arsitektur 3-layer — buat folder berikut (masing-masing dengan file .gitkeep agar ter-track Git):
+   - `apps/api/src/routes/` — Thin HTTP handlers (parse request, call service, return response).
+   - `apps/api/src/services/` — Business logic & DB operations.
+   - `apps/api/src/schemas/` — Zod validation schemas (request/response DTO).
+   - `apps/api/src/middleware/` — Auth, CORS, error handler.
+   - `apps/api/src/lib/` — Pure utilities (jwt, password, helpers).
+   - `apps/api/src/durable-objects/` — Cloudflare Durable Objects.
+   - `apps/api/src/queues/` — Cloudflare Queue consumers.
+8. Tambahkan script di package.json: "dev": "wrangler dev src/index.ts".
 
 Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localhost:8787/health harus return { status: "ok" }.
 ```
@@ -656,12 +670,14 @@ Semua library HARUS compatible dengan Cloudflare Workers runtime.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-2.2`                                                   |
 | Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/auth.ts`                              |
+| Deliverables| `apps/api/src/routes/auth.ts`, `apps/api/src/services/auth.service.ts`, `apps/api/src/schemas/auth.schema.ts` |
 | Endpoints   | E1–E7, E63 (lihat PAGES.md → Auth API)                     |
 
 **Instruksi:**
-1. Buat Hono router di `routes/auth.ts`.
-2. Implementasi:
+1. Buat Zod schemas di `schemas/auth.schema.ts` — registerSchema, loginSchema, refreshSchema, forgotPasswordSchema, resetPasswordSchema.
+2. Buat business logic di `services/auth.service.ts` — register(), login(), refresh(), forgotPassword(), resetPassword(), verifyEmail(), logout().
+3. Buat thin Hono router di `routes/auth.ts` — parse request → call authService → return response.
+4. Implementasi:
    - `POST /auth/register` → validasi input, hash password, insert ke `users`, return access token + refresh token.
    - `POST /auth/register/seller` → insert ke `users` (role=seller) + insert ke `seller_profiles`.
    - `POST /auth/login` → cek email+password, return access token + refresh token + user data. Simpan refresh token hash ke `refresh_tokens`.
@@ -680,16 +696,30 @@ Baca file PAGES.md bagian Auth API (E1-E7, E63) dan DATABASE_DESIGN.md (tabel us
 Kerjakan Task T-2.2: Auth API Endpoints.
 Dependensi: T-2.1 sudah selesai (middleware auth, password, jwt sudah ada).
 
-Buat file `apps/api/src/routes/auth.ts` sebagai Hono router:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. POST /auth/register — Input: {email, password, full_name, phone?}. Validasi dengan zod (email valid, password min 8 char). Hash password, insert ke users (role: buyer). Return access token + refresh token.
-2. POST /auth/register/seller — Input: {email, password, full_name, phone?, org_name, org_description?}. Insert ke users (role: seller) + insert ke seller_profiles. Return tokens.
-3. POST /auth/login — Input: {email, password}. Cek email ada, verify password. Simpan refresh token hash ke tabel refresh_tokens. Return {access_token, refresh_token, user}.
-4. POST /auth/refresh — Input: {refresh_token}. Verify token, cek hash ada di refresh_tokens dan belum expired/revoked. Generate access token baru + rotate refresh token baru. Revoke token lama.
-5. POST /auth/forgot-password — Input: {email}. Generate reset token, placeholder untuk enqueue email.
-6. POST /auth/reset-password — Input: {token, password}. Verify token, update password_hash.
-7. POST /auth/verify-email — Input: {token}. Update email_verified_at = now().
-8. POST /auth/logout — Revoke refresh token di tabel refresh_tokens. Hapus/expire.
+**File 1: `apps/api/src/schemas/auth.schema.ts`** — Zod validation schemas:
+- registerSchema: { email: z.string().email(), password: z.string().min(8), full_name: z.string(), phone: z.string().optional() }
+- registerSellerSchema: extends registerSchema + { org_name, org_description? }
+- loginSchema: { email, password }
+- refreshSchema: { refresh_token }
+- forgotPasswordSchema: { email }
+- resetPasswordSchema: { token, password }
+- Export inferred types: type RegisterInput = z.infer<typeof registerSchema>, dll.
+
+**File 2: `apps/api/src/services/auth.service.ts`** — Business logic:
+- register(input: RegisterInput): hash password, insert ke users (role: buyer), generate tokens. Return { access_token, refresh_token, user }.
+- registerSeller(input: RegisterSellerInput): insert ke users (role: seller) + seller_profiles. Return tokens.
+- login(input: LoginInput): cek email, verify password, simpan refresh token hash ke refresh_tokens. Return { access_token, refresh_token, user }.
+- refresh(input: RefreshInput): verify token, cek hash di DB, rotate tokens. Revoke token lama.
+- forgotPassword(input): generate reset token, placeholder enqueue email.
+- resetPassword(input): verify token, update password_hash.
+- verifyEmail(token): update email_verified_at = now().
+- logout(refreshToken): revoke di refresh_tokens.
+
+**File 3: `apps/api/src/routes/auth.ts`** — Thin Hono router:
+- Setiap handler: parse body dengan schema → panggil authService method → return c.json({ success, data }).
+- Contoh: app.post('/register', async (c) => { const body = registerSchema.parse(await c.req.json()); const result = await authService.register(c.env, body); return c.json({ success: true, data: result }); }).
 
 Install zod: `pnpm add zod` di apps/api.
 Semua response format: { success: boolean, data?: T, error?: { code: string, message: string } }.
@@ -702,13 +732,13 @@ Mount router di apps/api/src/index.ts.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-2.3`                                                   |
 | Dependensi  | `T-2.2`                                                   |
-| Deliverables| `apps/api/src/routes/users.ts`                             |
+| Deliverables| `apps/api/src/routes/users.ts`, `apps/api/src/services/user.service.ts`, `apps/api/src/schemas/user.schema.ts` |
 | Endpoints   | E8–E10 (lihat PAGES.md → User API)                         |
 
 **Instruksi:**
-1. `GET /users/me` → return current user dari JWT context.
-2. `PATCH /users/me` → update full_name, phone, avatar_url.
-3. `PATCH /users/me/password` → verify old password, hash & update new password.
+1. Buat schemas di `schemas/user.schema.ts` — updateProfileSchema, changePasswordSchema.
+2. Buat logic di `services/user.service.ts` — getMe(), updateProfile(), changePassword().
+3. Buat thin router di `routes/users.ts` → parse request → call userService → return response.
 
 **Prompt:**
 ```
@@ -717,11 +747,22 @@ Baca file PAGES.md bagian User API (E8-E10) dan DATABASE_DESIGN.md (tabel users)
 Kerjakan Task T-2.3: User API Endpoints.
 Dependensi: T-2.2 sudah selesai.
 
-Buat file `apps/api/src/routes/users.ts` sebagai Hono router:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. GET /users/me — Protected (authMiddleware). Return current user data dari JWT context (id, email, full_name, phone, avatar_url, role, status, email_verified_at, created_at). Jangan return password_hash.
-2. PATCH /users/me — Protected. Input: {full_name?, phone?, avatar_url?}. Validasi dengan zod. Update fields yang dikirim saja.
-3. PATCH /users/me/password — Protected. Input: {old_password, new_password}. Verify old_password terhadap hash di DB. Hash new_password dan update.
+**File 1: `apps/api/src/schemas/user.schema.ts`:**
+- updateProfileSchema: { full_name?: string, phone?: string, avatar_url?: string }
+- changePasswordSchema: { old_password: string, new_password: string.min(8) }
+- Export inferred types.
+
+**File 2: `apps/api/src/services/user.service.ts`:**
+- getMe(userId): query user by id, exclude password_hash. Return user data.
+- updateProfile(userId, input: UpdateProfileInput): update fields yang dikirim saja.
+- changePassword(userId, input: ChangePasswordInput): verify old_password terhadap hash di DB, hash new_password, update.
+
+**File 3: `apps/api/src/routes/users.ts`** — Thin Hono router:
+1. GET /users/me — Protected (authMiddleware). Panggil userService.getMe(user.id).
+2. PATCH /users/me — Protected. Parse body dengan updateProfileSchema → panggil userService.updateProfile().
+3. PATCH /users/me/password — Protected. Parse body dengan changePasswordSchema → panggil userService.changePassword().
 
 Mount router di apps/api/src/index.ts.
 ```
@@ -772,7 +813,7 @@ Pastikan semua test pass: `cd apps/api && pnpm test`.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-2.5`                                                   |
 | Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/upload.ts`, R2 bucket config di `wrangler.toml` |
+| Deliverables| `apps/api/src/routes/upload.ts`, `apps/api/src/services/upload.service.ts`, `apps/api/src/schemas/upload.schema.ts`, R2 bucket config di `wrangler.toml` |
 | Endpoints   | E64 (lihat PAGES.md → File Upload API)                     |
 
 **Instruksi:**
@@ -794,14 +835,12 @@ Dependensi: T-2.1 sudah selesai (auth middleware tersedia).
    binding = "BUCKET"
    bucket_name = "jeevatix-uploads"
    ```
-2. Buat file `apps/api/src/routes/upload.ts` sebagai Hono router:
-   - POST /upload — Protected (authMiddleware).
-   - Terima multipart form data dengan field "file".
-   - Validasi: tipe file hanya image/jpeg, image/png, image/webp. Max size: 5MB.
-   - Generate key unik: `uploads/{uuid}.{extension}`.
-   - Upload ke R2 bucket via c.env.BUCKET.put(key, file).
-   - Return { success: true, data: { url: "https://{R2_PUBLIC_URL}/{key}" } }.
-3. Mount router di apps/api/src/index.ts.
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+
+2. **`apps/api/src/schemas/upload.schema.ts`** — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 * 1024 * 1024.
+3. **`apps/api/src/services/upload.service.ts`** — uploadFile(env, file): validasi tipe & ukuran, generate key unik `uploads/{uuid}.{extension}`, upload ke R2 via env.BUCKET.put(key, file), return { url }.
+4. **`apps/api/src/routes/upload.ts`** — Thin Hono router: POST /upload (Protected authMiddleware). Terima multipart form data → panggil uploadService.uploadFile() → return response.
+5. Mount router di apps/api/src/index.ts.
 
 Endpoint ini akan digunakan oleh semua form upload gambar: avatar user, logo seller, banner event, galeri event.
 ```
@@ -863,7 +902,7 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-3.1`                                                   |
 | Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/admin/categories.ts`                  |
+| Deliverables| `apps/api/src/routes/admin/categories.ts`, `apps/api/src/services/category.service.ts`, `apps/api/src/schemas/category.schema.ts` |
 | Endpoints   | E14, E15, E57–E60 (lihat PAGES.md)                         |
 
 **Instruksi:**
@@ -879,16 +918,30 @@ Baca file PAGES.md bagian Event API Public (E14-E15) dan Admin API (E57-E60) dan
 Kerjakan Task T-3.1: Category API.
 Dependensi: T-2.1 sudah selesai.
 
-Buat file `apps/api/src/routes/admin/categories.ts` sebagai Hono router:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. GET /categories — Public. List semua kategori. Return: id, name, slug, icon.
-2. GET /categories/:slug/events — Public. List events berdasarkan kategori slug. Hanya events status published/ongoing. Include ticket_tiers info. Pagination.
-3. GET /admin/categories — Admin only. List kategori + jumlah event per kategori.
-4. POST /admin/categories — Admin only. Input: {name, icon?}. Auto-generate slug dari name (lowercase, replace spasi dengan dash). Validasi: name unique.
-5. PATCH /admin/categories/:id — Admin only. Input: {name?, icon?}. Re-generate slug jika name berubah.
-6. DELETE /admin/categories/:id — Admin only. Validasi: jangan hapus jika masih ada event yang terhubung via event_categories. Return error jika masih ada.
+**File 1: `apps/api/src/schemas/category.schema.ts`:**
+- createCategorySchema: { name: string, icon?: string }
+- updateCategorySchema: { name?: string, icon?: string }
+- Export inferred types.
 
-Gunakan zod untuk validasi input. Mount di index.ts.
+**File 2: `apps/api/src/services/category.service.ts`:**
+- listPublic(): list semua kategori (id, name, slug, icon).
+- listEventsByCategory(slug, pagination): events by kategori, hanya published/ongoing.
+- listAdmin(): list kategori + jumlah event per kategori.
+- create(input): auto-generate slug, validasi name unique, insert.
+- update(id, input): re-generate slug jika name berubah.
+- remove(id): validasi tidak ada event terhubung via event_categories, hapus.
+
+**File 3: `apps/api/src/routes/admin/categories.ts`** — Thin Hono router:
+1. GET /categories — Public. Panggil categoryService.listPublic().
+2. GET /categories/:slug/events — Public. Panggil categoryService.listEventsByCategory().
+3. GET /admin/categories — Admin only. Panggil categoryService.listAdmin().
+4. POST /admin/categories — Admin only. Parse body dengan createCategorySchema → panggil categoryService.create().
+5. PATCH /admin/categories/:id — Admin only. Parse body dengan updateCategorySchema → panggil categoryService.update().
+6. DELETE /admin/categories/:id — Admin only. Panggil categoryService.remove(). Return error jika masih ada event.
+
+Mount di index.ts.
 ```
 
 ### Task 3.2 — Admin Auth UI (Login)
@@ -971,7 +1024,7 @@ Gunakan shadcn-svelte components: DataTable, Button, Input, Dialog/Modal, Toast.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-3.4`                                                   |
 | Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/admin/users.ts`                       |
+| Deliverables| `apps/api/src/routes/admin/users.ts`, `apps/api/src/services/admin-user.service.ts`, `apps/api/src/schemas/admin-user.schema.ts` |
 | Endpoints   | E45–E49 (lihat PAGES.md → Admin API)                       |
 
 **Instruksi:**
@@ -988,13 +1041,27 @@ Baca file PAGES.md bagian Admin API (E45-E49) dan DATABASE_DESIGN.md (tabel user
 Kerjakan Task T-3.4: Admin User Management API.
 Dependensi: T-2.1 sudah selesai.
 
-Buat file `apps/api/src/routes/admin/users.ts` sebagai Hono router (semua endpoint admin-only via roleMiddleware('admin')):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. GET /admin/users — List users. Query params: role (filter), status (filter), search (ILIKE name/email), page, limit. Return paginated response dengan meta: {total, page, limit, totalPages}.
-2. GET /admin/users/:id — Detail user. Join seller_profiles jika role=seller. Include order count dan ticket count.
-3. PATCH /admin/users/:id/status — Input: {status: 'active'|'suspended'|'banned'}. Update user status. Jangan bisa ubah status admin sendiri.
-4. GET /admin/sellers — List seller (users dengan role=seller) + join seller_profiles. Filter: is_verified (true/false). Pagination.
-5. PATCH /admin/sellers/:id/verify — Input: {is_verified: boolean}. Update seller_profiles.is_verified, set verified_at = now() dan verified_by = current admin user id jika true. Set verified_at = null dan verified_by = null jika false.
+**File 1: `apps/api/src/schemas/admin-user.schema.ts`:**
+- listUsersQuerySchema: { role?, status?, search?, page?, limit? }
+- updateUserStatusSchema: { status: 'active'|'suspended'|'banned' }
+- verifySellerSchema: { is_verified: boolean }
+- Export inferred types.
+
+**File 2: `apps/api/src/services/admin-user.service.ts`:**
+- listUsers(query): filter by role/status, search ILIKE name/email, paginated.
+- getUserDetail(id): join seller_profiles jika seller. Include order/ticket count.
+- updateUserStatus(id, status, adminId): jangan bisa ubah status admin sendiri.
+- listSellers(query): filter by is_verified, paginated.
+- verifySeller(id, isVerified, adminId): set is_verified, verified_at, verified_by.
+
+**File 3: `apps/api/src/routes/admin/users.ts`** — Thin Hono router (admin-only via roleMiddleware('admin')):
+1. GET /admin/users — Parse query → panggil adminUserService.listUsers().
+2. GET /admin/users/:id — Panggil adminUserService.getUserDetail().
+3. PATCH /admin/users/:id/status — Parse body dengan updateUserStatusSchema → panggil adminUserService.updateUserStatus().
+4. GET /admin/sellers — Panggil adminUserService.listSellers().
+5. PATCH /admin/sellers/:id/verify — Parse body dengan verifySellerSchema → panggil adminUserService.verifySeller().
 
 Mount di index.ts.
 ```
@@ -1051,7 +1118,7 @@ open http://localhost:4302/sellers    # verifikasi seller
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-4.1`                                                   |
 | Dependensi  | `T-2.2`                                                   |
-| Deliverables| `apps/api/src/routes/seller/profile.ts`                    |
+| Deliverables| `apps/api/src/routes/seller/profile.ts`, `apps/api/src/services/seller-profile.service.ts`, `apps/api/src/schemas/seller-profile.schema.ts` |
 | Endpoints   | E39–E40 (lihat PAGES.md)                                   |
 
 **Instruksi:**
@@ -1065,10 +1132,19 @@ Baca file PAGES.md bagian Seller Profile API (E39-E40) dan DATABASE_DESIGN.md (t
 Kerjakan Task T-4.1: Seller Auth & Profile API.
 Dependensi: T-2.2 sudah selesai.
 
-Buat file `apps/api/src/routes/seller/profile.ts` sebagai Hono router (semua endpoint via authMiddleware + roleMiddleware('seller')):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. GET /seller/profile — Return data gabungan: user fields (full_name, email, phone, avatar_url) + seller_profiles fields (org_name, org_description, logo_url, bank_name, bank_account_number, bank_account_holder, is_verified, verified_at). Join users dan seller_profiles berdasarkan user_id dari JWT.
-2. PATCH /seller/profile — Input: {org_name?, org_description?, logo_url?, bank_name?, bank_account_number?, bank_account_holder?}. Validasi dengan zod. Update fields yang dikirim saja di tabel seller_profiles.
+**File 1: `apps/api/src/schemas/seller-profile.schema.ts`:**
+- updateSellerProfileSchema: { org_name?, org_description?, logo_url?, bank_name?, bank_account_number?, bank_account_holder? }
+- Export inferred types.
+
+**File 2: `apps/api/src/services/seller-profile.service.ts`:**
+- getProfile(userId): join users + seller_profiles berdasarkan user_id. Return gabungan data.
+- updateProfile(userId, input: UpdateSellerProfileInput): update seller_profiles fields yang dikirim saja.
+
+**File 3: `apps/api/src/routes/seller/profile.ts`** — Thin Hono router (seller-only via authMiddleware + roleMiddleware('seller')):
+1. GET /seller/profile — Panggil sellerProfileService.getProfile().
+2. PATCH /seller/profile — Parse body dengan updateSellerProfileSchema → panggil sellerProfileService.updateProfile().
 
 Mount di apps/api/src/index.ts dengan prefix /seller.
 ```
@@ -1079,7 +1155,7 @@ Mount di apps/api/src/index.ts dengan prefix /seller.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-4.2`                                                   |
 | Dependensi  | `T-2.1`, `T-1.3`                                          |
-| Deliverables| `apps/api/src/routes/seller/events.ts`                     |
+| Deliverables| `apps/api/src/routes/seller/events.ts`, `apps/api/src/services/event.service.ts`, `apps/api/src/schemas/event.schema.ts` |
 | Endpoints   | E16–E20 (lihat PAGES.md → Event API Seller)                |
 
 **Instruksi:**
@@ -1097,13 +1173,27 @@ Baca file PAGES.md bagian Seller Event API (E16-E20) dan DATABASE_DESIGN.md (tab
 Kerjakan Task T-4.2: Seller Event CRUD API.
 Dependensi: T-2.1 dan T-1.3 sudah selesai.
 
-Buat file `apps/api/src/routes/seller/events.ts` sebagai Hono router (seller-only):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. GET /seller/events — List events milik seller (berdasarkan seller_profile_id dari JWT user). Filter query param: status. Join ticket_tiers untuk statistik: total_quota, total_sold. Pagination.
-2. POST /seller/events — Input: {title, description, venue_name, venue_address, venue_city, venue_latitude?, venue_longitude?, start_at, end_at, sale_start_at, sale_end_at, banner_url?, max_tickets_per_order?, category_ids: number[], images: {image_url, sort_order}[], tiers: {name, description?, price, quota, sort_order, sale_start_at?, sale_end_at?}[]}. Database transaction: insert event (status: draft) + event_categories + event_images + ticket_tiers. Auto-generate slug dari title. Validasi temporal: end_at > start_at, sale_end_at > sale_start_at, sale_start_at <= start_at.
-3. GET /seller/events/:id — Detail event + images + categories + tiers + statistik penjualan per tier. Validasi: event milik seller ini.
-4. PATCH /seller/events/:id — Update event fields. Validasi ownership. Jika seller submit untuk review, ubah status draft/rejected → pending_review.
-5. DELETE /seller/events/:id — Hapus event. Hanya boleh jika status = draft. Cascade: delete event_categories, event_images, ticket_tiers.
+**File 1: `apps/api/src/schemas/event.schema.ts`:**
+- createEventSchema: { title, description, venue_name, venue_address, venue_city, venue_latitude?, venue_longitude?, start_at, end_at, sale_start_at, sale_end_at, banner_url?, max_tickets_per_order?, category_ids: number[], images: {image_url, sort_order}[], tiers: {name, description?, price, quota, sort_order, sale_start_at?, sale_end_at?}[] }.
+- updateEventSchema: partial dari createEventSchema.
+- Validasi temporal: end_at > start_at, sale_end_at > sale_start_at, sale_start_at <= start_at.
+- Export inferred types.
+
+**File 2: `apps/api/src/services/event.service.ts`:**
+- listSellerEvents(sellerProfileId, filters): filter by status, join ticket_tiers untuk statistik (total_quota, total_sold). Paginated.
+- createEvent(sellerProfileId, input): database transaction — insert event (status: draft) + event_categories + event_images + ticket_tiers. Auto-generate slug.
+- getSellerEvent(sellerProfileId, eventId): detail + images + categories + tiers + statistik. Validasi ownership.
+- updateEvent(sellerProfileId, eventId, input): validasi ownership. Handle status flow: draft/rejected → pending_review.
+- deleteEvent(sellerProfileId, eventId): hanya status draft. Cascade delete.
+
+**File 3: `apps/api/src/routes/seller/events.ts`** — Thin Hono router (seller-only):
+1. GET /seller/events — Panggil eventService.listSellerEvents().
+2. POST /seller/events — Parse body dengan createEventSchema → panggil eventService.createEvent().
+3. GET /seller/events/:id — Panggil eventService.getSellerEvent().
+4. PATCH /seller/events/:id — Parse body dengan updateEventSchema → panggil eventService.updateEvent().
+5. DELETE /seller/events/:id — Panggil eventService.deleteEvent().
 
 Event status flow: draft → pending_review (seller submit) → published/rejected (admin review). Seller bisa edit event rejected lalu submit ulang ke pending_review.
 Mount di index.ts.
@@ -1115,7 +1205,7 @@ Mount di index.ts.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-4.3`                                                   |
 | Dependensi  | `T-4.2`                                                   |
-| Deliverables| `apps/api/src/routes/seller/tiers.ts`                      |
+| Deliverables| `apps/api/src/routes/seller/tiers.ts`, `apps/api/src/services/tier.service.ts`, `apps/api/src/schemas/tier.schema.ts` |
 | Endpoints   | E21–E24 (lihat PAGES.md → Ticket Tier API Seller)          |
 
 **Instruksi:**
@@ -1130,12 +1220,24 @@ Baca file PAGES.md bagian Ticket Tier API (E21-E24) dan DATABASE_DESIGN.md (tabe
 Kerjakan Task T-4.3: Ticket Tier CRUD API.
 Dependensi: T-4.2 sudah selesai.
 
-Buat file `apps/api/src/routes/seller/tiers.ts` sebagai Hono router (seller-only):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. GET /seller/events/:id/tiers — List semua tier tiket dari event tertentu. Validasi: event milik seller ini. Return: id, name, description, price, quota, sold_count, sort_order, status, sale_start_at, sale_end_at.
-2. POST /seller/events/:id/tiers — Input: {name, description?, price, quota, sort_order?, sale_start_at?, sale_end_at?}. Validasi ownership. Insert ke ticket_tiers dengan event_id.
-3. PATCH /seller/events/:id/tiers/:tierId — Input: {name?, description?, price?, quota?, sort_order?, status?, sale_start_at?, sale_end_at?}. Validasi ownership. Jangan izinkan quota < sold_count. Jangan izinkan ubah price jika sold_count > 0.
-4. DELETE /seller/events/:id/tiers/:tierId — Validasi ownership. Jangan hapus tier jika sold_count > 0 (return error).
+**File 1: `apps/api/src/schemas/tier.schema.ts`:**
+- createTierSchema: { name, description?, price, quota, sort_order?, sale_start_at?, sale_end_at? }
+- updateTierSchema: partial dari createTierSchema + { status? }
+- Export inferred types.
+
+**File 2: `apps/api/src/services/tier.service.ts`:**
+- listTiers(sellerProfileId, eventId): validasi ownership, return semua tier.
+- createTier(sellerProfileId, eventId, input): validasi ownership, insert.
+- updateTier(sellerProfileId, eventId, tierId, input): validasi ownership + quota >= sold_count, jangan ubah price jika sold_count > 0.
+- deleteTier(sellerProfileId, eventId, tierId): validasi ownership, jangan hapus jika sold_count > 0.
+
+**File 3: `apps/api/src/routes/seller/tiers.ts`** — Thin Hono router (seller-only):
+1. GET /seller/events/:id/tiers — Panggil tierService.listTiers().
+2. POST /seller/events/:id/tiers — Parse body dengan createTierSchema → panggil tierService.createTier().
+3. PATCH /seller/events/:id/tiers/:tierId — Parse body dengan updateTierSchema → panggil tierService.updateTier().
+4. DELETE /seller/events/:id/tiers/:tierId — Panggil tierService.deleteTier().
 
 Mount di index.ts.
 ```
@@ -1274,7 +1376,7 @@ open http://localhost:4303/events         # list events
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-5.1`                                                   |
 | Dependensi  | `T-1.3`                                                   |
-| Deliverables| `apps/api/src/routes/events.ts`                            |
+| Deliverables| `apps/api/src/routes/events.ts`, `apps/api/src/services/public-event.service.ts`, `apps/api/src/schemas/public-event.schema.ts` |
 | Endpoints   | E11–E15 (lihat PAGES.md → Event API Public)                |
 
 **Instruksi:**
@@ -1293,20 +1395,25 @@ Baca file PAGES.md bagian Event API Public (E11-E15) dan DATABASE_DESIGN.md (tab
 Kerjakan Task T-5.1: Public Event API.
 Dependensi: T-1.3 sudah selesai.
 
-Buat file `apps/api/src/routes/events.ts` sebagai Hono router (semua public/tanpa auth):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. GET /events — List events (hanya status published/ongoing). Query params:
-   - search: ILIKE pada title (contoh: WHERE title ILIKE '%keyword%').
-   - category: filter by category slug (join event_categories + categories).
-   - city: filter by venue_city.
-   - date_from, date_to: filter by start_at range.
-   - price_min, price_max: filter event yang punya tier dengan price dalam range.
-   - page, limit (default 20, max 100).
-   Return: events + min_price dari ticket_tiers + kategori names. Paginated response.
-2. GET /events/featured — Events where is_featured = true, status published/ongoing. Limit 10. Include event_images (banner).
-3. GET /events/:slug — Detail event by slug. Join: event_images, event_categories + categories, ticket_tiers (with availability: quota - sold_count), seller_profiles (org_name, logo_url). Return semua data.
-4. GET /categories — List semua kategori (id, name, slug, icon).
-5. GET /categories/:slug/events — Events by kategori slug. Hanya published/ongoing. Pagination.
+**File 1: `apps/api/src/schemas/public-event.schema.ts`:**
+- listEventsQuerySchema: { search?, category?, city?, date_from?, date_to?, price_min?, price_max?, page?, limit? }
+- Export inferred types.
+
+**File 2: `apps/api/src/services/public-event.service.ts`:**
+- listEvents(query): filter published/ongoing, ILIKE search, category join, city, date range, price range. Paginated. Return events + min_price.
+- listFeatured(): is_featured = true, published/ongoing, limit 10.
+- getBySlug(slug): detail event + images + categories + tiers (availability) + seller info.
+- listCategories(): all categories.
+- listByCategory(slug, pagination): events by kategori, published/ongoing.
+
+**File 3: `apps/api/src/routes/events.ts`** — Thin Hono router (semua public/tanpa auth):
+1. GET /events — Parse query dengan listEventsQuerySchema → panggil publicEventService.listEvents().
+2. GET /events/featured — Panggil publicEventService.listFeatured().
+3. GET /events/:slug — Panggil publicEventService.getBySlug().
+4. GET /categories — Panggil publicEventService.listCategories().
+5. GET /categories/:slug/events — Panggil publicEventService.listByCategory().
 
 Search strategy: gunakan ILIKE untuk sekarang. Jika perlu performa lebih baik, tambahkan tsvector + GIN index di events.title nanti.
 Mount di index.ts.
@@ -1518,7 +1625,7 @@ INI ADALAH BAGIAN PALING KRITIS. Pastikan semua operasi stok atomik dan concurre
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-6.2`                                                   |
 | Dependensi  | `T-6.1`                                                   |
-| Deliverables| `apps/api/src/routes/reservations.ts`                      |
+| Deliverables| `apps/api/src/routes/reservations.ts`, `apps/api/src/services/reservation.service.ts`, `apps/api/src/schemas/reservation.schema.ts` |
 | Endpoints   | E25–E27 (lihat PAGES.md)                                   |
 
 **Instruksi:**
@@ -1536,18 +1643,21 @@ Baca file PAGES.md bagian Reservation API (E25-E27) dan DATABASE_DESIGN.md (tabe
 Kerjakan Task T-6.2: Reservation API.
 Dependensi: T-6.1 sudah selesai.
 
-Buat file `apps/api/src/routes/reservations.ts` sebagai Hono router (buyer-only via authMiddleware + roleMiddleware('buyer')):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. POST /reservations — Input: {ticket_tier_id, quantity}. Logika:
-   - Cek user tidak punya active reservation lain untuk event yang sama.
-   - Anti-abuse: query total tiket user untuk event ini (dari orders confirmed + reservations active). Tolak jika total + quantity > events.max_tickets_per_order.
-   - Dapatkan Durable Object instance: c.env.TICKET_RESERVER.get(c.env.TICKET_RESERVER.idFromName(tierId)).
-   - Delegate ke TicketReserver.reserve(userId, tierId, quantity).
-   - Return { reservation_id, expires_at } atau error SOLD_OUT (409).
+**File 1: `apps/api/src/schemas/reservation.schema.ts`:**
+- createReservationSchema: { ticket_tier_id: string, quantity: number.min(1) }
+- Export inferred types.
 
-2. GET /reservations/:id — Return reservation data + remaining time (expires_at - now). Validasi: reservation milik user ini.
+**File 2: `apps/api/src/services/reservation.service.ts`:**
+- reserve(env, userId, input: CreateReservationInput): cek active reservation per event, anti-abuse quota check, delegate ke Durable Object TicketReserver.reserve(). Return { reservation_id, expires_at }.
+- getReservation(userId, reservationId): return reservation + remaining time. Validasi ownership.
+- cancelReservation(env, userId, reservationId): validasi ownership + status active. Delegate ke TicketReserver.cancelReservation().
 
-3. DELETE /reservations/:id — Validasi: reservation milik user ini, status masih active. Delegate ke TicketReserver.cancelReservation().
+**File 3: `apps/api/src/routes/reservations.ts`** — Thin Hono router (buyer-only via authMiddleware + roleMiddleware('buyer')):
+1. POST /reservations — Parse body dengan createReservationSchema → panggil reservationService.reserve().
+2. GET /reservations/:id — Panggil reservationService.getReservation().
+3. DELETE /reservations/:id — Panggil reservationService.cancelReservation().
 
 Set expires_at = now + 10 menit.
 Mount di index.ts.
@@ -1559,7 +1669,7 @@ Mount di index.ts.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-6.3`                                                   |
 | Dependensi  | `T-6.2`                                                   |
-| Deliverables| `apps/api/src/routes/orders.ts`                            |
+| Deliverables| `apps/api/src/routes/orders.ts`, `apps/api/src/services/order.service.ts`, `apps/api/src/schemas/order.schema.ts` |
 | Endpoints   | E28–E30 (lihat PAGES.md)                                   |
 
 **Instruksi:**
@@ -1579,22 +1689,22 @@ Baca file PAGES.md bagian Order API (E28-E30) dan DATABASE_DESIGN.md (tabel orde
 Kerjakan Task T-6.3: Order API.
 Dependensi: T-6.2 sudah selesai.
 
-Buat file `apps/api/src/routes/orders.ts` sebagai Hono router (buyer-only):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. POST /orders — Input: {reservation_id}. Logika dalam database transaction:
-   - Validasi reservation: status = active, expires_at > now, milik user ini.
-   - Ambil data reservation: ticket_tier_id, quantity.
-   - Ambil data tier: price.
-   - Generate order_number: format JVX-YYYYMMDD-XXXXX (XXXXX = 5 digit random angka).
-   - Insert order: user_id, reservation_id, order_number, total_amount = price * quantity, service_fee = 0, status = pending, expires_at = now + 30 menit.
-   - Insert order_items: order_id, ticket_tier_id, quantity, unit_price = price, subtotal = price * quantity.
-   - Insert payment: order_id, method = default, status = pending, amount = total_amount.
-   - Update reservation: status = converted.
-   - Return order data.
+**File 1: `apps/api/src/schemas/order.schema.ts`:**
+- createOrderSchema: { reservation_id: string }
+- listOrdersQuerySchema: { page?, limit? }
+- Export inferred types.
 
-2. GET /orders — List order milik buyer. Pagination (page, limit). Join: order_items, payments, events (via ticket_tiers). Return status, order_number, total_amount, created_at.
+**File 2: `apps/api/src/services/order.service.ts`:**
+- createOrder(userId, input): database transaction — validasi reservation (active, not expired, ownership), generate order_number (JVX-YYYYMMDD-XXXXX), insert order + order_items + payment (pending), update reservation status → converted. expires_at = now + 30 menit.
+- listOrders(userId, pagination): join order_items, payments, events. Return status, order_number, total_amount, created_at.
+- getOrderDetail(userId, orderId): detail + items + payment + tickets. Validasi ownership.
 
-3. GET /orders/:id — Detail order + order_items (join ticket_tiers, events) + payment + tickets. Validasi: order milik user.
+**File 3: `apps/api/src/routes/orders.ts`** — Thin Hono router (buyer-only):
+1. POST /orders — Parse body dengan createOrderSchema → panggil orderService.createOrder().
+2. GET /orders — Parse query → panggil orderService.listOrders().
+3. GET /orders/:id — Panggil orderService.getOrderDetail().
 
 Mount di index.ts.
 ```
@@ -1605,7 +1715,7 @@ Mount di index.ts.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-6.4`                                                   |
 | Dependensi  | `T-6.3`                                                   |
-| Deliverables| `apps/api/src/routes/payments.ts`                          |
+| Deliverables| `apps/api/src/routes/payments.ts`, `apps/api/src/services/payment.service.ts`, `apps/api/src/schemas/payment.schema.ts` |
 | Endpoints   | E31–E32 (lihat PAGES.md)                                   |
 
 **Instruksi:**
@@ -1629,22 +1739,19 @@ Baca file PAGES.md bagian Payment API (E31-E32) dan DATABASE_DESIGN.md (tabel pa
 Kerjakan Task T-6.4: Payment API.
 Dependensi: T-6.3 sudah selesai.
 
-Buat file `apps/api/src/routes/payments.ts` sebagai Hono router:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. POST /payments/:orderId/pay — Buyer-only. Input: {method: 'bank_transfer'|'e_wallet'|'credit_card'|'virtual_account'}. Logika:
-   - Validasi: order milik user, status = pending, expires_at > now.
-   - Update payment method.
-   - Integrasikan dengan payment gateway (GUNAKAN MOCK/PLACEHOLDER dulu: langsung set payment status = success untuk development).
-   - Return { payment_url } atau { status: 'success' } jika mock.
+**File 1: `apps/api/src/schemas/payment.schema.ts`:**
+- initiatePaymentSchema: { method: z.enum(['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account']) }
+- Export inferred types.
 
-2. POST /webhooks/payment — Public (tapi verify webhook signature). Logika:
-   - Verify webhook signature dari payment gateway header (keamanan!).
-   - Idempotency: cek payment.status — jika sudah success, return 200 OK tanpa aksi. Gunakan external_ref sebagai idempotency key.
-   - Update payment: status = success, paid_at = now, external_ref = dari gateway.
-   - Update order: status = confirmed, confirmed_at = now.
-   - Call ticket generation service: generateTickets(orderId) — dari T-7.1 (placeholder dulu, implementasi di Phase 7).
-   - Enqueue email via Cloudflare Queue: kirim e-ticket ke buyer.
-   - Enqueue notification: sendNotification(buyer, 'order_confirmed', ...) — placeholder.
+**File 2: `apps/api/src/services/payment.service.ts`:**
+- initiatePayment(userId, orderId, input): validasi order (ownership, pending, not expired), update payment method, integrasikan payment gateway (mock dulu). Return { payment_url } atau { status: 'success' }.
+- handleWebhook(headers, body): verify signature, idempotency check (external_ref), update payment → success + order → confirmed, call generateTickets(), enqueue email + notification.
+
+**File 3: `apps/api/src/routes/payments.ts`** — Thin Hono router:
+1. POST /payments/:orderId/pay — Buyer-only. Parse body dengan initiatePaymentSchema → panggil paymentService.initiatePayment().
+2. POST /webhooks/payment — Public (verify signature). Panggil paymentService.handleWebhook().
 
 Mount di index.ts.
 ```
@@ -1798,7 +1905,7 @@ Protect kedua halaman: redirect ke /login jika belum login.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-7.1`                                                   |
 | Dependensi  | `T-6.4`                                                   |
-| Deliverables| `apps/api/src/services/ticket-generator.ts`                |
+| Deliverables| `apps/api/src/services/ticket-generator.ts`, `apps/api/src/routes/tickets.ts`, `apps/api/src/schemas/ticket.schema.ts` |
 | Endpoints   | E33–E34 (lihat PAGES.md)                                   |
 
 **Instruksi:**
@@ -1817,24 +1924,21 @@ Baca file PAGES.md bagian Ticket API (E33-E34) dan DATABASE_DESIGN.md (tabel tic
 Kerjakan Task T-7.1: Ticket Generation.
 Dependensi: T-6.4 sudah selesai.
 
-Buat file `apps/api/src/services/ticket-generator.ts`:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 
-1. Export fungsi generateTickets(orderId: string):
-   - Query order_items WHERE order_id = orderId (join ticket_tiers untuk nama tier).
-   - Untuk setiap order_item, loop quantity kali:
-     - Generate ticket_code = 'JVX-' + nanoid(12) (install nanoid).
-     - Insert ke tabel tickets: order_item_id, ticket_code, status = 'valid'.
-   - Return array of generated tickets.
+**File 1: `apps/api/src/services/ticket-generator.ts`:**
+- generateTickets(orderId): query order_items, loop quantity kali, generate ticket_code = 'JVX-' + nanoid(12), insert ke tickets. Return array of tickets.
 
-2. Integrasikan di payment webhook (apps/api/src/routes/payments.ts):
-   - Setelah payment status = success dan order = confirmed, panggil generateTickets(orderId).
+**File 2: `apps/api/src/schemas/ticket.schema.ts`:**
+- listTicketsQuerySchema: { page?, limit? }
+- Export inferred types.
 
-Buat file `apps/api/src/routes/tickets.ts` sebagai Hono router (buyer-only):
+**File 3: `apps/api/src/routes/tickets.ts`** — Thin Hono router (buyer-only):
+1. GET /tickets — Panggil ticketService (atau query langsung via service). List tiket milik buyer (join orders, order_items, ticket_tiers, events).
+2. GET /tickets/:id — Detail tiket + QR data. Validasi ownership.
 
-3. GET /tickets — List semua tiket milik buyer (join orders, order_items, ticket_tiers, events). Filter: orders.user_id = currentUser.id. Return: ticket_code, event name, tier name, status, event date.
-
-4. GET /tickets/:id — Detail tiket: ticket_code (untuk QR), event info, tier info, status, checkin info jika ada. Validasi: tiket milik user.
-
+Integrasikan di payment webhook: setelah payment success, panggil generateTickets(orderId).
+Install nanoid: `pnpm add nanoid` di apps/api.
 Mount di index.ts.
 ```
 
@@ -1884,7 +1988,7 @@ Protect kedua halaman: redirect ke /login jika belum login.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-7.3`                                                   |
 | Dependensi  | `T-7.1`, `T-4.4`                                          |
-| Deliverables| Check-in API + Seller check-in page (S13, E35–E36)         |
+| Deliverables| Check-in API (`apps/api/src/services/checkin.service.ts`, `apps/api/src/schemas/checkin.schema.ts`, `apps/api/src/routes/seller/checkin.ts`) + Seller check-in page (S13, E35–E36) |
 
 **Instruksi:**
 1. API `POST /seller/events/:id/checkin` → terima `ticket_code`, validasi:
@@ -1905,22 +2009,19 @@ Baca file PAGES.md bagian Seller Portal (S13) dan Check-in API (E35-E36), DATABA
 Kerjakan Task T-7.3: Check-in API & UI (Seller).
 Dependensi: T-7.1 dan T-4.4 sudah selesai.
 
-Buat/tambahkan di `apps/api/src/routes/seller.ts` (atau file terpisah `seller-checkin.ts`):
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat file API:
 
-1. POST /seller/events/:id/checkin — Input: {ticket_code}. Logika:
-   - Validasi: seller adalah pemilik event ini.
-   - Query ticket by ticket_code (join order_items, ticket_tiers) WHERE ticket_tiers.event_id = :id.
-   - Cek: ticket ada → jika tidak: return { status: 'INVALID' }.
-   - Cek: ticket.status = 'valid' → jika 'used': return { status: 'ALREADY_USED', checkin_time }.
-   - Insert ke ticket_checkins: ticket_id, checked_in_by = seller.id, checked_in_at = now.
-   - Update ticket: status = 'used'.
-   - Return { status: 'SUCCESS', ticket_code, buyer_name, tier_name }.
+**File 1: `apps/api/src/schemas/checkin.schema.ts`:**
+- checkinSchema: { ticket_code: string }
+- Export inferred types.
 
-2. GET /seller/events/:id/checkin/stats — Return:
-   - total_tickets: count tickets for this event.
-   - checked_in: count tickets with status = 'used'.
-   - remaining: total_tickets - checked_in.
-   - percentage: (checked_in / total_tickets * 100).
+**File 2: `apps/api/src/services/checkin.service.ts`:**
+- checkin(sellerId, eventId, ticketCode): validasi seller ownership, query ticket by code + event match, cek status valid vs used, insert ticket_checkins, update ticket status → 'used'. Return { status: 'SUCCESS'|'ALREADY_USED'|'INVALID', ... }.
+- getStats(sellerId, eventId): total_tickets, checked_in, remaining, percentage.
+
+**File 3: `apps/api/src/routes/seller/checkin.ts`** — Thin Hono router (seller-only):
+1. POST /seller/events/:id/checkin — Parse body dengan checkinSchema → panggil checkinService.checkin().
+2. GET /seller/events/:id/checkin/stats — Panggil checkinService.getStats().
 
 Di `apps/seller/`:
 
@@ -1940,7 +2041,7 @@ Mount API routes di index.ts.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-7.4`                                                   |
 | Dependensi  | `T-6.5`, `T-2.1`                                          |
-| Deliverables| Notification service + API endpoints (E41–E43, E61)        |
+| Deliverables| `apps/api/src/services/notification.service.ts`, `apps/api/src/routes/notifications.ts`, `apps/api/src/schemas/notification.schema.ts` (E41–E43, E61) |
 
 **Instruksi:**
 1. Service: `sendNotification(userId, type, title, body, metadata)` → insert ke `notifications`.
@@ -1961,13 +2062,24 @@ Baca file PAGES.md bagian Notification API (E41-E43, E61) dan DATABASE_DESIGN.md
 Kerjakan Task T-7.4: Notification System.
 Dependensi: T-6.5 dan T-2.1 sudah selesai.
 
-Buat file `apps/api/src/services/notification-service.ts`:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10).
 
-1. Export fungsi sendNotification(userId: string, type: NotificationType, title: string, body: string, metadata?: object):
-   - Insert ke tabel notifications: user_id, type, title, body, metadata (jsonb), is_read = false.
-   - Return notification record.
+**File 1: `apps/api/src/services/notification.service.ts`:**
+- sendNotification(userId, type, title, body, metadata?): insert ke notifications, return record.
 
-2. Integrasikan trigger di berbagai tempat (update file yang sudah ada):
+**File 2: `apps/api/src/schemas/notification.schema.ts`:**
+- broadcastSchema: { title, body, target_role?: 'buyer'|'seller'|'all' }
+- Export inferred types.
+
+**File 3: `apps/api/src/routes/notifications.ts`** — Thin Hono router (authenticated):
+1. GET /notifications — Panggil service. List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
+2. PATCH /notifications/:id/read — Mark as read. Validasi ownership.
+3. PATCH /notifications/read-all — Mark all as read.
+
+Admin route:
+4. POST /admin/notifications/broadcast — Parse body dengan broadcastSchema → panggil service.
+
+Integrasikan trigger di:
    - `routes/payments.ts` (payment webhook success): sendNotification(buyerId, 'order_confirmed', 'Pesanan Dikonfirmasi', 'Order {order_number} berhasil dibayar.').
    - `routes/payments.ts` (payment webhook success): sendNotification(sellerId, 'new_order', 'Pesanan Baru', 'Ada pesanan baru untuk event {event_name}.').
    - `queues/reservation-cleanup.ts` (menjelang expire): sendNotification(buyerId, 'payment_reminder', 'Segera Bayar', 'Reservasi Anda akan expired dalam 2 menit.').
@@ -1992,7 +2104,7 @@ Mount di index.ts.
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-7.5`                                                   |
 | Dependensi  | `T-4.4`, `T-6.3`                                          |
-| Deliverables| Seller order pages (S11–S12, E37–E38)                      |
+| Deliverables| Seller order pages (S11–S12), `apps/api/src/services/seller-order.service.ts`, `apps/api/src/routes/seller/orders.ts`, `apps/api/src/schemas/seller-order.schema.ts` (E37–E38) |
 
 **Instruksi:**
 1. API: `GET /seller/orders` → list order untuk event milik seller.
@@ -2007,15 +2119,19 @@ Baca file PAGES.md bagian Seller Portal (S11-S12) dan Seller Order API (E37-E38)
 Kerjakan Task T-7.5: Seller Order View.
 Dependensi: T-4.4 dan T-6.3 sudah selesai.
 
-Buat/tambahkan di `apps/api/src/routes/seller.ts`:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat file API:
 
-1. GET /seller/orders — List order untuk event milik seller. Logika:
-   - Query orders JOIN order_items JOIN ticket_tiers JOIN events WHERE events.seller_id = currentUser.seller_profile_id.
-   - Pagination (page, limit). Filter by: event_id (optional), status (optional).
-   - Return: order_number, buyer name, event name, total_amount, status, created_at.
+**File 1: `apps/api/src/schemas/seller-order.schema.ts`:**
+- listSellerOrdersQuerySchema: { event_id?, status?, page?, limit? }
+- Export inferred types.
 
-2. GET /seller/orders/:id — Detail order. Validasi: order untuk event milik seller.
-   - Return: order data + order_items (tier name, quantity, unit_price) + buyer info (name, email) + payment status.
+**File 2: `apps/api/src/services/seller-order.service.ts`:**
+- listOrders(sellerProfileId, query): orders JOIN order_items JOIN ticket_tiers JOIN events WHERE seller_id matches. Paginated + filter.
+- getOrderDetail(sellerProfileId, orderId): detail + items + buyer info + payment. Validasi ownership.
+
+**File 3: `apps/api/src/routes/seller/orders.ts`** — Thin Hono router (seller-only):
+1. GET /seller/orders — Parse query → panggil sellerOrderService.listOrders().
+2. GET /seller/orders/:id — Panggil sellerOrderService.getOrderDetail().
 
 Di `apps/seller/`:
 
@@ -2203,15 +2319,13 @@ Baca file PAGES.md bagian Seller Portal (S5: Dashboard, E39-E40).
 Kerjakan Task T-9.1: Seller Dashboard.
 Dependensi: T-7.5 sudah selesai.
 
-Buat/tambahkan API di `apps/api/src/routes/seller.ts`:
+Ikuti arsitektur 3-layer. Buat/tambahkan API:
 
-1. GET /seller/dashboard — Aggregate data untuk seller:
-   - total_events: count events WHERE seller_id = current.
-   - total_revenue: sum orders.total_amount WHERE order status = confirmed, event milik seller.
-   - total_tickets_sold: sum order_items.quantity WHERE order confirmed, event milik seller.
-   - upcoming_events: count events WHERE start_date > now, seller_id = current.
-   - recent_orders: 5 order terbaru (join events).
-   - daily_sales: array of { date, tickets_sold, revenue } untuk 30 hari terakhir (GROUP BY DATE(orders.created_at)).
+**`apps/api/src/services/seller-dashboard.service.ts`:**
+- getDashboard(sellerProfileId): aggregate total_events, total_revenue, total_tickets_sold, upcoming_events, recent_orders (5), daily_sales (30 hari).
+
+**`apps/api/src/routes/seller/dashboard.ts`** — Thin Hono router:
+1. GET /seller/dashboard — Panggil sellerDashboardService.getDashboard().
 
 Di `apps/seller/`:
 
@@ -2250,19 +2364,13 @@ Baca file PAGES.md bagian Admin Portal (A2: Dashboard, E44).
 Kerjakan Task T-9.2: Admin Dashboard.
 Dependensi: T-3.5 sudah selesai.
 
-Buat/tambahkan API di `apps/api/src/routes/admin.ts`:
+Ikuti arsitektur 3-layer. Buat/tambahkan API:
 
-1. GET /admin/dashboard — Aggregate seluruh platform:
-   - total_users: count users.
-   - total_sellers: count users WHERE role = seller.
-   - total_buyers: count users WHERE role = buyer.
-   - total_events: count events.
-   - total_events_published: count events WHERE status = published.
-   - total_revenue: sum orders.total_amount WHERE status = confirmed.
-   - total_tickets_sold: sum order_items.quantity WHERE order confirmed.
-   - daily_transactions: array of { date, orders_count, revenue } 30 hari (GROUP BY DATE).
-   - recent_events: 5 event terbaru.
-   - recent_orders: 5 order terbaru.
+**`apps/api/src/services/admin-dashboard.service.ts`:**
+- getDashboard(): aggregate total_users, total_sellers, total_buyers, total_events, total_events_published, total_revenue, total_tickets_sold, daily_transactions (30 hari), recent_events (5), recent_orders (5).
+
+**`apps/api/src/routes/admin/dashboard.ts`** — Thin Hono router (admin-only):
+1. GET /admin/dashboard — Panggil adminDashboardService.getDashboard().
 
 Di `apps/admin/`:
 
@@ -2304,29 +2412,29 @@ Baca file DATABASE_DESIGN.md (tabel events, orders, payments, notifications, res
 Kerjakan Task T-9.3: Admin Order & Payment Management.
 Dependensi: T-3.2, T-6.3, T-6.4 sudah selesai.
 
-Buat/tambahkan API di `apps/api/src/routes/admin.ts`:
+Ikuti arsitektur 3-layer. Buat/tambahkan API files:
 
-1. Event Management:
-   - GET /admin/events — List semua event. Filter: status, seller_id, search. Pagination.
-   - GET /admin/events/:id — Detail event + tiers + seller info.
-   - PATCH /admin/events/:id/status — Ubah status (publish, reject, dll). Trigger notifikasi ke seller.
+**`apps/api/src/services/admin-event.service.ts`:**
+- listEvents(query): filter status/seller/search, paginated.
+- getEventDetail(id): + tiers + seller info.
+- updateEventStatus(id, status): trigger notifikasi ke seller.
 
-2. Order Management:
-   - GET /admin/orders — List semua order. Filter: status, event_id, search. Pagination.
-   - GET /admin/orders/:id — Detail order + items + payment + buyer info.
-   - POST /admin/orders/:id/refund — Proses refund: update order status = refunded, payment status = refunded. Trigger notifikasi.
-   - POST /admin/orders/:id/cancel — Cancel order: update order, restore stok.
+**`apps/api/src/services/admin-order.service.ts`:**
+- listOrders, getOrderDetail, refundOrder, cancelOrder.
 
-3. Payment Management:
-   - GET /admin/payments — List payments. Filter: status, method. Pagination.
-   - GET /admin/payments/:id — Detail payment.
-   - PATCH /admin/payments/:id/status — Manual update status (untuk resolve masalah).
+**`apps/api/src/services/admin-payment.service.ts`:**
+- listPayments, getPaymentDetail, updatePaymentStatus.
 
-4. Notification Management:
-   - GET /admin/notifications — List semua notifikasi platform.
+**`apps/api/src/schemas/admin.schema.ts`:**
+- Schemas untuk semua admin input validation.
 
-5. Reservation Monitor:
-   - GET /admin/reservations — List active reservations. Monitor health.
+**Route files:**
+- `apps/api/src/routes/admin/events.ts` — Thin router: GET /admin/events, GET /admin/events/:id, PATCH /admin/events/:id/status.
+- `apps/api/src/routes/admin/orders.ts` — Thin router: GET /admin/orders, GET /admin/orders/:id, POST /admin/orders/:id/refund, POST /admin/orders/:id/cancel.
+- `apps/api/src/routes/admin/payments.ts` — Thin router: GET /admin/payments, GET /admin/payments/:id, PATCH /admin/payments/:id/status.
+- GET /admin/notifications, GET /admin/reservations — di routes yang sesuai.
+
+Setiap route: parse input → call service → return response. Semua admin-only via roleMiddleware('admin').
 
 Di `apps/admin/`, buat halaman untuk setiap fitur:
 - A7: `src/routes/events/+page.svelte` — tabel event + filter.
@@ -2905,19 +3013,33 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | `packages/core/src/db/seed.ts`         | T-1.4          | Seed data                          |
 | `packages/ui/`                         | T-0.9          | Shared UI components               |
 | `apps/api/src/middleware/`             | T-2.1          | Auth & CORS middleware             |
-| `apps/api/src/routes/auth.ts`          | T-2.2          | Auth endpoints                     |
+| `apps/api/src/routes/auth.ts`          | T-2.2          | Auth endpoints (thin handler)      |
+| `apps/api/src/services/auth.service.ts` | T-2.2          | Auth business logic                |
+| `apps/api/src/schemas/auth.schema.ts`  | T-2.2          | Auth validation schemas            |
 | `apps/api/src/routes/users.ts`         | T-2.3          | User profile endpoints             |
+| `apps/api/src/services/user.service.ts`| T-2.3          | User business logic                |
+| `apps/api/src/schemas/user.schema.ts`  | T-2.3          | User validation schemas            |
 | `apps/api/src/routes/upload.ts`        | T-2.5          | File upload (R2) endpoint          |
+| `apps/api/src/services/upload.service.ts`| T-2.5        | Upload business logic              |
 | `apps/api/src/routes/events.ts`        | T-5.1          | Public event endpoints             |
-| `apps/api/src/routes/seller/`          | T-4.1–T-4.3    | Seller endpoints                   |
-| `apps/api/src/routes/admin/`           | T-3.1, T-3.4   | Admin endpoints                    |
+| `apps/api/src/services/public-event.service.ts`| T-5.1  | Public event business logic        |
+| `apps/api/src/routes/seller/`          | T-4.1–T-4.3, T-7.5, T-9.1 | Seller route handlers     |
+| `apps/api/src/services/event.service.ts`| T-4.2         | Seller event business logic        |
+| `apps/api/src/services/tier.service.ts`| T-4.3          | Tier business logic                |
+| `apps/api/src/routes/admin/`           | T-3.1, T-3.4, T-9.2, T-9.3 | Admin route handlers     |
+| `apps/api/src/services/category.service.ts`| T-3.1      | Category business logic            |
+| `apps/api/src/services/admin-user.service.ts`| T-3.4    | Admin user management logic        |
 | `apps/api/src/routes/reservations.ts`  | T-6.2          | Reservation endpoints              |
+| `apps/api/src/services/reservation.service.ts`| T-6.2   | Reservation business logic         |
 | `apps/api/src/routes/orders.ts`        | T-6.3          | Order endpoints                    |
+| `apps/api/src/services/order.service.ts`| T-6.3         | Order business logic               |
 | `apps/api/src/routes/payments.ts`      | T-6.4          | Payment endpoints                  |
+| `apps/api/src/services/payment.service.ts`| T-6.4       | Payment business logic             |
 | `apps/api/src/routes/tickets.ts`       | T-7.1          | Ticket endpoints                   |
 | `apps/api/src/durable-objects/`        | T-6.1          | Durable Object (TicketReserver)    |
 | `apps/api/src/queues/`                 | T-6.5          | Cloudflare Queue consumers         |
-| `apps/api/src/services/`              | T-2.6, T-7.1, T-7.4 | Business logic & email services    |
+| `apps/api/src/services/`              | T-2.2–T-2.6, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-7.5, T-9.1–T-9.3 | Business logic services |
+| `apps/api/src/schemas/`               | T-2.2–T-2.5, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-9.3 | Zod validation schemas (DTO)     |
 | `apps/buyer/src/routes/`              | T-5.2–T-5.4, T-6.6–T-6.7, T-7.2 | Buyer pages         |
 | `apps/admin/src/routes/`              | T-3.2–T-3.5, T-9.2–T-9.3 | Admin pages                |
 | `apps/seller/src/routes/`             | T-4.4–T-4.6, T-7.3, T-7.5, T-7.6, T-9.1 | Seller pages   |
@@ -2930,7 +3052,8 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 - **Selalu baca dokumen referensi** (DATABASE_DESIGN.md, PAGES.md) sebelum mengerjakan task. Jangan mengarang kolom, route, atau endpoint.
 - **Satu task = satu commit** (jika memungkinkan). Commit message: `feat(T-X.X): <deskripsi singkat>`. Gunakan `git` CLI untuk version control.
 - **Edge compatibility**: Semua library di `apps/api` HARUS compatible dengan Cloudflare Workers runtime (no Node.js-only APIs). Cek sebelum install.
-- **Validasi input**: Gunakan `zod` di semua API endpoint. Definisikan schema validasi berdekatan dengan route handler.
+- **Validasi input**: Gunakan `zod` di semua API endpoint. Definisikan schema validasi di folder `schemas/` (`schemas/*.schema.ts`). Route handler hanya import schema, parse, dan panggil service.
+- **Arsitektur 3-layer**: Route (thin handler) → Service (business logic + DB) → Schema (Zod DTO). Lihat Execution Rules #10 untuk detail.
 - **Error handling**: Gunakan Hono error handler. Response format konsisten: `{ success: boolean, data?: T, error?: { code: string, message: string } }`.
 - **Pagination**: Gunakan cursor-based atau offset pagination. Default limit: 20, max: 100. Response: `{ data: T[], meta: { total, page, limit, totalPages } }`.
 - **Concurrent-safe**: Untuk operasi yang melibatkan `sold_count` pada `ticket_tiers`, SELALU gunakan Durable Object. JANGAN langsung update dari API handler.
