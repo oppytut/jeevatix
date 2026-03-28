@@ -33,6 +33,13 @@
     - **Service** (`services/*.service.ts`) — Semua business logic, DB queries, orchestration. Bisa di-test tanpa HTTP context.
     - **Schema** (`schemas/*.schema.ts`) — Zod validation schemas untuk request/response. Berfungsi sebagai DTO. Export inferred types (`z.infer<typeof schema>`).
     - Contoh: `routes/auth.ts` → import `authService` dari `services/auth.service.ts` + import schemas dari `schemas/auth.schema.ts`.
+11. **Gunakan `@hono/zod-openapi` untuk semua API route (OpenAPI contract):**
+    - Import `z` dari `@hono/zod-openapi` (BUKAN dari `zod` langsung). Library ini re-export `z` + tambah method `.openapi()`.
+    - Setiap Zod schema di `schemas/*.schema.ts` harus diberi metadata `.openapi('SchemaName')` dan field penting diberi `.openapi({ example: '...' })`.
+    - Setiap route di `routes/*.ts` harus didefinisikan dengan `createRoute({ method, path, tags, summary, request, responses })`, lalu di-register via `app.openapi(route, handler)`.
+    - Handler menerima `c` dengan tipe yang sudah di-infer dari `createRoute`. Gunakan `c.req.valid('json')`, `c.req.valid('param')`, `c.req.valid('query')` — BUKAN manual `c.req.json()`.
+    - `apps/api/src/index.ts` menggunakan `OpenAPIHono` (bukan `new Hono()`), expose `/doc` (JSON spec) dan `/reference` (Scalar UI).
+    - Dependencies: `@hono/zod-openapi`, `@scalar/hono-api-reference`.
 
 ---
 
@@ -264,36 +271,56 @@ Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
 
 **Instruksi:**
 1. Buat package `@jeevatix/api`.
-2. `pnpm add hono` di `apps/api`.
-3. Buat `src/index.ts` — Hono app dengan health check route `GET /health` → `{ status: "ok" }`.
+2. `pnpm add hono @hono/zod-openapi @scalar/hono-api-reference` di `apps/api`.
+3. Buat `src/index.ts` — **OpenAPIHono** app dengan health check route `GET /health` → `{ status: "ok" }`, endpoint `/doc` (OpenAPI JSON spec), dan `/reference` (Scalar interactive API docs).
 4. Buat `wrangler.toml` — config untuk Cloudflare Workers.
 5. Setup script: `"dev": "wrangler dev src/index.ts"`.
 6. **Scaffold arsitektur 3-layer:** Buat folder `src/routes/`, `src/services/`, `src/schemas/`, `src/middleware/`, `src/lib/`, `src/durable-objects/`, `src/queues/` (masing-masing dengan `.gitkeep`).
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack API (Hono + Cloudflare Workers) dan arsitektur 3-layer (routes → services → schemas).
+Baca file README.md untuk memahami tech stack API (Hono + Cloudflare Workers + OpenAPI) dan arsitektur 3-layer (routes → services → schemas).
 
 Kerjakan Task T-0.5: Create App apps/api.
 Dependensi: T-0.1 dan T-0.4 sudah selesai.
 
 1. Buat folder `apps/api/` dengan `package.json` (name: @jeevatix/api).
-2. Install: `pnpm add hono` di apps/api.
+2. Install: `pnpm add hono @hono/zod-openapi @scalar/hono-api-reference` di apps/api.
 3. Install dev: `pnpm add -D wrangler @cloudflare/workers-types` di apps/api.
 4. Buat `apps/api/tsconfig.json` (extends root, types: @cloudflare/workers-types).
 5. Buat `apps/api/wrangler.toml` — name: jeevatix-api, compatibility_date terbaru, main: src/index.ts.
-6. Buat `apps/api/src/index.ts` — Hono app dengan satu route: GET /health → { status: "ok" }. Export default app.
+6. Buat `apps/api/src/index.ts` menggunakan **OpenAPIHono** (bukan `new Hono()`):
+   ```typescript
+   import { OpenAPIHono } from '@hono/zod-openapi';
+   import { apiReference } from '@scalar/hono-api-reference';
+
+   const app = new OpenAPIHono();
+
+   // Health check
+   app.get('/health', (c) => c.json({ status: 'ok' }));
+
+   // OpenAPI JSON spec
+   app.doc('/doc', {
+     openapi: '3.1.0',
+     info: { title: 'Jeevatix API', version: '1.0.0', description: 'High-performance event ticket platform API' },
+   });
+
+   // Scalar interactive API docs
+   app.get('/reference', apiReference({ spec: { url: '/doc' } }));
+
+   export default app;
+   ```
 7. Scaffold arsitektur 3-layer — buat folder berikut (masing-masing dengan file .gitkeep agar ter-track Git):
-   - `apps/api/src/routes/` — Thin HTTP handlers (parse request, call service, return response).
+   - `apps/api/src/routes/` — Thin HTTP handlers menggunakan `createRoute()` + `app.openapi()`.
    - `apps/api/src/services/` — Business logic & DB operations.
-   - `apps/api/src/schemas/` — Zod validation schemas (request/response DTO).
+   - `apps/api/src/schemas/` — Zod schemas dengan `.openapi()` metadata (request/response DTO).
    - `apps/api/src/middleware/` — Auth, CORS, error handler.
    - `apps/api/src/lib/` — Pure utilities (jwt, password, helpers).
    - `apps/api/src/durable-objects/` — Cloudflare Durable Objects.
    - `apps/api/src/queues/` — Cloudflare Queue consumers.
 8. Tambahkan script di package.json: "dev": "wrangler dev src/index.ts".
 
-Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localhost:8787/health harus return { status: "ok" }.
+Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localhost:8787/health harus return { status: "ok" }, GET http://localhost:8787/reference harus menampilkan Scalar API docs.
 ```
 
 ### Task 0.6 — Create App: `apps/buyer`
@@ -676,7 +703,7 @@ Semua library HARUS compatible dengan Cloudflare Workers runtime.
 **Instruksi:**
 1. Buat Zod schemas di `schemas/auth.schema.ts` — registerSchema, loginSchema, refreshSchema, forgotPasswordSchema, resetPasswordSchema.
 2. Buat business logic di `services/auth.service.ts` — register(), login(), refresh(), forgotPassword(), resetPassword(), verifyEmail(), logout().
-3. Buat thin Hono router di `routes/auth.ts` — parse request → call authService → return response.
+3. Buat OpenAPIHono router di `routes/auth.ts` — definisikan setiap route dengan `createRoute()` + `app.openapi()`, handler parse request via `c.req.valid()` → call authService → return response.
 4. Implementasi:
    - `POST /auth/register` → validasi input, hash password, insert ke `users`, return access token + refresh token.
    - `POST /auth/register/seller` → insert ke `users` (role=seller) + insert ke `seller_profiles`.
@@ -696,18 +723,19 @@ Baca file PAGES.md bagian Auth API (E1-E7, E63) dan DATABASE_DESIGN.md (tabel us
 Kerjakan Task T-2.2: Auth API Endpoints.
 Dependensi: T-2.1 sudah selesai (middleware auth, password, jwt sudah ada).
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/auth.schema.ts`** — Zod validation schemas:
-- registerSchema: { email: z.string().email(), password: z.string().min(8), full_name: z.string(), phone: z.string().optional() }
-- registerSellerSchema: extends registerSchema + { org_name, org_description? }
-- loginSchema: { email, password }
-- refreshSchema: { refresh_token }
-- forgotPasswordSchema: { email }
-- resetPasswordSchema: { token, password }
+**File 1: `apps/api/src/schemas/auth.schema.ts`** — Zod validation schemas (import `z` dari `@hono/zod-openapi`):
+- registerSchema: z.object({ email: z.string().email(), password: z.string().min(8), full_name: z.string(), phone: z.string().optional() }).openapi('RegisterInput')
+- registerSellerSchema: extends registerSchema + { org_name, org_description? }.openapi('RegisterSellerInput')
+- loginSchema: { email, password }.openapi('LoginInput')
+- refreshSchema: { refresh_token }.openapi('RefreshInput')
+- forgotPasswordSchema: { email }.openapi('ForgotPasswordInput')
+- resetPasswordSchema: { token, password }.openapi('ResetPasswordInput')
+- Tambahkan `.openapi({ example: '...' })` pada field penting (email, password, dll).
 - Export inferred types: type RegisterInput = z.infer<typeof registerSchema>, dll.
 
-**File 2: `apps/api/src/services/auth.service.ts`** — Business logic:
+**File 2: `apps/api/src/services/auth.service.ts`** — Business logic (TIDAK BERUBAH, tetap pure logic):
 - register(input: RegisterInput): hash password, insert ke users (role: buyer), generate tokens. Return { access_token, refresh_token, user }.
 - registerSeller(input: RegisterSellerInput): insert ke users (role: seller) + seller_profiles. Return tokens.
 - login(input: LoginInput): cek email, verify password, simpan refresh token hash ke refresh_tokens. Return { access_token, refresh_token, user }.
@@ -717,11 +745,24 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - verifyEmail(token): update email_verified_at = now().
 - logout(refreshToken): revoke di refresh_tokens.
 
-**File 3: `apps/api/src/routes/auth.ts`** — Thin Hono router:
-- Setiap handler: parse body dengan schema → panggil authService method → return c.json({ success, data }).
-- Contoh: app.post('/register', async (c) => { const body = registerSchema.parse(await c.req.json()); const result = await authService.register(c.env, body); return c.json({ success: true, data: result }); }).
+**File 3: `apps/api/src/routes/auth.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
+- Import `{ createRoute, OpenAPIHono }` dari `@hono/zod-openapi`.
+- Definisikan setiap route dengan `createRoute({ method, path, tags: ['Auth'], summary, request: { body: { content: { 'application/json': { schema } } } }, responses })` lalu register via `app.openapi(route, handler)`.
+- Handler: `const body = c.req.valid('json')` (otomatis typed dari createRoute), panggil authService, return `c.json({ success, data })`.
+- Contoh:
+  ```typescript
+  const registerRoute = createRoute({
+    method: 'post', path: '/register', tags: ['Auth'], summary: 'Register buyer',
+    request: { body: { content: { 'application/json': { schema: registerSchema } } } },
+    responses: { 201: { content: { 'application/json': { schema: authResponseSchema } }, description: 'Registration successful' } },
+  });
+  app.openapi(registerRoute, async (c) => {
+    const body = c.req.valid('json');
+    const result = await authService.register(c.env, body);
+    return c.json({ success: true, data: result }, 201);
+  });
+  ```
 
-Install zod: `pnpm add zod` di apps/api.
 Semua response format: { success: boolean, data?: T, error?: { code: string, message: string } }.
 Mount router di apps/api/src/index.ts.
 ```
@@ -738,7 +779,7 @@ Mount router di apps/api/src/index.ts.
 **Instruksi:**
 1. Buat schemas di `schemas/user.schema.ts` — updateProfileSchema, changePasswordSchema.
 2. Buat logic di `services/user.service.ts` — getMe(), updateProfile(), changePassword().
-3. Buat thin router di `routes/users.ts` → parse request → call userService → return response.
+3. Buat OpenAPIHono router di `routes/users.ts` → definisikan route dengan `createRoute()` + `app.openapi()`, handler `c.req.valid()` → call userService → return response.
 
 **Prompt:**
 ```
@@ -747,11 +788,11 @@ Baca file PAGES.md bagian User API (E8-E10) dan DATABASE_DESIGN.md (tabel users)
 Kerjakan Task T-2.3: User API Endpoints.
 Dependensi: T-2.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/user.schema.ts`:**
-- updateProfileSchema: { full_name?: string, phone?: string, avatar_url?: string }
-- changePasswordSchema: { old_password: string, new_password: string.min(8) }
+**File 1: `apps/api/src/schemas/user.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- updateProfileSchema: z.object({ full_name?: string, phone?: string, avatar_url?: string }).openapi('UpdateProfileInput')
+- changePasswordSchema: z.object({ old_password: string, new_password: string.min(8) }).openapi('ChangePasswordInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/user.service.ts`:**
@@ -759,10 +800,10 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - updateProfile(userId, input: UpdateProfileInput): update fields yang dikirim saja.
 - changePassword(userId, input: ChangePasswordInput): verify old_password terhadap hash di DB, hash new_password, update.
 
-**File 3: `apps/api/src/routes/users.ts`** — Thin Hono router:
-1. GET /users/me — Protected (authMiddleware). Panggil userService.getMe(user.id).
-2. PATCH /users/me — Protected. Parse body dengan updateProfileSchema → panggil userService.updateProfile().
-3. PATCH /users/me/password — Protected. Parse body dengan changePasswordSchema → panggil userService.changePassword().
+**File 3: `apps/api/src/routes/users.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
+1. GET /users/me — Protected (authMiddleware). Definisikan dengan `createRoute({ tags: ['User'], ... })`. Panggil userService.getMe(user.id).
+2. PATCH /users/me — Protected. `createRoute()` dengan request body schema updateProfileSchema → handler: `c.req.valid('json')` → panggil userService.updateProfile().
+3. PATCH /users/me/password — Protected. `createRoute()` dengan request body schema changePasswordSchema → handler: `c.req.valid('json')` → panggil userService.changePassword().
 
 Mount router di apps/api/src/index.ts.
 ```
@@ -835,11 +876,11 @@ Dependensi: T-2.1 sudah selesai (auth middleware tersedia).
    binding = "BUCKET"
    bucket_name = "jeevatix-uploads"
    ```
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-2. **`apps/api/src/schemas/upload.schema.ts`** — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 * 1024 * 1024.
+2. **`apps/api/src/schemas/upload.schema.ts`** (import `z` dari `@hono/zod-openapi`) — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 * 1024 * 1024. Definisikan uploadResponseSchema: z.object({ url: z.string() }).openapi('UploadResponse').
 3. **`apps/api/src/services/upload.service.ts`** — uploadFile(env, file): validasi tipe & ukuran, generate key unik `uploads/{uuid}.{extension}`, upload ke R2 via env.BUCKET.put(key, file), return { url }.
-4. **`apps/api/src/routes/upload.ts`** — Thin Hono router: POST /upload (Protected authMiddleware). Terima multipart form data → panggil uploadService.uploadFile() → return response.
+4. **`apps/api/src/routes/upload.ts`** — OpenAPIHono router: POST /upload menggunakan `createRoute({ tags: ['Upload'], summary: 'Upload file to R2', ... })` + `app.openapi()`. Protected authMiddleware. Terima multipart form data → panggil uploadService.uploadFile() → return response.
 5. Mount router di apps/api/src/index.ts.
 
 Endpoint ini akan digunakan oleh semua form upload gambar: avatar user, logo seller, banner event, galeri event.
@@ -918,11 +959,11 @@ Baca file PAGES.md bagian Event API Public (E14-E15) dan Admin API (E57-E60) dan
 Kerjakan Task T-3.1: Category API.
 Dependensi: T-2.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/category.schema.ts`:**
-- createCategorySchema: { name: string, icon?: string }
-- updateCategorySchema: { name?: string, icon?: string }
+**File 1: `apps/api/src/schemas/category.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- createCategorySchema: z.object({ name: z.string(), icon: z.string().optional() }).openapi('CreateCategoryInput')
+- updateCategorySchema: z.object({ name: z.string().optional(), icon: z.string().optional() }).openapi('UpdateCategoryInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/category.service.ts`:**
@@ -933,13 +974,13 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - update(id, input): re-generate slug jika name berubah.
 - remove(id): validasi tidak ada event terhubung via event_categories, hapus.
 
-**File 3: `apps/api/src/routes/admin/categories.ts`** — Thin Hono router:
-1. GET /categories — Public. Panggil categoryService.listPublic().
-2. GET /categories/:slug/events — Public. Panggil categoryService.listEventsByCategory().
-3. GET /admin/categories — Admin only. Panggil categoryService.listAdmin().
-4. POST /admin/categories — Admin only. Parse body dengan createCategorySchema → panggil categoryService.create().
-5. PATCH /admin/categories/:id — Admin only. Parse body dengan updateCategorySchema → panggil categoryService.update().
-6. DELETE /admin/categories/:id — Admin only. Panggil categoryService.remove(). Return error jika masih ada event.
+**File 3: `apps/api/src/routes/admin/categories.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
+1. GET /categories — Public. `createRoute({ tags: ['Category'], summary: 'List categories' })`. Panggil categoryService.listPublic().
+2. GET /categories/:slug/events — Public. `createRoute({ tags: ['Category'] })`. Panggil categoryService.listEventsByCategory().
+3. GET /admin/categories — Admin only. `createRoute({ tags: ['Admin - Category'] })`. Panggil categoryService.listAdmin().
+4. POST /admin/categories — Admin only. `createRoute()` dengan request body createCategorySchema → handler: `c.req.valid('json')` → panggil categoryService.create().
+5. PATCH /admin/categories/:id — Admin only. `createRoute()` dengan request body updateCategorySchema → handler: `c.req.valid('json')` → panggil categoryService.update().
+6. DELETE /admin/categories/:id — Admin only. `createRoute()`. Panggil categoryService.remove(). Return error jika masih ada event.
 
 Mount di index.ts.
 ```
@@ -1041,12 +1082,12 @@ Baca file PAGES.md bagian Admin API (E45-E49) dan DATABASE_DESIGN.md (tabel user
 Kerjakan Task T-3.4: Admin User Management API.
 Dependensi: T-2.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/admin-user.schema.ts`:**
-- listUsersQuerySchema: { role?, status?, search?, page?, limit? }
-- updateUserStatusSchema: { status: 'active'|'suspended'|'banned' }
-- verifySellerSchema: { is_verified: boolean }
+**File 1: `apps/api/src/schemas/admin-user.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- listUsersQuerySchema: z.object({ role?, status?, search?, page?, limit? }).openapi('ListUsersQuery')
+- updateUserStatusSchema: z.object({ status: z.enum(['active','suspended','banned']) }).openapi('UpdateUserStatusInput')
+- verifySellerSchema: z.object({ is_verified: z.boolean() }).openapi('VerifySellerInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/admin-user.service.ts`:**
@@ -1056,12 +1097,12 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - listSellers(query): filter by is_verified, paginated.
 - verifySeller(id, isVerified, adminId): set is_verified, verified_at, verified_by.
 
-**File 3: `apps/api/src/routes/admin/users.ts`** — Thin Hono router (admin-only via roleMiddleware('admin')):
-1. GET /admin/users — Parse query → panggil adminUserService.listUsers().
-2. GET /admin/users/:id — Panggil adminUserService.getUserDetail().
-3. PATCH /admin/users/:id/status — Parse body dengan updateUserStatusSchema → panggil adminUserService.updateUserStatus().
-4. GET /admin/sellers — Panggil adminUserService.listSellers().
-5. PATCH /admin/sellers/:id/verify — Parse body dengan verifySellerSchema → panggil adminUserService.verifySeller().
+**File 3: `apps/api/src/routes/admin/users.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (admin-only via roleMiddleware('admin')):
+1. GET /admin/users — `createRoute({ tags: ['Admin - User'], summary: 'List users' })`. Parse query via `c.req.valid('query')` → panggil adminUserService.listUsers().
+2. GET /admin/users/:id — `createRoute({ tags: ['Admin - User'] })`. Panggil adminUserService.getUserDetail().
+3. PATCH /admin/users/:id/status — `createRoute()` dengan request body updateUserStatusSchema → handler: `c.req.valid('json')` → panggil adminUserService.updateUserStatus().
+4. GET /admin/sellers — `createRoute({ tags: ['Admin - Seller'] })`. Panggil adminUserService.listSellers().
+5. PATCH /admin/sellers/:id/verify — `createRoute()` dengan request body verifySellerSchema → handler: `c.req.valid('json')` → panggil adminUserService.verifySeller().
 
 Mount di index.ts.
 ```
@@ -1132,19 +1173,19 @@ Baca file PAGES.md bagian Seller Profile API (E39-E40) dan DATABASE_DESIGN.md (t
 Kerjakan Task T-4.1: Seller Auth & Profile API.
 Dependensi: T-2.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/seller-profile.schema.ts`:**
-- updateSellerProfileSchema: { org_name?, org_description?, logo_url?, bank_name?, bank_account_number?, bank_account_holder? }
+**File 1: `apps/api/src/schemas/seller-profile.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- updateSellerProfileSchema: z.object({ org_name?, org_description?, logo_url?, bank_name?, bank_account_number?, bank_account_holder? }).openapi('UpdateSellerProfileInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/seller-profile.service.ts`:**
 - getProfile(userId): join users + seller_profiles berdasarkan user_id. Return gabungan data.
 - updateProfile(userId, input: UpdateSellerProfileInput): update seller_profiles fields yang dikirim saja.
 
-**File 3: `apps/api/src/routes/seller/profile.ts`** — Thin Hono router (seller-only via authMiddleware + roleMiddleware('seller')):
-1. GET /seller/profile — Panggil sellerProfileService.getProfile().
-2. PATCH /seller/profile — Parse body dengan updateSellerProfileSchema → panggil sellerProfileService.updateProfile().
+**File 3: `apps/api/src/routes/seller/profile.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only via authMiddleware + roleMiddleware('seller')):
+1. GET /seller/profile — `createRoute({ tags: ['Seller - Profile'], summary: 'Get seller profile' })`. Panggil sellerProfileService.getProfile().
+2. PATCH /seller/profile — `createRoute()` dengan request body updateSellerProfileSchema → handler: `c.req.valid('json')` → panggil sellerProfileService.updateProfile().
 
 Mount di apps/api/src/index.ts dengan prefix /seller.
 ```
@@ -1173,12 +1214,13 @@ Baca file PAGES.md bagian Seller Event API (E16-E20) dan DATABASE_DESIGN.md (tab
 Kerjakan Task T-4.2: Seller Event CRUD API.
 Dependensi: T-2.1 dan T-1.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/event.schema.ts`:**
-- createEventSchema: { title, description, venue_name, venue_address, venue_city, venue_latitude?, venue_longitude?, start_at, end_at, sale_start_at, sale_end_at, banner_url?, max_tickets_per_order?, category_ids: number[], images: {image_url, sort_order}[], tiers: {name, description?, price, quota, sort_order, sale_start_at?, sale_end_at?}[] }.
-- updateEventSchema: partial dari createEventSchema.
+**File 1: `apps/api/src/schemas/event.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- createEventSchema: z.object({ title, description, venue_name, venue_address, venue_city, venue_latitude?, venue_longitude?, start_at, end_at, sale_start_at, sale_end_at, banner_url?, max_tickets_per_order?, category_ids: z.array(z.number()), images: z.array(z.object({image_url, sort_order})), tiers: z.array(z.object({name, description?, price, quota, sort_order, sale_start_at?, sale_end_at?})) }).openapi('CreateEventInput')
+- updateEventSchema: partial dari createEventSchema.openapi('UpdateEventInput')
 - Validasi temporal: end_at > start_at, sale_end_at > sale_start_at, sale_start_at <= start_at.
+- Tambahkan `.openapi({ example: '...' })` pada field penting.
 - Export inferred types.
 
 **File 2: `apps/api/src/services/event.service.ts`:**
@@ -1188,12 +1230,12 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - updateEvent(sellerProfileId, eventId, input): validasi ownership. Handle status flow: draft/rejected → pending_review.
 - deleteEvent(sellerProfileId, eventId): hanya status draft. Cascade delete.
 
-**File 3: `apps/api/src/routes/seller/events.ts`** — Thin Hono router (seller-only):
-1. GET /seller/events — Panggil eventService.listSellerEvents().
-2. POST /seller/events — Parse body dengan createEventSchema → panggil eventService.createEvent().
-3. GET /seller/events/:id — Panggil eventService.getSellerEvent().
-4. PATCH /seller/events/:id — Parse body dengan updateEventSchema → panggil eventService.updateEvent().
-5. DELETE /seller/events/:id — Panggil eventService.deleteEvent().
+**File 3: `apps/api/src/routes/seller/events.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
+1. GET /seller/events — `createRoute({ tags: ['Seller - Event'], summary: 'List seller events' })`. Panggil eventService.listSellerEvents().
+2. POST /seller/events — `createRoute()` dengan request body createEventSchema → handler: `c.req.valid('json')` → panggil eventService.createEvent().
+3. GET /seller/events/:id — `createRoute()` dengan param schema → handler: `c.req.valid('param')` → panggil eventService.getSellerEvent().
+4. PATCH /seller/events/:id — `createRoute()` dengan request body updateEventSchema → handler: `c.req.valid('json')` → panggil eventService.updateEvent().
+5. DELETE /seller/events/:id — `createRoute()`. Panggil eventService.deleteEvent().
 
 Event status flow: draft → pending_review (seller submit) → published/rejected (admin review). Seller bisa edit event rejected lalu submit ulang ke pending_review.
 Mount di index.ts.
@@ -1220,11 +1262,11 @@ Baca file PAGES.md bagian Ticket Tier API (E21-E24) dan DATABASE_DESIGN.md (tabe
 Kerjakan Task T-4.3: Ticket Tier CRUD API.
 Dependensi: T-4.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/tier.schema.ts`:**
-- createTierSchema: { name, description?, price, quota, sort_order?, sale_start_at?, sale_end_at? }
-- updateTierSchema: partial dari createTierSchema + { status? }
+**File 1: `apps/api/src/schemas/tier.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- createTierSchema: z.object({ name, description?, price, quota, sort_order?, sale_start_at?, sale_end_at? }).openapi('CreateTierInput')
+- updateTierSchema: partial dari createTierSchema + { status? }.openapi('UpdateTierInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/tier.service.ts`:**
@@ -1233,11 +1275,11 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - updateTier(sellerProfileId, eventId, tierId, input): validasi ownership + quota >= sold_count, jangan ubah price jika sold_count > 0.
 - deleteTier(sellerProfileId, eventId, tierId): validasi ownership, jangan hapus jika sold_count > 0.
 
-**File 3: `apps/api/src/routes/seller/tiers.ts`** — Thin Hono router (seller-only):
-1. GET /seller/events/:id/tiers — Panggil tierService.listTiers().
-2. POST /seller/events/:id/tiers — Parse body dengan createTierSchema → panggil tierService.createTier().
-3. PATCH /seller/events/:id/tiers/:tierId — Parse body dengan updateTierSchema → panggil tierService.updateTier().
-4. DELETE /seller/events/:id/tiers/:tierId — Panggil tierService.deleteTier().
+**File 3: `apps/api/src/routes/seller/tiers.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
+1. GET /seller/events/:id/tiers — `createRoute({ tags: ['Seller - Tier'], summary: 'List tiers' })`. Panggil tierService.listTiers().
+2. POST /seller/events/:id/tiers — `createRoute()` dengan request body createTierSchema → handler: `c.req.valid('json')` → panggil tierService.createTier().
+3. PATCH /seller/events/:id/tiers/:tierId — `createRoute()` dengan request body updateTierSchema → handler: `c.req.valid('json')` → panggil tierService.updateTier().
+4. DELETE /seller/events/:id/tiers/:tierId — `createRoute()`. Panggil tierService.deleteTier().
 
 Mount di index.ts.
 ```
@@ -1395,10 +1437,10 @@ Baca file PAGES.md bagian Event API Public (E11-E15) dan DATABASE_DESIGN.md (tab
 Kerjakan Task T-5.1: Public Event API.
 Dependensi: T-1.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/public-event.schema.ts`:**
-- listEventsQuerySchema: { search?, category?, city?, date_from?, date_to?, price_min?, price_max?, page?, limit? }
+**File 1: `apps/api/src/schemas/public-event.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- listEventsQuerySchema: z.object({ search?, category?, city?, date_from?, date_to?, price_min?, price_max?, page?, limit? }).openapi('ListEventsQuery')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/public-event.service.ts`:**
@@ -1408,12 +1450,12 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - listCategories(): all categories.
 - listByCategory(slug, pagination): events by kategori, published/ongoing.
 
-**File 3: `apps/api/src/routes/events.ts`** — Thin Hono router (semua public/tanpa auth):
-1. GET /events — Parse query dengan listEventsQuerySchema → panggil publicEventService.listEvents().
-2. GET /events/featured — Panggil publicEventService.listFeatured().
-3. GET /events/:slug — Panggil publicEventService.getBySlug().
-4. GET /categories — Panggil publicEventService.listCategories().
-5. GET /categories/:slug/events — Panggil publicEventService.listByCategory().
+**File 3: `apps/api/src/routes/events.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (semua public/tanpa auth):
+1. GET /events — `createRoute({ tags: ['Event - Public'], summary: 'List events' })`. Parse query via `c.req.valid('query')` → panggil publicEventService.listEvents().
+2. GET /events/featured — `createRoute({ tags: ['Event - Public'], summary: 'Featured events' })`. Panggil publicEventService.listFeatured().
+3. GET /events/:slug — `createRoute({ tags: ['Event - Public'], summary: 'Event detail' })`. Panggil publicEventService.getBySlug().
+4. GET /categories — `createRoute({ tags: ['Category'] })`. Panggil publicEventService.listCategories().
+5. GET /categories/:slug/events — `createRoute({ tags: ['Category'] })`. Panggil publicEventService.listByCategory().
 
 Search strategy: gunakan ILIKE untuk sekarang. Jika perlu performa lebih baik, tambahkan tsvector + GIN index di events.title nanti.
 Mount di index.ts.
@@ -1643,10 +1685,10 @@ Baca file PAGES.md bagian Reservation API (E25-E27) dan DATABASE_DESIGN.md (tabe
 Kerjakan Task T-6.2: Reservation API.
 Dependensi: T-6.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/reservation.schema.ts`:**
-- createReservationSchema: { ticket_tier_id: string, quantity: number.min(1) }
+**File 1: `apps/api/src/schemas/reservation.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- createReservationSchema: z.object({ ticket_tier_id: z.string(), quantity: z.number().min(1) }).openapi('CreateReservationInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/reservation.service.ts`:**
@@ -1654,10 +1696,10 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - getReservation(userId, reservationId): return reservation + remaining time. Validasi ownership.
 - cancelReservation(env, userId, reservationId): validasi ownership + status active. Delegate ke TicketReserver.cancelReservation().
 
-**File 3: `apps/api/src/routes/reservations.ts`** — Thin Hono router (buyer-only via authMiddleware + roleMiddleware('buyer')):
-1. POST /reservations — Parse body dengan createReservationSchema → panggil reservationService.reserve().
-2. GET /reservations/:id — Panggil reservationService.getReservation().
-3. DELETE /reservations/:id — Panggil reservationService.cancelReservation().
+**File 3: `apps/api/src/routes/reservations.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (buyer-only via authMiddleware + roleMiddleware('buyer')):
+1. POST /reservations — `createRoute({ tags: ['Reservation'], summary: 'Create reservation' })` dengan request body createReservationSchema → handler: `c.req.valid('json')` → panggil reservationService.reserve().
+2. GET /reservations/:id — `createRoute({ tags: ['Reservation'] })`. Panggil reservationService.getReservation().
+3. DELETE /reservations/:id — `createRoute({ tags: ['Reservation'] })`. Panggil reservationService.cancelReservation().
 
 Set expires_at = now + 10 menit.
 Mount di index.ts.
@@ -1689,11 +1731,11 @@ Baca file PAGES.md bagian Order API (E28-E30) dan DATABASE_DESIGN.md (tabel orde
 Kerjakan Task T-6.3: Order API.
 Dependensi: T-6.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/order.schema.ts`:**
-- createOrderSchema: { reservation_id: string }
-- listOrdersQuerySchema: { page?, limit? }
+**File 1: `apps/api/src/schemas/order.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- createOrderSchema: z.object({ reservation_id: z.string() }).openapi('CreateOrderInput')
+- listOrdersQuerySchema: z.object({ page: z.coerce.number().optional(), limit: z.coerce.number().optional() }).openapi('ListOrdersQuery')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/order.service.ts`:**
@@ -1701,10 +1743,10 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
 - listOrders(userId, pagination): join order_items, payments, events. Return status, order_number, total_amount, created_at.
 - getOrderDetail(userId, orderId): detail + items + payment + tickets. Validasi ownership.
 
-**File 3: `apps/api/src/routes/orders.ts`** — Thin Hono router (buyer-only):
-1. POST /orders — Parse body dengan createOrderSchema → panggil orderService.createOrder().
-2. GET /orders — Parse query → panggil orderService.listOrders().
-3. GET /orders/:id — Panggil orderService.getOrderDetail().
+**File 3: `apps/api/src/routes/orders.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (buyer-only):
+1. POST /orders — `createRoute({ tags: ['Order'], summary: 'Create order from reservation' })` dengan request body createOrderSchema → handler: `c.req.valid('json')` → panggil orderService.createOrder().
+2. GET /orders — `createRoute({ tags: ['Order'], summary: 'List buyer orders' })`. Parse query via `c.req.valid('query')` → panggil orderService.listOrders().
+3. GET /orders/:id — `createRoute({ tags: ['Order'], summary: 'Order detail' })`. Panggil orderService.getOrderDetail().
 
 Mount di index.ts.
 ```
@@ -1739,19 +1781,19 @@ Baca file PAGES.md bagian Payment API (E31-E32) dan DATABASE_DESIGN.md (tabel pa
 Kerjakan Task T-6.4: Payment API.
 Dependensi: T-6.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
-**File 1: `apps/api/src/schemas/payment.schema.ts`:**
-- initiatePaymentSchema: { method: z.enum(['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account']) }
+**File 1: `apps/api/src/schemas/payment.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- initiatePaymentSchema: z.object({ method: z.enum(['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account']) }).openapi('InitiatePaymentInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/payment.service.ts`:**
 - initiatePayment(userId, orderId, input): validasi order (ownership, pending, not expired), update payment method, integrasikan payment gateway (mock dulu). Return { payment_url } atau { status: 'success' }.
 - handleWebhook(headers, body): verify signature, idempotency check (external_ref), update payment → success + order → confirmed, call generateTickets(), enqueue email + notification.
 
-**File 3: `apps/api/src/routes/payments.ts`** — Thin Hono router:
-1. POST /payments/:orderId/pay — Buyer-only. Parse body dengan initiatePaymentSchema → panggil paymentService.initiatePayment().
-2. POST /webhooks/payment — Public (verify signature). Panggil paymentService.handleWebhook().
+**File 3: `apps/api/src/routes/payments.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
+1. POST /payments/:orderId/pay — Buyer-only. `createRoute({ tags: ['Payment'], summary: 'Initiate payment' })` dengan request body initiatePaymentSchema → handler: `c.req.valid('json')` → panggil paymentService.initiatePayment().
+2. POST /webhooks/payment — Public (verify signature). `createRoute({ tags: ['Webhook'], summary: 'Payment webhook callback' })`. Panggil paymentService.handleWebhook().
 
 Mount di index.ts.
 ```
@@ -1924,18 +1966,18 @@ Baca file PAGES.md bagian Ticket API (E33-E34) dan DATABASE_DESIGN.md (tabel tic
 Kerjakan Task T-7.1: Ticket Generation.
 Dependensi: T-6.4 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat 3 file:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
 
 **File 1: `apps/api/src/services/ticket-generator.ts`:**
 - generateTickets(orderId): query order_items, loop quantity kali, generate ticket_code = 'JVX-' + nanoid(12), insert ke tickets. Return array of tickets.
 
-**File 2: `apps/api/src/schemas/ticket.schema.ts`:**
-- listTicketsQuerySchema: { page?, limit? }
+**File 2: `apps/api/src/schemas/ticket.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- listTicketsQuerySchema: z.object({ page: z.coerce.number().optional(), limit: z.coerce.number().optional() }).openapi('ListTicketsQuery')
 - Export inferred types.
 
-**File 3: `apps/api/src/routes/tickets.ts`** — Thin Hono router (buyer-only):
-1. GET /tickets — Panggil ticketService (atau query langsung via service). List tiket milik buyer (join orders, order_items, ticket_tiers, events).
-2. GET /tickets/:id — Detail tiket + QR data. Validasi ownership.
+**File 3: `apps/api/src/routes/tickets.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (buyer-only):
+1. GET /tickets — `createRoute({ tags: ['Ticket'], summary: 'List buyer tickets' })`. Panggil ticketService. List tiket milik buyer (join orders, order_items, ticket_tiers, events).
+2. GET /tickets/:id — `createRoute({ tags: ['Ticket'], summary: 'Ticket detail + QR data' })`. Detail tiket + QR data. Validasi ownership.
 
 Integrasikan di payment webhook: setelah payment success, panggil generateTickets(orderId).
 Install nanoid: `pnpm add nanoid` di apps/api.
@@ -2009,19 +2051,19 @@ Baca file PAGES.md bagian Seller Portal (S13) dan Check-in API (E35-E36), DATABA
 Kerjakan Task T-7.3: Check-in API & UI (Seller).
 Dependensi: T-7.1 dan T-4.4 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat file API:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat file API:
 
-**File 1: `apps/api/src/schemas/checkin.schema.ts`:**
-- checkinSchema: { ticket_code: string }
+**File 1: `apps/api/src/schemas/checkin.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- checkinSchema: z.object({ ticket_code: z.string() }).openapi('CheckinInput')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/checkin.service.ts`:**
 - checkin(sellerId, eventId, ticketCode): validasi seller ownership, query ticket by code + event match, cek status valid vs used, insert ticket_checkins, update ticket status → 'used'. Return { status: 'SUCCESS'|'ALREADY_USED'|'INVALID', ... }.
 - getStats(sellerId, eventId): total_tickets, checked_in, remaining, percentage.
 
-**File 3: `apps/api/src/routes/seller/checkin.ts`** — Thin Hono router (seller-only):
-1. POST /seller/events/:id/checkin — Parse body dengan checkinSchema → panggil checkinService.checkin().
-2. GET /seller/events/:id/checkin/stats — Panggil checkinService.getStats().
+**File 3: `apps/api/src/routes/seller/checkin.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
+1. POST /seller/events/:id/checkin — `createRoute({ tags: ['Seller - Check-in'], summary: 'Check-in ticket' })` dengan request body checkinSchema → handler: `c.req.valid('json')` → panggil checkinService.checkin().
+2. GET /seller/events/:id/checkin/stats — `createRoute({ tags: ['Seller - Check-in'], summary: 'Check-in statistics' })`. Panggil checkinService.getStats().
 
 Di `apps/seller/`:
 
@@ -2062,22 +2104,22 @@ Baca file PAGES.md bagian Notification API (E41-E43, E61) dan DATABASE_DESIGN.md
 Kerjakan Task T-7.4: Notification System.
 Dependensi: T-6.5 dan T-2.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10).
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11).
 
 **File 1: `apps/api/src/services/notification.service.ts`:**
 - sendNotification(userId, type, title, body, metadata?): insert ke notifications, return record.
 
-**File 2: `apps/api/src/schemas/notification.schema.ts`:**
-- broadcastSchema: { title, body, target_role?: 'buyer'|'seller'|'all' }
+**File 2: `apps/api/src/schemas/notification.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- broadcastSchema: z.object({ title: z.string(), body: z.string(), target_role: z.enum(['buyer','seller','all']).optional() }).openapi('BroadcastNotificationInput')
 - Export inferred types.
 
-**File 3: `apps/api/src/routes/notifications.ts`** — Thin Hono router (authenticated):
-1. GET /notifications — Panggil service. List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
-2. PATCH /notifications/:id/read — Mark as read. Validasi ownership.
-3. PATCH /notifications/read-all — Mark all as read.
+**File 3: `apps/api/src/routes/notifications.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (authenticated):
+1. GET /notifications — `createRoute({ tags: ['Notification'], summary: 'List notifications' })`. Panggil service. List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
+2. PATCH /notifications/:id/read — `createRoute({ tags: ['Notification'], summary: 'Mark notification as read' })`. Mark as read. Validasi ownership.
+3. PATCH /notifications/read-all — `createRoute({ tags: ['Notification'], summary: 'Mark all as read' })`. Mark all as read.
 
 Admin route:
-4. POST /admin/notifications/broadcast — Parse body dengan broadcastSchema → panggil service.
+4. POST /admin/notifications/broadcast — `createRoute({ tags: ['Admin - Notification'], summary: 'Broadcast notification' })` dengan request body broadcastSchema → handler: `c.req.valid('json')` → panggil service.
 
 Integrasikan trigger di:
    - `routes/payments.ts` (payment webhook success): sendNotification(buyerId, 'order_confirmed', 'Pesanan Dikonfirmasi', 'Order {order_number} berhasil dibayar.').
@@ -2086,14 +2128,14 @@ Integrasikan trigger di:
    - `routes/admin.ts` (approve event): sendNotification(sellerId, 'event_approved', 'Event Disetujui', 'Event {event_name} sudah dipublikasikan.').
    - `routes/admin.ts` (reject event): sendNotification(sellerId, 'event_rejected', 'Event Ditolak', 'Event {event_name} ditolak. Alasan: {reason}.').
 
-Buat file `apps/api/src/routes/notifications.ts` sebagai Hono router (authenticated):
+Buat file `apps/api/src/routes/notifications.ts` sebagai OpenAPIHono router dengan `createRoute()` + `app.openapi()` (authenticated):
 
-3. GET /notifications — List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
-4. PATCH /notifications/:id/read — Mark satu notifikasi as read. Validasi: milik user.
-5. PATCH /notifications/read-all — Mark semua notifikasi user as read.
+3. GET /notifications — `createRoute({ tags: ['Notification'] })`. List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
+4. PATCH /notifications/:id/read — `createRoute({ tags: ['Notification'] })`. Mark satu notifikasi as read. Validasi: milik user.
+5. PATCH /notifications/read-all — `createRoute({ tags: ['Notification'] })`. Mark semua notifikasi user as read.
 
 Buat di admin routes:
-6. POST /admin/notifications/broadcast — Admin kirim notifikasi ke semua user atau by role. Input: {title, body, target_role?: 'buyer'|'seller'|'all'}.
+6. POST /admin/notifications/broadcast — `createRoute({ tags: ['Admin - Notification'] })` dengan broadcastSchema. Admin kirim notifikasi ke semua user atau by role.
 
 Mount di index.ts.
 ```
@@ -2119,19 +2161,19 @@ Baca file PAGES.md bagian Seller Portal (S11-S12) dan Seller Order API (E37-E38)
 Kerjakan Task T-7.5: Seller Order View.
 Dependensi: T-4.4 dan T-6.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10). Buat file API:
+Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat file API:
 
-**File 1: `apps/api/src/schemas/seller-order.schema.ts`:**
-- listSellerOrdersQuerySchema: { event_id?, status?, page?, limit? }
+**File 1: `apps/api/src/schemas/seller-order.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- listSellerOrdersQuerySchema: z.object({ event_id: z.string().optional(), status: z.string().optional(), page: z.coerce.number().optional(), limit: z.coerce.number().optional() }).openapi('ListSellerOrdersQuery')
 - Export inferred types.
 
 **File 2: `apps/api/src/services/seller-order.service.ts`:**
 - listOrders(sellerProfileId, query): orders JOIN order_items JOIN ticket_tiers JOIN events WHERE seller_id matches. Paginated + filter.
 - getOrderDetail(sellerProfileId, orderId): detail + items + buyer info + payment. Validasi ownership.
 
-**File 3: `apps/api/src/routes/seller/orders.ts`** — Thin Hono router (seller-only):
-1. GET /seller/orders — Parse query → panggil sellerOrderService.listOrders().
-2. GET /seller/orders/:id — Panggil sellerOrderService.getOrderDetail().
+**File 3: `apps/api/src/routes/seller/orders.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
+1. GET /seller/orders — `createRoute({ tags: ['Seller - Order'], summary: 'List seller orders' })`. Parse query via `c.req.valid('query')` → panggil sellerOrderService.listOrders().
+2. GET /seller/orders/:id — `createRoute({ tags: ['Seller - Order'], summary: 'Seller order detail' })`. Panggil sellerOrderService.getOrderDetail().
 
 Di `apps/seller/`:
 
@@ -2319,13 +2361,13 @@ Baca file PAGES.md bagian Seller Portal (S5: Dashboard, E39-E40).
 Kerjakan Task T-9.1: Seller Dashboard.
 Dependensi: T-7.5 sudah selesai.
 
-Ikuti arsitektur 3-layer. Buat/tambahkan API:
+Ikuti arsitektur 3-layer dan OpenAPI pattern (lihat Execution Rules #10, #11). Buat/tambahkan API:
 
 **`apps/api/src/services/seller-dashboard.service.ts`:**
 - getDashboard(sellerProfileId): aggregate total_events, total_revenue, total_tickets_sold, upcoming_events, recent_orders (5), daily_sales (30 hari).
 
-**`apps/api/src/routes/seller/dashboard.ts`** — Thin Hono router:
-1. GET /seller/dashboard — Panggil sellerDashboardService.getDashboard().
+**`apps/api/src/routes/seller/dashboard.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
+1. GET /seller/dashboard — `createRoute({ tags: ['Seller - Dashboard'], summary: 'Get seller dashboard data' })`. Panggil sellerDashboardService.getDashboard().
 
 Di `apps/seller/`:
 
@@ -2364,13 +2406,13 @@ Baca file PAGES.md bagian Admin Portal (A2: Dashboard, E44).
 Kerjakan Task T-9.2: Admin Dashboard.
 Dependensi: T-3.5 sudah selesai.
 
-Ikuti arsitektur 3-layer. Buat/tambahkan API:
+Ikuti arsitektur 3-layer dan OpenAPI pattern (lihat Execution Rules #10, #11). Buat/tambahkan API:
 
 **`apps/api/src/services/admin-dashboard.service.ts`:**
 - getDashboard(): aggregate total_users, total_sellers, total_buyers, total_events, total_events_published, total_revenue, total_tickets_sold, daily_transactions (30 hari), recent_events (5), recent_orders (5).
 
-**`apps/api/src/routes/admin/dashboard.ts`** — Thin Hono router (admin-only):
-1. GET /admin/dashboard — Panggil adminDashboardService.getDashboard().
+**`apps/api/src/routes/admin/dashboard.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (admin-only):
+1. GET /admin/dashboard — `createRoute({ tags: ['Admin - Dashboard'], summary: 'Get admin dashboard data' })`. Panggil adminDashboardService.getDashboard().
 
 Di `apps/admin/`:
 
@@ -2412,7 +2454,7 @@ Baca file DATABASE_DESIGN.md (tabel events, orders, payments, notifications, res
 Kerjakan Task T-9.3: Admin Order & Payment Management.
 Dependensi: T-3.2, T-6.3, T-6.4 sudah selesai.
 
-Ikuti arsitektur 3-layer. Buat/tambahkan API files:
+Ikuti arsitektur 3-layer dan OpenAPI pattern (lihat Execution Rules #10, #11). Buat/tambahkan API files:
 
 **`apps/api/src/services/admin-event.service.ts`:**
 - listEvents(query): filter status/seller/search, paginated.
@@ -2425,16 +2467,16 @@ Ikuti arsitektur 3-layer. Buat/tambahkan API files:
 **`apps/api/src/services/admin-payment.service.ts`:**
 - listPayments, getPaymentDetail, updatePaymentStatus.
 
-**`apps/api/src/schemas/admin.schema.ts`:**
-- Schemas untuk semua admin input validation.
+**`apps/api/src/schemas/admin.schema.ts`** (import `z` dari `@hono/zod-openapi`):
+- Schemas untuk semua admin input validation, masing-masing diberi `.openapi('SchemaName')`.
 
-**Route files:**
-- `apps/api/src/routes/admin/events.ts` — Thin router: GET /admin/events, GET /admin/events/:id, PATCH /admin/events/:id/status.
-- `apps/api/src/routes/admin/orders.ts` — Thin router: GET /admin/orders, GET /admin/orders/:id, POST /admin/orders/:id/refund, POST /admin/orders/:id/cancel.
-- `apps/api/src/routes/admin/payments.ts` — Thin router: GET /admin/payments, GET /admin/payments/:id, PATCH /admin/payments/:id/status.
+**Route files — semua menggunakan OpenAPIHono dengan `createRoute()` + `app.openapi()`:**
+- `apps/api/src/routes/admin/events.ts`: `createRoute({ tags: ['Admin - Event'], ... })` — GET /admin/events, GET /admin/events/:id, PATCH /admin/events/:id/status.
+- `apps/api/src/routes/admin/orders.ts`: `createRoute({ tags: ['Admin - Order'], ... })` — GET /admin/orders, GET /admin/orders/:id, POST /admin/orders/:id/refund, POST /admin/orders/:id/cancel.
+- `apps/api/src/routes/admin/payments.ts`: `createRoute({ tags: ['Admin - Payment'], ... })` — GET /admin/payments, GET /admin/payments/:id, PATCH /admin/payments/:id/status.
 - GET /admin/notifications, GET /admin/reservations — di routes yang sesuai.
 
-Setiap route: parse input → call service → return response. Semua admin-only via roleMiddleware('admin').
+Setiap route: `createRoute()` dengan tags, summary, request/response schemas → `app.openapi(route, handler)`. Handler: `c.req.valid('json'|'query'|'param')` → call service → return response. Semua admin-only via roleMiddleware('admin').
 
 Di `apps/admin/`, buat halaman untuk setiap fitur:
 - A7: `src/routes/events/+page.svelte` — tabel event + filter.
@@ -3013,7 +3055,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | `packages/core/src/db/seed.ts`         | T-1.4          | Seed data                          |
 | `packages/ui/`                         | T-0.9          | Shared UI components               |
 | `apps/api/src/middleware/`             | T-2.1          | Auth & CORS middleware             |
-| `apps/api/src/routes/auth.ts`          | T-2.2          | Auth endpoints (thin handler)      |
+| `apps/api/src/routes/auth.ts`          | T-2.2          | Auth endpoints (`createRoute()` + `app.openapi()`) |
 | `apps/api/src/services/auth.service.ts` | T-2.2          | Auth business logic                |
 | `apps/api/src/schemas/auth.schema.ts`  | T-2.2          | Auth validation schemas            |
 | `apps/api/src/routes/users.ts`         | T-2.3          | User profile endpoints             |
@@ -3052,8 +3094,8 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 - **Selalu baca dokumen referensi** (DATABASE_DESIGN.md, PAGES.md) sebelum mengerjakan task. Jangan mengarang kolom, route, atau endpoint.
 - **Satu task = satu commit** (jika memungkinkan). Commit message: `feat(T-X.X): <deskripsi singkat>`. Gunakan `git` CLI untuk version control.
 - **Edge compatibility**: Semua library di `apps/api` HARUS compatible dengan Cloudflare Workers runtime (no Node.js-only APIs). Cek sebelum install.
-- **Validasi input**: Gunakan `zod` di semua API endpoint. Definisikan schema validasi di folder `schemas/` (`schemas/*.schema.ts`). Route handler hanya import schema, parse, dan panggil service.
-- **Arsitektur 3-layer**: Route (thin handler) → Service (business logic + DB) → Schema (Zod DTO). Lihat Execution Rules #10 untuk detail.
+- **Validasi input**: Gunakan `z` dari `@hono/zod-openapi` (BUKAN dari `zod` langsung) di semua API endpoint. Definisikan schema validasi di folder `schemas/` (`schemas/*.schema.ts`). Setiap schema harus diberi `.openapi('SchemaName')`. Route handler menggunakan `c.req.valid('json'|'query'|'param')` — BUKAN manual `schema.parse(await c.req.json())`.
+- **Arsitektur 3-layer + OpenAPI**: Route (OpenAPIHono + `createRoute()` + `app.openapi()`) → Service (business logic + DB) → Schema (Zod + `.openapi()` = DTO + OpenAPI spec). Lihat Execution Rules #10 dan #11 untuk detail.
 - **Error handling**: Gunakan Hono error handler. Response format konsisten: `{ success: boolean, data?: T, error?: { code: string, message: string } }`.
 - **Pagination**: Gunakan cursor-based atau offset pagination. Default limit: 20, max: 100. Response: `{ data: T[], meta: { total, page, limit, totalPages } }`.
 - **Concurrent-safe**: Untuk operasi yang melibatkan `sold_count` pada `ticket_tiers`, SELALU gunakan Durable Object. JANGAN langsung update dari API handler.

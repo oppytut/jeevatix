@@ -13,6 +13,7 @@ Platform ini menggunakan pendekatan *monorepo* dengan perpaduan teknologi beriku
 * **Build System:** [Turborepo](https://turbo.build/) (Manajemen eksekusi *task* monorepo yang sangat cepat & *incremental*)
 * **Edge Compute:** Cloudflare Workers
 * **Backend / API:** [Hono](https://hono.dev/) (Super-fast, lightweight web framework)
+* **API Contract & Documentation:** [`@hono/zod-openapi`](https://github.com/honojs/middleware/tree/main/packages/zod-openapi) (OpenAPI spec dari Zod schemas) + [Scalar](https://scalar.com/) (Interactive API Reference UI di `/reference`)
 * **Frontend:** [SvelteKit](https://svelte.dev/) (Portal Pembeli, Admin & Seller) + [shadcn-svelte](https://shadcn-svelte.com/)
 * **Database & Connection Pooling:** PostgreSQL (Self-Hosted) + Cloudflare Hyperdrive
 * **ORM & Database Client:** [Drizzle ORM](https://orm.drizzle.team/) (Edge-ready, Type-safe SQL builder)
