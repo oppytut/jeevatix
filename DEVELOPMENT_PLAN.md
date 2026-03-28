@@ -100,7 +100,7 @@ gantt
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-0.1`                                                   |
 | Dependensi  | Tidak ada                                                  |
-| Deliverables| `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.nvmrc`, `tsconfig.base.json` |
+| Deliverables| `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.nvmrc`, `tsconfig.base.json`, `docker-compose.yml` |
 
 **Instruksi:**
 1. Init `package.json` dengan `"private": true` dan `"packageManager": "pnpm@9.x"`.
@@ -116,10 +116,26 @@ gantt
 6. Buat `.gitignore` (node_modules, .env, dist, .turbo, .sst).
 7. Buat `.env.example` dengan variabel:
    ```
-   DATABASE_URL=postgresql://user:password@localhost:5432/jeevatix
+   DATABASE_URL=postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
    CLOUDFLARE_ACCOUNT_ID=
    CLOUDFLARE_API_TOKEN=
    JWT_SECRET=
+   ```
+8. Buat `docker-compose.yml` untuk PostgreSQL lokal:
+   ```yaml
+   services:
+     postgres:
+       image: postgres:17-alpine
+       ports:
+         - "5432:5432"
+       environment:
+         POSTGRES_DB: jeevatix
+         POSTGRES_USER: jeevatix
+         POSTGRES_PASSWORD: jeevatix
+       volumes:
+         - pgdata:/var/lib/postgresql/data
+   volumes:
+     pgdata:
    ```
 
 **Prompt:**
@@ -135,7 +151,8 @@ Buat file-file berikut di root project:
 4. `tsconfig.base.json` — strict: true, paths alias @jeevatix/* ke packages/*.
 5. `.nvmrc` — isi: 22.
 6. `.gitignore` — node_modules, .env, dist, .turbo, .sst, .wrangler.
-7. `.env.example` — variabel: DATABASE_URL, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, JWT_SECRET.
+7. `.env.example` — variabel: DATABASE_URL (default: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix), CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, JWT_SECRET.
+8. `docker-compose.yml` — PostgreSQL 17 Alpine, port 5432, DB name: jeevatix, user: jeevatix, password: jeevatix, volume: pgdata.
 
 Jangan buat folder apps/ atau packages/ dulu — itu task berikutnya.
 Pastikan `pnpm install` bisa berjalan tanpa error setelah selesai.
@@ -566,8 +583,9 @@ Pastikan compatible dengan Cloudflare Workers runtime (jangan gunakan Node.js-on
 Kerjakan Task T-1.4: Run Migration & Seed.
 Dependensi: T-1.3 sudah selesai (DB connection sudah tersedia).
 
-1. Pastikan PostgreSQL lokal sudah running dan DATABASE_URL di .env sudah benar.
-2. Jalankan `cd packages/core && pnpm drizzle-kit push` untuk membuat semua tabel di database.
+1. Pastikan PostgreSQL sudah running via Docker Compose: `docker compose up -d`.
+2. Pastikan DATABASE_URL di .env sudah benar (default: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix).
+3. Jalankan `cd packages/core && pnpm drizzle-kit push` untuk membuat semua tabel di database.
 3. Verifikasi dengan `pnpm drizzle-kit studio` — harus terlihat 15 tabel dan 10 enum.
 4. Buat file `packages/core/src/db/seed.ts` yang:
    - Import db dari ./index.ts dan semua schema.
@@ -2879,6 +2897,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | -------------------------------------- | -------------- | ---------------------------------- |
 | `package.json` (root)                  | T-0.1          | Root monorepo config               |
 | `turbo.json`                           | T-0.1          | Turborepo pipeline                 |
+| `docker-compose.yml`                   | T-0.1          | PostgreSQL lokal (Docker)          |
 | `sst.config.ts`                        | T-0.2          | SST infrastructure                 |
 | `packages/types/`                      | T-0.3          | Shared TypeScript types            |
 | `packages/core/`                       | T-0.4          | DB connection & Drizzle config     |

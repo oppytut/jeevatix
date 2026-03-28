@@ -82,6 +82,7 @@ jeevatix/
 │   ├── core/           # Logika bisnis utama, Drizzle schema, koneksi database
 │   ├── ui/             # Shared UI components (TailwindCSS, shadcn-svelte)
 │   └── types/          # Shared TypeScript interfaces (Event, Ticket, dll)
+├── docker-compose.yml  # PostgreSQL untuk local development
 ├── sst.config.ts       # Konfigurasi infrastruktur SST
 ├── turbo.json          # Pipeline eksekusi Turborepo
 ├── package.json        # Root package (Workspaces config)
@@ -93,10 +94,10 @@ jeevatix/
 ## 🛠️ Prerequisites
 
 Sebelum memulai *development* di *environment* lokal Anda, pastikan Anda telah menginstal:
-* **Node.js** (v18 atau lebih baru)
+* **Node.js** (v22 atau lebih baru, lihat `.nvmrc`)
 * **pnpm** (Direkomendasikan untuk manajemen *monorepo* yang efisien)
+* **Docker & Docker Compose** (Untuk menjalankan PostgreSQL lokal)
 * Akun **Cloudflare** (untuk konfigurasi *deployment* dan Hyperdrive)
-* **PostgreSQL** (Berjalan di server lokal atau server *self-hosted* Anda)
 
 ---
 
@@ -113,12 +114,25 @@ pnpm install
 ```
 
 ### 2. Setup Environment Variables
-Duplikat file `.env.example` menjadi `.env` di *root directory* dan isi variabel yang dibutuhkan, terutama untuk string koneksi ke database PostgreSQL Anda:
+Duplikat file `.env.example` menjadi `.env` di *root directory* dan isi variabel yang dibutuhkan:
 ```bash
 cp .env.example .env
 ```
 
-### 3. Jalankan Local Development (Turborepo)
+### 3. Jalankan PostgreSQL (Docker Compose)
+Jalankan PostgreSQL menggunakan Docker Compose. Database akan otomatis terbuat sesuai konfigurasi di `docker-compose.yml`:
+```bash
+docker compose up -d
+```
+Default connection string: `postgresql://jeevatix:jeevatix@localhost:5432/jeevatix` (sudah tercantum di `.env.example`).
+
+Untuk menghentikan database:
+```bash
+docker compose down        # stop container (data tetap ada di volume)
+docker compose down -v     # stop & hapus volume (reset data)
+```
+
+### 4. Jalankan Local Development (Turborepo)
 Perintah ini akan memicu **Turborepo** untuk menjalankan *local environment* bagi seluruh aplikasi (Portal Pembeli, Admin, Seller & API) secara paralel sekaligus menyambungkannya ke *resource* cloud melalui SST:
 ```bash
 pnpm run dev
