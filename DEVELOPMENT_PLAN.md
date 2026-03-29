@@ -46,6 +46,12 @@
     - Jalankan `pnpm run lint` dan `pnpm run format:check` sebagai bagian dari checkpoint setiap fase.
     - CI/CD wajib lint + format check sebelum build.
 13. **Playwright E2E sudah di-setup di Phase 0** — Phase 10 (T-10.2) fokus menulis test cases, bukan setup.
+14. **Gunakan AI agent customization files di `.github/`:**
+    - `copilot-instructions.md` — Workspace-wide rules (always active). Berisi ringkasan tech stack, arsitektur 3-layer, OpenAPI, code quality, dan konvensi project.
+    - `instructions/*.instructions.md` — File-specific instructions (auto-attach by pattern). Berisi pattern khusus per folder: routes, services, schemas, svelte pages, drizzle schema.
+    - `prompts/*.prompt.md` — Reusable slash commands: `/new-api-endpoint`, `/new-svelte-page`, `/phase-checkpoint`.
+    - `agents/reviewer.agent.md` — Read-only code review agent.
+    - Lihat README.md bagian "AI Development Setup" untuk daftar lengkap.
 
 ---
 
@@ -118,7 +124,7 @@ gantt
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-0.1`                                                   |
 | Dependensi  | Tidak ada                                                  |
-| Deliverables| `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.nvmrc`, `tsconfig.base.json`, `docker-compose.yml` |
+| Deliverables| `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.nvmrc`, `tsconfig.base.json`, `docker-compose.yml`, `.github/copilot-instructions.md`, `.github/instructions/`, `.github/prompts/`, `.github/agents/` |
 
 **Instruksi:**
 1. Init `package.json` dengan `"private": true` dan `"packageManager": "pnpm@9.x"`.
@@ -155,6 +161,7 @@ gantt
    volumes:
      pgdata:
    ```
+9. Buat folder `.github/` dengan AI agent customization files (salin dari file yang sudah ada di repo — lihat `.github/copilot-instructions.md`, `.github/instructions/`, `.github/prompts/`, `.github/agents/`).
 
 **Prompt:**
 ```
@@ -171,6 +178,7 @@ Buat file-file berikut di root project:
 6. `.gitignore` — node_modules, .env, dist, .turbo, .sst, .wrangler.
 7. `.env.example` — variabel: DATABASE_URL (default: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix), CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, JWT_SECRET.
 8. `docker-compose.yml` — PostgreSQL 17 Alpine, port 5432, DB name: jeevatix, user: jeevatix, password: jeevatix, volume: pgdata.
+9. `.github/` — AI agent customization files sudah ada di repo. Pastikan folder `.github/copilot-instructions.md`, `.github/instructions/`, `.github/prompts/`, `.github/agents/` ter-copy.
 
 Jangan buat folder apps/ atau packages/ dulu — itu task berikutnya.
 Pastikan `pnpm install` bisa berjalan tanpa error setelah selesai.
@@ -3195,6 +3203,10 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | `playwright.config.ts`                 | T-0.10         | Playwright E2E config              |
 | `tests/e2e/`                           | T-0.10, T-10.2 | Playwright E2E test suites         |
 | `docker-compose.yml`                   | T-0.1          | PostgreSQL lokal (Docker)          |
+| `.github/copilot-instructions.md`      | T-0.1          | Workspace-wide AI agent rules      |
+| `.github/instructions/`                | T-0.1          | File-specific AI instructions      |
+| `.github/prompts/`                     | T-0.1          | Reusable AI prompt templates       |
+| `.github/agents/`                      | T-0.1          | Custom AI agents (reviewer)        |
 | `sst.config.ts`                        | T-0.2          | SST infrastructure                 |
 | `packages/types/`                      | T-0.3          | Shared TypeScript types            |
 | `packages/core/`                       | T-0.4          | DB connection & Drizzle config     |
@@ -3249,6 +3261,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 - **Concurrent-safe**: Untuk operasi yang melibatkan `sold_count` pada `ticket_tiers`, SELALU gunakan Durable Object. JANGAN langsung update dari API handler.
 - **File upload**: Semua upload gambar harus melalui `POST /upload` (T-2.5) ke Cloudflare R2. Jangan simpan file di filesystem lokal.
 - **Email**: Semua pengiriman email harus async melalui Cloudflare Queue + email service (T-2.6). Jangan kirim email secara sinkron di request handler.
+- **AI agent customization**: Rules dan instructions tersedia di `.github/` — `copilot-instructions.md` (always-on), `instructions/` (auto-attach per file pattern), `prompts/` (slash commands), `agents/` (custom agents). Lihat Execution Rules #14.
 
 ### MCP Tools Cheat Sheet
 

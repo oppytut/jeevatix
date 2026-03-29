@@ -93,6 +93,11 @@ jeevatix/
 │   ├── core/           # Logika bisnis utama, Drizzle schema, koneksi database
 │   ├── ui/             # Shared UI components (TailwindCSS, shadcn-svelte)
 │   └── types/          # Shared TypeScript interfaces (Event, Ticket, dll)
+├── .github/
+│   ├── copilot-instructions.md  # Workspace-wide AI agent rules (always active)
+│   ├── instructions/            # File-specific AI instructions (auto-attach by pattern)
+│   ├── prompts/                 # Reusable AI prompt templates (/slash commands)
+│   └── agents/                  # Custom AI agents (reviewer, etc.)
 ├── tests/
 │   ├── e2e/            # Playwright E2E test suites
 │   └── load/           # K6 load testing scripts
@@ -205,9 +210,30 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-## 🤖 AI Development Setup (MCP Servers)
+## 🤖 AI Development Setup
 
-Project ini dikonfigurasi dengan **Model Context Protocol (MCP) servers** untuk mempercepat development menggunakan AI agent. Konfigurasi tersimpan di `.vscode/mcp.json`.
+Project ini dikonfigurasi dengan **AI agent customization** dan **MCP servers** untuk mempercepat development.
+
+### Agent Customization (`.github/`)
+
+AI agent secara otomatis memuat rules dan instructions dari folder `.github/`:
+
+| File | Fungsi | Trigger |
+| ---- | ------ | ------- |
+| `copilot-instructions.md` | Workspace-wide rules (tech stack, arsitektur 3-layer, OpenAPI, code quality) | Selalu aktif di setiap chat |
+| `instructions/api-routes.instructions.md` | Pattern OpenAPIHono untuk route handlers | Auto-attach saat edit `apps/api/src/routes/**` |
+| `instructions/api-services.instructions.md` | Convention untuk business logic services | Auto-attach saat edit `apps/api/src/services/**` |
+| `instructions/api-schemas.instructions.md` | Zod + OpenAPI schema patterns | Auto-attach saat edit `apps/api/src/schemas/**` |
+| `instructions/svelte-pages.instructions.md` | SvelteKit + shadcn-svelte page patterns | Auto-attach saat edit `apps/**/src/routes/**/*.svelte` |
+| `instructions/drizzle-schema.instructions.md` | Drizzle ORM schema conventions | Auto-attach saat edit `packages/core/src/db/**` |
+| `prompts/new-api-endpoint.prompt.md` | Generate endpoint baru (3 file: route + service + schema) | Slash command `/new-api-endpoint` |
+| `prompts/new-svelte-page.prompt.md` | Generate halaman SvelteKit baru | Slash command `/new-svelte-page` |
+| `prompts/phase-checkpoint.prompt.md` | Jalankan validasi checkpoint fase | Slash command `/phase-checkpoint` |
+| `agents/reviewer.agent.md` | Code review agent (read-only, no edit) | Pilih di agent selector |
+
+### MCP Servers (`.vscode/mcp.json`)
+
+Konfigurasi tersimpan di `.vscode/mcp.json`.
 
 | MCP Server | Fungsi | Penggunaan |
 | ---------- | ------ | ---------- |
