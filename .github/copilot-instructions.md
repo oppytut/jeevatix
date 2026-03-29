@@ -78,4 +78,4 @@ app.openapi(route, async (c) => {
 ## MCP Tools
 
 - **shadcn-ui MCP**: `list_components`, `get_component`, `get_component_demo`, `list_blocks`, `get_block`, `list_themes`, `apply_theme`
-- **filesystem MCP**: `read_file`, `write_file`, `directory_tree`, `search_files`
+- **Context7 MCP**: `resolve-library-id` → `get-library-docs` — lookup dokumentasi terbaru untuk library (Hono, Drizzle, SvelteKit, SST, dll)

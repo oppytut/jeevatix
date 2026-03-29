@@ -444,5 +444,5 @@ sequenceDiagram
 
 ### MCP Tools
 
-- **filesystem MCP**: Gunakan untuk membaca file schema (`read_file`), navigasi folder `packages/core/src/db/schema/` (`list_directory`), dan menulis file migrasi/schema (`write_file`).
+- **Context7 MCP**: Gunakan `resolve-library-id` → `get-library-docs` untuk lookup dokumentasi Drizzle ORM terbaru (schema definition, migrations, query API).
 - **shadcn-ui MCP**: Tidak relevan untuk database design.

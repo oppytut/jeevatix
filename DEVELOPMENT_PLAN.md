@@ -10,8 +10,8 @@
 - `PAGES.md` — 48 halaman frontend + 64 API endpoints
 
 **MCP Tools tersedia:**
-- `filesystem-mcp-server` — Operasi filesystem (baca/tulis/cari file dalam project)
 - `shadcn-ui-mcp-server` — Referensi komponen, block, dan tema shadcn/ui (gunakan untuk semua task UI)
+- `context7` — Lookup dokumentasi library terbaru (Hono, Drizzle, SvelteKit, SST, dll)
 
 ---
 
@@ -26,7 +26,7 @@
 7. **Setiap fase punya checkpoint.** Jalankan checkpoint command sebelum lanjut ke fase berikutnya.
 8. **Gunakan MCP tools** yang tersedia:
    - **shadcn-ui MCP**: Untuk semua task UI — gunakan `list_components` untuk melihat komponen tersedia, `get_component` / `get_component_demo` untuk mendapatkan source code & contoh penggunaan, `list_blocks` / `get_block` untuk template block siap pakai (dashboard, login, sidebar), dan `list_themes` / `apply_theme` untuk menerapkan tema.
-   - **filesystem MCP**: Untuk operasi file — gunakan `read_file`, `write_file`, `directory_tree`, `search_files` untuk navigasi dan manipulasi file project.
+   - **Context7 MCP**: Untuk lookup dokumentasi library — gunakan `resolve-library-id` lalu `get-library-docs` saat butuh referensi API terbaru (Hono, Drizzle ORM, SvelteKit, SST, Zod, dll).
 9. **Satu task = satu commit, satu branch per fase.** Gunakan `git` CLI untuk membuat branch `feat/phase-X` dan commit setiap task selesai.
 10. **Ikuti arsitektur 3-layer untuk semua API endpoint:**
     - **Route** (`routes/`) — Thin HTTP handler (~30 baris). Hanya: parse request body/params → panggil service → return response. JANGAN taruh business logic di route.
@@ -3398,12 +3398,15 @@ shadcn-ui MCP → list_themes
 shadcn-ui MCP → apply_theme(query: "modern")          # untuk T-0.9
 ```
 
-**Untuk file operations:**
+**Untuk lookup dokumentasi library:**
 ```
-# Navigasi project
-filesystem MCP → directory_tree(path: "/home/gmedia/bench/jeevatix")
-filesystem MCP → search_files(path: "...", pattern: "*.svelte")
-filesystem MCP → read_file / write_file / edit_file
+# Cari library ID
+Context7 MCP → resolve-library-id(libraryName: "hono")
+Context7 MCP → resolve-library-id(libraryName: "drizzle-orm")
+
+# Ambil dokumentasi berdasarkan topik
+Context7 MCP → get-library-docs(context7CompatibleLibraryID: "...", topic: "middleware")
+Context7 MCP → get-library-docs(context7CompatibleLibraryID: "...", topic: "pgTable schema")
 ```
 
 **Untuk version control:**

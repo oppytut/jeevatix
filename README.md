@@ -237,8 +237,8 @@ Konfigurasi tersimpan di `.vscode/mcp.json`.
 
 | MCP Server | Fungsi | Penggunaan |
 | ---------- | ------ | ---------- |
-| **filesystem-mcp-server** | Operasi filesystem (baca, tulis, cari, navigasi file dalam project) | Membuat file, membaca struktur project, menulis kode |
 | **shadcn-ui-mcp-server** | Referensi komponen, block, dan tema shadcn/ui | Mendapatkan source code komponen, contoh demo, block template (dashboard, login, sidebar), dan menerapkan tema |
+| **context7** | Lookup dokumentasi library terbaru | Referensi API docs Hono, Drizzle, SvelteKit, SST, Zod, dll secara real-time |
 
 ### Kapabilitas MCP yang tersedia:
 
@@ -248,7 +248,6 @@ Konfigurasi tersimpan di `.vscode/mcp.json`.
 - `list_blocks` / `get_block` — Template block siap pakai (dashboard, login, sidebar, calendar, products)
 - `list_themes` / `apply_theme` — Tema visual yang bisa diterapkan ke project
 
-**filesystem-mcp:**
-- Read, write, create, move files
-- Directory tree & file search
-- Multi-file read & edit operations
+**context7:**
+- `resolve-library-id` — Resolve nama library ke ID Context7
+- `get-library-docs` — Ambil dokumentasi terbaru berdasarkan topik/query
