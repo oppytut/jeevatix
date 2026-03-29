@@ -7,7 +7,7 @@
 **Dokumen referensi:**
 - `README.md` — Tech stack, arsitektur, monorepo structure, MCP servers
 - `DATABASE_DESIGN.md` — Skema database, 15 tabel, enum, ERD
-- `PAGES.md` — 48 halaman frontend + 64 API endpoints
+- `PAGES.md` — 48 halaman frontend + 67 API endpoints
 
 **MCP Tools tersedia:**
 - `shadcn-ui-mcp-server` — Referensi komponen, block, dan tema shadcn/ui (gunakan untuk semua task UI)
@@ -1057,49 +1057,49 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 
 **Tujuan:** Admin bisa login, kelola kategori (CRUD), dan kelola user/seller.
 
-### Task 3.1 — Category API
+### Task 3.1 — Category Admin API
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-3.1`                                                   |
 | Dependensi  | `T-2.1`                                                   |
 | Deliverables| `apps/api/src/routes/admin/categories.ts`, `apps/api/src/services/category.service.ts`, `apps/api/src/schemas/category.schema.ts` |
-| Endpoints   | E14, E15, E57–E60 (lihat PAGES.md)                         |
+| Endpoints   | E57–E60 (lihat PAGES.md → Admin API)                        |
 
 **Instruksi:**
-1. Public: `GET /categories` (list), `GET /categories/:slug/events` (events by category).
-2. Admin: CRUD `POST/PATCH/DELETE /admin/categories`.
-3. Auto-generate slug dari name.
-4. Validasi: jangan hapus kategori yang masih punya event.
+1. Admin: CRUD `GET/POST/PATCH/DELETE /admin/categories`.
+2. Auto-generate slug dari name.
+3. Validasi: jangan hapus kategori yang masih punya event.
+
+> **Note:** Public category endpoints (`GET /categories`, `GET /categories/:slug/events`) di-implementasi di T-5.1 (Public Event API) bersama endpoint publik lainnya, untuk menghindari duplikasi route.
 
 **Prompt:**
 ```
-Referensi: PAGES.md (Event API Public E14-E15, Admin API E57-E60), DATABASE_DESIGN.md (categories, event_categories).
+Referensi: PAGES.md (Admin API E57-E60), DATABASE_DESIGN.md (categories, event_categories).
 
-Kerjakan Task T-3.1: Category API.
+Kerjakan Task T-3.1: Category Admin API.
 Dependensi: T-2.1 sudah selesai.
+
+> PENTING: Public category endpoints (GET /categories, GET /categories/:slug/events) TIDAK dibuat di task ini. Endpoint tersebut dibuat di T-5.1 (Public Event API).
 
 Buat 3 file:
 
 **File 1: `apps/api/src/schemas/category.schema.ts`:**
 - createCategorySchema: { name, icon? }.openapi('CreateCategoryInput')
 - updateCategorySchema: { name?, icon? }.openapi('UpdateCategoryInput')
+- categoryResponseSchema: { id, name, slug, icon, eventCount? }.openapi('CategoryResponse')
 
 **File 2: `apps/api/src/services/category.service.ts`:**
-- listPublic(): list semua kategori (id, name, slug, icon).
-- listEventsByCategory(slug, pagination): events by kategori, hanya published/ongoing.
 - listAdmin(): list kategori + jumlah event per kategori.
 - create(input): auto-generate slug, validasi name unique, insert.
 - update(id, input): re-generate slug jika name berubah.
 - remove(id): validasi tidak ada event terhubung via event_categories, hapus.
 
 **File 3: `apps/api/src/routes/admin/categories.ts`:**
-1. GET /categories — Public. List categories. Call categoryService.listPublic().
-2. GET /categories/:slug/events — Public. Events by category. Call categoryService.listEventsByCategory().
-3. GET /admin/categories — Admin only. List + event count. Call categoryService.listAdmin().
-4. POST /admin/categories — Admin only. Create category. Call categoryService.create().
-5. PATCH /admin/categories/:id — Admin only. Update category. Call categoryService.update().
-6. DELETE /admin/categories/:id — Admin only. Delete (error jika masih ada event). Call categoryService.remove().
+1. GET /admin/categories — Admin only. List + event count. Call categoryService.listAdmin().
+2. POST /admin/categories — Admin only. Create category. Call categoryService.create().
+3. PATCH /admin/categories/:id — Admin only. Update category. Call categoryService.update().
+4. DELETE /admin/categories/:id — Admin only. Delete (error jika masih ada event). Call categoryService.remove().
 
 Mount di index.ts.
 ```
@@ -1250,11 +1250,12 @@ Di `apps/admin/`:
 | Deliverables| `apps/api/src/__tests__/categories.test.ts`, `apps/api/src/__tests__/admin-users.test.ts` |
 
 **Instruksi:**
-1. Test category CRUD flow (admin): create → list → update → delete.
-2. Test category public: list categories, list events by category.
-3. Test delete category yang masih punya event → 409.
-4. Test admin user management: list users, filter by role, get detail, update status, verify seller.
-5. Test authorization: non-admin tidak bisa akses admin routes.
+1. Test category admin CRUD flow: create → list → update → delete.
+2. Test delete category yang masih punya event → 409.
+3. Test admin user management: list users, filter by role, get detail, update status, verify seller.
+4. Test authorization: non-admin tidak bisa akses admin routes.
+
+> **Note:** Public category endpoints (GET /categories, GET /categories/:slug/events) di-test di T-5.5 (Phase 5 Tests) karena endpoint tersebut dibuat di T-5.1.
 
 **Prompt:**
 ```
@@ -1264,7 +1265,7 @@ Dependensi: T-3.1 dan T-3.4 sudah selesai.
 Buat test files di `apps/api/src/__tests__/`:
 
 1. `categories.test.ts`:
-   a. GET /categories (public) → return list categories.
+   a. GET /admin/categories → return list categories with event count.
    b. POST /admin/categories → create category, return 201. Cek slug auto-generated.
    c. POST /admin/categories dengan nama duplikat → 409 Conflict.
    d. PATCH /admin/categories/:id → update nama, slug berubah.
@@ -1600,6 +1601,8 @@ curl http://localhost:8787/doc  # JSON spec harus include /seller/* endpoints
 5. `GET /categories/:slug/events` → events by kategori.
 6. Hanya return events dengan `status = 'published'` atau `'ongoing'` untuk endpoint publik.
 7. **Search strategy:** Gunakan PostgreSQL `ILIKE` untuk pencarian title. Untuk performa lebih baik, tambahkan `tsvector` column + GIN index pada `events.title` dan `events.description` untuk full-text search.
+
+> **Note:** Public category endpoints (E14, E15) dibuat di task ini karena secara konteks lebih cocok di public event routes. T-3.1 hanya menangani admin CRUD category.
 
 **Prompt:**
 ```
@@ -3199,7 +3202,7 @@ graph TD
     T25[T-2.5 File Upload R2]
     T26[T-2.6 Email Service]
 
-    T31[T-3.1 Category API]
+    T31[T-3.1 Category Admin API]
     T32[T-3.2 Admin Auth UI]
     T33[T-3.3 Admin Category UI]
     T34[T-3.4 Admin User API]

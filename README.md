@@ -20,6 +20,7 @@ Platform ini menggunakan pendekatan *monorepo* dengan perpaduan teknologi beriku
 * **State Management & Concurrency:** [Cloudflare Durable Objects](https://developers.cloudflare.com/workers/runtime-apis/durable-objects/) (Mencegah *overselling* dan memastikan konsistensi transaksi)
 * **Background Processing:** [Cloudflare Queues](https://developers.cloudflare.com/queues/) (Menangani tugas asinkron seperti antrean pengiriman email e-ticket dan pembaruan laporan analitik)
 * **Real-time WebSocket:** [PartyKit](https://www.partykit.io/) (Menyiarkan status ketersediaan tiket secara *live* dan mengelola ruang antrean tanpa membebani database)
+* **File Storage:** [Cloudflare R2](https://developers.cloudflare.com/r2/) (Object storage untuk gambar event, avatar, dan aset lainnya)
 * **Code Quality:** [ESLint](https://eslint.org/) (Flat Config) + [Prettier](https://prettier.io/) (`prettier-plugin-svelte`, `prettier-plugin-tailwindcss`)
 * **Testing:** [Vitest](https://vitest.dev/) (Unit & Integration) + [Playwright](https://playwright.dev/) (E2E) + [K6](https://k6.io/) (Load Testing)
 
@@ -34,7 +35,8 @@ graph TD
     
     subgraph Frontend & API
         Buyer[SvelteKit Buyer]
-        Admin[SvelteKit Admin/Seller]
+        Admin[SvelteKit Admin]
+        Seller[SvelteKit Seller]
         PartyKit[PartyKit WebSocket]
         API[Hono API + Drizzle ORM]
     end
@@ -52,11 +54,13 @@ graph TD
     User -->|HTTP & WS| CF_Edge
     CF_Edge -->|Serve UI| Buyer
     CF_Edge -->|Serve UI| Admin
+    CF_Edge -->|Serve UI| Seller
     CF_Edge -->|API Requests| API
     CF_Edge -->|Live Updates| PartyKit
 
     Buyer -->|Fetch/Mutate| API
     Admin -->|Fetch/Mutate| API
+    Seller -->|Fetch/Mutate| API
     Buyer -.->|Listen to Status| PartyKit
     
     API -->|Reserve Ticket| DO

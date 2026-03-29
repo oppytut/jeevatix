@@ -5,8 +5,8 @@
 Selalu baca dokumen referensi sebelum mengerjakan task:
 - `README.md` — Tech stack, arsitektur, monorepo structure, MCP servers
 - `DATABASE_DESIGN.md` — 15 tabel, 10 enum, ERD, concurrency flow
-- `PAGES.md` — 48 halaman frontend + 64 API endpoints
-- `DEVELOPMENT_PLAN.md` — 10 fase, ~47 tasks, execution rules, AI prompts
+- `PAGES.md` — 48 halaman frontend + 67 API endpoints
+- `DEVELOPMENT_PLAN.md` — 11 fase (0-10), 65 tasks, execution rules, AI prompts
 
 ## Tech Stack (Jangan Ganti)
 
@@ -56,6 +56,7 @@ app.openapi(route, async (c) => {
 ## Konvensi Kode
 
 - **Edge compatibility**: Semua library di `apps/api` HARUS compatible Cloudflare Workers. No Node.js-only APIs.
+- **Password hashing**: Gunakan `bcryptjs` (pure JavaScript, edge-compatible). BUKAN native `bcrypt` atau `argon2` (tidak compatible CF Workers).
 - **Error response**: `{ success: boolean, data?: T, error?: { code: string, message: string } }`
 - **Pagination**: offset-based. Default limit: 20, max: 100. Response: `{ data: T[], meta: { total, page, limit, totalPages } }`
 - **Concurrent-safe**: Operasi `sold_count` pada `ticket_tiers` SELALU via Durable Object.

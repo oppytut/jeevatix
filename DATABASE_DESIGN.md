@@ -63,7 +63,7 @@ Tabel utama pengguna. Satu akun bisa berperan sebagai buyer, seller, atau admin.
 | ---------------- | ----------------------- | ------------------------------ | --------------------------- |
 | `id`             | `uuid`                  | PK, default `gen_random_uuid()`| ID unik pengguna            |
 | `email`          | `varchar(255)`          | UNIQUE, NOT NULL               | Email login                 |
-| `password_hash`  | `varchar(255)`          | NOT NULL                       | Hash bcrypt/argon2          |
+| `password_hash`  | `varchar(255)`          | NOT NULL                       | Hash password (gunakan `bcryptjs` — pure JS, edge-compatible) |
 | `full_name`      | `varchar(150)`          | NOT NULL                       | Nama lengkap                |
 | `phone`          | `varchar(20)`           | NULLABLE                       | Nomor telepon               |
 | `avatar_url`     | `text`                  | NULLABLE                       | URL foto profil             |

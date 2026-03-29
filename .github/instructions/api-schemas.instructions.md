@@ -28,7 +28,7 @@ export const eventResponseSchema = z
   .object({
     id: z.string().uuid(),
     title: z.string(),
-    status: z.enum(['draft', 'pending_review', 'published', 'cancelled', 'completed']),
+    status: z.enum(['draft', 'pending_review', 'published', 'rejected', 'ongoing', 'completed', 'cancelled']),
     createdAt: z.string().datetime(),
   })
   .openapi('EventResponse');

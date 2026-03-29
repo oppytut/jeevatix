@@ -264,6 +264,13 @@ graph LR
 | E18 | GET    | `/seller/events/:id`               | `events`, `event_images`, `event_categories`, `ticket_tiers`, `orders`, `order_items` | Detail event seller         | Seller  |
 | E19 | PATCH  | `/seller/events/:id`               | `events`, `event_categories`, `event_images`                           | Update event                       | Seller  |
 | E20 | DELETE | `/seller/events/:id`               | `events`, `event_categories`, `event_images`, `ticket_tiers`           | Hapus event (hanya draft)          | Seller  |
+| E65 | POST   | `/seller/events/:id/submit`        | `events`                                                               | Submit event untuk review admin    | Seller  |
+
+### Seller Dashboard API
+
+| #   | Method | Endpoint                           | Tabel Terlibat                                                         | Deskripsi                          | Akses   |
+| --- | ------ | ---------------------------------- | ---------------------------------------------------------------------- | ---------------------------------- | ------- |
+| E66 | GET    | `/seller/dashboard`                | `events`, `orders`, `order_items`, `payments`, `tickets`, `ticket_tiers` | Data ringkasan dashboard seller  | Seller  |
 
 ### Ticket Tier API (Seller)
 
@@ -344,6 +351,7 @@ graph LR
 | E48 | GET    | `/admin/sellers`                     | `users`, `seller_profiles`                                             | List seller + verifikasi status   | Admin |
 | E49 | PATCH  | `/admin/sellers/:id/verify`          | `seller_profiles`                                                      | Verifikasi/tolak seller           | Admin |
 | E50 | GET    | `/admin/events`                      | `events`, `seller_profiles`, `categories`, `event_categories`, `ticket_tiers` | List semua event             | Admin |
+| E67 | GET    | `/admin/events/:id`                  | `events`, `event_images`, `event_categories`, `categories`, `ticket_tiers`, `seller_profiles`, `orders` | Detail event (semua status) | Admin |
 | E51 | PATCH  | `/admin/events/:id/status`           | `events`                                                               | Ubah status event                 | Admin |
 | E52 | GET    | `/admin/orders`                      | `orders`, `order_items`, `payments`, `users`, `events`                 | List semua order                  | Admin |
 | E53 | GET    | `/admin/orders/:id`                  | `orders`, `order_items`, `payments`, `users`, `tickets`, `events`      | Detail order                      | Admin |
@@ -357,7 +365,7 @@ graph LR
 | E61 | POST   | `/admin/notifications/broadcast`     | `notifications`, `users`                                               | Kirim notifikasi ke banyak user   | Admin |
 | E62 | GET    | `/admin/reservations`                | `reservations`, `users`, `ticket_tiers`, `events`                      | Monitor reservasi aktif           | Admin |
 
-**Total API Endpoints: 62**
+**Total API Endpoints: 67**
 
 ---
 
@@ -368,8 +376,8 @@ graph LR
 | Buyer Portal   |                      17 |
 | Seller Portal  |                      16 |
 | Admin Portal   |                      15 |
-| API Endpoints  |                      64 |
-| **TOTAL**      |                 **112** |
+| API Endpoints  |                      67 |
+| **TOTAL**      |                 **115** |
 
 ---
 
