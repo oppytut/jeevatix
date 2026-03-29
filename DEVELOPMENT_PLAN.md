@@ -52,6 +52,16 @@
     - `prompts/*.prompt.md` — Reusable slash commands: `/new-api-endpoint`, `/new-svelte-page`, `/phase-checkpoint`.
     - `agents/reviewer.agent.md` — Read-only code review agent.
     - Lihat README.md bagian "AI Development Setup" untuk daftar lengkap.
+15. **Spec-First Development — definisikan contract sebelum implementasi:**
+    - Untuk setiap task API (route + service + schema), kerjakan dalam urutan: **Schema → Service → Route**.
+    - Schema (`schemas/*.schema.ts`) adalah **contract/spec** — definisikan dulu request/response shape + `.openapi()` metadata sebelum menulis logic.
+    - Setelah schema selesai, verify OpenAPI spec di `/doc` (JSON) atau `/reference` (Scalar UI) — pastikan contract benar sebelum implementasi service & route.
+    - Jika spec berubah, **update schema dulu**, baru adjust service & route.
+16. **Test-Driven Development — setiap fase API harus punya task test:**
+    - Phase 2 sudah punya T-2.4 (Auth Tests). Phase 3–7 masing-masing punya task test di akhir fase.
+    - Urutan kerja per task API: **Schema (spec) → Test file (tulis test cases berdasarkan spec) → Service (implementasi logic) → Route (wiring) → Run tests (semua harus pass)**.
+    - Minimal test setiap fase: unit test untuk service functions + integration test untuk API routes (menggunakan Hono `app.request()`).
+    - Phase 10 hanya berisi: E2E tests (Playwright), load tests (K6), security review, CI/CD, dan deploy — **bukan** unit/integration tests.
 
 ---
 
@@ -78,38 +88,44 @@ gantt
     Category API + Admin UI  :p3a, after p2b, 2d
     User Mgmt Admin UI       :p3b, after p3a, 2d
     Seller Verification      :p3c, after p3b, 1d
+    Phase 3 Tests            :p3t, after p3c, 1d
     
     section Phase 4 - Seller
-    Event CRUD API + UI      :p4a, after p3c, 3d
+    Event CRUD API + UI      :p4a, after p3t, 3d
     Tier Tiket API + UI      :p4b, after p4a, 1d
     Seller Dashboard         :p4c, after p4b, 1d
+    Phase 4 Tests            :p4t, after p4c, 1d
     
     section Phase 5 - Buyer Public
-    Event List & Detail      :p5a, after p4c, 2d
+    Event List & Detail      :p5a, after p4t, 2d
     Homepage & Kategori      :p5b, after p5a, 1d
+    Phase 5 Tests            :p5t, after p5b, 1d
     
     section Phase 6 - Transaction
-    Durable Objects + Reserve:p6a, after p5b, 3d
+    Durable Objects + Reserve:p6a, after p5t, 3d
     Order & Payment API      :p6b, after p6a, 2d
     Checkout & Payment UI    :p6c, after p6b, 2d
+    Phase 6 Tests            :p6t, after p6c, 1d
     
     section Phase 7 - Post-Transaction
-    Ticket Generation        :p7a, after p6c, 2d
+    Ticket Generation        :p7a, after p6t, 2d
     Check-in System          :p7b, after p7a, 1d
     Notification System      :p7c, after p7b, 1d
     Seller Notification UI   :p7d, after p7c, 1d
+    Phase 7 Tests            :p7t, after p7d, 1d
     
     section Phase 8 - Realtime
-    PartyKit WebSocket       :p8, after p7d, 2d
+    PartyKit WebSocket       :p8, after p7t, 2d
     
     section Phase 9 - Polish
     Dashboards & Analytics   :p9a, after p8, 2d
     Admin Order & Payment    :p9b, after p9a, 1d
     
     section Phase 10 - QA & Deploy
-    Testing                  :p10a, after p9b, 3d
-    CI/CD & Deploy           :p10b, after p10a, 2d
-    Monitoring               :p10c, after p10b, 1d
+    Coverage & Gap Tests     :p10a, after p9b, 2d
+    E2E & Load Tests         :p10b, after p10a, 2d
+    Security & CI/CD         :p10c, after p10b, 2d
+    Deploy & Monitoring      :p10d, after p10c, 1d
 ```
 
 ---
@@ -1028,6 +1044,8 @@ Pastikan compatible dengan Cloudflare Workers runtime (gunakan fetch, bukan node
 ```bash
 cd apps/api
 pnpm test              # auth tests pass
+# Verify OpenAPI spec:
+curl http://localhost:8787/doc  # JSON spec harus include /auth/* endpoints
 # Manual test:
 curl -X POST http://localhost:8787/auth/register -d '{"email":"test@test.com","password":"Test123!","full_name":"Test"}'
 curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","password":"Test123!"}'
@@ -1223,8 +1241,51 @@ Di `apps/admin/`:
 4. `src/routes/sellers/[id]/+page.svelte` — Detail seller: data organisasi, data bank, daftar event. Tombol "Verify" (set is_verified=true) dan "Reject" (set is_verified=false). Konfirmasi dialog.
 ```
 
+### Task 3.6 — Phase 3 API Tests
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-3.6`                                                   |
+| Dependensi  | `T-3.1`, `T-3.4`                                          |
+| Deliverables| `apps/api/src/__tests__/categories.test.ts`, `apps/api/src/__tests__/admin-users.test.ts` |
+
+**Instruksi:**
+1. Test category CRUD flow (admin): create → list → update → delete.
+2. Test category public: list categories, list events by category.
+3. Test delete category yang masih punya event → 409.
+4. Test admin user management: list users, filter by role, get detail, update status, verify seller.
+5. Test authorization: non-admin tidak bisa akses admin routes.
+
+**Prompt:**
+```
+Kerjakan Task T-3.6: Phase 3 API Tests.
+Dependensi: T-3.1 dan T-3.4 sudah selesai.
+
+Buat test files di `apps/api/src/__tests__/`:
+
+1. `categories.test.ts`:
+   a. GET /categories (public) → return list categories.
+   b. POST /admin/categories → create category, return 201. Cek slug auto-generated.
+   c. POST /admin/categories dengan nama duplikat → 409 Conflict.
+   d. PATCH /admin/categories/:id → update nama, slug berubah.
+   e. DELETE /admin/categories/:id (tanpa event) → 200 OK.
+   f. DELETE /admin/categories/:id (dengan event) → 409 Conflict.
+   g. Non-admin POST /admin/categories → 403 Forbidden.
+
+2. `admin-users.test.ts`:
+   a. GET /admin/users → return paginated list.
+   b. GET /admin/users?role=seller → filter by role.
+   c. GET /admin/users/:id → return user detail.
+   d. PATCH /admin/users/:id/status → update status.
+   e. PATCH /admin/sellers/:id/verify → set is_verified=true.
+   f. Non-admin akses → 403 Forbidden.
+
+Gunakan Hono test helper (app.request()). Pastikan semua test pass: `cd apps/api && pnpm test`.
+```
+
 **Checkpoint Phase 3:**
 ```bash
+cd apps/api && pnpm test   # category + admin user tests pass
 # Admin bisa login, CRUD kategori, lihat & kelola user, verifikasi seller
 open http://localhost:4302/login      # login sebagai admin
 open http://localhost:4302/categories # CRUD kategori
@@ -1465,12 +1526,55 @@ Di `apps/seller/`:
 2. `src/routes/profile/password/+page.svelte` — Form ubah password: Old Password, New Password, Confirm New Password. Submit PATCH /users/me/password.
 ```
 
+### Task 4.7 — Phase 4 API Tests
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-4.7`                                                   |
+| Dependensi  | `T-4.1`, `T-4.2`, `T-4.3`                                 |
+| Deliverables| `apps/api/src/__tests__/seller-profile.test.ts`, `apps/api/src/__tests__/seller-events.test.ts` |
+
+**Instruksi:**
+1. Test seller profile: get profile, update profile.
+2. Test seller event CRUD: create event → list → detail → update → submit for review.
+3. Test tier CRUD: add tier → list → update → delete.
+4. Test authorization: buyer tidak bisa akses seller routes.
+
+**Prompt:**
+```
+Kerjakan Task T-4.7: Phase 4 API Tests.
+Dependensi: T-4.1, T-4.2, dan T-4.3 sudah selesai.
+
+Buat test files di `apps/api/src/__tests__/`:
+
+1. `seller-profile.test.ts`:
+   a. GET /seller/profile → return seller profile.
+   b. PATCH /seller/profile → update org_name, bank info. Verify response.
+   c. Buyer akses GET /seller/profile → 403 Forbidden.
+
+2. `seller-events.test.ts`:
+   a. POST /seller/events → create event, return 201 + event data.
+   b. GET /seller/events → list events owned by seller.
+   c. GET /seller/events/:id → event detail + tiers.
+   d. PATCH /seller/events/:id → update event fields.
+   e. POST /seller/events/:id/submit → ubah status ke pending_review.
+   f. POST /seller/events → seller lain tidak bisa edit event milik seller lain.
+   g. POST /seller/events/:id/tiers → create tier, return 201.
+   h. PATCH /seller/events/:id/tiers/:tierId → update tier.
+   i. DELETE /seller/events/:id/tiers/:tierId → delete tier (hanya jika belum ada sold).
+
+Gunakan Hono test helper (app.request()). Pastikan semua test pass.
+```
+
 **Checkpoint Phase 4:**
 ```bash
+cd apps/api && pnpm test   # seller profile + event + tier tests pass
 # Seller bisa login, buat event, kelola tier, edit profil
 open http://localhost:4303/login
 open http://localhost:4303/events/create  # buat event + tier
 open http://localhost:4303/events         # list events
+# Verify OpenAPI spec:
+curl http://localhost:8787/doc  # JSON spec harus include /seller/* endpoints
 ```
 
 ---
@@ -1647,8 +1751,42 @@ Di `apps/buyer/`:
 Protect halaman: redirect ke /login jika belum login.
 ```
 
+### Task 5.5 — Phase 5 API Tests
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-5.5`                                                   |
+| Dependensi  | `T-5.1`                                                   |
+| Deliverables| `apps/api/src/__tests__/public-events.test.ts`             |
+
+**Instruksi:**
+1. Test public event list: pagination, filter by category/location/date, search.
+2. Test event detail: return event + tiers + images.
+3. Test hanya event published yang muncul di public.
+4. Test event not found → 404.
+
+**Prompt:**
+```
+Kerjakan Task T-5.5: Phase 5 API Tests.
+Dependensi: T-5.1 sudah selesai.
+
+Buat test file `apps/api/src/__tests__/public-events.test.ts`:
+
+1. GET /events → return paginated list of published events.
+2. GET /events?search=keyword → filter by nama/deskripsi.
+3. GET /events?category=slug → filter by kategori.
+4. GET /events?location=city → filter by lokasi.
+5. GET /events → hanya event dengan status published/ongoing yang muncul (bukan draft/pending).
+6. GET /events/:slug → return event detail + tiers + images.
+7. GET /events/:slug (non-existent) → 404 Not Found.
+8. GET /categories/:slug/events → return events by category.
+
+Gunakan Hono test helper (app.request()). Pastikan semua test pass.
+```
+
 **Checkpoint Phase 5:**
 ```bash
+cd apps/api && pnpm test   # public event tests pass
 open http://localhost:4301/           # homepage dengan event
 open http://localhost:4301/events     # list event + filter
 open http://localhost:4301/events/slug-event # detail event
@@ -1972,8 +2110,53 @@ Di `apps/buyer/`:
 Protect kedua halaman: redirect ke /login jika belum login.
 ```
 
+### Task 6.8 — Phase 6 API Tests (Transaction Flow)
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-6.8`                                                   |
+| Dependensi  | `T-6.2`, `T-6.3`, `T-6.4`                                 |
+| Deliverables| `apps/api/src/__tests__/reservation.test.ts`, `apps/api/src/__tests__/order.test.ts`, `apps/api/src/__tests__/payment.test.ts` |
+
+**Instruksi:**
+1. Test reservation flow: reserve → check status → cancel.
+2. Test sold out scenario: reserve melebihi quota → 409.
+3. Test order creation: dari reservasi valid → order + order_items terbuat.
+4. Test payment flow: pay → webhook callback → status updated.
+5. Test full transaction pipeline: reserve → order → pay → order confirmed.
+
+**Prompt:**
+```
+Kerjakan Task T-6.8: Phase 6 API Tests (Transaction Flow).
+Dependensi: T-6.2, T-6.3, dan T-6.4 sudah selesai.
+
+Buat test files di `apps/api/src/__tests__/`:
+
+1. `reservation.test.ts`:
+   a. POST /reservations → reserve tiket, return 201 + reservation + expires_at.
+   b. POST /reservations dengan quantity > sisa → 409 SOLD_OUT.
+   c. DELETE /reservations/:id → cancel reservation, sold_count berkurang.
+   d. POST /reservations tanpa login → 401 Unauthorized.
+
+2. `order.test.ts`:
+   a. POST /orders (dari reservation valid) → create order + order_items, return 201.
+   b. POST /orders tanpa reservation aktif → 400 Bad Request.
+   c. GET /orders → list user's orders, paginated.
+   d. GET /orders/:id → order detail + items + payment.
+   e. GET /orders/:id milik user lain → 403 Forbidden.
+
+3. `payment.test.ts`:
+   a. POST /payments/:orderId/pay → initiate payment, return payment_url.
+   b. POST /webhooks/payment (valid signature) → update payment + order status.
+   c. POST /webhooks/payment (invalid signature) → 401.
+   d. Full pipeline: reserve → order → pay → verify order status = confirmed.
+
+Gunakan Hono test helper (app.request()). Pastikan semua test pass.
+```
+
 **Checkpoint Phase 6:**
 ```bash
+cd apps/api && pnpm test   # reservation + order + payment tests pass
 # Full flow test: browse event → checkout → reserve → create order → pay
 # Reservasi yang expired harus di-cleanup otomatis
 ```
@@ -2257,8 +2440,58 @@ Di `apps/seller/`:
    - Klik bell → navigate ke /notifications.
 ```
 
+### Task 7.7 — Phase 7 API Tests (Post-Transaction)
+
+| Key         | Value                                                      |
+| ----------- | ---------------------------------------------------------- |
+| ID          | `T-7.7`                                                   |
+| Dependensi  | `T-7.1`, `T-7.3`, `T-7.4`, `T-7.5`                       |
+| Deliverables| `apps/api/src/__tests__/tickets.test.ts`, `apps/api/src/__tests__/checkin.test.ts`, `apps/api/src/__tests__/notifications.test.ts` |
+
+**Instruksi:**
+1. Test ticket generation: setelah payment success, tiket ter-generate dengan ticket_code.
+2. Test ticket API: list buyer's tickets, ticket detail.
+3. Test check-in: scan valid code → SUCCESS, scan ulang → ALREADY_USED, invalid code → INVALID.
+4. Test notification CRUD: list, mark read, mark all read, broadcast.
+5. Test seller order view: list orders, detail + buyer info.
+
+**Prompt:**
+```
+Kerjakan Task T-7.7: Phase 7 API Tests (Post-Transaction).
+Dependensi: T-7.1, T-7.3, T-7.4, dan T-7.5 sudah selesai.
+
+Buat test files di `apps/api/src/__tests__/`:
+
+1. `tickets.test.ts`:
+   a. Setelah payment success, GET /tickets → tiket muncul dengan ticket_code format JVX-XXXXXXXXXXXX.
+   b. GET /tickets/:id → ticket detail + event info.
+   c. GET /tickets (user lain) → tidak bisa lihat tiket orang lain.
+
+2. `checkin.test.ts`:
+   a. POST /seller/events/:id/checkin { ticket_code } → status SUCCESS + buyer info.
+   b. POST /seller/events/:id/checkin (kode yang sama) → status ALREADY_USED.
+   c. POST /seller/events/:id/checkin { ticket_code: invalid } → status INVALID.
+   d. GET /seller/events/:id/checkin/stats → total, checked_in, remaining.
+   e. Seller lain tidak bisa check-in event bukan miliknya → 403.
+
+3. `notifications.test.ts`:
+   a. GET /notifications → list notifikasi milik user, paginated.
+   b. PATCH /notifications/:id/read → mark as read.
+   c. PATCH /notifications/read-all → semua jadi read.
+   d. POST /admin/notifications/broadcast → broadcast ke semua user.
+   e. Non-admin broadcast → 403 Forbidden.
+
+4. `seller-orders.test.ts`:
+   a. GET /seller/orders → list orders untuk event milik seller.
+   b. GET /seller/orders/:id → detail + buyer info + items.
+   c. Seller lain tidak bisa lihat orders seller lain → 403.
+
+Gunakan Hono test helper (app.request()). Pastikan semua test pass.
+```
+
 **Checkpoint Phase 7:**
 ```bash
+cd apps/api && pnpm test   # ticket + checkin + notification + seller-order tests pass
 # Complete flow: buyer bayar → tiket generate → buyer lihat QR → seller scan check-in
 # Notifikasi muncul setelah bayar
 ```
@@ -2523,55 +2756,53 @@ Setiap halaman punya filter, pagination, dan aksi.
 
 **Tujuan:** Pastikan semua fitur berfungsi, aman, dan siap deploy.
 
-### Task 10.1 — Unit & Integration Tests
+### Task 10.1 — Coverage Verification & Gap Tests
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
 | ID          | `T-10.1`                                                  |
 | Dependensi  | Phase 1–9 selesai                                          |
-| Deliverables| Test files di setiap app & package                         |
+| Deliverables| Coverage report, gap tests, Vitest setup di packages/core  |
 
 **Instruksi:**
-1. Setup Vitest di semua apps & packages.
-2. **Unit test** untuk:
-   - Password hashing & verification.
-   - JWT generation & verification.
-   - Order number generation.
-   - Ticket code generation.
-   - Durable Object reservation logic.
-3. **Integration test** untuk setiap API route group:
-   - Auth flow (register → verify → login → refresh).
-   - Event CRUD (seller create → admin publish → buyer list).
-   - Transaction flow (reserve → order → pay → ticket generated).
-   - Check-in flow (scan code → validate → record).
-4. Target: minimal 80% coverage pada `apps/api`.
+> **Catatan:** Unit/integration tests untuk setiap API sudah ditulis di fase masing-masing (T-2.4, T-3.6, T-4.7, T-5.5, T-6.8, T-7.7). Task ini fokus pada:
+
+1. Pastikan Vitest sudah ter-setup di `packages/core` (jika belum).
+2. Tambahkan **unit tests utilitas** yang belum ter-cover:
+   - `packages/core/src/__tests__/password.test.ts`: hash & verify password.
+   - `packages/core/src/__tests__/jwt.test.ts`: generate, verify, expired token.
+   - `apps/api/src/__tests__/order-number.test.ts`: format JVX-YYYYMMDD-XXXXX, uniqueness.
+   - `apps/api/src/__tests__/ticket-code.test.ts`: format JVX- + 12 char, uniqueness.
+   - `apps/api/src/__tests__/ticket-reserver.test.ts`: Durable Object reservation logic (mock), concurrency, sold out.
+3. Jalankan **coverage report**: `pnpm run test:coverage`.
+4. Identifikasi gap (modules dengan coverage < 80%) dan tulis tests tambahan.
+5. Target: minimal 80% coverage pada `apps/api`.
 
 **Prompt:**
 ```
-Referensi: DEVELOPMENT_PLAN.md (semua fitur Phase 1–9).
+Kerjakan Task T-10.1: Coverage Verification & Gap Tests.
+Dependensi: Phase 1–9 sudah selesai, termasuk test tasks T-2.4, T-3.6, T-4.7, T-5.5, T-6.8, T-7.7.
 
-Kerjakan Task T-10.1: Unit & Integration Tests.
-Dependensi: Phase 1–9 sudah selesai.
+> Unit/integration tests per API sudah ada di fase masing-masing. Task ini fokus: utility unit tests + coverage gap.
 
-1. Setup Vitest di semua apps & packages:
-   - Install: pnpm add -D vitest @vitest/coverage-v8 di root.
-   - Buat vitest.config.ts di apps/api, packages/core.
-   - Tambahkan script: "test": "vitest run", "test:coverage": "vitest run --coverage".
+1. Setup Vitest di packages/core (jika belum):
+   - Install: pnpm add -D vitest di packages/core.
+   - Tambahkan script: "test": "vitest run".
 
-2. Unit tests (buat di folder __tests__/ di setiap module):
-   - `packages/core/src/__tests__/password.test.ts`: hash & verify password.
-   - `packages/core/src/__tests__/jwt.test.ts`: generate, verify, expired token.
+2. Utility unit tests:
+   - `packages/core/src/__tests__/password.test.ts`: hash & verify password. Verify wrong password → false.
+   - `packages/core/src/__tests__/jwt.test.ts`: generate, verify, expired token → throw.
    - `apps/api/src/__tests__/order-number.test.ts`: format JVX-YYYYMMDD-XXXXX.
    - `apps/api/src/__tests__/ticket-code.test.ts`: format JVX- + 12 char, uniqueness.
-   - `apps/api/src/__tests__/ticket-reserver.test.ts`: Durable Object reservation logic (mock), concurrency, sold out, cancel.
+   - `apps/api/src/__tests__/ticket-reserver.test.ts`: Durable Object logic (mock), concurrency, sold out, cancel.
 
-3. Integration tests (gunakan Vitest + miniflare atau mock DB):
-   - `apps/api/src/__tests__/auth.integration.test.ts`: register → verify email → login → refresh token → access protected endpoint.
-   - `apps/api/src/__tests__/events.integration.test.ts`: seller create event → admin approve → buyer list (should appear) → buyer detail.
-   - `apps/api/src/__tests__/transaction.integration.test.ts`: reserve → order → pay → ticket generated.
-   - `apps/api/src/__tests__/checkin.integration.test.ts`: scan code → validate → record → scan again (already used).
+3. Coverage:
+   - Install: pnpm add -D @vitest/coverage-v8 di root.
+   - Run: pnpm run test:coverage.
+   - Review output: identifikasi modules < 80%.
+   - Tulis tests tambahan untuk menutup gap.
 
-4. Run: pnpm run test. Target: minimal 80% coverage di apps/api.
+4. Target: minimal 80% line coverage di apps/api.
 ```
 
 ### Task 10.2 — E2E Tests (Playwright)
@@ -2932,7 +3163,7 @@ Dependensi: T-10.6 sudah selesai.
 
 **Checkpoint Phase 10:**
 ```bash
-pnpm run test          # semua test pass
+pnpm run test          # semua test pass (unit + integration dari Phase 2-7 + coverage gap)
 pnpm run test:e2e      # Playwright pass
 pnpm run test:load     # K6 pass, no overselling
 pnpm run build         # build sukses
@@ -2973,6 +3204,7 @@ graph TD
     T33[T-3.3 Admin Category UI]
     T34[T-3.4 Admin User API]
     T35[T-3.5 Admin User UI]
+    T36[T-3.6 Phase 3 Tests]
 
     T41[T-4.1 Seller Profile API]
     T42[T-4.2 Seller Event API]
@@ -2980,11 +3212,13 @@ graph TD
     T44[T-4.4 Seller Auth UI]
     T45[T-4.5 Seller Event UI]
     T46[T-4.6 Seller Profile UI]
+    T47[T-4.7 Phase 4 Tests]
 
     T51[T-5.1 Public Event API]
     T52[T-5.2 Buyer Auth UI]
     T53[T-5.3 Homepage & Explore]
     T54[T-5.4 Buyer Profile UI]
+    T55[T-5.5 Phase 5 Tests]
 
     T61[T-6.1 Durable Object]
     T62[T-6.2 Reservation API]
@@ -2993,6 +3227,7 @@ graph TD
     T65[T-6.5 Queue Cleanup]
     T66[T-6.6 Checkout UI]
     T67[T-6.7 Order History UI]
+    T68[T-6.8 Phase 6 Tests]
 
     T71[T-7.1 Ticket Generation]
     T72[T-7.2 Ticket UI]
@@ -3000,6 +3235,7 @@ graph TD
     T74[T-7.4 Notifications]
     T75[T-7.5 Seller Orders]
     T76[T-7.6 Seller Notif UI]
+    T77[T-7.7 Phase 7 Tests]
 
     T81[T-8.1 PartyKit Server]
     T82[T-8.2 PartyKit Client]
@@ -3024,22 +3260,26 @@ graph TD
     T31 & T32 --> T33
     T21 --> T34
     T34 & T32 --> T35
+    T31 & T34 --> T36
 
     T22 --> T41
     T21 & T13 --> T42 --> T43
     T08 & T22 --> T44
     T42 & T43 & T44 --> T45
     T41 & T44 --> T46
+    T41 & T42 & T43 --> T47
 
     T13 --> T51
     T06 & T22 --> T52
     T51 & T52 --> T53
     T52 & T23 --> T54
+    T51 --> T55
 
     T05 & T13 --> T61 --> T62 --> T63 --> T64
     T62 --> T65
     T62 & T63 & T64 & T53 --> T66
     T63 & T52 --> T67
+    T62 & T63 & T64 --> T68
 
     T64 --> T71
     T71 & T52 --> T72
@@ -3047,6 +3287,7 @@ graph TD
     T65 & T21 --> T74
     T44 & T63 --> T75
     T74 & T44 --> T76
+    T71 & T73 & T74 & T75 --> T77
 
     T61 --> T81
     T81 & T53 & T66 --> T82
@@ -3110,6 +3351,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 | `apps/api/src/routes/tickets.ts`       | T-7.1          | Ticket endpoints                   |
 | `apps/api/src/durable-objects/`        | T-6.1          | Durable Object (TicketReserver)    |
 | `apps/api/src/queues/`                 | T-6.5          | Cloudflare Queue consumers         |
+| `apps/api/src/__tests__/`             | T-2.4, T-3.6, T-4.7, T-5.5, T-6.8, T-7.7, T-10.1 | API tests (per-phase + coverage gap) |
 | `apps/api/src/services/`              | T-2.2–T-2.6, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-7.5, T-9.1–T-9.3 | Business logic services |
 | `apps/api/src/schemas/`               | T-2.2–T-2.5, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-9.3 | Zod validation schemas (DTO)     |
 | `apps/buyer/src/routes/`              | T-5.2–T-5.4, T-6.6–T-6.7, T-7.2 | Buyer pages         |
