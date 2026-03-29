@@ -165,8 +165,6 @@ gantt
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack dan monorepo structure project Jeevatix.
-
 Kerjakan Task T-0.1: Initialize Root Monorepo.
 
 Buat file-file berikut di root project:
@@ -199,8 +197,6 @@ Pastikan `pnpm install` bisa berjalan tanpa error setelah selesai.
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami arsitektur Jeevatix.
-
 Kerjakan Task T-0.2: Setup SST Config.
 Dependensi: T-0.1 sudah selesai.
 
@@ -229,7 +225,7 @@ Pastikan file valid TypeScript dan tidak ada error.
 
 **Prompt:**
 ```
-Baca file DATABASE_DESIGN.md untuk memahami semua enum dan tabel.
+Referensi: DATABASE_DESIGN.md (semua enum dan tabel).
 
 Kerjakan Task T-0.3: Create Package packages/types.
 Dependensi: T-0.1 sudah selesai.
@@ -293,8 +289,6 @@ Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack API (Hono + Cloudflare Workers + OpenAPI) dan arsitektur 3-layer (routes → services → schemas).
-
 Kerjakan Task T-0.5: Create App apps/api.
 Dependensi: T-0.1 dan T-0.4 sudah selesai.
 
@@ -355,8 +349,6 @@ Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localh
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack Buyer portal (SvelteKit + Cloudflare).
-
 Kerjakan Task T-0.6: Create App apps/buyer.
 Dependensi: T-0.1 sudah selesai.
 
@@ -389,8 +381,6 @@ Verifikasi: `cd apps/buyer && pnpm dev` harus start di http://localhost:4301 tan
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack Admin portal (SvelteKit + shadcn-svelte).
-
 Kerjakan Task T-0.7: Create App apps/admin.
 Dependensi: T-0.1 sudah selesai.
 
@@ -400,11 +390,6 @@ Dependensi: T-0.1 sudah selesai.
 4. Buat layout: `src/routes/+layout.svelte` dengan sidebar navigation (menu: Dashboard, Users, Sellers, Events, Orders, Payments, Categories, Notifications, Reservations).
 5. Buat `src/routes/+page.svelte` — placeholder dashboard "Admin Dashboard".
 6. Konfigurasi dev port: 4302 di vite.config.ts (server.port: 4302).
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_components() untuk melihat semua komponen shadcn-svelte yang tersedia.
-- Gunakan shadcn-ui MCP → get_component("sidebar") untuk mendapatkan source code sidebar component.
-- Gunakan shadcn-ui MCP → list_blocks(category: "sidebar") lalu get_block() untuk mendapatkan template sidebar layout.
 
 Verifikasi: `cd apps/admin && pnpm dev` harus start di http://localhost:4302 tanpa error.
 ```
@@ -427,8 +412,6 @@ Verifikasi: `cd apps/admin && pnpm dev` harus start di http://localhost:4302 tan
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack Seller portal (SvelteKit + shadcn-svelte).
-
 Kerjakan Task T-0.8: Create App apps/seller.
 Dependensi: T-0.1 sudah selesai.
 
@@ -438,11 +421,6 @@ Dependensi: T-0.1 sudah selesai.
 4. Buat layout: `src/routes/+layout.svelte` dengan sidebar navigation (menu: Dashboard, Events, Orders, Check-in, Notifications, Profile).
 5. Buat `src/routes/+page.svelte` — placeholder "Seller Dashboard".
 6. Konfigurasi dev port: 4303 di vite.config.ts (server.port: 4303).
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_components() untuk melihat semua komponen shadcn-svelte yang tersedia.
-- Gunakan shadcn-ui MCP → get_component("sidebar") untuk mendapatkan source code sidebar component.
-- Gunakan shadcn-ui MCP → list_blocks(category: "sidebar") lalu get_block() untuk mendapatkan template sidebar layout.
 
 Verifikasi: `cd apps/seller && pnpm dev` harus start di http://localhost:4303 tanpa error.
 ```
@@ -474,12 +452,6 @@ Dependensi: T-0.1 sudah selesai.
 6. Buat `packages/ui/tsconfig.json` (extends root tsconfig.base.json).
 
 Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastikan bisa di-import via @jeevatix/ui.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_components() untuk melihat daftar lengkap semua komponen shadcn-svelte.
-- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card"), dll untuk mendapatkan source code setiap komponen.
-- Gunakan shadcn-ui MCP → list_themes() dan apply_theme() untuk setup tema brand Jeevatix.
-- Gunakan shadcn-ui MCP → get_component_demo("data-table") untuk melihat contoh penggunaan DataTable.
 ```
 
 ### Task 0.10 — Setup Prettier, ESLint & Playwright
@@ -572,8 +544,6 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
 
 **Prompt:**
 ```
-Baca file README.md untuk memahami tech stack (ESLint, Prettier, Playwright) dan monorepo structure.
-
 Kerjakan Task T-0.10: Setup Prettier, ESLint & Playwright.
 Dependensi: T-0.1, T-0.5, T-0.6, T-0.7, T-0.8 sudah selesai (semua apps & packages sudah ada).
 
@@ -639,7 +609,7 @@ pnpm run dev          # semua app harus start di port masing-masing
 
 **Prompt:**
 ```
-Baca file DATABASE_DESIGN.md bagian "Enum Definitions" untuk melihat semua 10 enum yang harus dibuat.
+Referensi: DATABASE_DESIGN.md (Enum Definitions).
 
 Kerjakan Task T-1.1: Drizzle Enum Definitions.
 Dependensi: T-0.4 sudah selesai.
@@ -689,7 +659,7 @@ Setiap file harus:
 
 **Prompt:**
 ```
-Baca file DATABASE_DESIGN.md bagian "Tables" secara lengkap untuk melihat semua 15 tabel beserta kolom, tipe, constraint, dan index.
+Referensi: DATABASE_DESIGN.md (Tables — semua 15 tabel, kolom, tipe, constraint, index).
 
 Kerjakan Task T-1.2: Drizzle Table Schemas.
 Dependensi: T-1.1 sudah selesai (enum sudah ada di packages/core/src/db/schema/enums.ts).
@@ -814,7 +784,7 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 
 **Prompt:**
 ```
-Baca file DATABASE_DESIGN.md (tabel users, refresh_tokens) dan PAGES.md (Auth API E1-E7, E63).
+Referensi: DATABASE_DESIGN.md (users, refresh_tokens), PAGES.md (Auth API E1-E7, E63).
 
 Kerjakan Task T-2.1: Auth Middleware & Utilities.
 Dependensi: T-0.5 dan T-1.3 sudah selesai.
@@ -861,52 +831,42 @@ Semua library HARUS compatible dengan Cloudflare Workers runtime.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Auth API (E1-E7, E63) dan DATABASE_DESIGN.md (tabel users, seller_profiles, refresh_tokens).
+Referensi: PAGES.md (Auth API E1-E7, E63), DATABASE_DESIGN.md (users, seller_profiles, refresh_tokens).
 
 Kerjakan Task T-2.2: Auth API Endpoints.
 Dependensi: T-2.1 sudah selesai (middleware auth, password, jwt sudah ada).
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/auth.schema.ts`** — Zod validation schemas (import `z` dari `@hono/zod-openapi`):
-- registerSchema: z.object({ email: z.string().email(), password: z.string().min(8), full_name: z.string(), phone: z.string().optional() }).openapi('RegisterInput')
+**File 1: `apps/api/src/schemas/auth.schema.ts`:**
+- registerSchema: { email, password.min(8), full_name, phone? }.openapi('RegisterInput')
 - registerSellerSchema: extends registerSchema + { org_name, org_description? }.openapi('RegisterSellerInput')
 - loginSchema: { email, password }.openapi('LoginInput')
 - refreshSchema: { refresh_token }.openapi('RefreshInput')
 - forgotPasswordSchema: { email }.openapi('ForgotPasswordInput')
 - resetPasswordSchema: { token, password }.openapi('ResetPasswordInput')
-- Tambahkan `.openapi({ example: '...' })` pada field penting (email, password, dll).
-- Export inferred types: type RegisterInput = z.infer<typeof registerSchema>, dll.
 
-**File 2: `apps/api/src/services/auth.service.ts`** — Business logic (TIDAK BERUBAH, tetap pure logic):
-- register(input: RegisterInput): hash password, insert ke users (role: buyer), generate tokens. Return { access_token, refresh_token, user }.
-- registerSeller(input: RegisterSellerInput): insert ke users (role: seller) + seller_profiles. Return tokens.
-- login(input: LoginInput): cek email, verify password, simpan refresh token hash ke refresh_tokens. Return { access_token, refresh_token, user }.
-- refresh(input: RefreshInput): verify token, cek hash di DB, rotate tokens. Revoke token lama.
+**File 2: `apps/api/src/services/auth.service.ts`:**
+- register(input): hash password, insert ke users (role: buyer), generate tokens. Return { access_token, refresh_token, user }.
+- registerSeller(input): insert ke users (role: seller) + seller_profiles. Return tokens.
+- login(input): cek email, verify password, simpan refresh token hash ke refresh_tokens. Return { access_token, refresh_token, user }.
+- refresh(input): verify token, cek hash di DB, rotate tokens. Revoke token lama.
 - forgotPassword(input): generate reset token, placeholder enqueue email.
 - resetPassword(input): verify token, update password_hash.
 - verifyEmail(token): update email_verified_at = now().
 - logout(refreshToken): revoke di refresh_tokens.
 
-**File 3: `apps/api/src/routes/auth.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
-- Import `{ createRoute, OpenAPIHono }` dari `@hono/zod-openapi`.
-- Definisikan setiap route dengan `createRoute({ method, path, tags: ['Auth'], summary, request: { body: { content: { 'application/json': { schema } } } }, responses })` lalu register via `app.openapi(route, handler)`.
-- Handler: `const body = c.req.valid('json')` (otomatis typed dari createRoute), panggil authService, return `c.json({ success, data })`.
-- Contoh:
-  ```typescript
-  const registerRoute = createRoute({
-    method: 'post', path: '/register', tags: ['Auth'], summary: 'Register buyer',
-    request: { body: { content: { 'application/json': { schema: registerSchema } } } },
-    responses: { 201: { content: { 'application/json': { schema: authResponseSchema } }, description: 'Registration successful' } },
-  });
-  app.openapi(registerRoute, async (c) => {
-    const body = c.req.valid('json');
-    const result = await authService.register(c.env, body);
-    return c.json({ success: true, data: result }, 201);
-  });
-  ```
+**File 3: `apps/api/src/routes/auth.ts`** — Tags: ['Auth']:
+- POST /register — Register buyer. Call authService.register().
+- POST /register/seller — Register seller. Call authService.registerSeller().
+- POST /login — Login, return tokens + user data. Call authService.login().
+- POST /refresh — Rotate tokens. Call authService.refresh().
+- POST /forgot-password — Generate reset token, enqueue email. Call authService.forgotPassword().
+- POST /reset-password — Verify token, update password. Call authService.resetPassword().
+- POST /verify-email — Update email_verified_at. Call authService.verifyEmail().
+- POST /logout — Revoke refresh token. Call authService.logout().
 
-Semua response format: { success: boolean, data?: T, error?: { code: string, message: string } }.
+Access token expiry: 15 menit. Refresh token expiry: 7 hari.
 Mount router di apps/api/src/index.ts.
 ```
 
@@ -926,27 +886,26 @@ Mount router di apps/api/src/index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian User API (E8-E10) dan DATABASE_DESIGN.md (tabel users).
+Referensi: PAGES.md (User API E8-E10), DATABASE_DESIGN.md (users).
 
 Kerjakan Task T-2.3: User API Endpoints.
 Dependensi: T-2.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/user.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- updateProfileSchema: z.object({ full_name?: string, phone?: string, avatar_url?: string }).openapi('UpdateProfileInput')
-- changePasswordSchema: z.object({ old_password: string, new_password: string.min(8) }).openapi('ChangePasswordInput')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/user.schema.ts`:**
+- updateProfileSchema: { full_name?, phone?, avatar_url? }.openapi('UpdateProfileInput')
+- changePasswordSchema: { old_password, new_password.min(8) }.openapi('ChangePasswordInput')
 
 **File 2: `apps/api/src/services/user.service.ts`:**
-- getMe(userId): query user by id, exclude password_hash. Return user data.
-- updateProfile(userId, input: UpdateProfileInput): update fields yang dikirim saja.
-- changePassword(userId, input: ChangePasswordInput): verify old_password terhadap hash di DB, hash new_password, update.
+- getMe(userId): query user by id, exclude password_hash.
+- updateProfile(userId, input): update fields yang dikirim saja.
+- changePassword(userId, input): verify old_password, hash new_password, update.
 
-**File 3: `apps/api/src/routes/users.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
-1. GET /users/me — Protected (authMiddleware). Definisikan dengan `createRoute({ tags: ['User'], ... })`. Panggil userService.getMe(user.id).
-2. PATCH /users/me — Protected. `createRoute()` dengan request body schema updateProfileSchema → handler: `c.req.valid('json')` → panggil userService.updateProfile().
-3. PATCH /users/me/password — Protected. `createRoute()` dengan request body schema changePasswordSchema → handler: `c.req.valid('json')` → panggil userService.changePassword().
+**File 3: `apps/api/src/routes/users.ts`** — Tags: ['User'], protected (authMiddleware):
+1. GET /users/me — Get current user. Call userService.getMe().
+2. PATCH /users/me — Update profile. Call userService.updateProfile().
+3. PATCH /users/me/password — Change password. Call userService.changePassword().
 
 Mount router di apps/api/src/index.ts.
 ```
@@ -1019,11 +978,11 @@ Dependensi: T-2.1 sudah selesai (auth middleware tersedia).
    binding = "BUCKET"
    bucket_name = "jeevatix-uploads"
    ```
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-2. **`apps/api/src/schemas/upload.schema.ts`** (import `z` dari `@hono/zod-openapi`) — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 * 1024 * 1024. Definisikan uploadResponseSchema: z.object({ url: z.string() }).openapi('UploadResponse').
-3. **`apps/api/src/services/upload.service.ts`** — uploadFile(env, file): validasi tipe & ukuran, generate key unik `uploads/{uuid}.{extension}`, upload ke R2 via env.BUCKET.put(key, file), return { url }.
-4. **`apps/api/src/routes/upload.ts`** — OpenAPIHono router: POST /upload menggunakan `createRoute({ tags: ['Upload'], summary: 'Upload file to R2', ... })` + `app.openapi()`. Protected authMiddleware. Terima multipart form data → panggil uploadService.uploadFile() → return response.
+2. **`apps/api/src/schemas/upload.schema.ts`:** — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 * 1024 * 1024. uploadResponseSchema: { url }.openapi('UploadResponse').
+3. **`apps/api/src/services/upload.service.ts`:** — uploadFile(env, file): validasi tipe & ukuran, generate key unik `uploads/{uuid}.{extension}`, upload ke R2, return { url }.
+4. **`apps/api/src/routes/upload.ts`** — Tags: ['Upload'], protected (authMiddleware). POST /upload — Terima multipart form data, call uploadService.uploadFile().
 5. Mount router di apps/api/src/index.ts.
 
 Endpoint ini akan digunakan oleh semua form upload gambar: avatar user, logo seller, banner event, galeri event.
@@ -1097,17 +1056,16 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Event API Public (E14-E15) dan Admin API (E57-E60) dan DATABASE_DESIGN.md (tabel categories, event_categories).
+Referensi: PAGES.md (Event API Public E14-E15, Admin API E57-E60), DATABASE_DESIGN.md (categories, event_categories).
 
 Kerjakan Task T-3.1: Category API.
 Dependensi: T-2.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/category.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- createCategorySchema: z.object({ name: z.string(), icon: z.string().optional() }).openapi('CreateCategoryInput')
-- updateCategorySchema: z.object({ name: z.string().optional(), icon: z.string().optional() }).openapi('UpdateCategoryInput')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/category.schema.ts`:**
+- createCategorySchema: { name, icon? }.openapi('CreateCategoryInput')
+- updateCategorySchema: { name?, icon? }.openapi('UpdateCategoryInput')
 
 **File 2: `apps/api/src/services/category.service.ts`:**
 - listPublic(): list semua kategori (id, name, slug, icon).
@@ -1117,13 +1075,13 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat 
 - update(id, input): re-generate slug jika name berubah.
 - remove(id): validasi tidak ada event terhubung via event_categories, hapus.
 
-**File 3: `apps/api/src/routes/admin/categories.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
-1. GET /categories — Public. `createRoute({ tags: ['Category'], summary: 'List categories' })`. Panggil categoryService.listPublic().
-2. GET /categories/:slug/events — Public. `createRoute({ tags: ['Category'] })`. Panggil categoryService.listEventsByCategory().
-3. GET /admin/categories — Admin only. `createRoute({ tags: ['Admin - Category'] })`. Panggil categoryService.listAdmin().
-4. POST /admin/categories — Admin only. `createRoute()` dengan request body createCategorySchema → handler: `c.req.valid('json')` → panggil categoryService.create().
-5. PATCH /admin/categories/:id — Admin only. `createRoute()` dengan request body updateCategorySchema → handler: `c.req.valid('json')` → panggil categoryService.update().
-6. DELETE /admin/categories/:id — Admin only. `createRoute()`. Panggil categoryService.remove(). Return error jika masih ada event.
+**File 3: `apps/api/src/routes/admin/categories.ts`:**
+1. GET /categories — Public. List categories. Call categoryService.listPublic().
+2. GET /categories/:slug/events — Public. Events by category. Call categoryService.listEventsByCategory().
+3. GET /admin/categories — Admin only. List + event count. Call categoryService.listAdmin().
+4. POST /admin/categories — Admin only. Create category. Call categoryService.create().
+5. PATCH /admin/categories/:id — Admin only. Update category. Call categoryService.update().
+6. DELETE /admin/categories/:id — Admin only. Delete (error jika masih ada event). Call categoryService.remove().
 
 Mount di index.ts.
 ```
@@ -1144,7 +1102,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Admin Portal Auth (A1).
+Referensi: PAGES.md (Admin Portal Auth A1).
 
 Kerjakan Task T-3.2: Admin Auth UI (Login).
 Dependensi: T-0.7 dan T-2.2 sudah selesai.
@@ -1155,13 +1113,6 @@ Di `apps/admin/`:
 2. Buat `src/lib/auth.ts` — fungsi login(email, password), logout(), getUser(), isAuthenticated(). Simpan access_token dan refresh_token di cookie (httpOnly) atau localStorage. Implementasi auto-refresh: jika access token expired, panggil POST /auth/refresh.
 3. Buat `src/routes/login/+page.svelte` — form email + password + tombol Login. Panggil API POST /auth/login. Jika sukses dan role=admin, redirect ke /. Jika role bukan admin, tampilkan error.
 4. Buat auth guard di `src/routes/+layout.server.ts` atau `+layout.ts` — cek apakah user sudah login dan role=admin. Jika belum, redirect ke /login. Exclude halaman /login dari guard.
-
-Gunakan shadcn-svelte components (Button, Input, Card) dari @jeevatix/ui jika tersedia.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_blocks(category: "login") untuk melihat template login page.
-- Gunakan shadcn-ui MCP → get_block("login-01") untuk mendapatkan source code login page lengkap.
-- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card") untuk referensi komponen.
 ```
 
 ### Task 3.3 — Admin Category Management UI
@@ -1180,7 +1131,7 @@ Gunakan shadcn-svelte components (Button, Input, Card) dari @jeevatix/ui jika te
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Admin Portal (A13 — Manajemen Kategori).
+Referensi: PAGES.md (Admin Portal A13 — Manajemen Kategori).
 
 Kerjakan Task T-3.3: Admin Category Management UI.
 Dependensi: T-3.1 dan T-3.2 sudah selesai.
@@ -1194,12 +1145,6 @@ Buat `src/routes/categories/+page.svelte`:
 4. Tombol Edit per row → buka modal form pre-filled. Submit PATCH /admin/categories/:id.
 5. Tombol Hapus per row → konfirmasi dialog. Submit DELETE /admin/categories/:id. Tampilkan error toast jika kategori masih punya event.
 6. Setelah setiap aksi CRUD, refresh tabel.
-
-Gunakan shadcn-svelte components: DataTable, Button, Input, Dialog/Modal, Toast.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → get_component("data-table") dan get_component_demo("data-table") untuk referensi dan contoh DataTable.
-- Gunakan shadcn-ui MCP → get_component("dialog"), get_component("toast"), get_component("input") untuk source code komponen.
 ```
 
 ### Task 3.4 — Admin User Management API
@@ -1220,18 +1165,17 @@ Gunakan shadcn-svelte components: DataTable, Button, Input, Dialog/Modal, Toast.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Admin API (E45-E49) dan DATABASE_DESIGN.md (tabel users, seller_profiles).
+Referensi: PAGES.md (Admin API E45-E49), DATABASE_DESIGN.md (users, seller_profiles).
 
 Kerjakan Task T-3.4: Admin User Management API.
 Dependensi: T-2.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/admin-user.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- listUsersQuerySchema: z.object({ role?, status?, search?, page?, limit? }).openapi('ListUsersQuery')
-- updateUserStatusSchema: z.object({ status: z.enum(['active','suspended','banned']) }).openapi('UpdateUserStatusInput')
-- verifySellerSchema: z.object({ is_verified: z.boolean() }).openapi('VerifySellerInput')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/admin-user.schema.ts`:**
+- listUsersQuerySchema: { role?, status?, search?, page?, limit? }.openapi('ListUsersQuery')
+- updateUserStatusSchema: { status: enum['active','suspended','banned'] }.openapi('UpdateUserStatusInput')
+- verifySellerSchema: { is_verified: boolean }.openapi('VerifySellerInput')
 
 **File 2: `apps/api/src/services/admin-user.service.ts`:**
 - listUsers(query): filter by role/status, search ILIKE name/email, paginated.
@@ -1240,12 +1184,12 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat 
 - listSellers(query): filter by is_verified, paginated.
 - verifySeller(id, isVerified, adminId): set is_verified, verified_at, verified_by.
 
-**File 3: `apps/api/src/routes/admin/users.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (admin-only via roleMiddleware('admin')):
-1. GET /admin/users — `createRoute({ tags: ['Admin - User'], summary: 'List users' })`. Parse query via `c.req.valid('query')` → panggil adminUserService.listUsers().
-2. GET /admin/users/:id — `createRoute({ tags: ['Admin - User'] })`. Panggil adminUserService.getUserDetail().
-3. PATCH /admin/users/:id/status — `createRoute()` dengan request body updateUserStatusSchema → handler: `c.req.valid('json')` → panggil adminUserService.updateUserStatus().
-4. GET /admin/sellers — `createRoute({ tags: ['Admin - Seller'] })`. Panggil adminUserService.listSellers().
-5. PATCH /admin/sellers/:id/verify — `createRoute()` dengan request body verifySellerSchema → handler: `c.req.valid('json')` → panggil adminUserService.verifySeller().
+**File 3: `apps/api/src/routes/admin/users.ts`** — admin-only via roleMiddleware('admin'):
+1. GET /admin/users — List users (filter role/status/search). Call adminUserService.listUsers().
+2. GET /admin/users/:id — User detail. Call adminUserService.getUserDetail().
+3. PATCH /admin/users/:id/status — Update user status. Call adminUserService.updateUserStatus().
+4. GET /admin/sellers — List sellers. Call adminUserService.listSellers().
+5. PATCH /admin/sellers/:id/verify — Verify seller. Call adminUserService.verifySeller().
 
 Mount di index.ts.
 ```
@@ -1266,7 +1210,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Admin Portal (A3-A6: Users dan Sellers).
+Referensi: PAGES.md (Admin Portal A3-A6: Users dan Sellers).
 
 Kerjakan Task T-3.5: Admin User Management UI.
 Dependensi: T-3.4 dan T-3.2 sudah selesai.
@@ -1277,8 +1221,6 @@ Di `apps/admin/`:
 2. `src/routes/users/[id]/+page.svelte` — Detail user: info profil, seller profile (jika seller), statistik order/tiket. Tombol aksi: Suspend, Ban, Activate (PATCH /admin/users/:id/status). Konfirmasi dialog sebelum aksi.
 3. `src/routes/sellers/+page.svelte` — DataTable seller. Filter: verified/unverified. Kolom: Nama Organisasi, Email, Status Verifikasi, Jumlah Event. Klik row → navigate ke /sellers/[id].
 4. `src/routes/sellers/[id]/+page.svelte` — Detail seller: data organisasi, data bank, daftar event. Tombol "Verify" (set is_verified=true) dan "Reject" (set is_verified=false). Konfirmasi dialog.
-
-Gunakan shadcn-svelte components dari @jeevatix/ui.
 ```
 
 **Checkpoint Phase 3:**
@@ -1311,24 +1253,23 @@ open http://localhost:4302/sellers    # verifikasi seller
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Profile API (E39-E40) dan DATABASE_DESIGN.md (tabel users, seller_profiles).
+Referensi: PAGES.md (Seller Profile API E39-E40), DATABASE_DESIGN.md (users, seller_profiles).
 
 Kerjakan Task T-4.1: Seller Auth & Profile API.
 Dependensi: T-2.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/seller-profile.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- updateSellerProfileSchema: z.object({ org_name?, org_description?, logo_url?, bank_name?, bank_account_number?, bank_account_holder? }).openapi('UpdateSellerProfileInput')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/seller-profile.schema.ts`:**
+- updateSellerProfileSchema: { org_name?, org_description?, logo_url?, bank_name?, bank_account_number?, bank_account_holder? }.openapi('UpdateSellerProfileInput')
 
 **File 2: `apps/api/src/services/seller-profile.service.ts`:**
-- getProfile(userId): join users + seller_profiles berdasarkan user_id. Return gabungan data.
-- updateProfile(userId, input: UpdateSellerProfileInput): update seller_profiles fields yang dikirim saja.
+- getProfile(userId): join users + seller_profiles berdasarkan user_id.
+- updateProfile(userId, input): update seller_profiles fields yang dikirim saja.
 
-**File 3: `apps/api/src/routes/seller/profile.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only via authMiddleware + roleMiddleware('seller')):
-1. GET /seller/profile — `createRoute({ tags: ['Seller - Profile'], summary: 'Get seller profile' })`. Panggil sellerProfileService.getProfile().
-2. PATCH /seller/profile — `createRoute()` dengan request body updateSellerProfileSchema → handler: `c.req.valid('json')` → panggil sellerProfileService.updateProfile().
+**File 3: `apps/api/src/routes/seller/profile.ts`** — seller-only via authMiddleware + roleMiddleware('seller'):
+1. GET /seller/profile — Get seller profile. Call sellerProfileService.getProfile().
+2. PATCH /seller/profile — Update seller profile. Call sellerProfileService.updateProfile().
 
 Mount di apps/api/src/index.ts dengan prefix /seller.
 ```
@@ -1352,19 +1293,17 @@ Mount di apps/api/src/index.ts dengan prefix /seller.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Event API (E16-E20) dan DATABASE_DESIGN.md (tabel events, event_categories, event_images, ticket_tiers, seller_profiles).
+Referensi: PAGES.md (Seller Event API E16-E20), DATABASE_DESIGN.md (events, event_categories, event_images, ticket_tiers, seller_profiles).
 
 Kerjakan Task T-4.2: Seller Event CRUD API.
 Dependensi: T-2.1 dan T-1.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/event.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- createEventSchema: z.object({ title, description, venue_name, venue_address, venue_city, venue_latitude?, venue_longitude?, start_at, end_at, sale_start_at, sale_end_at, banner_url?, max_tickets_per_order?, category_ids: z.array(z.number()), images: z.array(z.object({image_url, sort_order})), tiers: z.array(z.object({name, description?, price, quota, sort_order, sale_start_at?, sale_end_at?})) }).openapi('CreateEventInput')
+**File 1: `apps/api/src/schemas/event.schema.ts`:**
+- createEventSchema: { title, description, venue_name, venue_address, venue_city, venue_latitude?, venue_longitude?, start_at, end_at, sale_start_at, sale_end_at, banner_url?, max_tickets_per_order?, category_ids: array(number), images: array({image_url, sort_order}), tiers: array({name, description?, price, quota, sort_order, sale_start_at?, sale_end_at?}) }.openapi('CreateEventInput')
 - updateEventSchema: partial dari createEventSchema.openapi('UpdateEventInput')
 - Validasi temporal: end_at > start_at, sale_end_at > sale_start_at, sale_start_at <= start_at.
-- Tambahkan `.openapi({ example: '...' })` pada field penting.
-- Export inferred types.
 
 **File 2: `apps/api/src/services/event.service.ts`:**
 - listSellerEvents(sellerProfileId, filters): filter by status, join ticket_tiers untuk statistik (total_quota, total_sold). Paginated.
@@ -1373,12 +1312,12 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat 
 - updateEvent(sellerProfileId, eventId, input): validasi ownership. Handle status flow: draft/rejected → pending_review.
 - deleteEvent(sellerProfileId, eventId): hanya status draft. Cascade delete.
 
-**File 3: `apps/api/src/routes/seller/events.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
-1. GET /seller/events — `createRoute({ tags: ['Seller - Event'], summary: 'List seller events' })`. Panggil eventService.listSellerEvents().
-2. POST /seller/events — `createRoute()` dengan request body createEventSchema → handler: `c.req.valid('json')` → panggil eventService.createEvent().
-3. GET /seller/events/:id — `createRoute()` dengan param schema → handler: `c.req.valid('param')` → panggil eventService.getSellerEvent().
-4. PATCH /seller/events/:id — `createRoute()` dengan request body updateEventSchema → handler: `c.req.valid('json')` → panggil eventService.updateEvent().
-5. DELETE /seller/events/:id — `createRoute()`. Panggil eventService.deleteEvent().
+**File 3: `apps/api/src/routes/seller/events.ts`** — seller-only:
+1. GET /seller/events — List seller events. Call eventService.listSellerEvents().
+2. POST /seller/events — Create event. Call eventService.createEvent().
+3. GET /seller/events/:id — Event detail. Call eventService.getSellerEvent().
+4. PATCH /seller/events/:id — Update event. Call eventService.updateEvent().
+5. DELETE /seller/events/:id — Delete event (draft only). Call eventService.deleteEvent().
 
 Event status flow: draft → pending_review (seller submit) → published/rejected (admin review). Seller bisa edit event rejected lalu submit ulang ke pending_review.
 Mount di index.ts.
@@ -1400,17 +1339,16 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Ticket Tier API (E21-E24) dan DATABASE_DESIGN.md (tabel ticket_tiers).
+Referensi: PAGES.md (Ticket Tier API E21-E24), DATABASE_DESIGN.md (ticket_tiers).
 
 Kerjakan Task T-4.3: Ticket Tier CRUD API.
 Dependensi: T-4.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/tier.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- createTierSchema: z.object({ name, description?, price, quota, sort_order?, sale_start_at?, sale_end_at? }).openapi('CreateTierInput')
+**File 1: `apps/api/src/schemas/tier.schema.ts`:**
+- createTierSchema: { name, description?, price, quota, sort_order?, sale_start_at?, sale_end_at? }.openapi('CreateTierInput')
 - updateTierSchema: partial dari createTierSchema + { status? }.openapi('UpdateTierInput')
-- Export inferred types.
 
 **File 2: `apps/api/src/services/tier.service.ts`:**
 - listTiers(sellerProfileId, eventId): validasi ownership, return semua tier.
@@ -1418,11 +1356,11 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat 
 - updateTier(sellerProfileId, eventId, tierId, input): validasi ownership + quota >= sold_count, jangan ubah price jika sold_count > 0.
 - deleteTier(sellerProfileId, eventId, tierId): validasi ownership, jangan hapus jika sold_count > 0.
 
-**File 3: `apps/api/src/routes/seller/tiers.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
-1. GET /seller/events/:id/tiers — `createRoute({ tags: ['Seller - Tier'], summary: 'List tiers' })`. Panggil tierService.listTiers().
-2. POST /seller/events/:id/tiers — `createRoute()` dengan request body createTierSchema → handler: `c.req.valid('json')` → panggil tierService.createTier().
-3. PATCH /seller/events/:id/tiers/:tierId — `createRoute()` dengan request body updateTierSchema → handler: `c.req.valid('json')` → panggil tierService.updateTier().
-4. DELETE /seller/events/:id/tiers/:tierId — `createRoute()`. Panggil tierService.deleteTier().
+**File 3: `apps/api/src/routes/seller/tiers.ts`** — seller-only:
+1. GET /seller/events/:id/tiers — List tiers. Call tierService.listTiers().
+2. POST /seller/events/:id/tiers — Create tier. Call tierService.createTier().
+3. PATCH /seller/events/:id/tiers/:tierId — Update tier. Call tierService.updateTier().
+4. DELETE /seller/events/:id/tiers/:tierId — Delete tier. Call tierService.deleteTier().
 
 Mount di index.ts.
 ```
@@ -1442,7 +1380,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Portal Auth (S1-S4).
+Referensi: PAGES.md (Seller Portal Auth S1-S4).
 
 Kerjakan Task T-4.4: Seller Auth & Layout UI.
 Dependensi: T-0.8 dan T-2.2 sudah selesai.
@@ -1458,13 +1396,6 @@ Di `apps/seller/`:
    - `src/routes/reset-password/+page.svelte` — form password baru. Call POST /auth/reset-password.
 4. Update `src/routes/+layout.svelte` — sidebar menu: Dashboard, Events, Orders, Check-in, Notifications, Profile.
 5. Auth guard di layout: redirect ke /login jika belum login atau role bukan seller.
-
-Gunakan shadcn-svelte components.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_blocks(category: "login") lalu get_block() untuk mendapatkan template halaman login.
-- Gunakan shadcn-ui MCP → list_blocks(category: "sidebar") lalu get_block() untuk template sidebar layout.
-- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card") untuk referensi komponen.
 ```
 
 ### Task 4.5 — Seller Event Management UI
@@ -1484,7 +1415,7 @@ Gunakan shadcn-svelte components.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Portal (S6-S10: Event Management).
+Referensi: PAGES.md (Seller Portal S6-S10: Event Management).
 
 Kerjakan Task T-4.5: Seller Event Management UI.
 Dependensi: T-4.2, T-4.3, T-4.4 sudah selesai.
@@ -1502,12 +1433,7 @@ Di `apps/seller/`:
 4. `src/routes/events/[id]/edit/+page.svelte` — Form edit event (sama dengan create, pre-filled).
 5. `src/routes/events/[id]/tiers/+page.svelte` — CRUD tier tiket: tabel tier + form tambah/edit. Tampilkan sold_count. Disable delete jika sold_count > 0.
 
-Gunakan shadcn-svelte components. Upload gambar via POST /upload (T-2.5).
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → get_component("data-table") dan get_component_demo("data-table") untuk referensi DataTable.
-- Gunakan shadcn-ui MCP → get_component("tabs"), get_component("form"), get_component("select") untuk multi-step form components.
-- Gunakan shadcn-ui MCP → get_component("badge") untuk status badges.
+Upload gambar via POST /upload (T-2.5).
 ```
 
 ### Task 4.6 — Seller Profile UI
@@ -1524,7 +1450,7 @@ Gunakan shadcn-svelte components. Upload gambar via POST /upload (T-2.5).
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Portal (S14-S15: Profile & Settings).
+Referensi: PAGES.md (Seller Portal S14-S15: Profile & Settings).
 
 Kerjakan Task T-4.6: Seller Profile UI.
 Dependensi: T-4.1 dan T-4.4 sudah selesai.
@@ -1537,8 +1463,6 @@ Di `apps/seller/`:
    - Tampilkan status verifikasi: Verified ✅ / Pending ⏳.
    - Tombol Simpan → PATCH /seller/profile.
 2. `src/routes/profile/password/+page.svelte` — Form ubah password: Old Password, New Password, Confirm New Password. Submit PATCH /users/me/password.
-
-Gunakan shadcn-svelte components.
 ```
 
 **Checkpoint Phase 4:**
@@ -1575,16 +1499,15 @@ open http://localhost:4303/events         # list events
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Event API Public (E11-E15) dan DATABASE_DESIGN.md (tabel events, categories, event_categories, event_images, ticket_tiers, seller_profiles).
+Referensi: PAGES.md (Event API Public E11-E15), DATABASE_DESIGN.md (events, categories, event_categories, event_images, ticket_tiers, seller_profiles).
 
 Kerjakan Task T-5.1: Public Event API.
 Dependensi: T-1.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/public-event.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- listEventsQuerySchema: z.object({ search?, category?, city?, date_from?, date_to?, price_min?, price_max?, page?, limit? }).openapi('ListEventsQuery')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/public-event.schema.ts`:**
+- listEventsQuerySchema: { search?, category?, city?, date_from?, date_to?, price_min?, price_max?, page?, limit? }.openapi('ListEventsQuery')
 
 **File 2: `apps/api/src/services/public-event.service.ts`:**
 - listEvents(query): filter published/ongoing, ILIKE search, category join, city, date range, price range. Paginated. Return events + min_price.
@@ -1593,14 +1516,14 @@ Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat 
 - listCategories(): all categories.
 - listByCategory(slug, pagination): events by kategori, published/ongoing.
 
-**File 3: `apps/api/src/routes/events.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (semua public/tanpa auth):
-1. GET /events — `createRoute({ tags: ['Event - Public'], summary: 'List events' })`. Parse query via `c.req.valid('query')` → panggil publicEventService.listEvents().
-2. GET /events/featured — `createRoute({ tags: ['Event - Public'], summary: 'Featured events' })`. Panggil publicEventService.listFeatured().
-3. GET /events/:slug — `createRoute({ tags: ['Event - Public'], summary: 'Event detail' })`. Panggil publicEventService.getBySlug().
-4. GET /categories — `createRoute({ tags: ['Category'] })`. Panggil publicEventService.listCategories().
-5. GET /categories/:slug/events — `createRoute({ tags: ['Category'] })`. Panggil publicEventService.listByCategory().
+**File 3: `apps/api/src/routes/events.ts`** — semua public/tanpa auth:
+1. GET /events — List events (filter+search+pagination). Call publicEventService.listEvents().
+2. GET /events/featured — Featured events. Call publicEventService.listFeatured().
+3. GET /events/:slug — Event detail. Call publicEventService.getBySlug().
+4. GET /categories — List categories. Call publicEventService.listCategories().
+5. GET /categories/:slug/events — Events by category. Call publicEventService.listByCategory().
 
-Search strategy: gunakan ILIKE untuk sekarang. Jika perlu performa lebih baik, tambahkan tsvector + GIN index di events.title nanti.
+Search strategy: gunakan ILIKE untuk sekarang. Tambahkan tsvector + GIN index nanti jika perlu.
 Mount di index.ts.
 ```
 
@@ -1619,7 +1542,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Buyer Portal Auth (B1-B5).
+Referensi: PAGES.md (Buyer Portal Auth B1-B5).
 
 Kerjakan Task T-5.2: Buyer Auth Pages.
 Dependensi: T-0.6 dan T-2.2 sudah selesai.
@@ -1635,13 +1558,8 @@ Di `apps/buyer/`:
    - `src/routes/reset-password/+page.svelte` — Form: new password. Baca token dari URL query param. Call POST /auth/reset-password.
    - `src/routes/verify-email/+page.svelte` — Baca token dari URL. Call POST /auth/verify-email. Tampilkan sukses/gagal.
 4. Gunakan +layout.svelte sebagai shared layout untuk semua halaman.
-5. Gunakan komponen shadcn-svelte (Button, Input, Card) dari @jeevatix/ui.
 
-Desain bersih dan responsive. Gunakan TailwindCSS.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_blocks(category: "login") lalu get_block() untuk mendapatkan template halaman login/register.
-- Gunakan shadcn-ui MCP → get_component("button"), get_component("input"), get_component("card") untuk referensi komponen.
+Desain bersih dan responsive.
 ```
 
 ### Task 5.3 — Homepage & Explore
@@ -1660,7 +1578,7 @@ Desain bersih dan responsive. Gunakan TailwindCSS.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Buyer Portal Public (B6-B9).
+Referensi: PAGES.md (Buyer Portal Public B6-B9).
 
 Kerjakan Task T-5.3: Homepage & Explore.
 Dependensi: T-5.1 dan T-5.2 sudah selesai.
@@ -1689,13 +1607,8 @@ Di `apps/buyer/`:
 
 4. `src/routes/categories/[slug]/+page.svelte` + `+page.server.ts` — Event per kategori. Fetch GET /categories/:slug/events. Re-use EventCard component.
 
-Desain modern, responsive. Gunakan TailwindCSS + shadcn-svelte components. Buat reusable Svelte component: EventCard.svelte di `src/lib/components/`.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → get_component("card") dan get_component_demo("card") untuk referensi dan contoh Card component.
-- Gunakan shadcn-ui MCP → get_component("carousel") untuk featured events carousel.
-- Gunakan shadcn-ui MCP → get_component("badge"), get_component("pagination") untuk komponen pendukung.
-- Gunakan shadcn-ui MCP → list_blocks() untuk melihat apakah ada block template yang cocok untuk layout homepage.
+Buat reusable Svelte component: EventCard.svelte di `src/lib/components/`.
+Desain modern, responsive.
 ```
 
 ### Task 5.4 — Buyer Profile & Notifications UI
@@ -1712,7 +1625,7 @@ Desain modern, responsive. Gunakan TailwindCSS + shadcn-svelte components. Buat 
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Buyer Portal Protected (B16-B17).
+Referensi: PAGES.md (Buyer Portal Protected B16-B17).
 
 Kerjakan Task T-5.4: Buyer Profile & Notifications UI.
 Dependensi: T-5.2 dan T-2.3 sudah selesai.
@@ -1731,11 +1644,7 @@ Di `apps/buyer/`:
    - Klik notifikasi → mark as read (PATCH /notifications/:id/read).
    - Tombol "Mark All as Read" → PATCH /notifications/read-all.
 
-Gunakan shadcn-svelte components. Protect halaman: redirect ke /login jika belum login (via +page.server.ts load guard atau hooks).
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → get_component("avatar"), get_component("form"), get_component("input") untuk halaman profil.
-- Gunakan shadcn-ui MCP → get_component("badge") untuk badge notifikasi unread.
+Protect halaman: redirect ke /login jika belum login.
 ```
 
 **Checkpoint Phase 5:**
@@ -1774,7 +1683,7 @@ open http://localhost:4301/events/slug-event # detail event
 
 **Prompt:**
 ```
-Baca file DATABASE_DESIGN.md bagian "Concurrency & War Ticket Flow" (sequence diagram) dan tabel reservations, ticket_tiers.
+Referensi: DATABASE_DESIGN.md (Concurrency & War Ticket Flow, tabel reservations, ticket_tiers).
 
 Kerjakan Task T-6.1: Durable Object TicketReserver.
 Dependensi: T-0.5 dan T-1.3 sudah selesai.
@@ -1823,26 +1732,25 @@ INI ADALAH BAGIAN PALING KRITIS. Pastikan semua operasi stok atomik dan concurre
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Reservation API (E25-E27) dan DATABASE_DESIGN.md (tabel reservations, ticket_tiers, events).
+Referensi: PAGES.md (Reservation API E25-E27), DATABASE_DESIGN.md (reservations, ticket_tiers, events).
 
 Kerjakan Task T-6.2: Reservation API.
 Dependensi: T-6.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/reservation.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- createReservationSchema: z.object({ ticket_tier_id: z.string(), quantity: z.number().min(1) }).openapi('CreateReservationInput')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/reservation.schema.ts`:**
+- createReservationSchema: { ticket_tier_id: string, quantity: number.min(1) }.openapi('CreateReservationInput')
 
 **File 2: `apps/api/src/services/reservation.service.ts`:**
-- reserve(env, userId, input: CreateReservationInput): cek active reservation per event, anti-abuse quota check, delegate ke Durable Object TicketReserver.reserve(). Return { reservation_id, expires_at }.
+- reserve(env, userId, input): cek active reservation per event, anti-abuse quota check, delegate ke Durable Object TicketReserver.reserve(). Return { reservation_id, expires_at }.
 - getReservation(userId, reservationId): return reservation + remaining time. Validasi ownership.
 - cancelReservation(env, userId, reservationId): validasi ownership + status active. Delegate ke TicketReserver.cancelReservation().
 
-**File 3: `apps/api/src/routes/reservations.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (buyer-only via authMiddleware + roleMiddleware('buyer')):
-1. POST /reservations — `createRoute({ tags: ['Reservation'], summary: 'Create reservation' })` dengan request body createReservationSchema → handler: `c.req.valid('json')` → panggil reservationService.reserve().
-2. GET /reservations/:id — `createRoute({ tags: ['Reservation'] })`. Panggil reservationService.getReservation().
-3. DELETE /reservations/:id — `createRoute({ tags: ['Reservation'] })`. Panggil reservationService.cancelReservation().
+**File 3: `apps/api/src/routes/reservations.ts`** — buyer-only via authMiddleware + roleMiddleware('buyer'):
+1. POST /reservations — Create reservation. Call reservationService.reserve().
+2. GET /reservations/:id — Get reservation status. Call reservationService.getReservation().
+3. DELETE /reservations/:id — Cancel reservation. Call reservationService.cancelReservation().
 
 Set expires_at = now + 10 menit.
 Mount di index.ts.
@@ -1869,27 +1777,26 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Order API (E28-E30) dan DATABASE_DESIGN.md (tabel orders, order_items, payments, reservations, ticket_tiers).
+Referensi: PAGES.md (Order API E28-E30), DATABASE_DESIGN.md (orders, order_items, payments, reservations, ticket_tiers).
 
 Kerjakan Task T-6.3: Order API.
 Dependensi: T-6.2 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/order.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- createOrderSchema: z.object({ reservation_id: z.string() }).openapi('CreateOrderInput')
-- listOrdersQuerySchema: z.object({ page: z.coerce.number().optional(), limit: z.coerce.number().optional() }).openapi('ListOrdersQuery')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/order.schema.ts`:**
+- createOrderSchema: { reservation_id: string }.openapi('CreateOrderInput')
+- listOrdersQuerySchema: { page?, limit? }.openapi('ListOrdersQuery')
 
 **File 2: `apps/api/src/services/order.service.ts`:**
 - createOrder(userId, input): database transaction — validasi reservation (active, not expired, ownership), generate order_number (JVX-YYYYMMDD-XXXXX), insert order + order_items + payment (pending), update reservation status → converted. expires_at = now + 30 menit.
 - listOrders(userId, pagination): join order_items, payments, events. Return status, order_number, total_amount, created_at.
 - getOrderDetail(userId, orderId): detail + items + payment + tickets. Validasi ownership.
 
-**File 3: `apps/api/src/routes/orders.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (buyer-only):
-1. POST /orders — `createRoute({ tags: ['Order'], summary: 'Create order from reservation' })` dengan request body createOrderSchema → handler: `c.req.valid('json')` → panggil orderService.createOrder().
-2. GET /orders — `createRoute({ tags: ['Order'], summary: 'List buyer orders' })`. Parse query via `c.req.valid('query')` → panggil orderService.listOrders().
-3. GET /orders/:id — `createRoute({ tags: ['Order'], summary: 'Order detail' })`. Panggil orderService.getOrderDetail().
+**File 3: `apps/api/src/routes/orders.ts`** — buyer-only:
+1. POST /orders — Create order from reservation. Call orderService.createOrder().
+2. GET /orders — List buyer orders. Call orderService.listOrders().
+3. GET /orders/:id — Order detail. Call orderService.getOrderDetail().
 
 Mount di index.ts.
 ```
@@ -1919,24 +1826,23 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Payment API (E31-E32) dan DATABASE_DESIGN.md (tabel payments, orders, tickets, order_items).
+Referensi: PAGES.md (Payment API E31-E32), DATABASE_DESIGN.md (payments, orders, tickets, order_items).
 
 Kerjakan Task T-6.4: Payment API.
 Dependensi: T-6.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
-**File 1: `apps/api/src/schemas/payment.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- initiatePaymentSchema: z.object({ method: z.enum(['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account']) }).openapi('InitiatePaymentInput')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/payment.schema.ts`:**
+- initiatePaymentSchema: { method: enum['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account'] }.openapi('InitiatePaymentInput')
 
 **File 2: `apps/api/src/services/payment.service.ts`:**
 - initiatePayment(userId, orderId, input): validasi order (ownership, pending, not expired), update payment method, integrasikan payment gateway (mock dulu). Return { payment_url } atau { status: 'success' }.
 - handleWebhook(headers, body): verify signature, idempotency check (external_ref), update payment → success + order → confirmed, call generateTickets(), enqueue email + notification.
 
-**File 3: `apps/api/src/routes/payments.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
-1. POST /payments/:orderId/pay — Buyer-only. `createRoute({ tags: ['Payment'], summary: 'Initiate payment' })` dengan request body initiatePaymentSchema → handler: `c.req.valid('json')` → panggil paymentService.initiatePayment().
-2. POST /webhooks/payment — Public (verify signature). `createRoute({ tags: ['Webhook'], summary: 'Payment webhook callback' })`. Panggil paymentService.handleWebhook().
+**File 3: `apps/api/src/routes/payments.ts`:**
+1. POST /payments/:orderId/pay — Buyer-only. Initiate payment. Call paymentService.initiatePayment().
+2. POST /webhooks/payment — Public (verify signature). Payment webhook callback. Call paymentService.handleWebhook().
 
 Mount di index.ts.
 ```
@@ -1959,7 +1865,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file DATABASE_DESIGN.md (tabel reservations, ticket_tiers) dan diagram "Concurrency & War Ticket Flow".
+Referensi: DATABASE_DESIGN.md (reservations, ticket_tiers, Concurrency & War Ticket Flow).
 
 Kerjakan Task T-6.5: Cloudflare Queue Reservation Cleanup.
 Dependensi: T-6.2 sudah selesai.
@@ -2004,7 +1910,7 @@ Pastikan cleanup idempotent (jangan proses reservation yang sudah expired).
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Buyer Portal Protected (B10-B11: Checkout & Payment).
+Referensi: PAGES.md (Buyer Portal Protected B10-B11: Checkout & Payment).
 
 Kerjakan Task T-6.6: Checkout & Payment UI (Buyer).
 Dependensi: T-6.2, T-6.3, T-6.4, T-5.3 sudah selesai.
@@ -2026,12 +1932,6 @@ Di `apps/buyer/`:
    - Pilih metode bayar (bank_transfer, e_wallet, credit_card, virtual_account).
    - Countdown batas waktu bayar (30 menit dari order.expires_at).
    - Tombol "Bayar Sekarang" → call POST /payments/:orderId/pay. Redirect ke payment gateway URL (atau show success jika mock).
-
-Gunakan shadcn-svelte components (Button, Card, RadioGroup, Input).
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → get_component("radio-group"), get_component("card"), get_component("button") untuk referensi komponen checkout.
-- Gunakan shadcn-ui MCP → get_component("alert") untuk alert sold out.
 ```
 
 ### Task 6.7 — Order History UI (Buyer)
@@ -2048,7 +1948,7 @@ Gunakan shadcn-svelte components (Button, Card, RadioGroup, Input).
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Buyer Portal Protected (B12-B13: Order History).
+Referensi: PAGES.md (Buyer Portal Protected B12-B13: Order History).
 
 Kerjakan Task T-6.7: Order History UI (Buyer).
 Dependensi: T-6.3 dan T-5.2 sudah selesai.
@@ -2104,23 +2004,22 @@ Protect kedua halaman: redirect ke /login jika belum login.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Ticket API (E33-E34) dan DATABASE_DESIGN.md (tabel tickets, order_items, orders).
+Referensi: PAGES.md (Ticket API E33-E34), DATABASE_DESIGN.md (tickets, order_items, orders).
 
 Kerjakan Task T-7.1: Ticket Generation.
 Dependensi: T-6.4 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat 3 file:
+Buat 3 file:
 
 **File 1: `apps/api/src/services/ticket-generator.ts`:**
 - generateTickets(orderId): query order_items, loop quantity kali, generate ticket_code = 'JVX-' + nanoid(12), insert ke tickets. Return array of tickets.
 
-**File 2: `apps/api/src/schemas/ticket.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- listTicketsQuerySchema: z.object({ page: z.coerce.number().optional(), limit: z.coerce.number().optional() }).openapi('ListTicketsQuery')
-- Export inferred types.
+**File 2: `apps/api/src/schemas/ticket.schema.ts`:**
+- listTicketsQuerySchema: { page?, limit? }.openapi('ListTicketsQuery')
 
-**File 3: `apps/api/src/routes/tickets.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (buyer-only):
-1. GET /tickets — `createRoute({ tags: ['Ticket'], summary: 'List buyer tickets' })`. Panggil ticketService. List tiket milik buyer (join orders, order_items, ticket_tiers, events).
-2. GET /tickets/:id — `createRoute({ tags: ['Ticket'], summary: 'Ticket detail + QR data' })`. Detail tiket + QR data. Validasi ownership.
+**File 3: `apps/api/src/routes/tickets.ts`** — buyer-only:
+1. GET /tickets — List buyer tickets (join orders, order_items, ticket_tiers, events). Call ticketService.
+2. GET /tickets/:id — Ticket detail + QR data. Validasi ownership.
 
 Integrasikan di payment webhook: setelah payment success, panggil generateTickets(orderId).
 Install nanoid: `pnpm add nanoid` di apps/api.
@@ -2141,7 +2040,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Buyer Portal Protected (B14-B15: Tickets).
+Referensi: PAGES.md (Buyer Portal Protected B14-B15: Tickets).
 
 Kerjakan Task T-7.2: Ticket UI (Buyer).
 Dependensi: T-7.1 dan T-5.2 sudah selesai.
@@ -2189,24 +2088,23 @@ Protect kedua halaman: redirect ke /login jika belum login.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Portal (S13) dan Check-in API (E35-E36), DATABASE_DESIGN.md (tabel tickets, ticket_checkins).
+Referensi: PAGES.md (Seller Portal S13, Check-in API E35-E36), DATABASE_DESIGN.md (tickets, ticket_checkins).
 
 Kerjakan Task T-7.3: Check-in API & UI (Seller).
 Dependensi: T-7.1 dan T-4.4 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat file API:
+Buat file API:
 
-**File 1: `apps/api/src/schemas/checkin.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- checkinSchema: z.object({ ticket_code: z.string() }).openapi('CheckinInput')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/checkin.schema.ts`:**
+- checkinSchema: { ticket_code: string }.openapi('CheckinInput')
 
 **File 2: `apps/api/src/services/checkin.service.ts`:**
 - checkin(sellerId, eventId, ticketCode): validasi seller ownership, query ticket by code + event match, cek status valid vs used, insert ticket_checkins, update ticket status → 'used'. Return { status: 'SUCCESS'|'ALREADY_USED'|'INVALID', ... }.
 - getStats(sellerId, eventId): total_tickets, checked_in, remaining, percentage.
 
-**File 3: `apps/api/src/routes/seller/checkin.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
-1. POST /seller/events/:id/checkin — `createRoute({ tags: ['Seller - Check-in'], summary: 'Check-in ticket' })` dengan request body checkinSchema → handler: `c.req.valid('json')` → panggil checkinService.checkin().
-2. GET /seller/events/:id/checkin/stats — `createRoute({ tags: ['Seller - Check-in'], summary: 'Check-in statistics' })`. Panggil checkinService.getStats().
+**File 3: `apps/api/src/routes/seller/checkin.ts`** — seller-only:
+1. POST /seller/events/:id/checkin — Check-in ticket. Call checkinService.checkin().
+2. GET /seller/events/:id/checkin/stats — Check-in statistics. Call checkinService.getStats().
 
 Di `apps/seller/`:
 
@@ -2242,27 +2140,24 @@ Mount API routes di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Notification API (E41-E43, E61) dan DATABASE_DESIGN.md (tabel notifications, enum notification_type).
+Referensi: PAGES.md (Notification API E41-E43, E61), DATABASE_DESIGN.md (notifications, notification_type enum).
 
 Kerjakan Task T-7.4: Notification System.
 Dependensi: T-6.5 dan T-2.1 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11).
-
 **File 1: `apps/api/src/services/notification.service.ts`:**
 - sendNotification(userId, type, title, body, metadata?): insert ke notifications, return record.
 
-**File 2: `apps/api/src/schemas/notification.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- broadcastSchema: z.object({ title: z.string(), body: z.string(), target_role: z.enum(['buyer','seller','all']).optional() }).openapi('BroadcastNotificationInput')
-- Export inferred types.
+**File 2: `apps/api/src/schemas/notification.schema.ts`:**
+- broadcastSchema: { title, body, target_role?: enum('buyer','seller','all') }.openapi('BroadcastNotificationInput')
 
-**File 3: `apps/api/src/routes/notifications.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (authenticated):
-1. GET /notifications — `createRoute({ tags: ['Notification'], summary: 'List notifications' })`. Panggil service. List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
-2. PATCH /notifications/:id/read — `createRoute({ tags: ['Notification'], summary: 'Mark notification as read' })`. Mark as read. Validasi ownership.
-3. PATCH /notifications/read-all — `createRoute({ tags: ['Notification'], summary: 'Mark all as read' })`. Mark all as read.
+**File 3: `apps/api/src/routes/notifications.ts`** — authenticated:
+1. GET /notifications — List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
+2. PATCH /notifications/:id/read — Mark as read. Validasi ownership.
+3. PATCH /notifications/read-all — Mark all as read.
 
 Admin route:
-4. POST /admin/notifications/broadcast — `createRoute({ tags: ['Admin - Notification'], summary: 'Broadcast notification' })` dengan request body broadcastSchema → handler: `c.req.valid('json')` → panggil service.
+4. POST /admin/notifications/broadcast — Broadcast notification ke semua user atau by role.
 
 Integrasikan trigger di:
    - `routes/payments.ts` (payment webhook success): sendNotification(buyerId, 'order_confirmed', 'Pesanan Dikonfirmasi', 'Order {order_number} berhasil dibayar.').
@@ -2270,15 +2165,6 @@ Integrasikan trigger di:
    - `queues/reservation-cleanup.ts` (menjelang expire): sendNotification(buyerId, 'payment_reminder', 'Segera Bayar', 'Reservasi Anda akan expired dalam 2 menit.').
    - `routes/admin.ts` (approve event): sendNotification(sellerId, 'event_approved', 'Event Disetujui', 'Event {event_name} sudah dipublikasikan.').
    - `routes/admin.ts` (reject event): sendNotification(sellerId, 'event_rejected', 'Event Ditolak', 'Event {event_name} ditolak. Alasan: {reason}.').
-
-Buat file `apps/api/src/routes/notifications.ts` sebagai OpenAPIHono router dengan `createRoute()` + `app.openapi()` (authenticated):
-
-3. GET /notifications — `createRoute({ tags: ['Notification'] })`. List notifikasi milik user. Pagination. Sort by created_at DESC. Include unread count.
-4. PATCH /notifications/:id/read — `createRoute({ tags: ['Notification'] })`. Mark satu notifikasi as read. Validasi: milik user.
-5. PATCH /notifications/read-all — `createRoute({ tags: ['Notification'] })`. Mark semua notifikasi user as read.
-
-Buat di admin routes:
-6. POST /admin/notifications/broadcast — `createRoute({ tags: ['Admin - Notification'] })` dengan broadcastSchema. Admin kirim notifikasi ke semua user atau by role.
 
 Mount di index.ts.
 ```
@@ -2299,24 +2185,23 @@ Mount di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Portal (S11-S12) dan Seller Order API (E37-E38), DATABASE_DESIGN.md (tabel orders, order_items, events, ticket_tiers).
+Referensi: PAGES.md (Seller Portal S11-S12, Seller Order API E37-E38), DATABASE_DESIGN.md (orders, order_items, events, ticket_tiers).
 
 Kerjakan Task T-7.5: Seller Order View.
 Dependensi: T-4.4 dan T-6.3 sudah selesai.
 
-Ikuti arsitektur 3-layer (lihat Execution Rules #10) dan OpenAPI pattern (lihat Execution Rules #11). Buat file API:
+Buat file API:
 
-**File 1: `apps/api/src/schemas/seller-order.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- listSellerOrdersQuerySchema: z.object({ event_id: z.string().optional(), status: z.string().optional(), page: z.coerce.number().optional(), limit: z.coerce.number().optional() }).openapi('ListSellerOrdersQuery')
-- Export inferred types.
+**File 1: `apps/api/src/schemas/seller-order.schema.ts`:**
+- listSellerOrdersQuerySchema: { event_id?, status?, page?, limit? }.openapi('ListSellerOrdersQuery')
 
 **File 2: `apps/api/src/services/seller-order.service.ts`:**
 - listOrders(sellerProfileId, query): orders JOIN order_items JOIN ticket_tiers JOIN events WHERE seller_id matches. Paginated + filter.
 - getOrderDetail(sellerProfileId, orderId): detail + items + buyer info + payment. Validasi ownership.
 
-**File 3: `apps/api/src/routes/seller/orders.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (seller-only):
-1. GET /seller/orders — `createRoute({ tags: ['Seller - Order'], summary: 'List seller orders' })`. Parse query via `c.req.valid('query')` → panggil sellerOrderService.listOrders().
-2. GET /seller/orders/:id — `createRoute({ tags: ['Seller - Order'], summary: 'Seller order detail' })`. Panggil sellerOrderService.getOrderDetail().
+**File 3: `apps/api/src/routes/seller/orders.ts`** — seller-only:
+1. GET /seller/orders — List seller orders. Call sellerOrderService.listOrders().
+2. GET /seller/orders/:id — Seller order detail. Call sellerOrderService.getOrderDetail().
 
 Di `apps/seller/`:
 
@@ -2350,7 +2235,7 @@ Mount API routes di index.ts.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Portal (S16: Notifications).
+Referensi: PAGES.md (Seller Portal S16: Notifications).
 
 Kerjakan Task T-7.6: Seller Notification UI.
 Dependensi: T-7.4 dan T-4.4 sudah selesai.
@@ -2400,7 +2285,7 @@ Di `apps/seller/`:
 
 **Prompt:**
 ```
-Baca file README.md bagian "Real-time" (PartyKit) dan DATABASE_DESIGN.md (tabel ticket_tiers).
+Referensi: README.md (Real-time / PartyKit), DATABASE_DESIGN.md (ticket_tiers).
 
 Kerjakan Task T-8.1: PartyKit Server Setup.
 Dependensi: T-6.1 sudah selesai.
@@ -2442,7 +2327,7 @@ Dependensi: T-6.1 sudah selesai.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Buyer Portal (B7: Event Detail, B10: Checkout).
+Referensi: PAGES.md (Buyer Portal B7: Event Detail, B10: Checkout).
 
 Kerjakan Task T-8.2: PartyKit Client Integration.
 Dependensi: T-8.1, T-5.3, dan T-6.6 sudah selesai.
@@ -2499,18 +2384,18 @@ Pastikan WebSocket auto-reconnect jika koneksi terputus.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Seller Portal (S5: Dashboard, E39-E40).
+Referensi: PAGES.md (Seller Portal S5: Dashboard, E39-E40).
 
 Kerjakan Task T-9.1: Seller Dashboard.
 Dependensi: T-7.5 sudah selesai.
 
-Ikuti arsitektur 3-layer dan OpenAPI pattern (lihat Execution Rules #10, #11). Buat/tambahkan API:
+Buat/tambahkan API:
 
 **`apps/api/src/services/seller-dashboard.service.ts`:**
 - getDashboard(sellerProfileId): aggregate total_events, total_revenue, total_tickets_sold, upcoming_events, recent_orders (5), daily_sales (30 hari).
 
-**`apps/api/src/routes/seller/dashboard.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()`:
-1. GET /seller/dashboard — `createRoute({ tags: ['Seller - Dashboard'], summary: 'Get seller dashboard data' })`. Panggil sellerDashboardService.getDashboard().
+**`apps/api/src/routes/seller/dashboard.ts`:**
+1. GET /seller/dashboard — Get seller dashboard data. Call sellerDashboardService.getDashboard().
 
 Di `apps/seller/`:
 
@@ -2521,10 +2406,6 @@ Di `apps/seller/`:
    - Grafik line chart: penjualan tiket per hari 30 hari terakhir. Gunakan library chart sederhana (Chart.js atau custom SVG).
 
 Install chart library jika perlu: pnpm add chart.js (di workspace apps/seller).
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_blocks(category: "dashboard") lalu get_block() untuk mendapatkan template dashboard layout.
-- Gunakan shadcn-ui MCP → get_component("card"), get_component("data-table") untuk komponen statistik dan tabel.
 ```
 
 ### Task 9.2 — Admin Dashboard
@@ -2544,18 +2425,18 @@ Install chart library jika perlu: pnpm add chart.js (di workspace apps/seller).
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Admin Portal (A2: Dashboard, E44).
+Referensi: PAGES.md (Admin Portal A2: Dashboard, E44).
 
 Kerjakan Task T-9.2: Admin Dashboard.
 Dependensi: T-3.5 sudah selesai.
 
-Ikuti arsitektur 3-layer dan OpenAPI pattern (lihat Execution Rules #10, #11). Buat/tambahkan API:
+Buat/tambahkan API:
 
 **`apps/api/src/services/admin-dashboard.service.ts`:**
 - getDashboard(): aggregate total_users, total_sellers, total_buyers, total_events, total_events_published, total_revenue, total_tickets_sold, daily_transactions (30 hari), recent_events (5), recent_orders (5).
 
-**`apps/api/src/routes/admin/dashboard.ts`** — OpenAPIHono router dengan `createRoute()` + `app.openapi()` (admin-only):
-1. GET /admin/dashboard — `createRoute({ tags: ['Admin - Dashboard'], summary: 'Get admin dashboard data' })`. Panggil adminDashboardService.getDashboard().
+**`apps/api/src/routes/admin/dashboard.ts`** (admin-only):
+1. GET /admin/dashboard — Get admin dashboard data. Call adminDashboardService.getDashboard().
 
 Di `apps/admin/`:
 
@@ -2567,10 +2448,6 @@ Di `apps/admin/`:
    - Tabel "Pesanan Terbaru": order_number, buyer, total, status.
 
 Install chart library jika perlu.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → list_blocks(category: "dashboard") lalu get_block() untuk mendapatkan template dashboard layout.
-- Gunakan shadcn-ui MCP → get_component("card"), get_component("data-table") untuk komponen statistik dan tabel.
 ```
 
 ### Task 9.3 — Admin Order & Payment Management
@@ -2591,13 +2468,12 @@ Install chart library jika perlu.
 
 **Prompt:**
 ```
-Baca file PAGES.md bagian Admin Portal (A7-A12, A14-A15) dan API (E50-E56, E62).
-Baca file DATABASE_DESIGN.md (tabel events, orders, payments, notifications, reservations).
+Referensi: PAGES.md (Admin Portal A7-A12, A14-A15, API E50-E56, E62), DATABASE_DESIGN.md (events, orders, payments, notifications, reservations).
 
 Kerjakan Task T-9.3: Admin Order & Payment Management.
 Dependensi: T-3.2, T-6.3, T-6.4 sudah selesai.
 
-Ikuti arsitektur 3-layer dan OpenAPI pattern (lihat Execution Rules #10, #11). Buat/tambahkan API files:
+Buat/tambahkan API files:
 
 **`apps/api/src/services/admin-event.service.ts`:**
 - listEvents(query): filter status/seller/search, paginated.
@@ -2610,16 +2486,16 @@ Ikuti arsitektur 3-layer dan OpenAPI pattern (lihat Execution Rules #10, #11). B
 **`apps/api/src/services/admin-payment.service.ts`:**
 - listPayments, getPaymentDetail, updatePaymentStatus.
 
-**`apps/api/src/schemas/admin.schema.ts`** (import `z` dari `@hono/zod-openapi`):
-- Schemas untuk semua admin input validation, masing-masing diberi `.openapi('SchemaName')`.
+**`apps/api/src/schemas/admin.schema.ts`:**
+- Schemas untuk semua admin input validation.
 
-**Route files — semua menggunakan OpenAPIHono dengan `createRoute()` + `app.openapi()`:**
-- `apps/api/src/routes/admin/events.ts`: `createRoute({ tags: ['Admin - Event'], ... })` — GET /admin/events, GET /admin/events/:id, PATCH /admin/events/:id/status.
-- `apps/api/src/routes/admin/orders.ts`: `createRoute({ tags: ['Admin - Order'], ... })` — GET /admin/orders, GET /admin/orders/:id, POST /admin/orders/:id/refund, POST /admin/orders/:id/cancel.
-- `apps/api/src/routes/admin/payments.ts`: `createRoute({ tags: ['Admin - Payment'], ... })` — GET /admin/payments, GET /admin/payments/:id, PATCH /admin/payments/:id/status.
+**Route files:**
+- `apps/api/src/routes/admin/events.ts` — GET /admin/events, GET /admin/events/:id, PATCH /admin/events/:id/status.
+- `apps/api/src/routes/admin/orders.ts` — GET /admin/orders, GET /admin/orders/:id, POST /admin/orders/:id/refund, POST /admin/orders/:id/cancel.
+- `apps/api/src/routes/admin/payments.ts` — GET /admin/payments, GET /admin/payments/:id, PATCH /admin/payments/:id/status.
 - GET /admin/notifications, GET /admin/reservations — di routes yang sesuai.
 
-Setiap route: `createRoute()` dengan tags, summary, request/response schemas → `app.openapi(route, handler)`. Handler: `c.req.valid('json'|'query'|'param')` → call service → return response. Semua admin-only via roleMiddleware('admin').
+Semua admin-only via roleMiddleware('admin').
 
 Di `apps/admin/`, buat halaman untuk setiap fitur:
 - A7: `src/routes/events/+page.svelte` — tabel event + filter.
@@ -2631,12 +2507,7 @@ Di `apps/admin/`, buat halaman untuk setiap fitur:
 - A14: `src/routes/notifications/+page.svelte` — broadcast notification.
 - A15: `src/routes/reservations/+page.svelte` — monitoring.
 
-Gunakan komponen tabel dari shadcn-svelte. Setiap halaman punya filter, pagination, dan aksi.
-
-⚡ MCP Tools:
-- Gunakan shadcn-ui MCP → get_component("data-table") dan get_component_demo("data-table") untuk referensi DataTable.
-- Gunakan shadcn-ui MCP → get_component("badge"), get_component("dialog"), get_component("select") untuk komponen pendukung.
-- Gunakan shadcn-ui MCP → get_component("pagination") untuk navigasi halaman.
+Setiap halaman punya filter, pagination, dan aksi.
 ```
 
 **Checkpoint Phase 9:**
@@ -2677,7 +2548,7 @@ Gunakan komponen tabel dari shadcn-svelte. Setiap halaman punya filter, paginati
 
 **Prompt:**
 ```
-Baca file DEVELOPMENT_PLAN.md secara keseluruhan untuk memahami semua fitur yang sudah diimplementasi.
+Referensi: DEVELOPMENT_PLAN.md (semua fitur Phase 1–9).
 
 Kerjakan Task T-10.1: Unit & Integration Tests.
 Dependensi: Phase 1–9 sudah selesai.
