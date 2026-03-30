@@ -82,6 +82,15 @@ function toAuthUser(user: AuthenticatedUserRow): AuthUser {
   };
 }
 
+async function hashSessionToken(token: string) {
+  const encodedToken = new TextEncoder().encode(token);
+  const digest = await crypto.subtle.digest('SHA-256', encodedToken);
+
+  return Array.from(new Uint8Array(digest), (value) => value.toString(16).padStart(2, '0')).join(
+    '',
+  );
+}
+
 async function createSession(user: AuthenticatedUserRow, secret: string) {
   const payload: TokenPayloadInput = {
     id: user.id,
@@ -91,7 +100,7 @@ async function createSession(user: AuthenticatedUserRow, secret: string) {
 
   const accessToken = await generateAccessToken(payload, secret);
   const refreshToken = await generateRefreshToken(payload, secret);
-  const refreshTokenHash = await hashPassword(refreshToken);
+  const refreshTokenHash = await hashSessionToken(refreshToken);
   const refreshPayload = await verifyToken(refreshToken, secret);
 
   return {
@@ -104,24 +113,16 @@ async function createSession(user: AuthenticatedUserRow, secret: string) {
 
 async function findRefreshTokenRecord(userId: string, refreshToken: string, databaseUrl?: string) {
   const database = getDatabase(databaseUrl);
+  const refreshTokenHash = await hashSessionToken(refreshToken);
 
-  const activeRefreshTokens = await database.query.refreshTokens.findMany({
+  return database.query.refreshTokens.findFirst({
     where: and(
       eq(refreshTokens.userId, userId),
+      eq(refreshTokens.tokenHash, refreshTokenHash),
       isNull(refreshTokens.revokedAt),
       gt(refreshTokens.expiresAt, new Date()),
     ),
   });
-
-  for (const tokenRecord of activeRefreshTokens) {
-    const isMatch = await verifyPassword(refreshToken, tokenRecord.tokenHash);
-
-    if (isMatch) {
-      return tokenRecord;
-    }
-  }
-
-  return null;
 }
 
 function assertActiveUser(user: AuthenticatedUserRow) {

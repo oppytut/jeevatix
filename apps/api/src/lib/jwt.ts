@@ -2,6 +2,7 @@ import { sign, verify } from 'hono/jwt';
 
 const ACCESS_TOKEN_TTL_SECONDS = 60 * 15;
 const REFRESH_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
+const JWT_ALGORITHM = 'HS256';
 
 const USER_ROLES = ['buyer', 'seller', 'admin'] as const;
 const TOKEN_TYPES = ['access', 'refresh'] as const;
@@ -16,6 +17,7 @@ export type TokenPayloadInput = {
 };
 
 export type TokenPayload = TokenPayloadInput & {
+  jti: string;
   type: TokenType;
   iat: number;
   exp: number;
@@ -30,6 +32,7 @@ function createTokenPayload(
 
   return {
     ...payload,
+    jti: crypto.randomUUID(),
     type,
     iat: issuedAt,
     exp: issuedAt + ttlSeconds,
@@ -48,6 +51,7 @@ function assertTokenPayload(payload: Record<string, unknown>): TokenPayload {
   if (
     typeof payload.id !== 'string' ||
     typeof payload.email !== 'string' ||
+    typeof payload.jti !== 'string' ||
     !isUserRole(payload.role) ||
     !isTokenType(payload.type) ||
     typeof payload.iat !== 'number' ||
@@ -59,6 +63,7 @@ function assertTokenPayload(payload: Record<string, unknown>): TokenPayload {
   return {
     id: payload.id,
     email: payload.email,
+    jti: payload.jti,
     role: payload.role,
     type: payload.type,
     iat: payload.iat,
@@ -81,8 +86,8 @@ export async function generateRefreshToken(
 }
 
 export async function verifyToken(token: string, secret: string): Promise<TokenPayload> {
-  const payload = (await verify(token, secret)) as Record<string, unknown>;
+  const payload = (await verify(token, secret, JWT_ALGORITHM)) as Record<string, unknown>;
   return assertTokenPayload(payload);
 }
 
-export { ACCESS_TOKEN_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS };
+export { ACCESS_TOKEN_TTL_SECONDS, REFRESH_TOKEN_TTL_SECONDS, JWT_ALGORITHM };
