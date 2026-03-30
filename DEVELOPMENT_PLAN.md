@@ -314,7 +314,7 @@ Dependensi: T-0.1 dan T-0.4 sudah selesai.
 4. Buat `apps/api/tsconfig.json` (extends root, types: @cloudflare/workers-types).
 5. Buat `apps/api/wrangler.toml` — name: jeevatix-api, compatibility_date terbaru, main: src/index.ts.
 6. Buat `apps/api/src/index.ts` menggunakan **OpenAPIHono** (bukan `new Hono()`):
-   ```typescript
+   ~~~typescript
    import { OpenAPIHono } from '@hono/zod-openapi';
    import { apiReference } from '@scalar/hono-api-reference';
 
@@ -333,7 +333,7 @@ Dependensi: T-0.1 dan T-0.4 sudah selesai.
    app.get('/reference', apiReference({ spec: { url: '/doc' } }));
 
    export default app;
-   ```
+   ~~~
 7. Scaffold arsitektur 3-layer — buat folder berikut (masing-masing dengan file .gitkeep agar ter-track Git):
    - `apps/api/src/routes/` — Thin HTTP handlers menggunakan `createRoute()` + `app.openapi()`.
    - `apps/api/src/services/` — Business logic & DB operations.
