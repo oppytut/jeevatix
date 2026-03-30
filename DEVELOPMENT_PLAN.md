@@ -410,7 +410,7 @@ Dependensi: T-0.1 sudah selesai.
 Verifikasi: `cd apps/admin && pnpm dev` harus start di http://localhost:4302 tanpa error.
 ```
 
-### Task 0.8 — Create App: `apps/seller`
+### Task 0.8 — Create App: `apps/seller` [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
