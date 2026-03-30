@@ -29,6 +29,7 @@ function getStatusFromError(error: UploadServiceError) {
     case 'INVALID_FILE_TYPE':
       return 400;
     case 'BUCKET_NOT_CONFIGURED':
+    case 'UPLOAD_PUBLIC_URL_MISSING':
       return 500;
     default:
       return 400;

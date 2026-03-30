@@ -20,7 +20,8 @@ export class UploadServiceError extends Error {
       | 'BUCKET_NOT_CONFIGURED'
       | 'FILE_REQUIRED'
       | 'FILE_TOO_LARGE'
-      | 'INVALID_FILE_TYPE',
+      | 'INVALID_FILE_TYPE'
+      | 'UPLOAD_PUBLIC_URL_MISSING',
     message: string,
   ) {
     super(message);
@@ -28,15 +29,25 @@ export class UploadServiceError extends Error {
   }
 }
 
+function getProcessEnv(key: string) {
+  return (
+    globalThis as typeof globalThis & {
+      process?: {
+        env?: Record<string, string | undefined>;
+      };
+    }
+  ).process?.env?.[key];
+}
+
 function isAllowedType(type: string): type is AllowedUploadType {
   return ALLOWED_TYPES.includes(type as AllowedUploadType);
 }
 
-function buildUploadUrl(key: string, publicBaseUrl?: string) {
-  if (!publicBaseUrl) {
-    return `/${key}`;
-  }
+function resolveUploadPublicUrl(envPublicBaseUrl?: string) {
+  return envPublicBaseUrl || getProcessEnv('UPLOAD_PUBLIC_URL');
+}
 
+function buildUploadUrl(key: string, publicBaseUrl: string) {
   return new URL(key, publicBaseUrl.endsWith('/') ? publicBaseUrl : `${publicBaseUrl}/`).toString();
 }
 
@@ -61,6 +72,15 @@ export const uploadService = {
       throw new UploadServiceError('FILE_TOO_LARGE', 'File size must not exceed 5 MB.');
     }
 
+    const uploadPublicUrl = resolveUploadPublicUrl(env.UPLOAD_PUBLIC_URL);
+
+    if (!uploadPublicUrl) {
+      throw new UploadServiceError(
+        'UPLOAD_PUBLIC_URL_MISSING',
+        'Upload public URL is not configured.',
+      );
+    }
+
     const extension = EXTENSION_MAP[file.type];
     const key = `uploads/${crypto.randomUUID()}.${extension}`;
 
@@ -71,7 +91,7 @@ export const uploadService = {
     });
 
     return {
-      url: buildUploadUrl(key, env.UPLOAD_PUBLIC_URL),
+      url: buildUploadUrl(key, uploadPublicUrl),
     };
   },
 };
