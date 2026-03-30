@@ -1057,7 +1057,7 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 
 **Tujuan:** Admin bisa login, kelola kategori (CRUD), dan kelola user/seller.
 
-### Task 3.1 — Category Admin API
+### Task 3.1 — Category Admin API [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
