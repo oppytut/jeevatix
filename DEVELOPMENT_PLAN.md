@@ -134,7 +134,7 @@ gantt
 
 **Tujuan:** Setup monorepo dari nol sehingga `pnpm install` dan `pnpm run dev` bisa berjalan tanpa error.
 
-### Task 0.1 — Initialize Root Monorepo
+### Task 0.1 — Initialize Root Monorepo [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
