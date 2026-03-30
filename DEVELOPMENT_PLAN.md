@@ -926,7 +926,7 @@ Buat 3 file:
 Mount router di apps/api/src/index.ts.
 ```
 
-### Task 2.4 — Auth Unit Tests
+### Task 2.4 — Auth Unit Tests [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
