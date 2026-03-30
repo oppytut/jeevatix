@@ -170,6 +170,19 @@ Anda bisa mengakses aplikasi di port berikut:
 * **Portal Penjual/Seller (SvelteKit):** [http://localhost:4303](http://localhost:4303)
 * **Backend API (Hono):** `http://localhost:8787` (atau port dinamis wrangler)
 
+### 5. Catatan Runtime Auth Lokal
+
+Beberapa detail implementasi auth di `apps/api` perlu dipahami karena perilakunya spesifik ke Cloudflare Workers + local smoke test:
+
+* Script `pnpm --filter @jeevatix/api dev` memuat `.env` root melalui `dotenv-cli`, jadi `DATABASE_URL` dan `JWT_SECRET` harus tersedia di root project sebelum menjalankan Wrangler lokal.
+* `apps/api/wrangler.toml` memakai `compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]` untuk menghindari error I/O lintas request saat memakai postgres-js di runtime Worker lokal.
+* JWT auth memakai algoritma `HS256` secara eksplisit. Access token berlaku 15 menit, refresh token 7 hari, dan setiap token membawa `jti` agar rotasi token tidak bentrok walau dibuat pada detik yang sama.
+* Refresh token disimpan di tabel `refresh_tokens` sebagai hash SHA-256 deterministik, bukan bcrypt. Ini disengaja supaya lookup, rotation, dan revocation tetap akurat untuk string JWT yang panjang.
+* Koneksi DB untuk Worker tidak di-cache sebagai singleton lintas request. Gunakan `getDb(databaseUrl?)` dari `packages/core/src/db/index.ts` bila butuh akses DB dari runtime API.
+* Selama task email queue belum selesai, flow `register`, `register-seller`, dan `forgot-password` masih mengembalikan `verify_email_token` atau `reset_token` di response agar frontend dan smoke test bisa melanjutkan flow end-to-end.
+
+Smoke test terakhir yang sudah diverifikasi: `login -> refresh -> logout -> refresh token lama` harus berakhir dengan `401 Unauthorized` pada langkah terakhir.
+
 ---
 
 ## 🧪 Code Quality & Testing
