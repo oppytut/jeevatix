@@ -699,7 +699,7 @@ Untuk SETIAP file:
 Gunakan: pgTable, uuid, varchar, text, boolean, integer, numeric, serial, timestamptz, jsonb, primaryKey, uniqueIndex, index dari drizzle-orm/pg-core.
 ```
 
-### Task 1.3 — Database Connection
+### Task 1.3 — Database Connection [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
