@@ -731,7 +731,7 @@ Update file `packages/core/src/db/index.ts`:
 Pastikan compatible dengan Cloudflare Workers runtime (jangan gunakan Node.js-only APIs).
 ```
 
-### Task 1.4 — Run Migration
+### Task 1.4 — Run Migration [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
