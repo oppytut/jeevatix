@@ -610,7 +610,7 @@ pnpm run dev          # semua app harus start di port masing-masing
 
 **Tujuan:** Definisikan seluruh 15 tabel + 10 enum di Drizzle ORM, jalankan push ke PostgreSQL.
 
-### Task 1.1 — Drizzle Enum Definitions
+### Task 1.1 — Drizzle Enum Definitions [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
