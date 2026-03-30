@@ -886,7 +886,7 @@ Access token expiry: 15 menit. Refresh token expiry: 7 hari.
 Mount router di apps/api/src/index.ts.
 ```
 
-### Task 2.3 — User API Endpoints
+### Task 2.3 — User API Endpoints [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
