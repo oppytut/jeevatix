@@ -781,7 +781,7 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 
 **Tujuan:** Sistem autentikasi lengkap (register, login, JWT) + user profile endpoints.
 
-### Task 2.1 — Auth Middleware & Utilities
+### Task 2.1 — Auth Middleware & Utilities [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

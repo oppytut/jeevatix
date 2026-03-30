@@ -1,7 +1,11 @@
 import { apiReference } from '@scalar/hono-api-reference';
 import { OpenAPIHono } from '@hono/zod-openapi';
 
+import { corsMiddleware } from './middleware/cors';
+
 const app = new OpenAPIHono();
+
+app.use('*', corsMiddleware);
 
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
