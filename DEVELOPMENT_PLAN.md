@@ -441,7 +441,7 @@ Dependensi: T-0.1 sudah selesai.
 Verifikasi: `cd apps/seller && pnpm dev` harus start di http://localhost:4303 tanpa error.
 ```
 
-### Task 0.9 — Create Package: `packages/ui`
+### Task 0.9 — Create Package: `packages/ui` [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
