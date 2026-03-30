@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev src/index.ts",
+    "dev": "dotenv -e ../../.env -- wrangler dev src/index.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260329.1",
+    "dotenv-cli": "^11.0.0",
     "wrangler": "^4.78.0"
   }
 }

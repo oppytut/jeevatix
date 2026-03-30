@@ -1,9 +1,10 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
-import { authMiddleware, type AuthEnv } from '../middleware/auth';
+import type { AuthEnv } from '../middleware/auth';
 import {
   authResponseSchema,
   errorResponseSchema,
+  forgotPasswordResponseSchema,
   forgotPasswordSchema,
   loginSchema,
   logoutSchema,
@@ -17,6 +18,24 @@ import {
 import { AuthServiceError, authService } from '../services/auth.service';
 
 const app = new OpenAPIHono<AuthEnv>();
+
+function getProcessEnv(key: string) {
+  return (
+    globalThis as typeof globalThis & {
+      process?: {
+        env?: Record<string, string | undefined>;
+      };
+    }
+  ).process?.env?.[key];
+}
+
+function getJwtSecret(envSecret?: string) {
+  return envSecret || getProcessEnv('JWT_SECRET');
+}
+
+function getDatabaseUrl(envDatabaseUrl?: string) {
+  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
+}
 
 function jsonError(code: string, message: string) {
   return {
@@ -217,7 +236,7 @@ const forgotPasswordRoute = createRoute({
       description: 'Reset instructions generated',
       content: {
         'application/json': {
-          schema: messageResponseSchema,
+          schema: forgotPasswordResponseSchema,
         },
       },
     },
@@ -329,12 +348,16 @@ const logoutRoute = createRoute({
   },
 });
 
-app.use('/logout', authMiddleware);
-
 app.openapi(registerRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.register(body, c.env.JWT_SECRET);
+    const result = await authService.register(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
     return handleError(c, error);
@@ -343,8 +366,18 @@ app.openapi(registerRoute, async (c) => {
 
 app.openapi(registerSellerRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.registerSeller(body, c.env.JWT_SECRET);
+    const result = await authService.registerSeller(
+      body,
+      secret,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
     return handleError(c, error);
@@ -353,8 +386,14 @@ app.openapi(registerSellerRoute, async (c) => {
 
 app.openapi(loginRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.login(body, c.env.JWT_SECRET);
+    const result = await authService.login(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
     return c.json({ success: true, data: result });
   } catch (error) {
     return handleError(c, error);
@@ -363,8 +402,14 @@ app.openapi(loginRoute, async (c) => {
 
 app.openapi(refreshRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.refresh(body, c.env.JWT_SECRET);
+    const result = await authService.refresh(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
     return c.json({ success: true, data: result });
   } catch (error) {
     return handleError(c, error);
@@ -373,8 +418,18 @@ app.openapi(refreshRoute, async (c) => {
 
 app.openapi(forgotPasswordRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.forgotPassword(body, c.env.JWT_SECRET);
+    const result = await authService.forgotPassword(
+      body,
+      secret,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
     return c.json({ success: true, data: result });
   } catch (error) {
     return handleError(c, error);
@@ -383,8 +438,18 @@ app.openapi(forgotPasswordRoute, async (c) => {
 
 app.openapi(resetPasswordRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.resetPassword(body, c.env.JWT_SECRET);
+    const result = await authService.resetPassword(
+      body,
+      secret,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
     return c.json({ success: true, data: result });
   } catch (error) {
     return handleError(c, error);
@@ -393,8 +458,18 @@ app.openapi(resetPasswordRoute, async (c) => {
 
 app.openapi(verifyEmailRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.verifyEmail(body.token, c.env.JWT_SECRET);
+    const result = await authService.verifyEmail(
+      body.token,
+      secret,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
     return c.json({ success: true, data: result });
   } catch (error) {
     return handleError(c, error);
@@ -403,8 +478,18 @@ app.openapi(verifyEmailRoute, async (c) => {
 
 app.openapi(logoutRoute, async (c) => {
   try {
+    const secret = getJwtSecret(c.env.JWT_SECRET);
+
+    if (!secret) {
+      return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
+    }
+
     const body = c.req.valid('json');
-    const result = await authService.logout(body.refresh_token, c.env.JWT_SECRET);
+    const result = await authService.logout(
+      body.refresh_token,
+      secret,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
     return c.json({ success: true, data: result });
   } catch (error) {
     return handleError(c, error);

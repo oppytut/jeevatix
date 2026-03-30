@@ -90,6 +90,10 @@ export const authPayloadSchema = z
     access_token: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     refresh_token: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     user: authUserSchema,
+    verify_email_token: z
+      .string()
+      .optional()
+      .openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
   })
   .openapi('AuthPayload');
 
@@ -113,6 +117,23 @@ export const messageResponseSchema = z
   })
   .openapi('MessageResponse');
 
+export const forgotPasswordPayloadSchema = z
+  .object({
+    message: z.string().openapi({ example: 'Reset instructions have been generated.' }),
+    reset_token: z
+      .string()
+      .optional()
+      .openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+  })
+  .openapi('ForgotPasswordPayload');
+
+export const forgotPasswordResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: forgotPasswordPayloadSchema,
+  })
+  .openapi('ForgotPasswordResponse');
+
 export const errorResponseSchema = z
   .object({
     success: z.literal(false),
@@ -133,3 +154,4 @@ export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type LogoutInput = z.infer<typeof logoutSchema>;
 export type AuthUser = z.infer<typeof authUserSchema>;
 export type AuthPayload = z.infer<typeof authPayloadSchema>;
+export type ForgotPasswordPayload = z.infer<typeof forgotPasswordPayloadSchema>;

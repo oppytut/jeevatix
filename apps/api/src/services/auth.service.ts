@@ -1,4 +1,4 @@
-import { db, schema } from '@jeevatix/core';
+import { getDb, schema } from '@jeevatix/core';
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import { sign, verify } from 'hono/jwt';
 
@@ -12,6 +12,7 @@ import { hashPassword, verifyPassword } from '../lib/password';
 import type {
   AuthPayload,
   AuthUser,
+  ForgotPasswordPayload,
   ForgotPasswordInput,
   LoginInput,
   RefreshInput,
@@ -30,6 +31,7 @@ type ActionTokenType = 'password_reset' | 'verify_email';
 type ActionTokenPayload = {
   sub: string;
   type: ActionTokenType;
+  ver: number;
   iat: number;
   exp: number;
 };
@@ -55,7 +57,9 @@ export class AuthServiceError extends Error {
   }
 }
 
-function getDatabase() {
+function getDatabase(databaseUrl?: string) {
+  const db = getDb(databaseUrl);
+
   if (!db) {
     throw new AuthServiceError('DATABASE_UNAVAILABLE', 'Database connection is not available.');
   }
@@ -98,8 +102,8 @@ async function createSession(user: AuthenticatedUserRow, secret: string) {
   };
 }
 
-async function findRefreshTokenRecord(userId: string, refreshToken: string) {
-  const database = getDatabase();
+async function findRefreshTokenRecord(userId: string, refreshToken: string, databaseUrl?: string) {
+  const database = getDatabase(databaseUrl);
 
   const activeRefreshTokens = await database.query.refreshTokens.findMany({
     where: and(
@@ -131,6 +135,7 @@ async function signActionToken(
   secret: string,
   type: ActionTokenType,
   ttlSeconds: number,
+  version: number,
 ) {
   const issuedAt = Math.floor(Date.now() / 1000);
 
@@ -138,6 +143,7 @@ async function signActionToken(
     {
       sub: userId,
       type,
+      ver: version,
       iat: issuedAt,
       exp: issuedAt + ttlSeconds,
     } satisfies ActionTokenPayload,
@@ -151,6 +157,7 @@ async function verifyActionToken(token: string, secret: string, expectedType: Ac
   if (
     typeof payload.sub !== 'string' ||
     payload.type !== expectedType ||
+    typeof payload.ver !== 'number' ||
     typeof payload.iat !== 'number' ||
     typeof payload.exp !== 'number'
   ) {
@@ -160,9 +167,47 @@ async function verifyActionToken(token: string, secret: string, expectedType: Ac
   return payload as ActionTokenPayload;
 }
 
+function isUniqueViolation(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: string }).code === '23505'
+  );
+}
+
+async function getUserById(userId: string, databaseUrl?: string) {
+  const database = getDatabase(databaseUrl);
+
+  return database.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+}
+
+function assertActionTokenVersion(
+  tokenPayload: ActionTokenPayload,
+  user: AuthenticatedUserRow,
+  errorCode: AuthServiceError['code'],
+  message: string,
+) {
+  if (user.updatedAt.getTime() !== tokenPayload.ver) {
+    throw new AuthServiceError(errorCode, message);
+  }
+}
+
+async function createVerifyEmailToken(user: AuthenticatedUserRow, secret: string) {
+  return signActionToken(
+    user.id,
+    secret,
+    'verify_email',
+    VERIFY_EMAIL_TTL_SECONDS,
+    user.updatedAt.getTime(),
+  );
+}
+
 export const authService = {
-  async register(input: RegisterInput, secret: string): Promise<AuthResult> {
-    const database = getDatabase();
+  async register(input: RegisterInput, secret: string, databaseUrl?: string): Promise<AuthResult> {
+    const database = getDatabase(databaseUrl);
 
     const existingUser = await database.query.users.findFirst({
       where: eq(users.email, input.email),
@@ -174,37 +219,51 @@ export const authService = {
 
     const passwordHash = await hashPassword(input.password);
 
-    return database.transaction(async (tx) => {
-      const [user] = await tx
-        .insert(users)
-        .values({
-          email: input.email,
-          passwordHash,
-          fullName: input.full_name,
-          phone: input.phone,
-          role: 'buyer',
-          status: 'active',
-        })
-        .returning();
+    try {
+      return await database.transaction(async (tx) => {
+        const [user] = await tx
+          .insert(users)
+          .values({
+            email: input.email,
+            passwordHash,
+            fullName: input.full_name,
+            phone: input.phone,
+            role: 'buyer',
+            status: 'active',
+          })
+          .returning();
 
-      const session = await createSession(user, secret);
+        const session = await createSession(user, secret);
+        const verifyEmailToken = await createVerifyEmailToken(user, secret);
 
-      await tx.insert(refreshTokens).values({
-        userId: user.id,
-        tokenHash: session.refreshTokenHash,
-        expiresAt: session.refreshExpiresAt,
+        await tx.insert(refreshTokens).values({
+          userId: user.id,
+          tokenHash: session.refreshTokenHash,
+          expiresAt: session.refreshExpiresAt,
+        });
+
+        return {
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          user: toAuthUser(user),
+          verify_email_token: verifyEmailToken,
+        };
       });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new AuthServiceError('EMAIL_ALREADY_EXISTS', 'Email is already registered.');
+      }
 
-      return {
-        access_token: session.accessToken,
-        refresh_token: session.refreshToken,
-        user: toAuthUser(user),
-      };
-    });
+      throw error;
+    }
   },
 
-  async registerSeller(input: RegisterSellerInput, secret: string): Promise<AuthResult> {
-    const database = getDatabase();
+  async registerSeller(
+    input: RegisterSellerInput,
+    secret: string,
+    databaseUrl?: string,
+  ): Promise<AuthResult> {
+    const database = getDatabase(databaseUrl);
 
     const existingUser = await database.query.users.findFirst({
       where: eq(users.email, input.email),
@@ -216,43 +275,53 @@ export const authService = {
 
     const passwordHash = await hashPassword(input.password);
 
-    return database.transaction(async (tx) => {
-      const [user] = await tx
-        .insert(users)
-        .values({
-          email: input.email,
-          passwordHash,
-          fullName: input.full_name,
-          phone: input.phone,
-          role: 'seller',
-          status: 'active',
-        })
-        .returning();
+    try {
+      return await database.transaction(async (tx) => {
+        const [user] = await tx
+          .insert(users)
+          .values({
+            email: input.email,
+            passwordHash,
+            fullName: input.full_name,
+            phone: input.phone,
+            role: 'seller',
+            status: 'active',
+          })
+          .returning();
 
-      await tx.insert(sellerProfiles).values({
-        userId: user.id,
-        orgName: input.org_name,
-        orgDescription: input.org_description,
+        await tx.insert(sellerProfiles).values({
+          userId: user.id,
+          orgName: input.org_name,
+          orgDescription: input.org_description,
+        });
+
+        const session = await createSession(user, secret);
+        const verifyEmailToken = await createVerifyEmailToken(user, secret);
+
+        await tx.insert(refreshTokens).values({
+          userId: user.id,
+          tokenHash: session.refreshTokenHash,
+          expiresAt: session.refreshExpiresAt,
+        });
+
+        return {
+          access_token: session.accessToken,
+          refresh_token: session.refreshToken,
+          user: toAuthUser(user),
+          verify_email_token: verifyEmailToken,
+        };
       });
+    } catch (error) {
+      if (isUniqueViolation(error)) {
+        throw new AuthServiceError('EMAIL_ALREADY_EXISTS', 'Email is already registered.');
+      }
 
-      const session = await createSession(user, secret);
-
-      await tx.insert(refreshTokens).values({
-        userId: user.id,
-        tokenHash: session.refreshTokenHash,
-        expiresAt: session.refreshExpiresAt,
-      });
-
-      return {
-        access_token: session.accessToken,
-        refresh_token: session.refreshToken,
-        user: toAuthUser(user),
-      };
-    });
+      throw error;
+    }
   },
 
-  async login(input: LoginInput, secret: string): Promise<AuthResult> {
-    const database = getDatabase();
+  async login(input: LoginInput, secret: string, databaseUrl?: string): Promise<AuthResult> {
+    const database = getDatabase(databaseUrl);
 
     const user = await database.query.users.findFirst({
       where: eq(users.email, input.email),
@@ -285,8 +354,8 @@ export const authService = {
     };
   },
 
-  async refresh(input: RefreshInput, secret: string): Promise<AuthResult> {
-    const database = getDatabase();
+  async refresh(input: RefreshInput, secret: string, databaseUrl?: string): Promise<AuthResult> {
+    const database = getDatabase(databaseUrl);
     const payload = await verifyToken(input.refresh_token, secret).catch(() => {
       throw new AuthServiceError('INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token.');
     });
@@ -305,17 +374,22 @@ export const authService = {
 
     assertActiveUser(user);
 
-    const matchingToken = await findRefreshTokenRecord(user.id, input.refresh_token);
+    const matchingToken = await findRefreshTokenRecord(user.id, input.refresh_token, databaseUrl);
 
     if (!matchingToken) {
       throw new AuthServiceError('INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token.');
     }
 
     return database.transaction(async (tx) => {
-      await tx
+      const [revokedToken] = await tx
         .update(refreshTokens)
         .set({ revokedAt: new Date() })
-        .where(eq(refreshTokens.id, matchingToken.id));
+        .where(and(eq(refreshTokens.id, matchingToken.id), isNull(refreshTokens.revokedAt)))
+        .returning({ id: refreshTokens.id });
+
+      if (!revokedToken) {
+        throw new AuthServiceError('INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token.');
+      }
 
       const session = await createSession(user, secret);
 
@@ -333,8 +407,12 @@ export const authService = {
     });
   },
 
-  async forgotPassword(input: ForgotPasswordInput, secret: string) {
-    const database = getDatabase();
+  async forgotPassword(
+    input: ForgotPasswordInput,
+    secret: string,
+    databaseUrl?: string,
+  ): Promise<ForgotPasswordPayload> {
+    const database = getDatabase(databaseUrl);
     const user = await database.query.users.findFirst({
       where: eq(users.email, input.email),
     });
@@ -345,18 +423,38 @@ export const authService = {
       };
     }
 
-    await signActionToken(user.id, secret, 'password_reset', PASSWORD_RESET_TTL_SECONDS);
+    const resetToken = await signActionToken(
+      user.id,
+      secret,
+      'password_reset',
+      PASSWORD_RESET_TTL_SECONDS,
+      user.updatedAt.getTime(),
+    );
 
     return {
       message: 'If the email is registered, reset instructions have been generated.',
+      reset_token: resetToken,
     };
   },
 
-  async resetPassword(input: ResetPasswordInput, secret: string) {
-    const database = getDatabase();
+  async resetPassword(input: ResetPasswordInput, secret: string, databaseUrl?: string) {
+    const database = getDatabase(databaseUrl);
     const payload = await verifyActionToken(input.token, secret, 'password_reset').catch(() => {
       throw new AuthServiceError('INVALID_RESET_TOKEN', 'Invalid or expired reset token.');
     });
+
+    const user = await getUserById(payload.sub, databaseUrl);
+
+    if (!user) {
+      throw new AuthServiceError('INVALID_RESET_TOKEN', 'Invalid or expired reset token.');
+    }
+
+    assertActionTokenVersion(
+      payload,
+      user,
+      'INVALID_RESET_TOKEN',
+      'Invalid or expired reset token.',
+    );
 
     const passwordHash = await hashPassword(input.password);
 
@@ -383,14 +481,36 @@ export const authService = {
     };
   },
 
-  async verifyEmail(token: string, secret: string) {
-    const database = getDatabase();
+  async verifyEmail(token: string, secret: string, databaseUrl?: string) {
+    const database = getDatabase(databaseUrl);
     const payload = await verifyActionToken(token, secret, 'verify_email').catch(() => {
       throw new AuthServiceError(
         'INVALID_VERIFY_EMAIL_TOKEN',
         'Invalid or expired verification token.',
       );
     });
+
+    const user = await getUserById(payload.sub, databaseUrl);
+
+    if (!user) {
+      throw new AuthServiceError(
+        'INVALID_VERIFY_EMAIL_TOKEN',
+        'Invalid or expired verification token.',
+      );
+    }
+
+    assertActionTokenVersion(
+      payload,
+      user,
+      'INVALID_VERIFY_EMAIL_TOKEN',
+      'Invalid or expired verification token.',
+    );
+
+    if (user.emailVerifiedAt) {
+      return {
+        message: 'Email has already been verified.',
+      };
+    }
 
     const [updatedUser] = await database
       .update(users)
@@ -413,8 +533,8 @@ export const authService = {
     };
   },
 
-  async logout(refreshToken: string, secret: string) {
-    const database = getDatabase();
+  async logout(refreshToken: string, secret: string, databaseUrl?: string) {
+    const database = getDatabase(databaseUrl);
     const payload = await verifyToken(refreshToken, secret).catch(() => {
       throw new AuthServiceError('INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token.');
     });
@@ -423,7 +543,7 @@ export const authService = {
       throw new AuthServiceError('INVALID_REFRESH_TOKEN', 'Invalid or expired refresh token.');
     }
 
-    const matchingToken = await findRefreshTokenRecord(payload.id, refreshToken);
+    const matchingToken = await findRefreshTokenRecord(payload.id, refreshToken, databaseUrl);
 
     if (matchingToken) {
       await database
@@ -437,7 +557,13 @@ export const authService = {
     };
   },
 
-  async generateVerifyEmailToken(userId: string, secret: string) {
-    return signActionToken(userId, secret, 'verify_email', VERIFY_EMAIL_TTL_SECONDS);
+  async generateVerifyEmailToken(userId: string, secret: string, databaseUrl?: string) {
+    const user = await getUserById(userId, databaseUrl);
+
+    if (!user) {
+      throw new AuthServiceError('INVALID_VERIFY_EMAIL_TOKEN', 'User not found.');
+    }
+
+    return createVerifyEmailToken(user, secret);
   },
 };

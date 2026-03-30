@@ -4,6 +4,7 @@ import { verifyToken, type TokenPayload, type UserRole } from '../lib/jwt';
 
 type AuthBindings = {
   JWT_SECRET: string;
+  DATABASE_URL?: string;
 };
 
 export type AuthUser = Pick<TokenPayload, 'id' | 'email' | 'role'>;
@@ -14,6 +15,20 @@ export type AuthEnv = {
     user: AuthUser;
   };
 };
+
+function getProcessEnv(key: string) {
+  return (
+    globalThis as typeof globalThis & {
+      process?: {
+        env?: Record<string, string | undefined>;
+      };
+    }
+  ).process?.env?.[key];
+}
+
+function getJwtSecret(envSecret?: string) {
+  return envSecret || getProcessEnv('JWT_SECRET');
+}
 
 function jsonError(code: string, message: string) {
   return {
@@ -46,7 +61,7 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
     return c.json(jsonError('UNAUTHORIZED', 'Missing or invalid bearer token.'), 401);
   }
 
-  const secret = c.env.JWT_SECRET;
+  const secret = getJwtSecret(c.env.JWT_SECRET);
 
   if (!secret) {
     return c.json(jsonError('JWT_SECRET_MISSING', 'JWT secret is not configured.'), 500);
