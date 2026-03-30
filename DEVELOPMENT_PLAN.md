@@ -1104,7 +1104,7 @@ Buat 3 file:
 Mount di index.ts.
 ```
 
-### Task 3.2 — Admin Auth UI (Login)
+### Task 3.2 — Admin Auth UI (Login) [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
