@@ -470,7 +470,7 @@ Dependensi: T-0.1 sudah selesai.
 Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastikan bisa di-import via @jeevatix/ui.
 ```
 
-### Task 0.10 — Setup Prettier, ESLint & Playwright
+### Task 0.10 — Setup Prettier, ESLint & Playwright [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

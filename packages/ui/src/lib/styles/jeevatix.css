@@ -1,41 +1,41 @@
 @import 'tailwindcss';
 
 @theme {
-	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-	--color-jeevatix-50: #fff7ed;
-	--color-jeevatix-100: #ffedd5;
-	--color-jeevatix-200: #fed7aa;
-	--color-jeevatix-300: #fdba74;
-	--color-jeevatix-400: #fb923c;
-	--color-jeevatix-500: #f97316;
-	--color-jeevatix-600: #ea580c;
-	--color-jeevatix-700: #c2410c;
-	--color-jeevatix-800: #9a3412;
-	--color-jeevatix-900: #7c2d12;
-	--color-sea-50: #f0fdfa;
-	--color-sea-100: #ccfbf1;
-	--color-sea-200: #99f6e4;
-	--color-sea-300: #5eead4;
-	--color-sea-400: #2dd4bf;
-	--color-sea-500: #14b8a6;
-	--color-sea-600: #0d9488;
-	--color-sea-700: #0f766e;
-	--color-sea-800: #115e59;
-	--color-sea-900: #134e4a;
-	--radius-card: 1.5rem;
-	--radius-panel: 2rem;
-	--shadow-spotlight: 0 24px 80px rgba(15, 23, 42, 0.12);
-	--shadow-float: 0 16px 48px rgba(232, 93, 63, 0.18);
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --color-jeevatix-50: #fff7ed;
+  --color-jeevatix-100: #ffedd5;
+  --color-jeevatix-200: #fed7aa;
+  --color-jeevatix-300: #fdba74;
+  --color-jeevatix-400: #fb923c;
+  --color-jeevatix-500: #f97316;
+  --color-jeevatix-600: #ea580c;
+  --color-jeevatix-700: #c2410c;
+  --color-jeevatix-800: #9a3412;
+  --color-jeevatix-900: #7c2d12;
+  --color-sea-50: #f0fdfa;
+  --color-sea-100: #ccfbf1;
+  --color-sea-200: #99f6e4;
+  --color-sea-300: #5eead4;
+  --color-sea-400: #2dd4bf;
+  --color-sea-500: #14b8a6;
+  --color-sea-600: #0d9488;
+  --color-sea-700: #0f766e;
+  --color-sea-800: #115e59;
+  --color-sea-900: #134e4a;
+  --radius-card: 1.5rem;
+  --radius-panel: 2rem;
+  --shadow-spotlight: 0 24px 80px rgba(15, 23, 42, 0.12);
+  --shadow-float: 0 16px 48px rgba(232, 93, 63, 0.18);
 }
 
 @layer base {
-	body {
-		background:
-			radial-gradient(circle at top, rgba(243, 180, 63, 0.12), transparent 32%),
-			linear-gradient(180deg, rgba(255, 247, 237, 0.75), rgba(248, 250, 252, 1));
-		color: #0f172a;
-	}
-	* {
-		border-color: rgba(15, 23, 42, 0.1);
-	}
+  body {
+    background:
+      radial-gradient(circle at top, rgba(243, 180, 63, 0.12), transparent 32%),
+      linear-gradient(180deg, rgba(255, 247, 237, 0.75), rgba(248, 250, 252, 1));
+    color: #0f172a;
+  }
+  * {
+    border-color: rgba(15, 23, 42, 0.1);
+  }
 }

@@ -7,7 +7,7 @@ export { default as Modal } from './lib/components/ui/Modal.svelte';
 export { default as Toast } from './lib/components/ui/Toast.svelte';
 export { cn } from './lib/utils';
 export {
-	jeevatixBrandColors,
-	jeevatixBrandTheme,
-	jeevatixTailwindPreset
+  jeevatixBrandColors,
+  jeevatixBrandTheme,
+  jeevatixTailwindPreset,
 } from './lib/tailwind/index';

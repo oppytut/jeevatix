@@ -17,11 +17,7 @@ export type OrderStatus = 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'r
 
 export type PaymentStatus = 'pending' | 'success' | 'failed' | 'refunded';
 
-export type PaymentMethod =
-  | 'bank_transfer'
-  | 'e_wallet'
-  | 'credit_card'
-  | 'virtual_account';
+export type PaymentMethod = 'bank_transfer' | 'e_wallet' | 'credit_card' | 'virtual_account';
 
 export type ReservationStatus = 'active' | 'converted' | 'expired' | 'cancelled';
 
