@@ -21,6 +21,57 @@ importers:
         specifier: ^2.5.8
         version: 2.8.21
 
+  apps/admin:
+    devDependencies:
+      '@fontsource-variable/inter':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@lucide/svelte':
+        specifier: ^1.7.0
+        version: 1.7.0(svelte@5.55.1)
+      '@sveltejs/adapter-cloudflare':
+        specifier: ^7.2.8
+        version: 7.2.8(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.1)(vite@7.3.1(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.55.1)(typescript@5.9.3)(vite@7.3.1(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3)))(wrangler@4.78.0(@cloudflare/workers-types@4.20260329.1))
+      '@sveltejs/kit':
+        specifier: ^2.55.0
+        version: 2.55.0(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.55.1)(vite@7.3.1(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3)))(svelte@5.55.1)(typescript@5.9.3)(vite@7.3.1(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^6.2.4
+        version: 6.2.4(svelte@5.55.1)(vite@7.3.1(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3))
+      '@tailwindcss/vite':
+        specifier: ^4.1.18
+        version: 4.2.2(vite@7.3.1(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3))
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      svelte:
+        specifier: ^5.54.0
+        version: 5.55.1
+      svelte-check:
+        specifier: ^4.4.2
+        version: 4.4.5(picomatch@4.0.4)(svelte@5.55.1)(typescript@5.9.3)
+      tailwind-merge:
+        specifier: ^3.5.0
+        version: 3.5.0
+      tailwind-variants:
+        specifier: ^3.2.2
+        version: 3.2.2(tailwind-merge@3.5.0)(tailwindcss@4.2.2)
+      tailwindcss:
+        specifier: ^4.1.18
+        version: 4.2.2
+      tw-animate-css:
+        specifier: ^1.4.0
+        version: 1.4.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.1(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)(yaml@2.8.3)
+      wrangler:
+        specifier: ^4.63.0
+        version: 4.78.0(@cloudflare/workers-types@4.20260329.1)
+
   apps/api:
     dependencies:
       '@hono/zod-openapi':
