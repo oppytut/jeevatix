@@ -16,5 +16,11 @@
     "constructs": "^10.6.0",
     "sst": "^4.5.12",
     "turbo": "^2.5.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@tailwindcss/oxide"
+    ]
   }
 }

@@ -347,7 +347,7 @@ Dependensi: T-0.1 dan T-0.4 sudah selesai.
 Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localhost:8787/health harus return { status: "ok" }, GET http://localhost:8787/reference harus menampilkan Scalar API docs.
 ```
 
-### Task 0.6 — Create App: `apps/buyer`
+### Task 0.6 — Create App: `apps/buyer` [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
