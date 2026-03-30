@@ -224,7 +224,7 @@ Dependensi: T-0.1 sudah selesai.
 Pastikan file valid TypeScript dan tidak ada error.
 ```
 
-### Task 0.3 — Create Package: `packages/types`
+### Task 0.3 — Create Package: `packages/types` [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
