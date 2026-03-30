@@ -198,7 +198,7 @@ Jangan buat folder apps/ atau packages/ dulu — itu task berikutnya.
 Pastikan `pnpm install` bisa berjalan tanpa error setelah selesai.
 ```
 
-### Task 0.2 — Setup SST Config
+### Task 0.2 — Setup SST Config [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

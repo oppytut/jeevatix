@@ -8,11 +8,33 @@ importers:
 
   .:
     devDependencies:
+      aws-cdk-lib:
+        specifier: ^2.245.0
+        version: 2.245.0(constructs@10.6.0)
+      constructs:
+        specifier: ^10.6.0
+        version: 10.6.0
+      sst:
+        specifier: ^4.5.12
+        version: 4.5.12
       turbo:
         specifier: ^2.5.8
         version: 2.8.21
 
 packages:
+
+  '@aws-cdk/asset-awscli-v1@2.2.263':
+    resolution: {integrity: sha512-X9JvcJhYcb7PHs8R7m4zMablO5C9PGb/hYfLnxds9h/rKJu6l7MiXE/SabCibuehxPnuO/vk+sVVJiUWrccarQ==}
+
+  '@aws-cdk/asset-node-proxy-agent-v6@2.1.1':
+    resolution: {integrity: sha512-We4bmHaowOPHr+IQR4/FyTGjRfjgBj4ICMjtqmJeBDWad3Q/6St12NT07leNtyuukv2qMhtSZJQorD8KpKTwRA==}
+
+  '@aws-cdk/cloud-assembly-schema@53.9.0':
+    resolution: {integrity: sha512-Ss7Af943iyyTABqeJS30LylmELpdpGgHzQP87KxO+HGPFIFDsoZymSuU1H5eQAcuuOvcfIPSKA62/lf274UB2A==}
+    engines: {node: '>= 18.0.0'}
+    bundledDependencies:
+      - jsonschema
+      - semver
 
   '@turbo/darwin-64@2.8.21':
     resolution: {integrity: sha512-kfGoM0Iw8ZNZpbds+4IzOe0hjvHldqJwUPRAjXJi3KBxg/QOZL95N893SRoMtf2aJ+jJ3dk32yPkp8rvcIjP9g==}
@@ -44,11 +66,110 @@ packages:
     cpu: [arm64]
     os: [win32]
 
+  aws-cdk-lib@2.245.0:
+    resolution: {integrity: sha512-Yfeb+wKC6s+Ttm/N93C6vY6ksyCh68WaG/j3N6dalJWTW/V4o6hUolHm+v2c2IofJEUS45c5AF/EEj24e9hfMA==}
+    engines: {node: '>= 20.0.0'}
+    peerDependencies:
+      constructs: ^10.5.0
+    bundledDependencies:
+      - '@balena/dockerignore'
+      - '@aws-cdk/cloud-assembly-api'
+      - case
+      - fs-extra
+      - ignore
+      - jsonschema
+      - minimatch
+      - punycode
+      - semver
+      - table
+      - yaml
+      - mime-types
+
+  aws4fetch@1.0.18:
+    resolution: {integrity: sha512-3Cf+YaUl07p24MoQ46rFwulAmiyCwH2+1zw1ZyPAX5OtJ34Hh185DwB8y/qRLb6cYYYtSFJ9pthyLc0MD4e8sQ==}
+
+  constructs@10.6.0:
+    resolution: {integrity: sha512-TxHOnBO5zMo/G76ykzGF/wMpEHu257TbWiIxP9K0Yv/+t70UzgBQiTqjkAsWOPC6jW91DzJI0+ehQV6xDRNBuQ==}
+
+  jose@4.15.9:
+    resolution: {integrity: sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==}
+
+  jose@5.2.3:
+    resolution: {integrity: sha512-KUXdbctm1uHVL8BYhnyHkgp3zDX5KW8ZhAKVFEfUbU2P8Alpzjb+48hHvjOdQIyPshoblhzsuqOwEEAbtHVirA==}
+
+  lru-cache@6.0.0:
+    resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
+    engines: {node: '>=10'}
+
+  object-hash@2.2.0:
+    resolution: {integrity: sha512-gScRMn0bS5fH+IuwyIFgnh9zBdo4DV+6GhygmWM9HyNJSgS0hScp1f5vjtm7oIIOiT9trXrShAkLFSc2IqKNgw==}
+    engines: {node: '>= 6'}
+
+  oidc-token-hash@5.2.0:
+    resolution: {integrity: sha512-6gj2m8cJZ+iSW8bm0FXdGF0YhIQbKrfP4yWTNzxc31U6MOjfEmB1rHvlYvxI1B7t7BCi1F2vYTT6YhtQRG4hxw==}
+    engines: {node: ^10.13.0 || >=12.0.0}
+
+  openid-client@5.6.4:
+    resolution: {integrity: sha512-T1h3B10BRPKfcObdBklX639tVz+xh34O7GjofqrqiAQdm7eHsQ00ih18x6wuJ/E6FxdtS2u3FmUGPDeEcMwzNA==}
+
+  sst-darwin-arm64@4.5.12:
+    resolution: {integrity: sha512-/irP0q3/2r3N84Qwfty7rBHlg7jSDry35CsS04oGdo3hdwD0kMTrQqkwQddB3QYXb6HBsmNpIUHTlwKjcjBeyg==}
+    cpu: [arm64]
+    os: [darwin]
+
+  sst-darwin-x64@4.5.12:
+    resolution: {integrity: sha512-fWFanEBWqjxuIo+pX7J7DFTxUqCtrYKgv/OVAKnSZ07DndtmhI8+VpiQks17gS4C59i5JkC1NPgjw2Swdl5prA==}
+    cpu: [x64]
+    os: [darwin]
+
+  sst-linux-arm64@4.5.12:
+    resolution: {integrity: sha512-jea1peKaqMgyFJhitOP2vuMaECL6hwBwFyLSVgjFyLN2aF7VSBz7vdrL84e13skofvc2ZM9dt4LjTDbQ/4YWGw==}
+    cpu: [arm64]
+    os: [linux]
+
+  sst-linux-x64@4.5.12:
+    resolution: {integrity: sha512-fLeYJhUAmv0ZgxQkhaoHHR7qekOKZYyQMqJElefgoGpy8o6vGaX+kuMZSNsd0xSNgnx/VA9bcx8H6Pjk7a03Aw==}
+    cpu: [x64]
+    os: [linux]
+
+  sst-linux-x86@4.5.12:
+    resolution: {integrity: sha512-C4sIDFboYGD0Q5K88taD2/296EGy8EcqpeJdDLclcHQy/wNZ6D7PaZjZoqJg3MD7CQaqdL8SSt2/YW34rjrXrw==}
+    cpu: [x86]
+    os: [linux]
+
+  sst-win32-arm64@4.5.12:
+    resolution: {integrity: sha512-LksvtO5rphSDKjW+Xe1hroohy41a2Gk0JJNHaBZOM6qYN9gcHTrIFAd4Tk+ZG+netycxHi0QUKgA3tNuLQUpIw==}
+    cpu: [arm64]
+    os: [win32]
+
+  sst-win32-x64@4.5.12:
+    resolution: {integrity: sha512-qdoergfWiyZovTabneB50uca6GZIZlcRaGHjJf7Zef+yvluFvjgR+zu5ma6TVtdemKtiQWD3TC+uaHdPrJLN0w==}
+    cpu: [x64]
+    os: [win32]
+
+  sst-win32-x86@4.5.12:
+    resolution: {integrity: sha512-6O4ZBNTNSG/poYbRNbM5F9Ldj4pGxs5jZSDYZ+cMem0rKrQSAIH3yWXaXsqGadyJ1qetcAxkt8pxuN2GCbWS+w==}
+    cpu: [x86]
+    os: [win32]
+
+  sst@4.5.12:
+    resolution: {integrity: sha512-gZX6riWnbmgDGl+K3sLWP6JrQJPAf+GKNycqmIH9/3rS14zAK+PJhnwtr52XaTaAOOfUFuJNN72TZNjfq5Vzyw==}
+    hasBin: true
+
   turbo@2.8.21:
     resolution: {integrity: sha512-FlJ8OD5Qcp0jTAM7E4a/RhUzRNds2GzKlyxHKA6N247VLy628rrxAGlMpIXSz6VB430+TiQDJ/SMl6PL1lu6wQ==}
     hasBin: true
 
+  yallist@4.0.0:
+    resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
+
 snapshots:
+
+  '@aws-cdk/asset-awscli-v1@2.2.263': {}
+
+  '@aws-cdk/asset-node-proxy-agent-v6@2.1.1': {}
+
+  '@aws-cdk/cloud-assembly-schema@53.9.0': {}
 
   '@turbo/darwin-64@2.8.21':
     optional: true
@@ -68,6 +189,75 @@ snapshots:
   '@turbo/windows-arm64@2.8.21':
     optional: true
 
+  aws-cdk-lib@2.245.0(constructs@10.6.0):
+    dependencies:
+      '@aws-cdk/asset-awscli-v1': 2.2.263
+      '@aws-cdk/asset-node-proxy-agent-v6': 2.1.1
+      '@aws-cdk/cloud-assembly-schema': 53.9.0
+      constructs: 10.6.0
+
+  aws4fetch@1.0.18: {}
+
+  constructs@10.6.0: {}
+
+  jose@4.15.9: {}
+
+  jose@5.2.3: {}
+
+  lru-cache@6.0.0:
+    dependencies:
+      yallist: 4.0.0
+
+  object-hash@2.2.0: {}
+
+  oidc-token-hash@5.2.0: {}
+
+  openid-client@5.6.4:
+    dependencies:
+      jose: 4.15.9
+      lru-cache: 6.0.0
+      object-hash: 2.2.0
+      oidc-token-hash: 5.2.0
+
+  sst-darwin-arm64@4.5.12:
+    optional: true
+
+  sst-darwin-x64@4.5.12:
+    optional: true
+
+  sst-linux-arm64@4.5.12:
+    optional: true
+
+  sst-linux-x64@4.5.12:
+    optional: true
+
+  sst-linux-x86@4.5.12:
+    optional: true
+
+  sst-win32-arm64@4.5.12:
+    optional: true
+
+  sst-win32-x64@4.5.12:
+    optional: true
+
+  sst-win32-x86@4.5.12:
+    optional: true
+
+  sst@4.5.12:
+    dependencies:
+      aws4fetch: 1.0.18
+      jose: 5.2.3
+      openid-client: 5.6.4
+    optionalDependencies:
+      sst-darwin-arm64: 4.5.12
+      sst-darwin-x64: 4.5.12
+      sst-linux-arm64: 4.5.12
+      sst-linux-x64: 4.5.12
+      sst-linux-x86: 4.5.12
+      sst-win32-arm64: 4.5.12
+      sst-win32-x64: 4.5.12
+      sst-win32-x86: 4.5.12
+
   turbo@2.8.21:
     optionalDependencies:
       '@turbo/darwin-64': 2.8.21
@@ -76,3 +266,5 @@ snapshots:
       '@turbo/linux-arm64': 2.8.21
       '@turbo/windows-64': 2.8.21
       '@turbo/windows-arm64': 2.8.21
+
+  yallist@4.0.0: {}
