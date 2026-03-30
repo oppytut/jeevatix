@@ -255,7 +255,7 @@ Dependensi: T-0.1 sudah selesai.
 Gunakan exact kolom dan tipe dari DATABASE_DESIGN.md. Jangan mengarang field.
 ```
 
-### Task 0.4 — Create Package: `packages/core`
+### Task 0.4 — Create Package: `packages/core` [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
