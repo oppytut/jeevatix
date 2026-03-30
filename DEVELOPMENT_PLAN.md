@@ -648,7 +648,7 @@ Buat file `packages/core/src/db/schema/enums.ts`:
 Jangan menambah atau mengurangi value enum dari yang ada di DATABASE_DESIGN.md.
 ```
 
-### Task 1.2 — Drizzle Table Schemas
+### Task 1.2 — Drizzle Table Schemas [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
