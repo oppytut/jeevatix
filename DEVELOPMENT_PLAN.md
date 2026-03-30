@@ -1004,7 +1004,7 @@ Buat 3 file:
 Endpoint ini akan digunakan oleh semua form upload gambar: avatar user, logo seller, banner event, galeri event.
 ```
 
-### Task 2.6 — Email Service
+### Task 2.6 — Email Service [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
