@@ -5,6 +5,8 @@ import { verifyToken, type TokenPayload, type UserRole } from '../lib/jwt';
 type AuthBindings = {
   JWT_SECRET: string;
   DATABASE_URL?: string;
+  BUCKET: R2Bucket;
+  UPLOAD_PUBLIC_URL?: string;
 };
 
 export type AuthUser = Pick<TokenPayload, 'id' | 'email' | 'role'>;

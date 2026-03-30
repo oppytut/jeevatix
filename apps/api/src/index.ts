@@ -4,6 +4,7 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import authRoutes from './routes/auth';
 import type { AuthEnv } from './middleware/auth';
 import { corsMiddleware } from './middleware/cors';
+import uploadRoutes from './routes/upload';
 import usersRoutes from './routes/users';
 
 const app = new OpenAPIHono<AuthEnv>();
@@ -24,6 +25,7 @@ app.doc('/doc', {
 app.get('/reference', apiReference({ spec: { url: '/doc' } }));
 
 app.route('/auth', authRoutes);
+app.route('/upload', uploadRoutes);
 app.route('/users', usersRoutes);
 
 export default app;

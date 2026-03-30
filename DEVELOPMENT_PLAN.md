@@ -966,7 +966,7 @@ Gunakan Hono test helper (app.request()) untuk test tanpa server.
 Pastikan semua test pass: `cd apps/api && pnpm test`.
 ```
 
-### Task 2.5 — File Upload Service (Cloudflare R2)
+### Task 2.5 — File Upload Service (Cloudflare R2) [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
