@@ -114,15 +114,24 @@ importers:
       '@hono/zod-openapi':
         specifier: ^1.2.4
         version: 1.2.4(hono@4.12.9)(zod@4.3.6)
+      '@jeevatix/core':
+        specifier: workspace:^
+        version: link:../../packages/core
       '@scalar/hono-api-reference':
         specifier: ^0.10.5
         version: 0.10.5(hono@4.12.9)
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@cloudflare/workers-types@4.20260329.1)(postgres@3.4.8)
       hono:
         specifier: ^4.12.9
         version: 4.12.9
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260329.1

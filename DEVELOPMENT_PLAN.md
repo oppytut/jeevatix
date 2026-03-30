@@ -820,7 +820,7 @@ Buat file-file berikut di `apps/api/src/`:
 Semua library HARUS compatible dengan Cloudflare Workers runtime.
 ```
 
-### Task 2.2 — Auth API Endpoints
+### Task 2.2 — Auth API Endpoints [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
