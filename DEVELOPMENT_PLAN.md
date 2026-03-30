@@ -287,7 +287,7 @@ Dependensi: T-0.1 dan T-0.3 sudah selesai.
 Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
 ```
 
-### Task 0.5 — Create App: `apps/api`
+### Task 0.5 — Create App: `apps/api` [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
