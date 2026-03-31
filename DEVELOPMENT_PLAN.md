@@ -1414,7 +1414,7 @@ Buat 3 file:
 Mount di apps/api/src/index.ts dengan prefix /seller.
 ```
 
-### Task 4.2 — Seller Event CRUD API
+### Task 4.2 — Seller Event CRUD API [DONE]
 
 | Key          | Value                                                                                                                    |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------ |
