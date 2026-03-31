@@ -8,6 +8,7 @@ import adminCategoryRoutes from './routes/admin/categories';
 import adminUserRoutes from './routes/admin/users';
 import sellerEventRoutes from './routes/seller/events';
 import sellerProfileRoutes from './routes/seller/profile';
+import sellerTierRoutes from './routes/seller/tiers';
 import uploadRoutes from './routes/upload';
 import usersRoutes from './routes/users';
 
@@ -33,6 +34,7 @@ app.route('/admin', adminUserRoutes);
 app.route('/auth', authRoutes);
 app.route('/seller', sellerEventRoutes);
 app.route('/seller', sellerProfileRoutes);
+app.route('/seller', sellerTierRoutes);
 app.route('/upload', uploadRoutes);
 app.route('/users', usersRoutes);
 

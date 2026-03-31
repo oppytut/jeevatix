@@ -1465,7 +1465,7 @@ Event status flow: draft → pending_review (seller submit) → published/reject
 Mount di index.ts.
 ```
 
-### Task 4.3 — Ticket Tier CRUD API
+### Task 4.3 — Ticket Tier CRUD API [DONE]
 
 | Key          | Value                                                                                                                 |
 | ------------ | --------------------------------------------------------------------------------------------------------------------- |
