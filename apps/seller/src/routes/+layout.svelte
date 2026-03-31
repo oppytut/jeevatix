@@ -15,7 +15,7 @@
     { label: 'Orders', href: '/orders', enabled: false },
     { label: 'Check-in', href: '/events/checkin', enabled: false },
     { label: 'Notifications', href: '/notifications', enabled: false },
-    { label: 'Profile', href: '/profile', enabled: false },
+    { label: 'Profile', href: '/profile', enabled: true },
   ] as const;
 
   const authRoutes = new Set(['/login', '/register', '/forgot-password', '/reset-password']);

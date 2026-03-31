@@ -1584,7 +1584,7 @@ Di `apps/seller/`:
 Upload gambar via POST /upload (T-2.5).
 ```
 
-### Task 4.6 — Seller Profile UI
+### Task 4.6 — Seller Profile UI [DONE]
 
 | Key          | Value                                        |
 | ------------ | -------------------------------------------- |
