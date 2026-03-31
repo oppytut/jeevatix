@@ -1376,7 +1376,7 @@ open http://localhost:4302/sellers    # verifikasi seller
 
 **Tujuan:** Seller bisa login, CRUD event, kelola tier tiket.
 
-### Task 4.1 — Seller Auth & Profile API
+### Task 4.1 — Seller Auth & Profile API [DONE]
 
 | Key          | Value                                                                                                                                       |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
