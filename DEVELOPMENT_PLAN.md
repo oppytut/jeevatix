@@ -1727,7 +1727,7 @@ Search strategy: gunakan ILIKE untuk sekarang. Tambahkan tsvector + GIN index na
 Mount di index.ts.
 ```
 
-### Task 5.2 — Buyer Auth Pages
+### Task 5.2 — Buyer Auth Pages [DONE]
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |

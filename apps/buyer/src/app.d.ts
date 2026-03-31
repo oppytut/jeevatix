@@ -10,8 +10,15 @@ declare global {
     }
 
     // interface Error {}
-    // interface Locals {}
-    // interface PageData {}
+    interface Locals {
+      buyerAccessToken: string | null;
+      buyerRefreshToken: string | null;
+      currentUser: import('$lib/auth').BuyerAuthUser | null;
+    }
+
+    interface PageData {
+      currentUser?: import('$lib/auth').BuyerAuthUser | null;
+    }
     // interface PageState {}
   }
 }
