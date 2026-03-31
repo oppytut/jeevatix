@@ -1509,7 +1509,7 @@ Buat 3 file:
 Mount di index.ts.
 ```
 
-### Task 4.4 — Seller Auth & Layout UI
+### Task 4.4 — Seller Auth & Layout UI [DONE]
 
 | Key          | Value                                   |
 | ------------ | --------------------------------------- |
