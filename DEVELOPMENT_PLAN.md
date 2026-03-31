@@ -5,11 +5,13 @@
 > AI agent harus mengeksekusi task **secara berurutan per fase**, kecuali task dalam fase yang sama boleh paralel jika tidak ada dependensi.
 
 **Dokumen referensi:**
+
 - `README.md` — Tech stack, arsitektur, monorepo structure, MCP servers
 - `DATABASE_DESIGN.md` — Skema database, 15 tabel, enum, ERD
 - `PAGES.md` — 48 halaman frontend + 67 API endpoints
 
 **MCP Tools tersedia:**
+
 - `shadcn-ui-mcp-server` — Referensi komponen, block, dan tema shadcn/ui (gunakan untuk semua task UI)
 - `context7` — Lookup dokumentasi library terbaru (Hono, Drizzle, SvelteKit, SST, dll)
 
@@ -72,55 +74,55 @@ gantt
     title Jeevatix Development Plan
     dateFormat  YYYY-MM-DD
     axisFormat  %b %d
-    
+
     section Phase 0 - Foundation
     Monorepo Setup           :p0, 2026-03-27, 3d
-    
+
     section Phase 1 - Database
     Drizzle Schema & Migrate :p1, after p0, 2d
-    
+
     section Phase 2 - API Core
     Auth API                 :p2a, after p1, 2d
     User & Profile API       :p2b, after p2a, 1d
     File Upload & Email      :p2c, after p2a, 1d
-    
+
     section Phase 3 - Admin CRUD
     Category API + Admin UI  :p3a, after p2b, 2d
     User Mgmt Admin UI       :p3b, after p3a, 2d
     Seller Verification      :p3c, after p3b, 1d
     Phase 3 Tests            :p3t, after p3c, 1d
-    
+
     section Phase 4 - Seller
     Event CRUD API + UI      :p4a, after p3t, 3d
     Tier Tiket API + UI      :p4b, after p4a, 1d
     Seller Dashboard         :p4c, after p4b, 1d
     Phase 4 Tests            :p4t, after p4c, 1d
-    
+
     section Phase 5 - Buyer Public
     Event List & Detail      :p5a, after p4t, 2d
     Homepage & Kategori      :p5b, after p5a, 1d
     Phase 5 Tests            :p5t, after p5b, 1d
-    
+
     section Phase 6 - Transaction
     Durable Objects + Reserve:p6a, after p5t, 3d
     Order & Payment API      :p6b, after p6a, 2d
     Checkout & Payment UI    :p6c, after p6b, 2d
     Phase 6 Tests            :p6t, after p6c, 1d
-    
+
     section Phase 7 - Post-Transaction
     Ticket Generation        :p7a, after p6t, 2d
     Check-in System          :p7b, after p7a, 1d
     Notification System      :p7c, after p7b, 1d
     Seller Notification UI   :p7d, after p7c, 1d
     Phase 7 Tests            :p7t, after p7d, 1d
-    
+
     section Phase 8 - Realtime
     PartyKit WebSocket       :p8, after p7t, 2d
-    
+
     section Phase 9 - Polish
     Dashboards & Analytics   :p9a, after p8, 2d
     Admin Order & Payment    :p9b, after p9a, 1d
-    
+
     section Phase 10 - QA & Deploy
     Coverage & Gap Tests     :p10a, after p9b, 2d
     E2E & Load Tests         :p10b, after p10a, 2d
@@ -136,19 +138,20 @@ gantt
 
 ### Task 0.1 — Initialize Root Monorepo [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.1`                                                   |
-| Dependensi  | Tidak ada                                                  |
-| Deliverables| `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.nvmrc`, `tsconfig.base.json`, `docker-compose.yml`, `.github/copilot-instructions.md`, `.github/instructions/`, `.github/prompts/`, `.github/agents/` |
+| Key          | Value                                                                                                                                                                                                                      |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-0.1`                                                                                                                                                                                                                    |
+| Dependensi   | Tidak ada                                                                                                                                                                                                                  |
+| Deliverables | `package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.nvmrc`, `tsconfig.base.json`, `docker-compose.yml`, `.github/copilot-instructions.md`, `.github/instructions/`, `.github/prompts/`, `.github/agents/` |
 
 **Instruksi:**
+
 1. Init `package.json` dengan `"private": true` dan `"packageManager": "pnpm@9.x"`.
 2. Buat `pnpm-workspace.yaml`:
    ```yaml
    packages:
-     - "apps/*"
-     - "packages/*"
+     - 'apps/*'
+     - 'packages/*'
    ```
 3. Buat `turbo.json` dengan pipeline `build`, `dev`, `lint`, `lint:fix`, `format`, `format:check`, `test`.
 4. Buat `tsconfig.base.json` (shared TypeScript config, `strict: true`, paths alias `@jeevatix/*`).
@@ -167,7 +170,7 @@ gantt
      postgres:
        image: postgres:17-alpine
        ports:
-         - "5432:5432"
+         - '5432:5432'
        environment:
          POSTGRES_DB: jeevatix
          POSTGRES_USER: jeevatix
@@ -180,6 +183,7 @@ gantt
 9. Buat folder `.github/` dengan AI agent customization files (salin dari file yang sudah ada di repo — lihat `.github/copilot-instructions.md`, `.github/instructions/`, `.github/prompts/`, `.github/agents/`).
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.1: Initialize Root Monorepo.
 
@@ -200,18 +204,20 @@ Pastikan `pnpm install` bisa berjalan tanpa error setelah selesai.
 
 ### Task 0.2 — Setup SST Config [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.2`                                                   |
-| Dependensi  | `T-0.1`                                                   |
-| Deliverables| `sst.config.ts`                                            |
+| Key          | Value           |
+| ------------ | --------------- |
+| ID           | `T-0.2`         |
+| Dependensi   | `T-0.1`         |
+| Deliverables | `sst.config.ts` |
 
 **Instruksi:**
+
 1. `pnpm add -Dw sst@latest aws-cdk-lib constructs`.
 2. Buat `sst.config.ts` — definisikan app name `jeevatix`, stage dari env.
 3. Placeholder untuk Cloudflare Workers, Hyperdrive, Durable Objects, Queues.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.2: Setup SST Config.
 Dependensi: T-0.1 sudah selesai.
@@ -226,13 +232,14 @@ Pastikan file valid TypeScript dan tidak ada error.
 
 ### Task 0.3 — Create Package: `packages/types` [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.3`                                                   |
-| Dependensi  | `T-0.1`                                                   |
-| Deliverables| `packages/types/package.json`, `packages/types/src/index.ts` |
+| Key          | Value                                                        |
+| ------------ | ------------------------------------------------------------ |
+| ID           | `T-0.3`                                                      |
+| Dependensi   | `T-0.1`                                                      |
+| Deliverables | `packages/types/package.json`, `packages/types/src/index.ts` |
 
 **Instruksi:**
+
 1. Buat package `@jeevatix/types`.
 2. Export TypeScript interfaces/types untuk semua enum dari DATABASE_DESIGN.md:
    - `UserRole`, `UserStatus`, `EventStatus`, `TicketTierStatus`, `OrderStatus`, `PaymentStatus`, `PaymentMethod`, `ReservationStatus`, `TicketStatus`, `NotificationType`.
@@ -240,6 +247,7 @@ Pastikan file valid TypeScript dan tidak ada error.
 4. Export API response types generik: `ApiResponse<T>`, `PaginatedResponse<T>`, `ErrorResponse`.
 
 **Prompt:**
+
 ```
 Referensi: DATABASE_DESIGN.md (semua enum dan tabel).
 
@@ -257,13 +265,14 @@ Gunakan exact kolom dan tipe dari DATABASE_DESIGN.md. Jangan mengarang field.
 
 ### Task 0.4 — Create Package: `packages/core` [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.4`                                                   |
-| Dependensi  | `T-0.1`, `T-0.3`                                          |
-| Deliverables| `packages/core/package.json`, `packages/core/src/index.ts`, `packages/core/drizzle.config.ts` |
+| Key          | Value                                                                                         |
+| ------------ | --------------------------------------------------------------------------------------------- |
+| ID           | `T-0.4`                                                                                       |
+| Dependensi   | `T-0.1`, `T-0.3`                                                                              |
+| Deliverables | `packages/core/package.json`, `packages/core/src/index.ts`, `packages/core/drizzle.config.ts` |
 
 **Instruksi:**
+
 1. Buat package `@jeevatix/core`.
 2. `pnpm add drizzle-orm postgres` di `packages/core`.
 3. `pnpm add -D drizzle-kit` di `packages/core`.
@@ -272,6 +281,7 @@ Gunakan exact kolom dan tipe dari DATABASE_DESIGN.md. Jangan mengarang field.
 6. Buat placeholder folder `src/db/schema/` (akan diisi di Phase 1).
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.4: Create Package packages/core.
 Dependensi: T-0.1 dan T-0.3 sudah selesai.
@@ -289,13 +299,14 @@ Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
 
 ### Task 0.5 — Create App: `apps/api` [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.5`                                                   |
-| Dependensi  | `T-0.1`, `T-0.4`                                          |
-| Deliverables| `apps/api/package.json`, `apps/api/src/index.ts`, `apps/api/wrangler.toml`, folder structure `routes/`, `services/`, `schemas/`, `middleware/`, `lib/` |
+| Key          | Value                                                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID           | `T-0.5`                                                                                                                                                |
+| Dependensi   | `T-0.1`, `T-0.4`                                                                                                                                       |
+| Deliverables | `apps/api/package.json`, `apps/api/src/index.ts`, `apps/api/wrangler.toml`, folder structure `routes/`, `services/`, `schemas/`, `middleware/`, `lib/` |
 
 **Instruksi:**
+
 1. Buat package `@jeevatix/api`.
 2. `pnpm add hono @hono/zod-openapi @scalar/hono-api-reference` di `apps/api`.
 3. Buat `src/index.ts` — **OpenAPIHono** app dengan health check route `GET /health` → `{ status: "ok" }`, endpoint `/doc` (OpenAPI JSON spec), dan `/reference` (Scalar interactive API docs).
@@ -304,6 +315,7 @@ Pastikan package bisa di-resolve dari workspace lain via @jeevatix/core.
 6. **Scaffold arsitektur 3-layer:** Buat folder `src/routes/`, `src/services/`, `src/schemas/`, `src/middleware/`, `src/lib/`, `src/durable-objects/`, `src/queues/` (masing-masing dengan `.gitkeep`).
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.5: Create App apps/api.
 Dependensi: T-0.1 dan T-0.4 sudah selesai.
@@ -349,13 +361,14 @@ Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localh
 
 ### Task 0.6 — Create App: `apps/buyer` [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.6`                                                   |
-| Dependensi  | `T-0.1`                                                   |
-| Deliverables| `apps/buyer/` (SvelteKit project yang bisa `dev`)          |
+| Key          | Value                                             |
+| ------------ | ------------------------------------------------- |
+| ID           | `T-0.6`                                           |
+| Dependensi   | `T-0.1`                                           |
+| Deliverables | `apps/buyer/` (SvelteKit project yang bisa `dev`) |
 
 **Instruksi:**
+
 1. Initialize SvelteKit project di `apps/buyer` dengan `npx sv create`.
 2. Tambah TailwindCSS via `npx sv add tailwindcss`.
 3. Setup `svelte.config.js` — adapter `@sveltejs/adapter-cloudflare`.
@@ -364,6 +377,7 @@ Verifikasi: `cd apps/api && pnpm dev` harus start tanpa error, GET http://localh
 6. Port dev: `4301`.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.6: Create App apps/buyer.
 Dependensi: T-0.1 sudah selesai.
@@ -381,13 +395,14 @@ Verifikasi: `cd apps/buyer && pnpm dev` harus start di http://localhost:4301 tan
 
 ### Task 0.7 — Create App: `apps/admin` [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.7`                                                   |
-| Dependensi  | `T-0.1`                                                   |
-| Deliverables| `apps/admin/` (SvelteKit project yang bisa `dev`)          |
+| Key          | Value                                             |
+| ------------ | ------------------------------------------------- |
+| ID           | `T-0.7`                                           |
+| Dependensi   | `T-0.1`                                           |
+| Deliverables | `apps/admin/` (SvelteKit project yang bisa `dev`) |
 
 **Instruksi:**
+
 1. Initialize SvelteKit project di `apps/admin`.
 2. Tambah TailwindCSS + shadcn-svelte.
 3. Setup `svelte.config.js` — Cloudflare adapter.
@@ -396,6 +411,7 @@ Verifikasi: `cd apps/buyer && pnpm dev` harus start di http://localhost:4301 tan
 6. Port dev: `4302`.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.7: Create App apps/admin.
 Dependensi: T-0.1 sudah selesai.
@@ -412,13 +428,14 @@ Verifikasi: `cd apps/admin && pnpm dev` harus start di http://localhost:4302 tan
 
 ### Task 0.8 — Create App: `apps/seller` [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.8`                                                   |
-| Dependensi  | `T-0.1`                                                   |
-| Deliverables| `apps/seller/` (SvelteKit project yang bisa `dev`)         |
+| Key          | Value                                              |
+| ------------ | -------------------------------------------------- |
+| ID           | `T-0.8`                                            |
+| Dependensi   | `T-0.1`                                            |
+| Deliverables | `apps/seller/` (SvelteKit project yang bisa `dev`) |
 
 **Instruksi:**
+
 1. Initialize SvelteKit project di `apps/seller`.
 2. Tambah TailwindCSS + shadcn-svelte.
 3. Setup `svelte.config.js` — Cloudflare adapter.
@@ -427,6 +444,7 @@ Verifikasi: `cd apps/admin && pnpm dev` harus start di http://localhost:4302 tan
 6. Port dev: `4303`.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.8: Create App apps/seller.
 Dependensi: T-0.1 sudah selesai.
@@ -443,19 +461,21 @@ Verifikasi: `cd apps/seller && pnpm dev` harus start di http://localhost:4303 ta
 
 ### Task 0.9 — Create Package: `packages/ui` [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.9`                                                   |
-| Dependensi  | `T-0.1`                                                   |
-| Deliverables| `packages/ui/package.json`, shared components placeholder  |
+| Key          | Value                                                     |
+| ------------ | --------------------------------------------------------- |
+| ID           | `T-0.9`                                                   |
+| Dependensi   | `T-0.1`                                                   |
+| Deliverables | `packages/ui/package.json`, shared components placeholder |
 
 **Instruksi:**
+
 1. Buat package `@jeevatix/ui`.
 2. Setup dengan shadcn-svelte sebagai base.
 3. Export shared components: Button, Input, Card, Badge, Modal, Toast, DataTable.
 4. Export shared TailwindCSS preset/theme (warna brand Jeevatix).
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.9: Create Package packages/ui.
 Dependensi: T-0.1 sudah selesai.
@@ -472,13 +492,14 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
 
 ### Task 0.10 — Setup Prettier, ESLint & Playwright [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-0.10`                                                  |
-| Dependensi  | `T-0.1`, `T-0.5`, `T-0.6`, `T-0.7`, `T-0.8`             |
-| Deliverables| `.prettierrc`, `.prettierignore`, `eslint.config.js`, `playwright.config.ts`, `tests/e2e/.gitkeep` |
+| Key          | Value                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------- |
+| ID           | `T-0.10`                                                                                           |
+| Dependensi   | `T-0.1`, `T-0.5`, `T-0.6`, `T-0.7`, `T-0.8`                                                        |
+| Deliverables | `.prettierrc`, `.prettierignore`, `eslint.config.js`, `playwright.config.ts`, `tests/e2e/.gitkeep` |
 
 **Instruksi:**
+
 1. **Prettier:**
    - Install di root: `pnpm add -Dw prettier prettier-plugin-svelte prettier-plugin-tailwindcss`.
    - Buat `.prettierrc`:
@@ -501,6 +522,7 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
 2. **ESLint (Flat Config):**
    - Install di root: `pnpm add -Dw eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-plugin-svelte svelte-eslint-parser globals eslint-config-prettier`.
    - Buat `eslint.config.js` di root (flat config):
+
      ```js
      import globals from 'globals';
      import tseslint from '@typescript-eslint/eslint-plugin';
@@ -513,9 +535,16 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
        { ignores: ['**/dist/**', '**/.svelte-kit/**', '**/.turbo/**', '**/build/**'] },
        {
          files: ['**/*.ts'],
-         languageOptions: { parser: tsparser, parserOptions: { ecmaVersion: 'latest', sourceType: 'module' }, globals: { ...globals.browser, ...globals.node } },
+         languageOptions: {
+           parser: tsparser,
+           parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+           globals: { ...globals.browser, ...globals.node },
+         },
          plugins: { '@typescript-eslint': tseslint },
-         rules: { ...tseslint.configs.recommended.rules, '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }] },
+         rules: {
+           ...tseslint.configs.recommended.rules,
+           '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+         },
        },
        ...svelte.configs['flat/recommended'],
        {
@@ -525,11 +554,13 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
        prettier,
      ];
      ```
+
    - Tambah script di root `package.json`: `"lint": "turbo run lint"`, `"lint:fix": "turbo run lint:fix"`.
    - Tambah script di setiap app/package `package.json`:
      - `"lint": "eslint ."`.
      - `"lint:fix": "eslint . --fix"`.
    - `eslint-config-prettier` wajib ada di posisi terakhir agar Prettier rules menang (tidak bentrok).
+
 3. **Playwright:**
    - Install di root: `pnpm add -Dw @playwright/test`.
    - Install browsers: `npx playwright install --with-deps chromium` (hanya Chromium untuk dev, hemat disk).
@@ -547,10 +578,17 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
        projects: [
          { name: 'buyer', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4301' } },
          { name: 'admin', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4302' } },
-         { name: 'seller', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4303' } },
+         {
+           name: 'seller',
+           use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4303' },
+         },
        ],
        webServer: [
-         { command: 'pnpm run dev', url: 'http://localhost:4301', reuseExistingServer: !process.env.CI },
+         {
+           command: 'pnpm run dev',
+           url: 'http://localhost:4301',
+           reuseExistingServer: !process.env.CI,
+         },
        ],
      });
      ```
@@ -559,6 +597,7 @@ Package ini akan digunakan oleh apps/admin, apps/seller, dan apps/buyer. Pastika
    - Tambah ke `.gitignore`: `test-results/`, `playwright-report/`, `blob-report/`.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-0.10: Setup Prettier, ESLint & Playwright.
 Dependensi: T-0.1, T-0.5, T-0.6, T-0.7, T-0.8 sudah selesai (semua apps & packages sudah ada).
@@ -596,6 +635,7 @@ Verifikasi: pnpm run format:check && pnpm run lint harus pass tanpa error.
 ```
 
 **Checkpoint Phase 0:**
+
 ```bash
 pnpm install          # harus sukses tanpa error
 pnpm run build        # semua app harus build sukses
@@ -612,18 +652,20 @@ pnpm run dev          # semua app harus start di port masing-masing
 
 ### Task 1.1 — Drizzle Enum Definitions [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-1.1`                                                   |
-| Dependensi  | `T-0.4`                                                   |
-| Deliverables| `packages/core/src/db/schema/enums.ts`                     |
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| ID           | `T-1.1`                                |
+| Dependensi   | `T-0.4`                                |
+| Deliverables | `packages/core/src/db/schema/enums.ts` |
 
 **Instruksi:**
+
 1. Definisikan semua 10 enum menggunakan `pgEnum()` dari drizzle-orm/pg-core.
 2. Lihat enum definitions di DATABASE_DESIGN.md → bagian "Enum Definitions".
 3. Export semua enum.
 
 **Prompt:**
+
 ```
 Referensi: DATABASE_DESIGN.md (Enum Definitions).
 
@@ -650,30 +692,32 @@ Jangan menambah atau mengurangi value enum dari yang ada di DATABASE_DESIGN.md.
 
 ### Task 1.2 — Drizzle Table Schemas [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-1.2`                                                   |
-| Dependensi  | `T-1.1`                                                   |
-| Deliverables| File schema per tabel di `packages/core/src/db/schema/`    |
+| Key          | Value                                                   |
+| ------------ | ------------------------------------------------------- |
+| ID           | `T-1.2`                                                 |
+| Dependensi   | `T-1.1`                                                 |
+| Deliverables | File schema per tabel di `packages/core/src/db/schema/` |
 
 **Instruksi:**
 Buat file schema per domain. Ikuti **persis** kolom, tipe, constraint, dan index di DATABASE_DESIGN.md.
 
-| File                    | Tabel yang didefinisikan                     |
-| ----------------------- | -------------------------------------------- |
-| `users.ts`              | `users`, `seller_profiles`, `refresh_tokens` |
-| `events.ts`             | `events`, `event_categories`, `event_images`, `categories` |
-| `tickets.ts`            | `ticket_tiers`, `tickets`, `ticket_checkins` |
-| `orders.ts`             | `orders`, `order_items`, `payments`          |
-| `reservations.ts`       | `reservations`                               |
-| `notifications.ts`      | `notifications`                              |
-| `index.ts`              | Re-export semua schema + enums               |
+| File               | Tabel yang didefinisikan                                   |
+| ------------------ | ---------------------------------------------------------- |
+| `users.ts`         | `users`, `seller_profiles`, `refresh_tokens`               |
+| `events.ts`        | `events`, `event_categories`, `event_images`, `categories` |
+| `tickets.ts`       | `ticket_tiers`, `tickets`, `ticket_checkins`               |
+| `orders.ts`        | `orders`, `order_items`, `payments`                        |
+| `reservations.ts`  | `reservations`                                             |
+| `notifications.ts` | `notifications`                                            |
+| `index.ts`         | Re-export semua schema + enums                             |
 
 Setiap file harus:
+
 - Definisikan `relations()` (Drizzle relational query builder).
 - Export tabel dan relations.
 
 **Prompt:**
+
 ```
 Referensi: DATABASE_DESIGN.md (Tables — semua 15 tabel, kolom, tipe, constraint, index).
 
@@ -701,19 +745,21 @@ Gunakan: pgTable, uuid, varchar, text, boolean, integer, numeric, serial, timest
 
 ### Task 1.3 — Database Connection [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-1.3`                                                   |
-| Dependensi  | `T-1.2`                                                   |
-| Deliverables| `packages/core/src/db/index.ts` yang sudah terkoneksi      |
+| Key          | Value                                                 |
+| ------------ | ----------------------------------------------------- |
+| ID           | `T-1.3`                                               |
+| Dependensi   | `T-1.2`                                               |
+| Deliverables | `packages/core/src/db/index.ts` yang sudah terkoneksi |
 
 **Instruksi:**
+
 1. Buat koneksi PostgreSQL menggunakan `postgres` driver.
 2. Buat `drizzle()` instance dengan schema.
 3. Export `db` instance dan type `Database`.
 4. Untuk edge (Cloudflare Workers): koneksi via Hyperdrive URL yang di-pass sebagai binding.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-1.3: Database Connection.
 Dependensi: T-1.2 sudah selesai (semua schema sudah ada di packages/core/src/db/schema/).
@@ -733,13 +779,14 @@ Pastikan compatible dengan Cloudflare Workers runtime (jangan gunakan Node.js-on
 
 ### Task 1.4 — Run Migration [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-1.4`                                                   |
-| Dependensi  | `T-1.3`                                                   |
-| Deliverables| Database PostgreSQL lokal berisi 15 tabel + 10 enum        |
+| Key          | Value                                               |
+| ------------ | --------------------------------------------------- |
+| ID           | `T-1.4`                                             |
+| Dependensi   | `T-1.3`                                             |
+| Deliverables | Database PostgreSQL lokal berisi 15 tabel + 10 enum |
 
 **Instruksi:**
+
 1. Jalankan `pnpm drizzle-kit push` dari `packages/core` untuk development.
 2. Verifikasi semua tabel sudah terbuat dengan `pnpm drizzle-kit studio`.
 3. Buat seed script: `packages/core/src/db/seed.ts`:
@@ -749,6 +796,7 @@ Pastikan compatible dengan Cloudflare Workers runtime (jangan gunakan Node.js-on
    - 2 events dummy dengan masing-masing 2-3 ticket_tiers.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-1.4: Run Migration & Seed.
 Dependensi: T-1.3 sudah selesai (DB connection sudah tersedia).
@@ -769,6 +817,7 @@ Gunakan bcryptjs untuk hash password. Pastikan seed idempotent (cek dulu apakah 
 ```
 
 **Checkpoint Phase 1:**
+
 ```bash
 cd packages/core
 pnpm drizzle-kit push    # harus sukses, tabel terbuat
@@ -783,13 +832,14 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 
 ### Task 2.1 — Auth Middleware & Utilities [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-2.1`                                                   |
-| Dependensi  | `T-0.5`, `T-1.3`                                          |
-| Deliverables| `apps/api/src/middleware/auth.ts`, `apps/api/src/lib/password.ts`, `apps/api/src/lib/jwt.ts` |
+| Key          | Value                                                                                        |
+| ------------ | -------------------------------------------------------------------------------------------- |
+| ID           | `T-2.1`                                                                                      |
+| Dependensi   | `T-0.5`, `T-1.3`                                                                             |
+| Deliverables | `apps/api/src/middleware/auth.ts`, `apps/api/src/lib/password.ts`, `apps/api/src/lib/jwt.ts` |
 
 **Instruksi:**
+
 1. `password.ts` — hash & verify password (gunakan `bcryptjs` atau Web Crypto API yang edge-compatible).
 2. `jwt.ts` — generate & verify JWT token (gunakan `hono/jwt` atau `jose` library yang edge-compatible).
 3. `auth.ts` — Hono middleware yang:
@@ -799,6 +849,7 @@ pnpm tsx src/db/seed.ts  # data seed berhasil dimasukkan
 4. `cors.ts` — Setup CORS middleware menggunakan `hono/cors`. Whitelist origin: `localhost:4301`, `localhost:4302`, `localhost:4303` (dev). Production: domain frontend sesungguhnya.
 
 **Prompt:**
+
 ```
 Referensi: DATABASE_DESIGN.md (users, refresh_tokens), PAGES.md (Auth API E1-E7, E63).
 
@@ -822,14 +873,15 @@ Semua library HARUS compatible dengan Cloudflare Workers runtime.
 
 ### Task 2.2 — Auth API Endpoints [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-2.2`                                                   |
-| Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/auth.ts`, `apps/api/src/services/auth.service.ts`, `apps/api/src/schemas/auth.schema.ts` |
-| Endpoints   | E1–E7, E63 (lihat PAGES.md → Auth API)                     |
+| Key          | Value                                                                                                         |
+| ------------ | ------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-2.2`                                                                                                       |
+| Dependensi   | `T-2.1`                                                                                                       |
+| Deliverables | `apps/api/src/routes/auth.ts`, `apps/api/src/services/auth.service.ts`, `apps/api/src/schemas/auth.schema.ts` |
+| Endpoints    | E1–E7, E63 (lihat PAGES.md → Auth API)                                                                        |
 
 **Instruksi:**
+
 1. Buat Zod schemas di `schemas/auth.schema.ts` — registerSchema, loginSchema, refreshSchema, forgotPasswordSchema, resetPasswordSchema.
 2. Buat business logic di `services/auth.service.ts` — register(), login(), refresh(), forgotPassword(), resetPassword(), verifyEmail(), logout().
 3. Buat OpenAPIHono router di `routes/auth.ts` — definisikan setiap route dengan `createRoute()` + `app.openapi()`, handler parse request via `c.req.valid()` → call authService → return response.
@@ -842,10 +894,11 @@ Semua library HARUS compatible dengan Cloudflare Workers runtime.
    - `POST /auth/reset-password` → verify token, update password_hash.
    - `POST /auth/verify-email` → update `email_verified_at`.
    - `POST /auth/logout` → revoke refresh token di tabel `refresh_tokens`.
-3. Input validation menggunakan `zod` (pnpm add zod di apps/api).
-4. Access token expiry: 15 menit. Refresh token expiry: 7 hari.
+5. Input validation menggunakan `zod` (pnpm add zod di apps/api).
+6. Access token expiry: 15 menit. Refresh token expiry: 7 hari.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Auth API E1-E7, E63), DATABASE_DESIGN.md (users, seller_profiles, refresh_tokens).
 
@@ -888,19 +941,21 @@ Mount router di apps/api/src/index.ts.
 
 ### Task 2.3 — User API Endpoints [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-2.3`                                                   |
-| Dependensi  | `T-2.2`                                                   |
-| Deliverables| `apps/api/src/routes/users.ts`, `apps/api/src/services/user.service.ts`, `apps/api/src/schemas/user.schema.ts` |
-| Endpoints   | E8–E10 (lihat PAGES.md → User API)                         |
+| Key          | Value                                                                                                          |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-2.3`                                                                                                        |
+| Dependensi   | `T-2.2`                                                                                                        |
+| Deliverables | `apps/api/src/routes/users.ts`, `apps/api/src/services/user.service.ts`, `apps/api/src/schemas/user.schema.ts` |
+| Endpoints    | E8–E10 (lihat PAGES.md → User API)                                                                             |
 
 **Instruksi:**
+
 1. Buat schemas di `schemas/user.schema.ts` — updateProfileSchema, changePasswordSchema.
 2. Buat logic di `services/user.service.ts` — getMe(), updateProfile(), changePassword().
 3. Buat OpenAPIHono router di `routes/users.ts` → definisikan route dengan `createRoute()` + `app.openapi()`, handler `c.req.valid()` → call userService → return response.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (User API E8-E10), DATABASE_DESIGN.md (users).
 
@@ -928,13 +983,14 @@ Mount router di apps/api/src/index.ts.
 
 ### Task 2.4 — Auth Unit Tests [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-2.4`                                                   |
-| Dependensi  | `T-2.2`, `T-2.3`                                          |
-| Deliverables| `apps/api/src/routes/__tests__/auth.test.ts`               |
+| Key          | Value                                        |
+| ------------ | -------------------------------------------- |
+| ID           | `T-2.4`                                      |
+| Dependensi   | `T-2.2`, `T-2.3`                             |
+| Deliverables | `apps/api/src/routes/__tests__/auth.test.ts` |
 
 **Instruksi:**
+
 1. Setup Vitest di `apps/api`.
 2. Test: register → login → get profile → update profile → change password.
 3. Test: register dengan email duplikat → 409 Conflict.
@@ -944,6 +1000,7 @@ Mount router di apps/api/src/index.ts.
 7. Test: refresh token flow → access token baru valid.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-2.4: Auth Unit Tests.
 Dependensi: T-2.2 dan T-2.3 sudah selesai.
@@ -968,14 +1025,15 @@ Pastikan semua test pass: `cd apps/api && pnpm test`.
 
 ### Task 2.5 — File Upload Service (Cloudflare R2) [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-2.5`                                                   |
-| Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/upload.ts`, `apps/api/src/services/upload.service.ts`, `apps/api/src/schemas/upload.schema.ts`, R2 bucket config di `wrangler.toml` |
-| Endpoints   | E64 (lihat PAGES.md → File Upload API)                     |
+| Key          | Value                                                                                                                                                    |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-2.5`                                                                                                                                                  |
+| Dependensi   | `T-2.1`                                                                                                                                                  |
+| Deliverables | `apps/api/src/routes/upload.ts`, `apps/api/src/services/upload.service.ts`, `apps/api/src/schemas/upload.schema.ts`, R2 bucket config di `wrangler.toml` |
+| Endpoints    | E64 (lihat PAGES.md → File Upload API)                                                                                                                   |
 
 **Instruksi:**
+
 1. Konfigurasi R2 bucket binding di `wrangler.toml`.
 2. `POST /upload` → terima file multipart (image), validasi tipe (jpg/png/webp) & ukuran (max 5MB).
 3. Upload ke R2 dengan key unik (uuid + extension).
@@ -984,7 +1042,8 @@ Pastikan semua test pass: `cd apps/api && pnpm test`.
 6. Proteksi: harus authenticated.
 
 **Prompt:**
-```
+
+````
 Kerjakan Task T-2.5: File Upload Service (Cloudflare R2).
 Dependensi: T-2.1 sudah selesai (auth middleware tersedia).
 
@@ -993,15 +1052,17 @@ Dependensi: T-2.1 sudah selesai (auth middleware tersedia).
    [[r2_buckets]]
    binding = "BUCKET"
    bucket_name = "jeevatix-uploads"
-   ```
+````
+
 Buat 3 file:
 
-2. **`apps/api/src/schemas/upload.schema.ts`:** — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 * 1024 * 1024. uploadResponseSchema: { url }.openapi('UploadResponse').
+2. **`apps/api/src/schemas/upload.schema.ts`:** — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 _ 1024 _ 1024. uploadResponseSchema: { url }.openapi('UploadResponse').
 3. **`apps/api/src/services/upload.service.ts`:** — uploadFile(env, file): validasi tipe & ukuran, generate key unik `uploads/{uuid}.{extension}`, upload ke R2, return { url }.
 4. **`apps/api/src/routes/upload.ts`** — Tags: ['Upload'], protected (authMiddleware). POST /upload — Terima multipart form data, call uploadService.uploadFile().
 5. Mount router di apps/api/src/index.ts.
 
 Endpoint ini akan digunakan oleh semua form upload gambar: avatar user, logo seller, banner event, galeri event.
+
 ```
 
 ### Task 2.6 — Email Service [DONE]
@@ -1021,6 +1082,7 @@ Endpoint ini akan digunakan oleh semua form upload gambar: avatar user, logo sel
 
 **Prompt:**
 ```
+
 Kerjakan Task T-2.6: Email Service.
 Dependensi: T-0.5 sudah selesai (apps/api sudah ada).
 
@@ -1038,7 +1100,8 @@ Buat file `apps/api/src/services/email.ts`:
 5. Tambahkan EMAIL_API_KEY dan EMAIL_FROM ke .env.example.
 
 Pastikan compatible dengan Cloudflare Workers runtime (gunakan fetch, bukan nodemailer).
-```
+
+````
 
 **Checkpoint Phase 2:**
 ```bash
@@ -1049,7 +1112,7 @@ curl http://localhost:8787/doc  # JSON spec harus include /auth/* endpoints
 # Manual test:
 curl -X POST http://localhost:8787/auth/register -d '{"email":"test@test.com","password":"Test123!","full_name":"Test"}'
 curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","password":"Test123!"}'
-```
+````
 
 ---
 
@@ -1059,14 +1122,15 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 
 ### Task 3.1 — Category Admin API [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-3.1`                                                   |
-| Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/admin/categories.ts`, `apps/api/src/services/category.service.ts`, `apps/api/src/schemas/category.schema.ts` |
-| Endpoints   | E57–E60 (lihat PAGES.md → Admin API)                        |
+| Key          | Value                                                                                                                             |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-3.1`                                                                                                                           |
+| Dependensi   | `T-2.1`                                                                                                                           |
+| Deliverables | `apps/api/src/routes/admin/categories.ts`, `apps/api/src/services/category.service.ts`, `apps/api/src/schemas/category.schema.ts` |
+| Endpoints    | E57–E60 (lihat PAGES.md → Admin API)                                                                                              |
 
 **Instruksi:**
+
 1. Admin: CRUD `GET/POST/PATCH/DELETE /admin/categories`.
 2. Auto-generate slug dari name.
 3. Validasi: jangan hapus kategori yang masih punya event.
@@ -1074,6 +1138,7 @@ curl -X POST http://localhost:8787/auth/login -d '{"email":"test@test.com","pass
 > **Note:** Public category endpoints (`GET /categories`, `GET /categories/:slug/events`) di-implementasi di T-5.1 (Public Event API) bersama endpoint publik lainnya, untuk menghindari duplikasi route.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Admin API E57-E60), DATABASE_DESIGN.md (categories, event_categories).
 
@@ -1106,19 +1171,21 @@ Mount di index.ts.
 
 ### Task 3.2 — Admin Auth UI (Login) [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-3.2`                                                   |
-| Dependensi  | `T-0.7`, `T-2.2`                                          |
-| Deliverables| Admin login page (A1 dari PAGES.md)                        |
+| Key          | Value                               |
+| ------------ | ----------------------------------- |
+| ID           | `T-3.2`                             |
+| Dependensi   | `T-0.7`, `T-2.2`                    |
+| Deliverables | Admin login page (A1 dari PAGES.md) |
 
 **Instruksi:**
+
 1. Buat `apps/admin/src/routes/login/+page.svelte` — form email + password.
 2. Buat `apps/admin/src/lib/api.ts` — HTTP client wrapper untuk call API.
 3. Buat `apps/admin/src/lib/auth.ts` — simpan JWT di cookie/localStorage, redirect logic.
 4. Buat auth guard di `+layout.server.ts` → redirect ke `/login` jika belum login, redirect ke `/` jika sudah login dan role = admin.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Admin Portal Auth A1).
 
@@ -1135,19 +1202,21 @@ Di `apps/admin/`:
 
 ### Task 3.3 — Admin Category Management UI [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-3.3`                                                   |
-| Dependensi  | `T-3.1`, `T-3.2`                                          |
-| Deliverables| Admin category page (A13 dari PAGES.md)                    |
+| Key          | Value                                   |
+| ------------ | --------------------------------------- |
+| ID           | `T-3.3`                                 |
+| Dependensi   | `T-3.1`, `T-3.2`                        |
+| Deliverables | Admin category page (A13 dari PAGES.md) |
 
 **Instruksi:**
+
 1. Buat `apps/admin/src/routes/categories/+page.svelte`:
    - Tabel: nama, slug, icon, jumlah event.
    - Tombol: Tambah, Edit (modal), Hapus (konfirmasi).
 2. Gunakan DataTable dari `@jeevatix/ui`.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Admin Portal A13 — Manajemen Kategori).
 
@@ -1165,16 +1234,17 @@ Buat `src/routes/categories/+page.svelte`:
 6. Setelah setiap aksi CRUD, refresh tabel.
 ```
 
-### Task 3.4 — Admin User Management API
+### Task 3.4 — Admin User Management API [DONE]
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-3.4`                                                   |
-| Dependensi  | `T-2.1`                                                   |
-| Deliverables| `apps/api/src/routes/admin/users.ts`, `apps/api/src/services/admin-user.service.ts`, `apps/api/src/schemas/admin-user.schema.ts` |
-| Endpoints   | E45–E49 (lihat PAGES.md → Admin API)                       |
+| Key          | Value                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-3.4`                                                                                                                          |
+| Dependensi   | `T-2.1`                                                                                                                          |
+| Deliverables | `apps/api/src/routes/admin/users.ts`, `apps/api/src/services/admin-user.service.ts`, `apps/api/src/schemas/admin-user.schema.ts` |
+| Endpoints    | E45–E49 (lihat PAGES.md → Admin API)                                                                                             |
 
 **Instruksi:**
+
 1. `GET /admin/users` → list + filter by role, status + search by name/email + pagination.
 2. `GET /admin/users/:id` → detail user + seller_profile (jika seller).
 3. `PATCH /admin/users/:id/status` → ubah status (active/suspended/banned).
@@ -1182,6 +1252,7 @@ Buat `src/routes/categories/+page.svelte`:
 5. `PATCH /admin/sellers/:id/verify` → set is_verified = true/false.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Admin API E45-E49), DATABASE_DESIGN.md (users, seller_profiles).
 
@@ -1214,19 +1285,21 @@ Mount di index.ts.
 
 ### Task 3.5 — Admin User Management UI
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-3.5`                                                   |
-| Dependensi  | `T-3.4`, `T-3.2`                                          |
-| Deliverables| Admin user pages (A3–A6 dari PAGES.md)                     |
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| ID           | `T-3.5`                                |
+| Dependensi   | `T-3.4`, `T-3.2`                       |
+| Deliverables | Admin user pages (A3–A6 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/admin/src/routes/users/+page.svelte` — tabel user + filter + search.
 2. `apps/admin/src/routes/users/[id]/+page.svelte` — detail user + aksi suspend/ban.
 3. `apps/admin/src/routes/sellers/+page.svelte` — daftar seller.
 4. `apps/admin/src/routes/sellers/[id]/+page.svelte` — detail seller + tombol verify/reject.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Admin Portal A3-A6: Users dan Sellers).
 
@@ -1243,13 +1316,14 @@ Di `apps/admin/`:
 
 ### Task 3.6 — Phase 3 API Tests
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-3.6`                                                   |
-| Dependensi  | `T-3.1`, `T-3.4`                                          |
-| Deliverables| `apps/api/src/__tests__/categories.test.ts`, `apps/api/src/__tests__/admin-users.test.ts` |
+| Key          | Value                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------- |
+| ID           | `T-3.6`                                                                                   |
+| Dependensi   | `T-3.1`, `T-3.4`                                                                          |
+| Deliverables | `apps/api/src/__tests__/categories.test.ts`, `apps/api/src/__tests__/admin-users.test.ts` |
 
 **Instruksi:**
+
 1. Test category admin CRUD flow: create → list → update → delete.
 2. Test delete category yang masih punya event → 409.
 3. Test admin user management: list users, filter by role, get detail, update status, verify seller.
@@ -1258,6 +1332,7 @@ Di `apps/admin/`:
 > **Note:** Public category endpoints (GET /categories, GET /categories/:slug/events) di-test di T-5.5 (Phase 5 Tests) karena endpoint tersebut dibuat di T-5.1.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-3.6: Phase 3 API Tests.
 Dependensi: T-3.1 dan T-3.4 sudah selesai.
@@ -1285,6 +1360,7 @@ Gunakan Hono test helper (app.request()). Pastikan semua test pass: `cd apps/api
 ```
 
 **Checkpoint Phase 3:**
+
 ```bash
 cd apps/api && pnpm test   # category + admin user tests pass
 # Admin bisa login, CRUD kategori, lihat & kelola user, verifikasi seller
@@ -1302,18 +1378,20 @@ open http://localhost:4302/sellers    # verifikasi seller
 
 ### Task 4.1 — Seller Auth & Profile API
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-4.1`                                                   |
-| Dependensi  | `T-2.2`                                                   |
-| Deliverables| `apps/api/src/routes/seller/profile.ts`, `apps/api/src/services/seller-profile.service.ts`, `apps/api/src/schemas/seller-profile.schema.ts` |
-| Endpoints   | E39–E40 (lihat PAGES.md)                                   |
+| Key          | Value                                                                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-4.1`                                                                                                                                     |
+| Dependensi   | `T-2.2`                                                                                                                                     |
+| Deliverables | `apps/api/src/routes/seller/profile.ts`, `apps/api/src/services/seller-profile.service.ts`, `apps/api/src/schemas/seller-profile.schema.ts` |
+| Endpoints    | E39–E40 (lihat PAGES.md)                                                                                                                    |
 
 **Instruksi:**
+
 1. `GET /seller/profile` → return seller_profiles + users data.
 2. `PATCH /seller/profile` → update org_name, org_description, logo_url, bank info.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Profile API E39-E40), DATABASE_DESIGN.md (users, seller_profiles).
 
@@ -1338,14 +1416,15 @@ Mount di apps/api/src/index.ts dengan prefix /seller.
 
 ### Task 4.2 — Seller Event CRUD API
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-4.2`                                                   |
-| Dependensi  | `T-2.1`, `T-1.3`                                          |
-| Deliverables| `apps/api/src/routes/seller/events.ts`, `apps/api/src/services/event.service.ts`, `apps/api/src/schemas/event.schema.ts` |
-| Endpoints   | E16–E20 (lihat PAGES.md → Event API Seller)                |
+| Key          | Value                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| ID           | `T-4.2`                                                                                                                  |
+| Dependensi   | `T-2.1`, `T-1.3`                                                                                                         |
+| Deliverables | `apps/api/src/routes/seller/events.ts`, `apps/api/src/services/event.service.ts`, `apps/api/src/schemas/event.schema.ts` |
+| Endpoints    | E16–E20 (lihat PAGES.md → Event API Seller)                                                                              |
 
 **Instruksi:**
+
 1. `GET /seller/events` → list events milik seller (filter by status) + join ticket_tiers untuk statistik.
 2. `POST /seller/events` → buat event baru + event_categories + event_images + ticket_tiers. Gunakan database transaction.
 3. `GET /seller/events/:id` → detail event + statistik penjualan.
@@ -1354,6 +1433,7 @@ Mount di apps/api/src/index.ts dengan prefix /seller.
 6. **Event status flow:** Seller membuat event (`draft`) → submit untuk review (`pending_review`) → Admin approve (`published`) atau tolak (`rejected`). Seller bisa edit event `rejected` lalu submit ulang.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Event API E16-E20), DATABASE_DESIGN.md (events, event_categories, event_images, ticket_tiers, seller_profiles).
 
@@ -1387,19 +1467,21 @@ Mount di index.ts.
 
 ### Task 4.3 — Ticket Tier CRUD API
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-4.3`                                                   |
-| Dependensi  | `T-4.2`                                                   |
-| Deliverables| `apps/api/src/routes/seller/tiers.ts`, `apps/api/src/services/tier.service.ts`, `apps/api/src/schemas/tier.schema.ts` |
-| Endpoints   | E21–E24 (lihat PAGES.md → Ticket Tier API Seller)          |
+| Key          | Value                                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-4.3`                                                                                                               |
+| Dependensi   | `T-4.2`                                                                                                               |
+| Deliverables | `apps/api/src/routes/seller/tiers.ts`, `apps/api/src/services/tier.service.ts`, `apps/api/src/schemas/tier.schema.ts` |
+| Endpoints    | E21–E24 (lihat PAGES.md → Ticket Tier API Seller)                                                                     |
 
 **Instruksi:**
+
 1. CRUD tier tiket untuk event tertentu.
 2. Validasi: jangan hapus tier yang sudah ada penjualan (sold_count > 0).
 3. Validasi: seller hanya bisa kelola tier dari eventnya sendiri.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Ticket Tier API E21-E24), DATABASE_DESIGN.md (ticket_tiers).
 
@@ -1429,18 +1511,20 @@ Mount di index.ts.
 
 ### Task 4.4 — Seller Auth & Layout UI
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-4.4`                                                   |
-| Dependensi  | `T-0.8`, `T-2.2`                                          |
-| Deliverables| Seller auth pages (S1–S4 dari PAGES.md)                    |
+| Key          | Value                                   |
+| ------------ | --------------------------------------- |
+| ID           | `T-4.4`                                 |
+| Dependensi   | `T-0.8`, `T-2.2`                        |
+| Deliverables | Seller auth pages (S1–S4 dari PAGES.md) |
 
 **Instruksi:**
+
 1. Login, Register (with org data), Forgot/Reset Password pages.
 2. Sidebar layout dengan menu: Dashboard, Events, Orders, Check-in, Profile.
 3. Auth guard: hanya role `seller`.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Portal Auth S1-S4).
 
@@ -1462,13 +1546,14 @@ Di `apps/seller/`:
 
 ### Task 4.5 — Seller Event Management UI
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-4.5`                                                   |
-| Dependensi  | `T-4.2`, `T-4.3`, `T-4.4`                                 |
-| Deliverables| Seller event pages (S6–S10 dari PAGES.md)                  |
+| Key          | Value                                     |
+| ------------ | ----------------------------------------- |
+| ID           | `T-4.5`                                   |
+| Dependensi   | `T-4.2`, `T-4.3`, `T-4.4`                 |
+| Deliverables | Seller event pages (S6–S10 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/seller/src/routes/events/+page.svelte` → tabel daftar event.
 2. `apps/seller/src/routes/events/create/+page.svelte` → form multi-step buat event.
 3. `apps/seller/src/routes/events/[id]/+page.svelte` → detail event + statistik.
@@ -1476,6 +1561,7 @@ Di `apps/seller/`:
 5. `apps/seller/src/routes/events/[id]/tiers/+page.svelte` → kelola tier tiket.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Portal S6-S10: Event Management).
 
@@ -1500,17 +1586,19 @@ Upload gambar via POST /upload (T-2.5).
 
 ### Task 4.6 — Seller Profile UI
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-4.6`                                                   |
-| Dependensi  | `T-4.1`, `T-4.4`                                          |
-| Deliverables| Seller profile pages (S14–S15 dari PAGES.md)               |
+| Key          | Value                                        |
+| ------------ | -------------------------------------------- |
+| ID           | `T-4.6`                                      |
+| Dependensi   | `T-4.1`, `T-4.4`                             |
+| Deliverables | Seller profile pages (S14–S15 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/seller/src/routes/profile/+page.svelte` → edit profil organisasi.
 2. `apps/seller/src/routes/profile/password/+page.svelte` → ubah password.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Portal S14-S15: Profile & Settings).
 
@@ -1529,19 +1617,21 @@ Di `apps/seller/`:
 
 ### Task 4.7 — Phase 4 API Tests
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-4.7`                                                   |
-| Dependensi  | `T-4.1`, `T-4.2`, `T-4.3`                                 |
-| Deliverables| `apps/api/src/__tests__/seller-profile.test.ts`, `apps/api/src/__tests__/seller-events.test.ts` |
+| Key          | Value                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| ID           | `T-4.7`                                                                                         |
+| Dependensi   | `T-4.1`, `T-4.2`, `T-4.3`                                                                       |
+| Deliverables | `apps/api/src/__tests__/seller-profile.test.ts`, `apps/api/src/__tests__/seller-events.test.ts` |
 
 **Instruksi:**
+
 1. Test seller profile: get profile, update profile.
 2. Test seller event CRUD: create event → list → detail → update → submit for review.
 3. Test tier CRUD: add tier → list → update → delete.
 4. Test authorization: buyer tidak bisa akses seller routes.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-4.7: Phase 4 API Tests.
 Dependensi: T-4.1, T-4.2, dan T-4.3 sudah selesai.
@@ -1568,6 +1658,7 @@ Gunakan Hono test helper (app.request()). Pastikan semua test pass.
 ```
 
 **Checkpoint Phase 4:**
+
 ```bash
 cd apps/api && pnpm test   # seller profile + event + tier tests pass
 # Seller bisa login, buat event, kelola tier, edit profil
@@ -1586,14 +1677,15 @@ curl http://localhost:8787/doc  # JSON spec harus include /seller/* endpoints
 
 ### Task 5.1 — Public Event API
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-5.1`                                                   |
-| Dependensi  | `T-1.3`                                                   |
-| Deliverables| `apps/api/src/routes/events.ts`, `apps/api/src/services/public-event.service.ts`, `apps/api/src/schemas/public-event.schema.ts` |
-| Endpoints   | E11–E15 (lihat PAGES.md → Event API Public)                |
+| Key          | Value                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-5.1`                                                                                                                         |
+| Dependensi   | `T-1.3`                                                                                                                         |
+| Deliverables | `apps/api/src/routes/events.ts`, `apps/api/src/services/public-event.service.ts`, `apps/api/src/schemas/public-event.schema.ts` |
+| Endpoints    | E11–E15 (lihat PAGES.md → Event API Public)                                                                                     |
 
 **Instruksi:**
+
 1. `GET /events` → list published events + filter (category, city, date range, price range) + search (title) + pagination.
 2. `GET /events/featured` → events where `is_featured = true`.
 3. `GET /events/:slug` → detail event by slug, join semua relasi.
@@ -1605,6 +1697,7 @@ curl http://localhost:8787/doc  # JSON spec harus include /seller/* endpoints
 > **Note:** Public category endpoints (E14, E15) dibuat di task ini karena secara konteks lebih cocok di public event routes. T-3.1 hanya menangani admin CRUD category.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Event API Public E11-E15), DATABASE_DESIGN.md (events, categories, event_categories, event_images, ticket_tiers, seller_profiles).
 
@@ -1636,18 +1729,20 @@ Mount di index.ts.
 
 ### Task 5.2 — Buyer Auth Pages
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-5.2`                                                   |
-| Dependensi  | `T-0.6`, `T-2.2`                                          |
-| Deliverables| Buyer auth pages (B1–B5 dari PAGES.md)                     |
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| ID           | `T-5.2`                                |
+| Dependensi   | `T-0.6`, `T-2.2`                       |
+| Deliverables | Buyer auth pages (B1–B5 dari PAGES.md) |
 
 **Instruksi:**
+
 1. Buat halaman SvelteKit: register, login, forgot-password, reset-password, verify-email.
 2. Gunakan SvelteKit load functions dan form actions untuk interaktivitas.
 3. Simpan JWT di cookie (httpOnly via server hooks).
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Buyer Portal Auth B1-B5).
 
@@ -1671,19 +1766,21 @@ Desain bersih dan responsive.
 
 ### Task 5.3 — Homepage & Explore
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-5.3`                                                   |
-| Dependensi  | `T-5.1`, `T-5.2`                                          |
-| Deliverables| Buyer public pages (B6–B9 dari PAGES.md)                   |
+| Key          | Value                                    |
+| ------------ | ---------------------------------------- |
+| ID           | `T-5.3`                                  |
+| Dependensi   | `T-5.1`, `T-5.2`                         |
+| Deliverables | Buyer public pages (B6–B9 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/buyer/src/routes/+page.svelte` → Hero banner, featured events carousel, kategori grid, upcoming events.
 2. `apps/buyer/src/routes/events/+page.svelte` → Daftar event + filter sidebar (kategori, kota, tanggal, harga) + search bar + pagination.
 3. `apps/buyer/src/routes/events/[slug]/+page.svelte` → Detail event: deskripsi, galeri, map, tier tiket + harga, info seller. Tombol "Beli Tiket" (link ke checkout).
 4. `apps/buyer/src/routes/categories/[slug]/+page.svelte` → Event per kategori.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Buyer Portal Public B6-B9).
 
@@ -1720,17 +1817,19 @@ Desain modern, responsive.
 
 ### Task 5.4 — Buyer Profile & Notifications UI
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-5.4`                                                   |
-| Dependensi  | `T-5.2`, `T-2.3`                                          |
-| Deliverables| Buyer profile & notification pages (B16–B17 dari PAGES.md) |
+| Key          | Value                                                      |
+| ------------ | ---------------------------------------------------------- |
+| ID           | `T-5.4`                                                    |
+| Dependensi   | `T-5.2`, `T-2.3`                                           |
+| Deliverables | Buyer profile & notification pages (B16–B17 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/buyer/src/routes/profile/+page.svelte` → edit profil buyer.
 2. `apps/buyer/src/routes/notifications/+page.svelte` → daftar notifikasi.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Buyer Portal Protected B16-B17).
 
@@ -1756,19 +1855,21 @@ Protect halaman: redirect ke /login jika belum login.
 
 ### Task 5.5 — Phase 5 API Tests
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-5.5`                                                   |
-| Dependensi  | `T-5.1`                                                   |
-| Deliverables| `apps/api/src/__tests__/public-events.test.ts`             |
+| Key          | Value                                          |
+| ------------ | ---------------------------------------------- |
+| ID           | `T-5.5`                                        |
+| Dependensi   | `T-5.1`                                        |
+| Deliverables | `apps/api/src/__tests__/public-events.test.ts` |
 
 **Instruksi:**
+
 1. Test public event list: pagination, filter by category/location/date, search.
 2. Test event detail: return event + tiers + images.
 3. Test hanya event published yang muncul di public.
 4. Test event not found → 404.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-5.5: Phase 5 API Tests.
 Dependensi: T-5.1 sudah selesai.
@@ -1788,6 +1889,7 @@ Gunakan Hono test helper (app.request()). Pastikan semua test pass.
 ```
 
 **Checkpoint Phase 5:**
+
 ```bash
 cd apps/api && pnpm test   # public event tests pass
 open http://localhost:4301/           # homepage dengan event
@@ -1803,13 +1905,14 @@ open http://localhost:4301/events/slug-event # detail event
 
 ### Task 6.1 — Durable Object: TicketReserver
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-6.1`                                                   |
-| Dependensi  | `T-0.5`, `T-1.3`                                          |
-| Deliverables| `apps/api/src/durable-objects/ticket-reserver.ts`          |
+| Key          | Value                                             |
+| ------------ | ------------------------------------------------- |
+| ID           | `T-6.1`                                           |
+| Dependensi   | `T-0.5`, `T-1.3`                                  |
+| Deliverables | `apps/api/src/durable-objects/ticket-reserver.ts` |
 
 **Instruksi:**
+
 1. Buat Durable Object class `TicketReserver`.
 2. In-memory state: `{ [tierId]: { quota, soldCount, pendingReservations } }`.
 3. Method `initialize(tierId)` → load dari database ke in-memory.
@@ -1823,7 +1926,8 @@ open http://localhost:4301/events/slug-event # detail event
 8. Daftarkan di `wrangler.toml` sebagai Durable Object binding.
 
 **Prompt:**
-```
+
+````
 Referensi: DATABASE_DESIGN.md (Concurrency & War Ticket Flow, tabel reservations, ticket_tiers).
 
 Kerjakan Task T-6.1: Durable Object TicketReserver.
@@ -1849,9 +1953,10 @@ Buat file `apps/api/src/durable-objects/ticket-reserver.ts`:
    [[migrations]]
    tag = "v1"
    new_classes = ["TicketReserver"]
-   ```
+````
 
 INI ADALAH BAGIAN PALING KRITIS. Pastikan semua operasi stok atomik dan concurrent-safe.
+
 ```
 
 ### Task 6.2 — Reservation API
@@ -1873,6 +1978,7 @@ INI ADALAH BAGIAN PALING KRITIS. Pastikan semua operasi stok atomik dan concurre
 
 **Prompt:**
 ```
+
 Referensi: PAGES.md (Reservation API E25-E27), DATABASE_DESIGN.md (reservations, ticket_tiers, events).
 
 Kerjakan Task T-6.2: Reservation API.
@@ -1881,20 +1987,24 @@ Dependensi: T-6.1 sudah selesai.
 Buat 3 file:
 
 **File 1: `apps/api/src/schemas/reservation.schema.ts`:**
+
 - createReservationSchema: { ticket_tier_id: string, quantity: number.min(1) }.openapi('CreateReservationInput')
 
 **File 2: `apps/api/src/services/reservation.service.ts`:**
+
 - reserve(env, userId, input): cek active reservation per event, anti-abuse quota check, delegate ke Durable Object TicketReserver.reserve(). Return { reservation_id, expires_at }.
 - getReservation(userId, reservationId): return reservation + remaining time. Validasi ownership.
 - cancelReservation(env, userId, reservationId): validasi ownership + status active. Delegate ke TicketReserver.cancelReservation().
 
 **File 3: `apps/api/src/routes/reservations.ts`** — buyer-only via authMiddleware + roleMiddleware('buyer'):
+
 1. POST /reservations — Create reservation. Call reservationService.reserve().
 2. GET /reservations/:id — Get reservation status. Call reservationService.getReservation().
 3. DELETE /reservations/:id — Cancel reservation. Call reservationService.cancelReservation().
 
 Set expires_at = now + 10 menit.
 Mount di index.ts.
+
 ```
 
 ### Task 6.3 — Order API
@@ -1918,6 +2028,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
+
 Referensi: PAGES.md (Order API E28-E30), DATABASE_DESIGN.md (orders, order_items, payments, reservations, ticket_tiers).
 
 Kerjakan Task T-6.3: Order API.
@@ -1926,20 +2037,24 @@ Dependensi: T-6.2 sudah selesai.
 Buat 3 file:
 
 **File 1: `apps/api/src/schemas/order.schema.ts`:**
+
 - createOrderSchema: { reservation_id: string }.openapi('CreateOrderInput')
 - listOrdersQuerySchema: { page?, limit? }.openapi('ListOrdersQuery')
 
 **File 2: `apps/api/src/services/order.service.ts`:**
+
 - createOrder(userId, input): database transaction — validasi reservation (active, not expired, ownership), generate order_number (JVX-YYYYMMDD-XXXXX), insert order + order_items + payment (pending), update reservation status → converted. expires_at = now + 30 menit.
 - listOrders(userId, pagination): join order_items, payments, events. Return status, order_number, total_amount, created_at.
 - getOrderDetail(userId, orderId): detail + items + payment + tickets. Validasi ownership.
 
 **File 3: `apps/api/src/routes/orders.ts`** — buyer-only:
+
 1. POST /orders — Create order from reservation. Call orderService.createOrder().
 2. GET /orders — List buyer orders. Call orderService.listOrders().
 3. GET /orders/:id — Order detail. Call orderService.getOrderDetail().
 
 Mount di index.ts.
+
 ```
 
 ### Task 6.4 — Payment API
@@ -1967,6 +2082,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
+
 Referensi: PAGES.md (Payment API E31-E32), DATABASE_DESIGN.md (payments, orders, tickets, order_items).
 
 Kerjakan Task T-6.4: Payment API.
@@ -1975,17 +2091,21 @@ Dependensi: T-6.3 sudah selesai.
 Buat 3 file:
 
 **File 1: `apps/api/src/schemas/payment.schema.ts`:**
+
 - initiatePaymentSchema: { method: enum['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account'] }.openapi('InitiatePaymentInput')
 
 **File 2: `apps/api/src/services/payment.service.ts`:**
+
 - initiatePayment(userId, orderId, input): validasi order (ownership, pending, not expired), update payment method, integrasikan payment gateway (mock dulu). Return { payment_url } atau { status: 'success' }.
 - handleWebhook(headers, body): verify signature, idempotency check (external_ref), update payment → success + order → confirmed, call generateTickets(), enqueue email + notification.
 
 **File 3: `apps/api/src/routes/payments.ts`:**
+
 1. POST /payments/:orderId/pay — Buyer-only. Initiate payment. Call paymentService.initiatePayment().
 2. POST /webhooks/payment — Public (verify signature). Payment webhook callback. Call paymentService.handleWebhook().
 
 Mount di index.ts.
+
 ```
 
 ### Task 6.5 — Cloudflare Queue: Reservation Cleanup
@@ -2006,6 +2126,7 @@ Mount di index.ts.
 
 **Prompt:**
 ```
+
 Referensi: DATABASE_DESIGN.md (reservations, ticket_tiers, Concurrency & War Ticket Flow).
 
 Kerjakan Task T-6.5: Cloudflare Queue Reservation Cleanup.
@@ -2015,7 +2136,7 @@ Buat file `apps/api/src/queues/reservation-cleanup.ts`:
 
 1. Export fungsi queue handler sesuai Cloudflare Queue consumer pattern.
 2. Logika cleanup (berjalan periodik):
-   - Query: SELECT * FROM reservations WHERE status = 'active' AND expires_at < now().
+   - Query: SELECT \* FROM reservations WHERE status = 'active' AND expires_at < now().
    - Untuk setiap reservation expired:
      a. Update reservations SET status = 'expired'.
      b. Get Durable Object instance dan call cancelReservation(reservationId) untuk restore in-memory counter.
@@ -2034,6 +2155,7 @@ Buat file `apps/api/src/queues/reservation-cleanup.ts`:
    ```
 
 Pastikan cleanup idempotent (jangan proses reservation yang sudah expired).
+
 ```
 
 ### Task 6.6 — Checkout & Payment UI (Buyer)
@@ -2051,6 +2173,7 @@ Pastikan cleanup idempotent (jangan proses reservation yang sudah expired).
 
 **Prompt:**
 ```
+
 Referensi: PAGES.md (Buyer Portal Protected B10-B11: Checkout & Payment).
 
 Kerjakan Task T-6.6: Checkout & Payment UI (Buyer).
@@ -2073,6 +2196,7 @@ Di `apps/buyer/`:
    - Pilih metode bayar (bank_transfer, e_wallet, credit_card, virtual_account).
    - Countdown batas waktu bayar (30 menit dari order.expires_at).
    - Tombol "Bayar Sekarang" → call POST /payments/:orderId/pay. Redirect ke payment gateway URL (atau show success jika mock).
+
 ```
 
 ### Task 6.7 — Order History UI (Buyer)
@@ -2089,6 +2213,7 @@ Di `apps/buyer/`:
 
 **Prompt:**
 ```
+
 Referensi: PAGES.md (Buyer Portal Protected B12-B13: Order History).
 
 Kerjakan Task T-6.7: Order History UI (Buyer).
@@ -2111,6 +2236,7 @@ Di `apps/buyer/`:
    - Jika status pending: tombol "Bayar Sekarang" → redirect ke /payment/[orderId].
 
 Protect kedua halaman: redirect ke /login jika belum login.
+
 ```
 
 ### Task 6.8 — Phase 6 API Tests (Transaction Flow)
@@ -2130,6 +2256,7 @@ Protect kedua halaman: redirect ke /login jika belum login.
 
 **Prompt:**
 ```
+
 Kerjakan Task T-6.8: Phase 6 API Tests (Transaction Flow).
 Dependensi: T-6.2, T-6.3, dan T-6.4 sudah selesai.
 
@@ -2155,14 +2282,15 @@ Buat test files di `apps/api/src/__tests__/`:
    d. Full pipeline: reserve → order → pay → verify order status = confirmed.
 
 Gunakan Hono test helper (app.request()). Pastikan semua test pass.
-```
+
+````
 
 **Checkpoint Phase 6:**
 ```bash
 cd apps/api && pnpm test   # reservation + order + payment tests pass
 # Full flow test: browse event → checkout → reserve → create order → pay
 # Reservasi yang expired harus di-cleanup otomatis
-```
+````
 
 ---
 
@@ -2172,14 +2300,15 @@ cd apps/api && pnpm test   # reservation + order + payment tests pass
 
 ### Task 7.1 — Ticket Generation
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-7.1`                                                   |
-| Dependensi  | `T-6.4`                                                   |
-| Deliverables| `apps/api/src/services/ticket-generator.ts`, `apps/api/src/routes/tickets.ts`, `apps/api/src/schemas/ticket.schema.ts` |
-| Endpoints   | E33–E34 (lihat PAGES.md)                                   |
+| Key          | Value                                                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-7.1`                                                                                                                |
+| Dependensi   | `T-6.4`                                                                                                                |
+| Deliverables | `apps/api/src/services/ticket-generator.ts`, `apps/api/src/routes/tickets.ts`, `apps/api/src/schemas/ticket.schema.ts` |
+| Endpoints    | E33–E34 (lihat PAGES.md)                                                                                               |
 
 **Instruksi:**
+
 1. Service: `generateTickets(orderId)`:
    - Untuk setiap order_item, generate N tiket (sesuai quantity).
    - `ticket_code` = unique random string (misal: `JVX-` + nanoid 12 char).
@@ -2189,6 +2318,7 @@ cd apps/api && pnpm test   # reservation + order + payment tests pass
 4. API: `GET /tickets/:id` → detail tiket + QR data.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Ticket API E33-E34), DATABASE_DESIGN.md (tickets, order_items, orders).
 
@@ -2214,17 +2344,19 @@ Mount di index.ts.
 
 ### Task 7.2 — Ticket UI (Buyer)
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-7.2`                                                   |
-| Dependensi  | `T-7.1`, `T-5.2`                                          |
-| Deliverables| Buyer ticket pages (B14–B15 dari PAGES.md)                 |
+| Key          | Value                                      |
+| ------------ | ------------------------------------------ |
+| ID           | `T-7.2`                                    |
+| Dependensi   | `T-7.1`, `T-5.2`                           |
+| Deliverables | Buyer ticket pages (B14–B15 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/buyer/src/routes/tickets/+page.svelte` → list tiket aktif.
 2. `apps/buyer/src/routes/tickets/[id]/+page.svelte` → detail tiket + QR code rendered dari `ticket_code`. Gunakan QR code library (misal `qrcode`).
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Buyer Portal Protected B14-B15: Tickets).
 
@@ -2254,13 +2386,14 @@ Protect kedua halaman: redirect ke /login jika belum login.
 
 ### Task 7.3 — Check-in API & UI (Seller)
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-7.3`                                                   |
-| Dependensi  | `T-7.1`, `T-4.4`                                          |
-| Deliverables| Check-in API (`apps/api/src/services/checkin.service.ts`, `apps/api/src/schemas/checkin.schema.ts`, `apps/api/src/routes/seller/checkin.ts`) + Seller check-in page (S13, E35–E36) |
+| Key          | Value                                                                                                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-7.3`                                                                                                                                                                            |
+| Dependensi   | `T-7.1`, `T-4.4`                                                                                                                                                                   |
+| Deliverables | Check-in API (`apps/api/src/services/checkin.service.ts`, `apps/api/src/schemas/checkin.schema.ts`, `apps/api/src/routes/seller/checkin.ts`) + Seller check-in page (S13, E35–E36) |
 
 **Instruksi:**
+
 1. API `POST /seller/events/:id/checkin` → terima `ticket_code`, validasi:
    - Tiket ada dan status `valid`.
    - Tiket milik event ini.
@@ -2273,6 +2406,7 @@ Protect kedua halaman: redirect ke /login jika belum login.
    - Live statistik check-in.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Portal S13, Check-in API E35-E36), DATABASE_DESIGN.md (tickets, ticket_checkins).
 
@@ -2306,13 +2440,14 @@ Mount API routes di index.ts.
 
 ### Task 7.4 — Notification System
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-7.4`                                                   |
-| Dependensi  | `T-6.5`, `T-2.1`                                          |
-| Deliverables| `apps/api/src/services/notification.service.ts`, `apps/api/src/routes/notifications.ts`, `apps/api/src/schemas/notification.schema.ts` (E41–E43, E61) |
+| Key          | Value                                                                                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-7.4`                                                                                                                                               |
+| Dependensi   | `T-6.5`, `T-2.1`                                                                                                                                      |
+| Deliverables | `apps/api/src/services/notification.service.ts`, `apps/api/src/routes/notifications.ts`, `apps/api/src/schemas/notification.schema.ts` (E41–E43, E61) |
 
 **Instruksi:**
+
 1. Service: `sendNotification(userId, type, title, body, metadata)` → insert ke `notifications`.
 2. Di-trigger oleh:
    - Payment success → `order_confirmed` (ke buyer).
@@ -2325,6 +2460,7 @@ Mount API routes di index.ts.
 4. Admin API: `POST /admin/notifications/broadcast`.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Notification API E41-E43, E61), DATABASE_DESIGN.md (notifications, notification_type enum).
 
@@ -2357,19 +2493,21 @@ Mount di index.ts.
 
 ### Task 7.5 — Seller Order View
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-7.5`                                                   |
-| Dependensi  | `T-4.4`, `T-6.3`                                          |
-| Deliverables| Seller order pages (S11–S12), `apps/api/src/services/seller-order.service.ts`, `apps/api/src/routes/seller/orders.ts`, `apps/api/src/schemas/seller-order.schema.ts` (E37–E38) |
+| Key          | Value                                                                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID           | `T-7.5`                                                                                                                                                                        |
+| Dependensi   | `T-4.4`, `T-6.3`                                                                                                                                                               |
+| Deliverables | Seller order pages (S11–S12), `apps/api/src/services/seller-order.service.ts`, `apps/api/src/routes/seller/orders.ts`, `apps/api/src/schemas/seller-order.schema.ts` (E37–E38) |
 
 **Instruksi:**
+
 1. API: `GET /seller/orders` → list order untuk event milik seller.
 2. API: `GET /seller/orders/:id` → detail order + buyer info.
 3. UI: `apps/seller/src/routes/orders/+page.svelte` → tabel pesanan.
 4. UI: `apps/seller/src/routes/orders/[id]/+page.svelte` → detail pesanan.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Portal S11-S12, Seller Order API E37-E38), DATABASE_DESIGN.md (orders, order_items, events, ticket_tiers).
 
@@ -2408,18 +2546,20 @@ Mount API routes di index.ts.
 
 ### Task 7.6 — Seller Notification UI
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-7.6`                                                   |
-| Dependensi  | `T-7.4`, `T-4.4`                                          |
-| Deliverables| Seller notification page (S16 dari PAGES.md)               |
+| Key          | Value                                        |
+| ------------ | -------------------------------------------- |
+| ID           | `T-7.6`                                      |
+| Dependensi   | `T-7.4`, `T-4.4`                             |
+| Deliverables | Seller notification page (S16 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/seller/src/routes/notifications/+page.svelte` → daftar notifikasi seller.
 2. Tampilkan notifikasi: pesanan baru, event approved/rejected, dll.
 3. Mark as read / mark all as read.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Portal S16: Notifications).
 
@@ -2445,13 +2585,14 @@ Di `apps/seller/`:
 
 ### Task 7.7 — Phase 7 API Tests (Post-Transaction)
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-7.7`                                                   |
-| Dependensi  | `T-7.1`, `T-7.3`, `T-7.4`, `T-7.5`                       |
-| Deliverables| `apps/api/src/__tests__/tickets.test.ts`, `apps/api/src/__tests__/checkin.test.ts`, `apps/api/src/__tests__/notifications.test.ts` |
+| Key          | Value                                                                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| ID           | `T-7.7`                                                                                                                            |
+| Dependensi   | `T-7.1`, `T-7.3`, `T-7.4`, `T-7.5`                                                                                                 |
+| Deliverables | `apps/api/src/__tests__/tickets.test.ts`, `apps/api/src/__tests__/checkin.test.ts`, `apps/api/src/__tests__/notifications.test.ts` |
 
 **Instruksi:**
+
 1. Test ticket generation: setelah payment success, tiket ter-generate dengan ticket_code.
 2. Test ticket API: list buyer's tickets, ticket detail.
 3. Test check-in: scan valid code → SUCCESS, scan ulang → ALREADY_USED, invalid code → INVALID.
@@ -2459,6 +2600,7 @@ Di `apps/seller/`:
 5. Test seller order view: list orders, detail + buyer info.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-7.7: Phase 7 API Tests (Post-Transaction).
 Dependensi: T-7.1, T-7.3, T-7.4, dan T-7.5 sudah selesai.
@@ -2493,6 +2635,7 @@ Gunakan Hono test helper (app.request()). Pastikan semua test pass.
 ```
 
 **Checkpoint Phase 7:**
+
 ```bash
 cd apps/api && pnpm test   # ticket + checkin + notification + seller-order tests pass
 # Complete flow: buyer bayar → tiket generate → buyer lihat QR → seller scan check-in
@@ -2507,19 +2650,21 @@ cd apps/api && pnpm test   # ticket + checkin + notification + seller-order test
 
 ### Task 8.1 — PartyKit Server Setup
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-8.1`                                                   |
-| Dependensi  | `T-6.1`                                                   |
-| Deliverables| PartyKit server config + room logic                        |
+| Key          | Value                               |
+| ------------ | ----------------------------------- |
+| ID           | `T-8.1`                             |
+| Dependensi   | `T-6.1`                             |
+| Deliverables | PartyKit server config + room logic |
 
 **Instruksi:**
+
 1. Setup PartyKit project (bisa sebagai bagian dari monorepo atau standalone).
 2. Room per event: `event-{eventId}`.
 3. Server broadcast message format: `{ type: "availability", data: { tierId: string, remaining: number }[] }`.
 4. API → PartyKit: setelah Durable Object update availability, POST ke PartyKit room untuk broadcast ke semua connected clients.
 
 **Prompt:**
+
 ```
 Referensi: README.md (Real-time / PartyKit), DATABASE_DESIGN.md (ticket_tiers).
 
@@ -2550,18 +2695,20 @@ Dependensi: T-6.1 sudah selesai.
 
 ### Task 8.2 — PartyKit Client Integration
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-8.2`                                                   |
-| Dependensi  | `T-8.1`, `T-5.3`, `T-6.6`                                 |
-| Deliverables| WebSocket integration di halaman Event Detail & Checkout   |
+| Key          | Value                                                    |
+| ------------ | -------------------------------------------------------- |
+| ID           | `T-8.2`                                                  |
+| Dependensi   | `T-8.1`, `T-5.3`, `T-6.6`                                |
+| Deliverables | WebSocket integration di halaman Event Detail & Checkout |
 
 **Instruksi:**
+
 1. `apps/buyer/src/routes/events/[slug]/+page.svelte` → connect ke PartyKit room, update jumlah tiket tersedia secara live.
 2. `apps/buyer/src/routes/checkout/[slug]/+page.svelte` → live stock countdown, jika sold out saat checkout maka tampilkan alert.
 3. Gunakan `partysocket` client library.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Buyer Portal B7: Event Detail, B10: Checkout).
 
@@ -2593,6 +2740,7 @@ Pastikan WebSocket auto-reconnect jika koneksi terputus.
 ```
 
 **Checkpoint Phase 8:**
+
 ```bash
 # Buka 2 browser tab di halaman event detail yang sama
 # Beli tiket di tab 1 → stock di tab 2 harus realtime berkurang
@@ -2606,19 +2754,21 @@ Pastikan WebSocket auto-reconnect jika koneksi terputus.
 
 ### Task 9.1 — Seller Dashboard
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-9.1`                                                   |
-| Dependensi  | `T-7.5`                                                   |
-| Deliverables| Seller dashboard page (S5 dari PAGES.md)                   |
+| Key          | Value                                    |
+| ------------ | ---------------------------------------- |
+| ID           | `T-9.1`                                  |
+| Dependensi   | `T-7.5`                                  |
+| Deliverables | Seller dashboard page (S5 dari PAGES.md) |
 
 **Instruksi:**
+
 1. `apps/seller/src/routes/+page.svelte`:
    - Card: total event, total revenue, total tiket terjual, event upcoming.
    - Tabel: pesanan terbaru (5 terbaru).
    - Grafik: penjualan tiket per hari (30 hari terakhir).
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Seller Portal S5: Dashboard, E39-E40).
 
@@ -2646,13 +2796,14 @@ Install chart library jika perlu: pnpm add chart.js (di workspace apps/seller).
 
 ### Task 9.2 — Admin Dashboard
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-9.2`                                                   |
-| Dependensi  | `T-3.5`                                                   |
-| Deliverables| Admin dashboard page (A2 dari PAGES.md) + API E44          |
+| Key          | Value                                             |
+| ------------ | ------------------------------------------------- |
+| ID           | `T-9.2`                                           |
+| Dependensi   | `T-3.5`                                           |
+| Deliverables | Admin dashboard page (A2 dari PAGES.md) + API E44 |
 
 **Instruksi:**
+
 1. API: `GET /admin/dashboard` → aggregate: total users, total events, total revenue, total tickets sold.
 2. UI: `apps/admin/src/routes/+page.svelte`:
    - Cards: total user, total seller, total event, total revenue.
@@ -2660,6 +2811,7 @@ Install chart library jika perlu: pnpm add chart.js (di workspace apps/seller).
    - Tabel: event terbaru, pesanan terbaru.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Admin Portal A2: Dashboard, E44).
 
@@ -2688,13 +2840,14 @@ Install chart library jika perlu.
 
 ### Task 9.3 — Admin Order & Payment Management
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-9.3`                                                   |
-| Dependensi  | `T-3.2`, `T-6.3`, `T-6.4`                                 |
-| Deliverables| Admin order & payment pages (A7–A12, A15) + API E50–E56, E62 |
+| Key          | Value                                                        |
+| ------------ | ------------------------------------------------------------ |
+| ID           | `T-9.3`                                                      |
+| Dependensi   | `T-3.2`, `T-6.3`, `T-6.4`                                    |
+| Deliverables | Admin order & payment pages (A7–A12, A15) + API E50–E56, E62 |
 
 **Instruksi:**
+
 1. Admin Event pages: `A7` (list semua event), `A8` (detail event + ubah status).
 2. Admin Order pages: `A9` (list order), `A10` (detail order + aksi refund/cancel).
 3. Admin Payment pages: `A11` (list payment), `A12` (detail payment + update status).
@@ -2703,6 +2856,7 @@ Install chart library jika perlu.
 6. Implement semua API endpoints E50–E56, E62.
 
 **Prompt:**
+
 ```
 Referensi: PAGES.md (Admin Portal A7-A12, A14-A15, API E50-E56, E62), DATABASE_DESIGN.md (events, orders, payments, notifications, reservations).
 
@@ -2747,6 +2901,7 @@ Setiap halaman punya filter, pagination, dan aksi.
 ```
 
 **Checkpoint Phase 9:**
+
 ```bash
 # Dashboard seller menampilkan statistik penjualan
 # Dashboard admin menampilkan ringkasan seluruh platform
@@ -2761,13 +2916,14 @@ Setiap halaman punya filter, pagination, dan aksi.
 
 ### Task 10.1 — Coverage Verification & Gap Tests
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-10.1`                                                  |
-| Dependensi  | Phase 1–9 selesai                                          |
-| Deliverables| Coverage report, gap tests, Vitest setup di packages/core  |
+| Key          | Value                                                     |
+| ------------ | --------------------------------------------------------- |
+| ID           | `T-10.1`                                                  |
+| Dependensi   | Phase 1–9 selesai                                         |
+| Deliverables | Coverage report, gap tests, Vitest setup di packages/core |
 
 **Instruksi:**
+
 > **Catatan:** Unit/integration tests untuk setiap API sudah ditulis di fase masing-masing (T-2.4, T-3.6, T-4.7, T-5.5, T-6.8, T-7.7). Task ini fokus pada:
 
 1. Pastikan Vitest sudah ter-setup di `packages/core` (jika belum).
@@ -2782,6 +2938,7 @@ Setiap halaman punya filter, pagination, dan aksi.
 5. Target: minimal 80% coverage pada `apps/api`.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-10.1: Coverage Verification & Gap Tests.
 Dependensi: Phase 1–9 sudah selesai, termasuk test tasks T-2.4, T-3.6, T-4.7, T-5.5, T-6.8, T-7.7.
@@ -2810,13 +2967,14 @@ Dependensi: Phase 1–9 sudah selesai, termasuk test tasks T-2.4, T-3.6, T-4.7, 
 
 ### Task 10.2 — E2E Tests (Playwright)
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-10.2`                                                  |
-| Dependensi  | `T-10.1`                                                  |
-| Deliverables| Playwright test suite per portal di `tests/e2e/`           |
+| Key          | Value                                            |
+| ------------ | ------------------------------------------------ |
+| ID           | `T-10.2`                                         |
+| Dependensi   | `T-10.1`                                         |
+| Deliverables | Playwright test suite per portal di `tests/e2e/` |
 
 **Instruksi:**
+
 > **Note:** Playwright sudah di-setup di Phase 0 (T-0.10) — `playwright.config.ts`, `tests/e2e/`, dan `@playwright/test` sudah ter-install. Task ini fokus **menulis test cases**.
 
 1. Test flows kritis:
@@ -2826,6 +2984,7 @@ Dependensi: Phase 1–9 sudah selesai, termasuk test tasks T-2.4, T-3.6, T-4.7, 
 2. Minimal 1 E2E test per halaman.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-10.2: E2E Tests (Playwright).
 Dependensi: T-10.1 sudah selesai.
@@ -2866,13 +3025,14 @@ Jalankan: pnpm run test:e2e. Semua tests harus pass.
 
 ### Task 10.3 — Load Testing (K6)
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-10.3`                                                  |
-| Dependensi  | `T-10.1`                                                  |
-| Deliverables| K6 script di root `tests/load/`                            |
+| Key          | Value                           |
+| ------------ | ------------------------------- |
+| ID           | `T-10.3`                        |
+| Dependensi   | `T-10.1`                        |
+| Deliverables | K6 script di root `tests/load/` |
 
 **Instruksi:**
+
 1. Simulasi **war ticket**: 1000 virtual users mencoba reservasi tiket yang sama secara bersamaan.
 2. Verifikasi:
    - Tidak ada overselling (total sold ≤ quota).
@@ -2881,6 +3041,7 @@ Jalankan: pnpm run test:e2e. Semua tests harus pass.
 3. Simulasi checkout flow: 500 users end-to-end (reserve → order → pay).
 
 **Prompt:**
+
 ```
 Kerjakan Task T-10.3: Load Testing (K6).
 Dependensi: T-10.1 sudah selesai.
@@ -2910,13 +3071,14 @@ Dependensi: T-10.1 sudah selesai.
 
 ### Task 10.4 — Security Review
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-10.4`                                                  |
-| Dependensi  | `T-10.1`                                                  |
-| Deliverables| Security checklist completed                               |
+| Key          | Value                        |
+| ------------ | ---------------------------- |
+| ID           | `T-10.4`                     |
+| Dependensi   | `T-10.1`                     |
+| Deliverables | Security checklist completed |
 
 **Checklist:**
+
 - [ ] Input validation di semua endpoint (zod).
 - [ ] SQL injection prevention (Drizzle ORM parameterized queries).
 - [ ] XSS prevention (sanitize HTML output di frontend).
@@ -2932,6 +3094,7 @@ Dependensi: T-10.1 sudah selesai.
 - [ ] Sensitive data tidak masuk log.
 
 **Prompt:**
+
 ```
 Kerjakan Task T-10.4: Security Review.
 Dependensi: T-10.1 sudah selesai.
@@ -2971,13 +3134,14 @@ Buat file `SECURITY_REVIEW.md` berisi hasil review dan status setiap item.
 
 ### Task 10.5 — CI/CD Pipeline
 
-| Key         | Value                                                      |
-| ----------- | ---------------------------------------------------------- |
-| ID          | `T-10.5`                                                  |
-| Dependensi  | `T-10.1`, `T-10.2`                                        |
-| Deliverables| `.github/workflows/ci.yml`, `.github/workflows/deploy.yml` |
+| Key          | Value                                                      |
+| ------------ | ---------------------------------------------------------- |
+| ID           | `T-10.5`                                                   |
+| Dependensi   | `T-10.1`, `T-10.2`                                         |
+| Deliverables | `.github/workflows/ci.yml`, `.github/workflows/deploy.yml` |
 
 **Instruksi:**
+
 1. **CI pipeline** (on PR):
    - Install dependencies.
    - Format check (`pnpm run format:check`).
@@ -2991,7 +3155,8 @@ Buat file `SECURITY_REVIEW.md` berisi hasil review dan status setiap item.
    - Post-deploy: run smoke tests.
 
 **Prompt:**
-```
+
+````
 Kerjakan Task T-10.5: CI/CD Pipeline.
 Dependensi: T-10.1 dan T-10.2 sudah selesai.
 
@@ -3017,9 +3182,10 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
          - run: pnpm run typecheck
          - run: pnpm run test
          - run: pnpm run build
-   ```
+````
 
 2. Buat `.github/workflows/deploy.yml`:
+
    ```yaml
    name: Deploy
    on:
@@ -3080,6 +3246,7 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
 
 **Prompt:**
 ```
+
 Kerjakan Task T-10.6: Production Deploy.
 Dependensi: T-10.5 sudah selesai.
 
@@ -3091,7 +3258,7 @@ Dependensi: T-10.5 sudah selesai.
    - PAYMENT_WEBHOOK_SECRET: dari payment gateway.
    - RESEND_API_KEY: dari Resend (atau Mailgun API key).
    - R2_BUCKET_NAME: nama bucket R2.
-   Jalankan: sst secret set JWT_SECRET "xxxxx" --stage production (untuk setiap secret).
+     Jalankan: sst secret set JWT_SECRET "xxxxx" --stage production (untuk setiap secret).
 
 2. Cloudflare Hyperdrive:
    - Buat Hyperdrive config di Cloudflare dashboard: point ke production PostgreSQL.
@@ -3112,6 +3279,7 @@ Dependensi: T-10.5 sudah selesai.
    - Admin: buka https://admin.jeevatix.com → login page.
    - Seller: buka https://seller.jeevatix.com → login page.
    - WebSocket: buka event detail, verifikasi PartyKit connection di DevTools.
+
 ```
 
 ### Task 10.7 — Monitoring & Error Tracking
@@ -3130,6 +3298,7 @@ Dependensi: T-10.5 sudah selesai.
 
 **Prompt:**
 ```
+
 Kerjakan Task T-10.7: Monitoring & Error Tracking.
 Dependensi: T-10.6 sudah selesai.
 
@@ -3137,7 +3306,7 @@ Dependensi: T-10.6 sudah selesai.
    Option A — Sentry:
    - Install: pnpm add @sentry/cloudflare di apps/api.
    - Buat `apps/api/src/middleware/sentry.ts`: init Sentry dengan DSN dari env.
-   - Wrap Hono app: app.use('*', sentryMiddleware).
+   - Wrap Hono app: app.use('\*', sentryMiddleware).
    - Setup Sentry project di sentry.io untuk frontend juga:
      - pnpm add @sentry/svelte di apps/admin, apps/seller.
      - pnpm add @sentry/browser di apps/buyer.
@@ -3162,7 +3331,8 @@ Dependensi: T-10.6 sudah selesai.
    - Pastikan password_hash, JWT token, refresh_token tidak pernah muncul di log/error report.
 
 5. Verifikasi: trigger error 500 (misal hit endpoint dengan invalid data). Cek apakah muncul di Sentry/Logpush.
-```
+
+````
 
 **Checkpoint Phase 10:**
 ```bash
@@ -3171,7 +3341,7 @@ pnpm run test:e2e      # Playwright pass
 pnpm run test:load     # K6 pass, no overselling
 pnpm run build         # build sukses
 pnpm run deploy --stage production  # deploy sukses
-```
+````
 
 ---
 
@@ -3308,59 +3478,59 @@ graph TD
 
 Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file/folder tertentu.
 
-| Path                                   | Task ID        | Keterangan                         |
-| -------------------------------------- | -------------- | ---------------------------------- |
-| `package.json` (root)                  | T-0.1          | Root monorepo config               |
-| `turbo.json`                           | T-0.1          | Turborepo pipeline                 |
-| `eslint.config.js`                     | T-0.10         | ESLint flat config (shared)        |
-| `.prettierrc`                          | T-0.10         | Prettier config (shared)           |
-| `.prettierignore`                      | T-0.10         | Prettier ignore patterns           |
-| `playwright.config.ts`                 | T-0.10         | Playwright E2E config              |
-| `tests/e2e/`                           | T-0.10, T-10.2 | Playwright E2E test suites         |
-| `docker-compose.yml`                   | T-0.1          | PostgreSQL lokal (Docker)          |
-| `.github/copilot-instructions.md`      | T-0.1          | Workspace-wide AI agent rules      |
-| `.github/instructions/`                | T-0.1          | File-specific AI instructions      |
-| `.github/prompts/`                     | T-0.1          | Reusable AI prompt templates       |
-| `.github/agents/`                      | T-0.1          | Custom AI agents (reviewer)        |
-| `sst.config.ts`                        | T-0.2          | SST infrastructure                 |
-| `packages/types/`                      | T-0.3          | Shared TypeScript types            |
-| `packages/core/`                       | T-0.4          | DB connection & Drizzle config     |
-| `packages/core/src/db/schema/`         | T-1.1, T-1.2   | Database schema                    |
-| `packages/core/src/db/seed.ts`         | T-1.4          | Seed data                          |
-| `packages/ui/`                         | T-0.9          | Shared UI components               |
-| `apps/api/src/middleware/`             | T-2.1          | Auth & CORS middleware             |
-| `apps/api/src/routes/auth.ts`          | T-2.2          | Auth endpoints (`createRoute()` + `app.openapi()`) |
-| `apps/api/src/services/auth.service.ts` | T-2.2          | Auth business logic                |
-| `apps/api/src/schemas/auth.schema.ts`  | T-2.2          | Auth validation schemas            |
-| `apps/api/src/routes/users.ts`         | T-2.3          | User profile endpoints             |
-| `apps/api/src/services/user.service.ts`| T-2.3          | User business logic                |
-| `apps/api/src/schemas/user.schema.ts`  | T-2.3          | User validation schemas            |
-| `apps/api/src/routes/upload.ts`        | T-2.5          | File upload (R2) endpoint          |
-| `apps/api/src/services/upload.service.ts`| T-2.5        | Upload business logic              |
-| `apps/api/src/routes/events.ts`        | T-5.1          | Public event endpoints             |
-| `apps/api/src/services/public-event.service.ts`| T-5.1  | Public event business logic        |
-| `apps/api/src/routes/seller/`          | T-4.1–T-4.3, T-7.5, T-9.1 | Seller route handlers     |
-| `apps/api/src/services/event.service.ts`| T-4.2         | Seller event business logic        |
-| `apps/api/src/services/tier.service.ts`| T-4.3          | Tier business logic                |
-| `apps/api/src/routes/admin/`           | T-3.1, T-3.4, T-9.2, T-9.3 | Admin route handlers     |
-| `apps/api/src/services/category.service.ts`| T-3.1      | Category business logic            |
-| `apps/api/src/services/admin-user.service.ts`| T-3.4    | Admin user management logic        |
-| `apps/api/src/routes/reservations.ts`  | T-6.2          | Reservation endpoints              |
-| `apps/api/src/services/reservation.service.ts`| T-6.2   | Reservation business logic         |
-| `apps/api/src/routes/orders.ts`        | T-6.3          | Order endpoints                    |
-| `apps/api/src/services/order.service.ts`| T-6.3         | Order business logic               |
-| `apps/api/src/routes/payments.ts`      | T-6.4          | Payment endpoints                  |
-| `apps/api/src/services/payment.service.ts`| T-6.4       | Payment business logic             |
-| `apps/api/src/routes/tickets.ts`       | T-7.1          | Ticket endpoints                   |
-| `apps/api/src/durable-objects/`        | T-6.1          | Durable Object (TicketReserver)    |
-| `apps/api/src/queues/`                 | T-6.5          | Cloudflare Queue consumers         |
-| `apps/api/src/__tests__/`             | T-2.4, T-3.6, T-4.7, T-5.5, T-6.8, T-7.7, T-10.1 | API tests (per-phase + coverage gap) |
-| `apps/api/src/services/`              | T-2.2–T-2.6, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-7.5, T-9.1–T-9.3 | Business logic services |
-| `apps/api/src/schemas/`               | T-2.2–T-2.5, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-9.3 | Zod validation schemas (DTO)     |
-| `apps/buyer/src/routes/`              | T-5.2–T-5.4, T-6.6–T-6.7, T-7.2 | Buyer pages         |
-| `apps/admin/src/routes/`              | T-3.2–T-3.5, T-9.2–T-9.3 | Admin pages                |
-| `apps/seller/src/routes/`             | T-4.4–T-4.6, T-7.3, T-7.5, T-7.6, T-9.1 | Seller pages   |
-| `.github/workflows/`                  | T-10.5         | CI/CD pipelines                    |
+| Path                                            | Task ID                                                                                      | Keterangan                                         |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `package.json` (root)                           | T-0.1                                                                                        | Root monorepo config                               |
+| `turbo.json`                                    | T-0.1                                                                                        | Turborepo pipeline                                 |
+| `eslint.config.js`                              | T-0.10                                                                                       | ESLint flat config (shared)                        |
+| `.prettierrc`                                   | T-0.10                                                                                       | Prettier config (shared)                           |
+| `.prettierignore`                               | T-0.10                                                                                       | Prettier ignore patterns                           |
+| `playwright.config.ts`                          | T-0.10                                                                                       | Playwright E2E config                              |
+| `tests/e2e/`                                    | T-0.10, T-10.2                                                                               | Playwright E2E test suites                         |
+| `docker-compose.yml`                            | T-0.1                                                                                        | PostgreSQL lokal (Docker)                          |
+| `.github/copilot-instructions.md`               | T-0.1                                                                                        | Workspace-wide AI agent rules                      |
+| `.github/instructions/`                         | T-0.1                                                                                        | File-specific AI instructions                      |
+| `.github/prompts/`                              | T-0.1                                                                                        | Reusable AI prompt templates                       |
+| `.github/agents/`                               | T-0.1                                                                                        | Custom AI agents (reviewer)                        |
+| `sst.config.ts`                                 | T-0.2                                                                                        | SST infrastructure                                 |
+| `packages/types/`                               | T-0.3                                                                                        | Shared TypeScript types                            |
+| `packages/core/`                                | T-0.4                                                                                        | DB connection & Drizzle config                     |
+| `packages/core/src/db/schema/`                  | T-1.1, T-1.2                                                                                 | Database schema                                    |
+| `packages/core/src/db/seed.ts`                  | T-1.4                                                                                        | Seed data                                          |
+| `packages/ui/`                                  | T-0.9                                                                                        | Shared UI components                               |
+| `apps/api/src/middleware/`                      | T-2.1                                                                                        | Auth & CORS middleware                             |
+| `apps/api/src/routes/auth.ts`                   | T-2.2                                                                                        | Auth endpoints (`createRoute()` + `app.openapi()`) |
+| `apps/api/src/services/auth.service.ts`         | T-2.2                                                                                        | Auth business logic                                |
+| `apps/api/src/schemas/auth.schema.ts`           | T-2.2                                                                                        | Auth validation schemas                            |
+| `apps/api/src/routes/users.ts`                  | T-2.3                                                                                        | User profile endpoints                             |
+| `apps/api/src/services/user.service.ts`         | T-2.3                                                                                        | User business logic                                |
+| `apps/api/src/schemas/user.schema.ts`           | T-2.3                                                                                        | User validation schemas                            |
+| `apps/api/src/routes/upload.ts`                 | T-2.5                                                                                        | File upload (R2) endpoint                          |
+| `apps/api/src/services/upload.service.ts`       | T-2.5                                                                                        | Upload business logic                              |
+| `apps/api/src/routes/events.ts`                 | T-5.1                                                                                        | Public event endpoints                             |
+| `apps/api/src/services/public-event.service.ts` | T-5.1                                                                                        | Public event business logic                        |
+| `apps/api/src/routes/seller/`                   | T-4.1–T-4.3, T-7.5, T-9.1                                                                    | Seller route handlers                              |
+| `apps/api/src/services/event.service.ts`        | T-4.2                                                                                        | Seller event business logic                        |
+| `apps/api/src/services/tier.service.ts`         | T-4.3                                                                                        | Tier business logic                                |
+| `apps/api/src/routes/admin/`                    | T-3.1, T-3.4, T-9.2, T-9.3                                                                   | Admin route handlers                               |
+| `apps/api/src/services/category.service.ts`     | T-3.1                                                                                        | Category business logic                            |
+| `apps/api/src/services/admin-user.service.ts`   | T-3.4                                                                                        | Admin user management logic                        |
+| `apps/api/src/routes/reservations.ts`           | T-6.2                                                                                        | Reservation endpoints                              |
+| `apps/api/src/services/reservation.service.ts`  | T-6.2                                                                                        | Reservation business logic                         |
+| `apps/api/src/routes/orders.ts`                 | T-6.3                                                                                        | Order endpoints                                    |
+| `apps/api/src/services/order.service.ts`        | T-6.3                                                                                        | Order business logic                               |
+| `apps/api/src/routes/payments.ts`               | T-6.4                                                                                        | Payment endpoints                                  |
+| `apps/api/src/services/payment.service.ts`      | T-6.4                                                                                        | Payment business logic                             |
+| `apps/api/src/routes/tickets.ts`                | T-7.1                                                                                        | Ticket endpoints                                   |
+| `apps/api/src/durable-objects/`                 | T-6.1                                                                                        | Durable Object (TicketReserver)                    |
+| `apps/api/src/queues/`                          | T-6.5                                                                                        | Cloudflare Queue consumers                         |
+| `apps/api/src/__tests__/`                       | T-2.4, T-3.6, T-4.7, T-5.5, T-6.8, T-7.7, T-10.1                                             | API tests (per-phase + coverage gap)               |
+| `apps/api/src/services/`                        | T-2.2–T-2.6, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-7.5, T-9.1–T-9.3 | Business logic services                            |
+| `apps/api/src/schemas/`                         | T-2.2–T-2.5, T-3.1, T-3.4, T-4.1–T-4.3, T-5.1, T-6.2–T-6.4, T-7.1, T-7.4, T-9.3              | Zod validation schemas (DTO)                       |
+| `apps/buyer/src/routes/`                        | T-5.2–T-5.4, T-6.6–T-6.7, T-7.2                                                              | Buyer pages                                        |
+| `apps/admin/src/routes/`                        | T-3.2–T-3.5, T-9.2–T-9.3                                                                     | Admin pages                                        |
+| `apps/seller/src/routes/`                       | T-4.4–T-4.6, T-7.3, T-7.5, T-7.6, T-9.1                                                      | Seller pages                                       |
+| `.github/workflows/`                            | T-10.5                                                                                       | CI/CD pipelines                                    |
 
 ---
 
@@ -3382,6 +3552,7 @@ Tabel ini membantu AI agent menemukan task mana yang bertanggung jawab atas file
 ### MCP Tools Cheat Sheet
 
 **Untuk task UI (semua task di Phase 3-9 yang membuat halaman frontend):**
+
 ```
 # Lihat semua komponen shadcn/ui yang tersedia
 shadcn-ui MCP → list_components
@@ -3402,6 +3573,7 @@ shadcn-ui MCP → apply_theme(query: "modern")          # untuk T-0.9
 ```
 
 **Untuk lookup dokumentasi library:**
+
 ```
 # Cari library ID
 Context7 MCP → resolve-library-id(libraryName: "hono")
@@ -3413,6 +3585,7 @@ Context7 MCP → get-library-docs(context7CompatibleLibraryID: "...", topic: "pg
 ```
 
 **Untuk version control:**
+
 ```bash
 # Workflow per fase
 git checkout -b feat/phase-0
