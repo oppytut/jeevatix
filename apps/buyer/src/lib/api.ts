@@ -8,6 +8,163 @@ import {
   refreshSession,
 } from '$lib/auth';
 
+export type PaginationMeta = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type PublicCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string | null;
+  event_count: number;
+};
+
+export type PublicEventCategory = {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string | null;
+};
+
+export type PublicEventListItem = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  banner_url: string | null;
+  venue_name: string;
+  venue_city: string;
+  start_at: string;
+  end_at: string;
+  sale_start_at: string;
+  sale_end_at: string;
+  status: 'published' | 'ongoing';
+  is_featured: boolean;
+  max_tickets_per_order: number;
+  min_price: number | null;
+};
+
+export type PublicEventImage = {
+  id: string;
+  image_url: string;
+  sort_order: number;
+  created_at: string;
+};
+
+export type PublicEventTier = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  quota: number;
+  sold_count: number;
+  remaining: number;
+  sort_order: number;
+  status: 'available' | 'sold_out' | 'hidden';
+  sale_start_at: string | null;
+  sale_end_at: string | null;
+};
+
+export type PublicEventSeller = {
+  id: string;
+  org_name: string;
+  org_description: string | null;
+  logo_url: string | null;
+  is_verified: boolean;
+};
+
+export type PublicEventDetail = {
+  id: string;
+  seller_profile_id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  venue_name: string;
+  venue_address: string | null;
+  venue_city: string;
+  venue_latitude: number | null;
+  venue_longitude: number | null;
+  start_at: string;
+  end_at: string;
+  sale_start_at: string;
+  sale_end_at: string;
+  banner_url: string | null;
+  status: 'published' | 'ongoing';
+  is_featured: boolean;
+  max_tickets_per_order: number;
+  min_price: number | null;
+  categories: PublicEventCategory[];
+  images: PublicEventImage[];
+  tiers: PublicEventTier[];
+  seller: PublicEventSeller;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PublicEventListResponse = {
+  data: PublicEventListItem[];
+  meta: PaginationMeta;
+};
+
+export type EventQueryInput = {
+  search?: string;
+  category?: string;
+  city?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  priceMin?: string | number;
+  priceMax?: string | number;
+  page?: string | number;
+  limit?: string | number;
+};
+
+export function buildEventQuery(input: EventQueryInput) {
+  const params = new URLSearchParams();
+
+  if (input.search) {
+    params.set('search', input.search.trim());
+  }
+
+  if (input.category) {
+    params.set('category', input.category.trim());
+  }
+
+  if (input.city) {
+    params.set('city', input.city.trim());
+  }
+
+  if (input.dateFrom) {
+    params.set('date_from', input.dateFrom);
+  }
+
+  if (input.dateTo) {
+    params.set('date_to', input.dateTo);
+  }
+
+  if (input.priceMin !== undefined && input.priceMin !== '') {
+    params.set('price_min', String(input.priceMin));
+  }
+
+  if (input.priceMax !== undefined && input.priceMax !== '') {
+    params.set('price_max', String(input.priceMax));
+  }
+
+  if (input.page !== undefined && input.page !== '') {
+    params.set('page', String(input.page));
+  }
+
+  if (input.limit !== undefined && input.limit !== '') {
+    params.set('limit', String(input.limit));
+  }
+
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
 type ApiErrorPayload = {
   code: string;
   message: string;

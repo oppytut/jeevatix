@@ -1764,7 +1764,7 @@ Di `apps/buyer/`:
 Desain bersih dan responsive.
 ```
 
-### Task 5.3 — Homepage & Explore
+### Task 5.3 — Homepage & Explore [DONE]
 
 | Key          | Value                                    |
 | ------------ | ---------------------------------------- |

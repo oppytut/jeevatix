@@ -39,6 +39,7 @@
 
         <nav class="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex">
           <a class="transition hover:text-slate-950" href="/">Beranda</a>
+          <a class="transition hover:text-slate-950" href="/events">Explore</a>
           <a class="transition hover:text-slate-950" href="/login">Login</a>
           <a class="transition hover:text-slate-950" href="/register">Daftar</a>
         </nav>
