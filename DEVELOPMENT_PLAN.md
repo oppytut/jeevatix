@@ -1815,7 +1815,7 @@ Buat reusable Svelte component: EventCard.svelte di `src/lib/components/`.
 Desain modern, responsive.
 ```
 
-### Task 5.4 — Buyer Profile & Notifications UI
+### Task 5.4 — Buyer Profile & Notifications UI [DONE]
 
 | Key          | Value                                                      |
 | ------------ | ---------------------------------------------------------- |

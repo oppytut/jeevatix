@@ -142,11 +142,11 @@ export function persistAuthSession(cookies: Cookies, payload: AuthPayload) {
     payload.refresh_token,
     getCookieOptions(REFRESH_TOKEN_MAX_AGE),
   );
-  cookies.set(
-    BUYER_USER_COOKIE,
-    JSON.stringify(payload.user),
-    getCookieOptions(USER_COOKIE_MAX_AGE),
-  );
+  persistStoredUser(cookies, payload.user);
+}
+
+export function persistStoredUser(cookies: Cookies, user: BuyerAuthUser) {
+  cookies.set(BUYER_USER_COOKIE, JSON.stringify(user), getCookieOptions(USER_COOKIE_MAX_AGE));
 }
 
 export function clearAuthSession(cookies: Cookies) {

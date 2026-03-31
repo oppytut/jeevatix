@@ -110,6 +110,28 @@ export type PublicEventListResponse = {
   meta: PaginationMeta;
 };
 
+export type BuyerNotification = {
+  id: string;
+  type:
+    | 'order_confirmed'
+    | 'payment_reminder'
+    | 'event_reminder'
+    | 'new_order'
+    | 'event_approved'
+    | 'event_rejected'
+    | 'info';
+  title: string;
+  body: string;
+  is_read: boolean;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+};
+
+export type BuyerNotificationsPayload = {
+  notifications: BuyerNotification[];
+  unread_count: number;
+};
+
 export type EventQueryInput = {
   search?: string;
   category?: string;

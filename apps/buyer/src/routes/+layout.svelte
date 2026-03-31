@@ -40,8 +40,13 @@
         <nav class="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex">
           <a class="transition hover:text-slate-950" href="/">Beranda</a>
           <a class="transition hover:text-slate-950" href="/events">Explore</a>
-          <a class="transition hover:text-slate-950" href="/login">Login</a>
-          <a class="transition hover:text-slate-950" href="/register">Daftar</a>
+          {#if data.currentUser}
+            <a class="transition hover:text-slate-950" href="/notifications">Notifikasi</a>
+            <a class="transition hover:text-slate-950" href="/profile">Profil</a>
+          {:else}
+            <a class="transition hover:text-slate-950" href="/login">Login</a>
+            <a class="transition hover:text-slate-950" href="/register">Daftar</a>
+          {/if}
         </nav>
 
         <div class="flex items-center gap-3">
@@ -50,6 +55,9 @@
               <p class="text-xs font-semibold tracking-[0.28em] text-slate-500 uppercase">Signed In</p>
               <p class="text-sm font-medium text-slate-900">{data.currentUser.full_name}</p>
             </div>
+            <a href="/profile">
+              <Button type="button" class="rounded-full px-5">Akun Saya</Button>
+            </a>
           {:else}
             <a class="hidden text-sm font-medium text-slate-600 transition hover:text-slate-950 sm:inline-flex" href="/login">
               Login

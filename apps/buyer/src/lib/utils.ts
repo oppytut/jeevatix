@@ -91,6 +91,32 @@ export function formatCompactNumber(value: number) {
   }).format(value);
 }
 
+export function formatRelativeTime(value: string | Date, now = new Date()) {
+  const target = value instanceof Date ? value : new Date(value);
+  const diffInSeconds = Math.round((target.getTime() - now.getTime()) / 1000);
+
+  const formatter = new Intl.RelativeTimeFormat('id-ID', {
+    numeric: 'auto',
+  });
+
+  const units = [
+    { unit: 'year', seconds: 60 * 60 * 24 * 365 },
+    { unit: 'month', seconds: 60 * 60 * 24 * 30 },
+    { unit: 'week', seconds: 60 * 60 * 24 * 7 },
+    { unit: 'day', seconds: 60 * 60 * 24 },
+    { unit: 'hour', seconds: 60 * 60 },
+    { unit: 'minute', seconds: 60 },
+  ] as const;
+
+  for (const { unit, seconds } of units) {
+    if (Math.abs(diffInSeconds) >= seconds) {
+      return formatter.format(Math.round(diffInSeconds / seconds), unit);
+    }
+  }
+
+  return formatter.format(diffInSeconds, 'second');
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
