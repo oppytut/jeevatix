@@ -5,16 +5,16 @@ export const updateSellerProfileSchema = z
     org_name: z.string().min(1).max(200).optional().openapi({ example: 'EventPro Indonesia' }),
     org_description: z
       .string()
+      .nullable()
       .optional()
       .openapi({ example: 'Penyelenggara event musik, festival, dan workshop.' }),
     logo_url: z
-      .string()
-      .url()
+      .union([z.string().url(), z.null()])
       .optional()
       .openapi({ example: 'https://cdn.jeevatix.id/sellers/eventpro-logo.png' }),
-    bank_name: z.string().max(100).optional().openapi({ example: 'Bank Central Asia' }),
-    bank_account_number: z.string().max(50).optional().openapi({ example: '1234567890' }),
-    bank_account_holder: z.string().max(150).optional().openapi({ example: 'PT EventPro Indonesia' }),
+    bank_name: z.string().max(100).nullable().optional().openapi({ example: 'Bank Central Asia' }),
+    bank_account_number: z.string().max(50).nullable().optional().openapi({ example: '1234567890' }),
+    bank_account_holder: z.string().max(150).nullable().optional().openapi({ example: 'PT EventPro Indonesia' }),
   })
   .openapi('UpdateSellerProfileInput');
 

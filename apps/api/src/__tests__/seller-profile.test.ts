@@ -236,6 +236,40 @@ describe.sequential('Phase 4 Seller Profile API', () => {
     expect(payload.data.bank_account_holder).toBe('Updated Organizer');
   });
 
+  it('clears nullable seller profile fields when null is submitted', async () => {
+    const { token } = await createSellerFixture();
+
+    const response = await requestJson('/seller/profile', {
+      method: 'PATCH',
+      token,
+      body: {
+        org_description: null,
+        logo_url: null,
+        bank_name: null,
+        bank_account_number: null,
+        bank_account_holder: null,
+      },
+    });
+    const payload = await readJson<{
+      success: boolean;
+      data: {
+        org_description: string | null;
+        logo_url: string | null;
+        bank_name: string | null;
+        bank_account_number: string | null;
+        bank_account_holder: string | null;
+      };
+    }>(response);
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(payload.data.org_description).toBeNull();
+    expect(payload.data.logo_url).toBeNull();
+    expect(payload.data.bank_name).toBeNull();
+    expect(payload.data.bank_account_number).toBeNull();
+    expect(payload.data.bank_account_holder).toBeNull();
+  });
+
   it('rejects buyer access to seller profile routes', async () => {
     const buyerUser = await createUser('buyer');
     const buyerToken = await createTokenForUser(buyerUser);

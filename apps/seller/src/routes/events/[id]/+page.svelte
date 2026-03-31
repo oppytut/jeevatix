@@ -16,7 +16,7 @@
   } from '@lucide/svelte';
   import { Badge, Button, Card, Toast } from '@jeevatix/ui';
 
-  import { ApiError, apiGet, apiPatch } from '$lib/api';
+  import { ApiError, apiGet, apiPost } from '$lib/api';
 
   type EventStatus =
     | 'draft'
@@ -138,38 +138,6 @@
     }
   }
 
-  function buildResubmitPayload(detail: SellerEventDetail) {
-    return {
-      title: detail.title,
-      description: detail.description ?? undefined,
-      venue_name: detail.venue_name,
-      venue_address: detail.venue_address ?? undefined,
-      venue_city: detail.venue_city,
-      venue_latitude: detail.venue_latitude ?? undefined,
-      venue_longitude: detail.venue_longitude ?? undefined,
-      start_at: detail.start_at,
-      end_at: detail.end_at,
-      sale_start_at: detail.sale_start_at,
-      sale_end_at: detail.sale_end_at,
-      banner_url: detail.banner_url ?? undefined,
-      max_tickets_per_order: detail.max_tickets_per_order,
-      category_ids: detail.categories.map((category) => category.id),
-      images: detail.images.map((image, index) => ({
-        image_url: image.image_url,
-        sort_order: index,
-      })),
-      tiers: detail.tiers.map((tier, index) => ({
-        name: tier.name,
-        description: tier.description ?? undefined,
-        price: tier.price,
-        quota: tier.quota,
-        sort_order: index,
-        sale_start_at: tier.sale_start_at ?? undefined,
-        sale_end_at: tier.sale_end_at ?? undefined,
-      })),
-    };
-  }
-
   async function loadEventDetail() {
     isLoading = true;
     pageError = '';
@@ -191,13 +159,10 @@
     isSubmitting = true;
 
     try {
-      eventDetail = await apiPatch<SellerEventDetail>(
-        `/seller/events/${eventDetail.id}`,
-        buildResubmitPayload(eventDetail),
-      );
+      eventDetail = await apiPost<SellerEventDetail>(`/seller/events/${eventDetail.id}/submit`);
       setToast({
-        title: 'Event dikirim ulang',
-        description: 'Payload event dikirim kembali dan statusnya masuk ke pending review.',
+        title: 'Event dikirim untuk review',
+        description: 'Status event berhasil diubah ke pending review.',
         variant: 'success',
       });
     } catch (error) {
@@ -265,8 +230,8 @@
     <div class="space-y-6">
       <div class="h-64 animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
       <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div class="h-[520px] animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
-        <div class="h-[520px] animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
+        <div class="h-130 animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
+        <div class="h-130 animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
       </div>
     </div>
   {:else if eventDetail}
@@ -277,7 +242,7 @@
         {:else}
           <div class="flex h-full items-center justify-center text-sm text-slate-500">Banner event belum tersedia.</div>
         {/if}
-        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
+        <div class="absolute inset-0 bg-linear-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
         <div class="absolute inset-x-0 bottom-0 p-8 sm:p-10">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div class="space-y-3 text-white">

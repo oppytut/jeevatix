@@ -137,11 +137,11 @@
     try {
       const updatedProfile = await apiPatch<SellerProfile>('/seller/profile', {
         org_name: form.org_name.trim(),
-        org_description: form.org_description.trim() || undefined,
-        logo_url: form.logo_url.trim() || undefined,
-        bank_name: form.bank_name.trim() || undefined,
-        bank_account_number: form.bank_account_number.trim() || undefined,
-        bank_account_holder: form.bank_account_holder.trim() || undefined,
+        org_description: form.org_description.trim() || null,
+        logo_url: form.logo_url.trim() || null,
+        bank_name: form.bank_name.trim() || null,
+        bank_account_number: form.bank_account_number.trim() || null,
+        bank_account_holder: form.bank_account_holder.trim() || null,
       });
 
       profile = updatedProfile;

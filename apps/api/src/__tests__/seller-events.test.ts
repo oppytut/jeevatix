@@ -342,7 +342,7 @@ describe.sequential('Phase 4 Seller Event API', () => {
     );
   });
 
-  it('updates a seller event and moves draft events into pending review', async () => {
+  it('updates a seller event without auto-submitting it for review', async () => {
     const { token } = await createSellerFixture();
     const category = await createCategoryRecord();
 
@@ -376,7 +376,39 @@ describe.sequential('Phase 4 Seller Event API', () => {
     expect(updatePayload.success).toBe(true);
     expect(updatePayload.data.id).toBe(createPayload.data.id);
     expect(updatePayload.data.title).toBe('Updated Seller Event Title');
-    expect(updatePayload.data.status).toBe('pending_review');
+    expect(updatePayload.data.status).toBe('draft');
+  });
+
+  it('submits draft events for review through the explicit submit endpoint', async () => {
+    const { token } = await createSellerFixture();
+    const category = await createCategoryRecord();
+
+    const createResponse = await requestJson('/seller/events', {
+      method: 'POST',
+      token,
+      body: buildEventPayload(category.id),
+    });
+    const createPayload = await readJson<{
+      success: boolean;
+      data: { id: string };
+    }>(createResponse);
+
+    const submitResponse = await requestJson(`/seller/events/${createPayload.data.id}/submit`, {
+      method: 'POST',
+      token,
+    });
+    const submitPayload = await readJson<{
+      success: boolean;
+      data: {
+        id: string;
+        status: string;
+      };
+    }>(submitResponse);
+
+    expect(submitResponse.status).toBe(200);
+    expect(submitPayload.success).toBe(true);
+    expect(submitPayload.data.id).toBe(createPayload.data.id);
+    expect(submitPayload.data.status).toBe('pending_review');
   });
 
   it('prevents other sellers from editing events they do not own', async () => {
@@ -414,6 +446,54 @@ describe.sequential('Phase 4 Seller Event API', () => {
     expect(payload.error.code).toBe('FORBIDDEN');
   });
 
+  it('rejects buyer access to seller event and tier routes', async () => {
+    const buyerUser = await createUser('buyer');
+    const buyerToken = await createTokenForUser(buyerUser);
+    const owner = await createSellerFixture();
+    const category = await createCategoryRecord();
+
+    const createResponse = await requestJson('/seller/events', {
+      method: 'POST',
+      token: owner.token,
+      body: buildEventPayload(category.id),
+    });
+    const createPayload = await readJson<{
+      success: boolean;
+      data: { id: string };
+    }>(createResponse);
+
+    const eventListResponse = await requestJson('/seller/events', { token: buyerToken });
+    const eventListPayload = await readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(eventListResponse);
+
+    expect(eventListResponse.status).toBe(403);
+    expect(eventListPayload.success).toBe(false);
+    expect(eventListPayload.error.code).toBe('FORBIDDEN');
+
+    const tierCreateResponse = await requestJson(
+      `/seller/events/${createPayload.data.id}/tiers`,
+      {
+        method: 'POST',
+        token: buyerToken,
+        body: {
+          name: 'Buyer Forbidden Tier',
+          price: 100000,
+          quota: 10,
+        },
+      },
+    );
+    const tierCreatePayload = await readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(tierCreateResponse);
+
+    expect(tierCreateResponse.status).toBe(403);
+    expect(tierCreatePayload.success).toBe(false);
+    expect(tierCreatePayload.error.code).toBe('FORBIDDEN');
+  });
+
   it('creates, lists, updates, and deletes ticket tiers for a seller event', async () => {
     const { token } = await createSellerFixture();
     const category = await createCategoryRecord();
@@ -440,6 +520,7 @@ describe.sequential('Phase 4 Seller Event API', () => {
         sort_order: 1,
         sale_start_at: '2030-06-01T10:00:00.000Z',
         sale_end_at: '2030-06-25T23:00:00.000Z',
+        status: 'hidden',
       },
     });
     const createTierPayload = await readJson<{
@@ -449,6 +530,7 @@ describe.sequential('Phase 4 Seller Event API', () => {
         event_id: string;
         name: string;
         quota: number;
+        status: string;
       };
     }>(createTierResponse);
 
@@ -457,6 +539,7 @@ describe.sequential('Phase 4 Seller Event API', () => {
     expect(createTierPayload.data.event_id).toBe(eventId);
     expect(createTierPayload.data.name).toBe('VIP');
     expect(createTierPayload.data.quota).toBe(25);
+    expect(createTierPayload.data.status).toBe('hidden');
 
     const listTierResponse = await requestJson(`/seller/events/${eventId}/tiers`, { token });
     const listTierPayload = await readJson<{

@@ -516,7 +516,7 @@
     <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
       <Card
         title={steps[currentStep - 1].label}
-        description="Perubahan pada event draft atau rejected akan dikirim ulang ke status pending review saat disimpan."
+        description="Simpan perubahan event tanpa mengubah status review. Gunakan tombol submit review di halaman detail saat event siap diajukan."
         class="rounded-[2rem] border border-slate-200/80 bg-white/95"
       >
         {#if currentStep === 1}
@@ -795,7 +795,8 @@
           class="rounded-[2rem] border border-slate-200/80 bg-white/95"
         >
           <div class="space-y-3 text-sm text-slate-600">
-            <p><span class="font-semibold text-slate-900">Draft / Rejected</span> akan berpindah ke pending review setelah disimpan.</p>
+            <p><span class="font-semibold text-slate-900">Draft / Rejected</span> tetap bisa direvisi berkali-kali tanpa submit otomatis.</p>
+            <p><span class="font-semibold text-slate-900">Submit review</span> sekarang dilakukan terpisah dari halaman detail event.</p>
             <p><span class="font-semibold text-slate-900">Published / Ongoing</span> tetap butuh hati-hati karena perubahan tier destruktif akan ditolak jika sudah ada penjualan.</p>
             <p><span class="font-semibold text-slate-900">Galeri dan banner</span> bisa diperbarui kapan saja selama payload valid.</p>
           </div>

@@ -468,10 +468,6 @@ export const eventService = {
         values.maxTicketsPerOrder = input.max_tickets_per_order;
       }
 
-      if (existingEvent.status === 'draft' || existingEvent.status === 'rejected') {
-        values.status = 'pending_review';
-      }
-
       await tx.update(events).set(values).where(eq(events.id, existingEvent.id));
 
       if (input.category_ids !== undefined) {
@@ -518,6 +514,32 @@ export const eventService = {
         }
       }
     });
+
+    return getEventDetailPayload(sellerProfileId, eventId, databaseUrl);
+  },
+
+  async submitEvent(
+    sellerProfileId: string,
+    eventId: string,
+    databaseUrl?: string,
+  ): Promise<SellerEventDetail> {
+    const database = getDatabase(databaseUrl);
+    const existingEvent = await getOwnedEventRecord(sellerProfileId, eventId, databaseUrl);
+
+    if (existingEvent.status !== 'draft' && existingEvent.status !== 'rejected') {
+      throw new EventServiceError(
+        'INVALID_EVENT_STATE',
+        'Only draft or rejected events can be submitted for review.',
+      );
+    }
+
+    await database
+      .update(events)
+      .set({
+        status: 'pending_review',
+        updatedAt: new Date(),
+      })
+      .where(eq(events.id, existingEvent.id));
 
     return getEventDetailPayload(sellerProfileId, eventId, databaseUrl);
   },

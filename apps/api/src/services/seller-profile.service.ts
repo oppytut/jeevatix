@@ -86,7 +86,7 @@ export const sellerProfileService = {
     }
 
     if (input.org_description !== undefined) {
-      values.orgDescription = input.org_description;
+      values.orgDescription = input.org_description?.trim() || null;
     }
 
     if (input.logo_url !== undefined) {
@@ -94,15 +94,15 @@ export const sellerProfileService = {
     }
 
     if (input.bank_name !== undefined) {
-      values.bankName = input.bank_name;
+      values.bankName = input.bank_name?.trim() || null;
     }
 
     if (input.bank_account_number !== undefined) {
-      values.bankAccountNumber = input.bank_account_number;
+      values.bankAccountNumber = input.bank_account_number?.trim() || null;
     }
 
     if (input.bank_account_holder !== undefined) {
-      values.bankAccountHolder = input.bank_account_holder;
+      values.bankAccountHolder = input.bank_account_holder?.trim() || null;
     }
 
     if (Object.keys(values).length === 0) {

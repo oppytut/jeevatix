@@ -232,6 +232,42 @@ const updateSellerEventRoute = createRoute({
   },
 });
 
+const submitSellerEventRoute = createRoute({
+  method: 'post',
+  path: '/events/:id/submit',
+  tags: ['Seller Events'],
+  summary: 'Submit seller event for review',
+  request: {
+    params: sellerEventIdParamSchema,
+  },
+  responses: {
+    200: {
+      description: 'Seller event submitted for review successfully',
+      content: {
+        'application/json': {
+          schema: sellerEventDetailResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Event not found',
+      content: {
+        'application/json': {
+          schema: sellerEventErrorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Event cannot be submitted in its current state',
+      content: {
+        'application/json': {
+          schema: sellerEventErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
 const deleteSellerEventRoute = createRoute({
   method: 'delete',
   path: '/events/:id',
@@ -318,6 +354,20 @@ app.openapi(updateSellerEventRoute, async (c) => {
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
     const result = await eventService.updateEvent(sellerProfileId, params.id, body, databaseUrl);
+
+    return c.json({ success: true, data: result }, 200);
+  } catch (error) {
+    return handleError(c, error);
+  }
+});
+
+app.openapi(submitSellerEventRoute, async (c) => {
+  const params = c.req.valid('param');
+  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+
+  try {
+    const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
+    const result = await eventService.submitEvent(sellerProfileId, params.id, databaseUrl);
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

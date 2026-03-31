@@ -131,6 +131,7 @@ export const tierService = {
         price: input.price.toString(),
         quota: input.quota,
         sortOrder: input.sort_order ?? 0,
+        status: input.status ?? 'available',
         saleStartAt: input.sale_start_at ? new Date(input.sale_start_at) : null,
         saleEndAt: input.sale_end_at ? new Date(input.sale_end_at) : null,
       })

@@ -47,6 +47,7 @@ const createTierSchemaBase = z.object({
     .datetime()
     .optional()
     .openapi({ example: '2026-06-01T10:00:00.000Z' }),
+  status: ticketTierStatusSchema.optional().openapi({ example: 'available' }),
 });
 
 export const createTierSchema = createTierSchemaBase
@@ -55,9 +56,6 @@ export const createTierSchema = createTierSchemaBase
 
 export const updateTierSchema = createTierSchemaBase
   .partial()
-  .extend({
-    status: ticketTierStatusSchema.optional().openapi({ example: 'available' }),
-  })
   .superRefine(validateTierTemporalFields)
   .openapi('UpdateTierInput');
 
