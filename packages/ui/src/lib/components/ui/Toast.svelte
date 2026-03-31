@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   import { cn } from '../../utils';
 
   type ToastVariant = 'default' | 'success' | 'warning';
@@ -9,14 +11,25 @@
     warning: 'border-amber-200 bg-amber-50 text-amber-900',
   };
 
-  let className = '';
-  export { className as class };
+  type Props = {
+    class?: string;
+    title?: string;
+    description?: string;
+    actionLabel?: string;
+    action?: () => void;
+    variant?: ToastVariant;
+    children?: Snippet;
+  };
 
-  export let title: string | undefined;
-  export let description: string | undefined;
-  export let actionLabel: string | undefined;
-  export let action: (() => void) | undefined = undefined;
-  export let variant: ToastVariant = 'default';
+  let {
+    class: className = '',
+    title,
+    description,
+    actionLabel,
+    action,
+    variant = 'default',
+    children,
+  }: Props = $props();
 </script>
 
 <div
@@ -30,9 +43,9 @@
       {#if description}
         <p class="text-sm leading-6 opacity-80">{description}</p>
       {/if}
-      {#if $$slots.default}
+      {#if children}
         <div class="text-sm leading-6 opacity-80">
-          <slot />
+          {@render children()}
         </div>
       {/if}
     </div>
@@ -41,7 +54,7 @@
       <button
         type="button"
         class="rounded-full border border-current/15 px-3 py-1.5 text-xs font-semibold tracking-[0.18em] uppercase"
-        on:click={() => action?.()}
+        onclick={() => action?.()}
       >
         {actionLabel}
       </button>

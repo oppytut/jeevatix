@@ -24,30 +24,41 @@
 
   const getAlignClass = (align: DataTableColumn['align'] = 'left') => alignmentClasses[align];
 
-  let className = '';
-  export { className as class };
+  type Props = {
+    class?: string;
+    columns?: DataTableColumn[];
+    rows?: DataTableRow[];
+    title?: string;
+    description?: string;
+    emptyMessage?: string;
+    actionHeader?: string;
+    rowActions?: Snippet<[DataTableRow]>;
+    onRowClick?: (row: DataTableRow) => void;
+  };
 
-  export let columns: DataTableColumn[] = [];
-  export let rows: DataTableRow[] = [];
-  export let title: string | undefined;
-  export let description: string | undefined;
-  export let emptyMessage = 'No records available.';
-  export let actionHeader = 'Actions';
-  export let rowActions: Snippet<[DataTableRow]> | undefined = undefined;
-  export let onRowClick: ((row: DataTableRow) => void) | undefined = undefined;
+  let {
+    class: className = '',
+    columns = [],
+    rows = [],
+    title,
+    description,
+    emptyMessage = 'No records available.',
+    actionHeader = 'Actions',
+    rowActions,
+    onRowClick,
+  }: Props = $props();
 
-  let normalizedColumns: DataTableColumnView[] = [];
-  let normalizedRows: DataTableRow[] = [];
-
-  $: normalizedColumns = columns.map(
-    (column): DataTableColumnView => ({
-      key: column.key,
-      header: column.header,
-      align: column.align,
-    }),
+  const normalizedColumns = $derived(
+    columns.map(
+      (column): DataTableColumnView => ({
+        key: column.key,
+        header: column.header,
+        align: column.align,
+      }),
+    ),
   );
 
-  $: normalizedRows = rows.map((row) => ({ ...row }));
+  const normalizedRows = $derived(rows.map((row) => ({ ...row })));
 
   const getCellValue = (row: unknown, key: string) => {
     const value = (row as DataTableRow)[key];

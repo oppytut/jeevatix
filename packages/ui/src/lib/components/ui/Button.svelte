@@ -1,4 +1,7 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+  import type { HTMLButtonAttributes } from 'svelte/elements';
+
   import { cn } from '../../utils';
 
   type ButtonVariant = 'default' | 'outline' | 'secondary' | 'ghost';
@@ -23,18 +26,27 @@
     icon: 'size-10 rounded-2xl p-0',
   };
 
-  let className = '';
-  export { className as class };
+  type Props = HTMLButtonAttributes & {
+    class?: string;
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    children?: Snippet;
+  };
 
-  export let variant: ButtonVariant = 'default';
-  export let size: ButtonSize = 'default';
-  export let type: 'button' | 'submit' | 'reset' = 'button';
+  let {
+    class: className = '',
+    variant = 'default',
+    size = 'default',
+    type = 'button',
+    children,
+    ...restProps
+  }: Props = $props();
 </script>
 
 <button
   class={cn(baseClass, variantClasses[variant], sizeClasses[size], className)}
   {type}
-  {...$$restProps}
+  {...restProps}
 >
-  <slot />
+  {@render children?.()}
 </button>

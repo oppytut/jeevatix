@@ -1,15 +1,27 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   import { cn } from '../../utils';
 
-  let className = '';
-  let contentClass = '';
-  export { className as class };
-  export { contentClass };
+  type Props = {
+    class?: string;
+    contentClass?: string;
+    open?: boolean;
+    title?: string;
+    description?: string;
+    onClose?: () => void;
+    children?: Snippet;
+  };
 
-  export let open = false;
-  export let title: string | undefined;
-  export let description: string | undefined;
-  export let onClose: (() => void) | undefined = undefined;
+  let {
+    class: className = '',
+    contentClass = '',
+    open = false,
+    title,
+    description,
+    onClose,
+    children,
+  }: Props = $props();
 </script>
 
 {#if open}
@@ -37,15 +49,15 @@
         <button
           type="button"
           class="hover:border-jeevatix-300 hover:text-jeevatix-700 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase transition"
-          on:click={() => onClose?.()}
+          onclick={() => onClose?.()}
         >
           Close
         </button>
       </div>
 
-      {#if $$slots.default}
+      {#if children}
         <div class="mt-6">
-          <slot />
+          {@render children()}
         </div>
       {/if}
     </div>

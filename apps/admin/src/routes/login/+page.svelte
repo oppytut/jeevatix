@@ -161,10 +161,12 @@
           </Button>
         </form>
 
-        <div slot="footer" class="flex items-center justify-between gap-4 text-sm text-slate-500">
-          <p>Portal ini khusus untuk administrator Jeevatix.</p>
-          <p class="font-medium text-slate-700">localhost:4302</p>
-        </div>
+        {#snippet footer()}
+          <div class="flex items-center justify-between gap-4 text-sm text-slate-500">
+            <p>Portal ini khusus untuk administrator Jeevatix.</p>
+            <p class="font-medium text-slate-700">localhost:4302</p>
+          </div>
+        {/snippet}
       </Card>
     </div>
   </div>

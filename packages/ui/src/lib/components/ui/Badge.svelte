@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   import { cn } from '../../utils';
 
   type BadgeVariant = 'default' | 'success' | 'neutral' | 'warning';
@@ -10,10 +12,13 @@
     warning: 'bg-amber-100 text-amber-700',
   };
 
-  let className = '';
-  export { className as class };
+  type Props = {
+    class?: string;
+    variant?: BadgeVariant;
+    children?: Snippet;
+  };
 
-  export let variant: BadgeVariant = 'default';
+  let { class: className = '', variant = 'default', children }: Props = $props();
 </script>
 
 <span
@@ -23,5 +28,5 @@
     className,
   )}
 >
-  <slot />
+  {@render children?.()}
 </span>

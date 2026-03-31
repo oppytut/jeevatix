@@ -329,32 +329,34 @@
       />
     {/if}
 
-    <div slot="footer" class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <p class="text-sm text-slate-500">
-        Menampilkan <span class="font-semibold text-slate-900">{sellers.length}</span> dari {meta.total}
-        seller.
-      </p>
-      <div class="flex items-center gap-3">
-        <Button
-          variant="outline"
-          type="button"
-          onclick={previousPage}
-          disabled={meta.page <= 1 || isLoading}
-        >
-          Sebelumnya
-        </Button>
-        <span class="text-sm font-medium text-slate-600"
-          >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
-        >
-        <Button
-          variant="outline"
-          type="button"
-          onclick={nextPage}
-          disabled={meta.totalPages <= meta.page || isLoading}
-        >
-          Berikutnya
-        </Button>
+    {#snippet footer()}
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-sm text-slate-500">
+          Menampilkan <span class="font-semibold text-slate-900">{sellers.length}</span> dari {meta.total}
+          seller.
+        </p>
+        <div class="flex items-center gap-3">
+          <Button
+            variant="outline"
+            type="button"
+            onclick={previousPage}
+            disabled={meta.page <= 1 || isLoading}
+          >
+            Sebelumnya
+          </Button>
+          <span class="text-sm font-medium text-slate-600"
+            >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
+          >
+          <Button
+            variant="outline"
+            type="button"
+            onclick={nextPage}
+            disabled={meta.totalPages <= meta.page || isLoading}
+          >
+            Berikutnya
+          </Button>
+        </div>
       </div>
-    </div>
+    {/snippet}
   </Card>
 </section>

@@ -1,11 +1,17 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   import { cn } from '../../utils';
 
-  let className = '';
-  export { className as class };
+  type Props = {
+    class?: string;
+    title?: string;
+    description?: string;
+    children?: Snippet;
+    footer?: Snippet;
+  };
 
-  export let title: string | undefined;
-  export let description: string | undefined;
+  let { class: className = '', title, description, children, footer }: Props = $props();
 </script>
 
 <section
@@ -22,15 +28,15 @@
     </header>
   {/if}
 
-  {#if $$slots.default}
+  {#if children}
     <div class={cn(title || description ? 'mt-5' : '')}>
-      <slot />
+      {@render children()}
     </div>
   {/if}
 
-  {#if $$slots.footer}
+  {#if footer}
     <footer class="mt-5 border-t border-slate-100 pt-4">
-      <slot name="footer" />
+      {@render footer()}
     </footer>
   {/if}
 </section>
