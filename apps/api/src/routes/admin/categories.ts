@@ -140,9 +140,7 @@ const updateCategoryRoute = createRoute({
   tags: ['Admin Categories'],
   summary: 'Update an existing category',
   request: {
-    params: {
-      schema: categoryIdParamSchema,
-    },
+    params: categoryIdParamSchema,
     body: {
       required: true,
       content: {
@@ -186,9 +184,7 @@ const deleteCategoryRoute = createRoute({
   tags: ['Admin Categories'],
   summary: 'Delete a category that is not attached to any events',
   request: {
-    params: {
-      schema: categoryIdParamSchema,
-    },
+    params: categoryIdParamSchema,
   },
   responses: {
     200: {

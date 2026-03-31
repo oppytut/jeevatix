@@ -76,9 +76,7 @@ const listUsersRoute = createRoute({
   tags: ['Admin Users'],
   summary: 'List users for admin management',
   request: {
-    query: {
-      schema: listUsersQuerySchema,
-    },
+    query: listUsersQuerySchema,
   },
   responses: {
     200: {
@@ -114,9 +112,7 @@ const getUserDetailRoute = createRoute({
   tags: ['Admin Users'],
   summary: 'Get user detail for admin review',
   request: {
-    params: {
-      schema: adminUserIdParamSchema,
-    },
+    params: adminUserIdParamSchema,
   },
   responses: {
     200: {
@@ -144,9 +140,7 @@ const updateUserStatusRoute = createRoute({
   tags: ['Admin Users'],
   summary: 'Update user status',
   request: {
-    params: {
-      schema: adminUserIdParamSchema,
-    },
+    params: adminUserIdParamSchema,
     body: {
       required: true,
       content: {
@@ -182,9 +176,7 @@ const listSellersRoute = createRoute({
   tags: ['Admin Users'],
   summary: 'List seller profiles with verification status',
   request: {
-    query: {
-      schema: listSellersQuerySchema,
-    },
+    query: listSellersQuerySchema,
   },
   responses: {
     200: {
@@ -220,9 +212,7 @@ const verifySellerRoute = createRoute({
   tags: ['Admin Users'],
   summary: 'Approve or reject seller verification',
   request: {
-    params: {
-      schema: adminSellerIdParamSchema,
-    },
+    params: adminSellerIdParamSchema,
     body: {
       required: true,
       content: {

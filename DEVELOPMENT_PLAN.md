@@ -1314,7 +1314,7 @@ Di `apps/admin/`:
 4. `src/routes/sellers/[id]/+page.svelte` — Detail seller: data organisasi, data bank, daftar event. Tombol "Verify" (set is_verified=true) dan "Reject" (set is_verified=false). Konfirmasi dialog.
 ```
 
-### Task 3.6 — Phase 3 API Tests
+### Task 3.6 — Phase 3 API Tests [DONE]
 
 | Key          | Value                                                                                     |
 | ------------ | ----------------------------------------------------------------------------------------- |
