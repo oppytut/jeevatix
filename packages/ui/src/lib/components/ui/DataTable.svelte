@@ -32,6 +32,7 @@
     description?: string;
     emptyMessage?: string;
     actionHeader?: string;
+    cell?: Snippet<[DataTableRow, DataTableColumnView]>;
     rowActions?: Snippet<[DataTableRow]>;
     onRowClick?: (row: DataTableRow) => void;
   };
@@ -44,6 +45,7 @@
     description,
     emptyMessage = 'No records available.',
     actionHeader = 'Actions',
+    cell,
     rowActions,
     onRowClick,
   }: Props = $props();
@@ -126,7 +128,11 @@
             >
               {#each normalizedColumns as column (getColumnKey(column))}
                 <td class={cn('px-6 py-4 text-slate-700', getAlignClass(getColumnAlign(column)))}>
-                  {getCellValue(row, getColumnKey(column))}
+                  {#if cell}
+                    {@render cell(row, column)}
+                  {:else}
+                    {getCellValue(row, getColumnKey(column))}
+                  {/if}
                 </td>
               {/each}
               {#if rowActions}

@@ -26,11 +26,15 @@ type ApiSuccessResponse<T> = {
 type ApiResponse<T> = ApiSuccessResponse<T> | ApiFailureResponse;
 
 type RequestOptions = {
-  body?: unknown;
+  body?: BodyInit | Record<string, unknown> | unknown;
   headers?: HeadersInit;
   requiresAuth?: boolean;
   retryOnUnauthorized?: boolean;
 };
+
+function isFormDataBody(value: unknown): value is FormData {
+  return typeof FormData !== 'undefined' && value instanceof FormData;
+}
 
 async function parseJsonSafe<T>(response: Response): Promise<T | null> {
   const contentType = response.headers.get('content-type');
@@ -70,14 +74,15 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     requestHeaders.set(key, value);
   }
 
-  if (body !== undefined) {
+  if (body !== undefined && !isFormDataBody(body)) {
     requestHeaders.set('Content-Type', 'application/json');
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: requestHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body:
+      body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
   });
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && browser) {

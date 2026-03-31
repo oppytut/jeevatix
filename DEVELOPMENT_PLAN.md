@@ -1544,7 +1544,7 @@ Di `apps/seller/`:
 5. Auth guard di layout: redirect ke /login jika belum login atau role bukan seller.
 ```
 
-### Task 4.5 — Seller Event Management UI
+### Task 4.5 — Seller Event Management UI [DONE]
 
 | Key          | Value                                     |
 | ------------ | ----------------------------------------- |

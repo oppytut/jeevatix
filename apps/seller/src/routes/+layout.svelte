@@ -11,7 +11,7 @@
 
   const menuItems = [
     { label: 'Dashboard', href: '/', enabled: true },
-    { label: 'Events', href: '/events', enabled: false },
+    { label: 'Events', href: '/events', enabled: true },
     { label: 'Orders', href: '/orders', enabled: false },
     { label: 'Check-in', href: '/events/checkin', enabled: false },
     { label: 'Notifications', href: '/notifications', enabled: false },
@@ -89,7 +89,7 @@
           {#each menuItems as item (item.href)}
             {#if item.enabled}
               <a
-                href={resolve('/')}
+                href={resolve(item.href)}
                 class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-white/12 text-white' : 'border-white/10 bg-white/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-white/10 hover:text-white'}`}
               >
                 <span>{item.label}</span>
