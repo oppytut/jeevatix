@@ -1675,7 +1675,7 @@ curl http://localhost:8787/doc  # JSON spec harus include /seller/* endpoints
 
 **Tujuan:** Buyer bisa browse event, lihat detail, search & filter.
 
-### Task 5.1 — Public Event API
+### Task 5.1 — Public Event API [DONE]
 
 | Key          | Value                                                                                                                           |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
