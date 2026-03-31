@@ -1133,7 +1133,7 @@ Di `apps/admin/`:
 4. Buat auth guard di `src/routes/+layout.server.ts` atau `+layout.ts` — cek apakah user sudah login dan role=admin. Jika belum, redirect ke /login. Exclude halaman /login dari guard.
 ```
 
-### Task 3.3 — Admin Category Management UI
+### Task 3.3 — Admin Category Management UI [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

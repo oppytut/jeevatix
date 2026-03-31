@@ -71,13 +71,26 @@
 
         <nav class="mt-6 flex-1 space-y-2">
           {#each menuItems as item (item)}
-            <a
-              href={resolve('/')}
-              class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${item === 'Dashboard' ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
-            >
-              <span>{item}</span>
-              <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
-            </a>
+            {@const isActiveItem =
+              (item === 'Dashboard' && page.route.id === '/') ||
+              (item === 'Categories' && page.route.id === '/categories')}
+            {#if item === 'Categories'}
+              <a
+                href={resolve('/categories')}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActiveItem ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+              >
+                <span>{item}</span>
+                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
+              </a>
+            {:else}
+              <a
+                href={resolve('/')}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActiveItem ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+              >
+                <span>{item}</span>
+                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
+              </a>
+            {/if}
           {/each}
         </nav>
 

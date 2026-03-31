@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+
   import { cn } from '../../utils';
 
   type DataTableColumn = {
@@ -7,7 +9,7 @@
     align?: 'left' | 'center' | 'right';
   };
 
-  type DataTableRow = Record<string, string | number | boolean | null | undefined>;
+  type DataTableRow = Record<string, unknown>;
   type DataTableColumnView = {
     key: string;
     header: string;
@@ -30,6 +32,8 @@
   export let title: string | undefined;
   export let description: string | undefined;
   export let emptyMessage = 'No records available.';
+  export let actionHeader = 'Actions';
+  export let rowActions: Snippet<[DataTableRow]> | undefined = undefined;
 
   let normalizedColumns: DataTableColumnView[] = [];
   let normalizedRows: DataTableRow[] = [];
@@ -44,7 +48,19 @@
 
   $: normalizedRows = rows.map((row) => ({ ...row }));
 
-  const getCellValue = (row: unknown, key: string) => (row as DataTableRow)[key] ?? '—';
+  const getCellValue = (row: unknown, key: string) => {
+    const value = (row as DataTableRow)[key];
+
+    if (typeof value === 'string' || typeof value === 'number') {
+      return value;
+    }
+
+    if (typeof value === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+
+    return '—';
+  };
   const getColumnKey = (column: unknown) => (column as DataTableColumnView).key;
   const getColumnHeader = (column: unknown) => (column as DataTableColumnView).header;
   const getColumnAlign = (column: unknown) => (column as DataTableColumnView).align;
@@ -81,6 +97,9 @@
               {getColumnHeader(column)}
             </th>
           {/each}
+          {#if rowActions}
+            <th class="px-6 py-4 text-right font-semibold text-slate-600">{actionHeader}</th>
+          {/if}
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
@@ -92,11 +111,19 @@
                   {getCellValue(row, getColumnKey(column))}
                 </td>
               {/each}
+              {#if rowActions}
+                <td class="px-6 py-4 text-right">
+                  {@render rowActions(row)}
+                </td>
+              {/if}
             </tr>
           {/each}
         {:else}
           <tr>
-            <td class="px-6 py-10 text-center text-slate-500" colspan={normalizedColumns.length}>
+            <td
+              class="px-6 py-10 text-center text-slate-500"
+              colspan={normalizedColumns.length + (rowActions ? 1 : 0)}
+            >
               {emptyMessage}
             </td>
           </tr>
