@@ -1615,7 +1615,7 @@ Di `apps/seller/`:
 2. `src/routes/profile/password/+page.svelte` — Form ubah password: Old Password, New Password, Confirm New Password. Submit PATCH /users/me/password.
 ```
 
-### Task 4.7 — Phase 4 API Tests
+### Task 4.7 — Phase 4 API Tests [DONE]
 
 | Key          | Value                                                                                           |
 | ------------ | ----------------------------------------------------------------------------------------------- |
