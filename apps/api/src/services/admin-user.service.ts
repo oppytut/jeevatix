@@ -17,6 +17,7 @@ const { events, orders, sellerProfiles, tickets, users } = schema;
 
 type UserRow = typeof users.$inferSelect;
 type SellerProfileRow = typeof sellerProfiles.$inferSelect;
+type EventRow = typeof events.$inferSelect;
 
 export class AdminUserServiceError extends Error {
   constructor(
@@ -82,6 +83,7 @@ function toAdminUserListItem(
 function toAdminSellerProfile(
   sellerProfile: SellerProfileRow,
   eventCount: number,
+  sellerEvents: Pick<EventRow, 'id' | 'title' | 'slug' | 'status' | 'venueCity' | 'startAt'>[],
 ): AdminSellerProfile {
   return {
     id: sellerProfile.id,
@@ -95,6 +97,14 @@ function toAdminSellerProfile(
     verifiedAt: sellerProfile.verifiedAt?.toISOString() ?? null,
     verifiedBy: sellerProfile.verifiedBy ?? null,
     eventCount,
+    events: sellerEvents.map((event) => ({
+      id: event.id,
+      title: event.title,
+      slug: event.slug,
+      status: event.status,
+      venueCity: event.venueCity,
+      startAt: event.startAt.toISOString(),
+    })),
     createdAt: sellerProfile.createdAt.toISOString(),
     updatedAt: sellerProfile.updatedAt.toISOString(),
   };
@@ -246,6 +256,21 @@ export const adminUserService = {
       throw new AdminUserServiceError('USER_NOT_FOUND', 'User not found.');
     }
 
+    const sellerEvents = result.sellerProfile?.id
+      ? await database.query.events.findMany({
+          columns: {
+            id: true,
+            title: true,
+            slug: true,
+            status: true,
+            venueCity: true,
+            startAt: true,
+          },
+          where: eq(events.sellerProfileId, result.sellerProfile.id),
+          orderBy: [desc(events.startAt)],
+        })
+      : [];
+
     return {
       id: result.user.id,
       email: result.user.email,
@@ -258,7 +283,7 @@ export const adminUserService = {
       orderCount: result.orderCount,
       ticketCount: result.ticketCount,
       sellerProfile: result.sellerProfile?.id
-        ? toAdminSellerProfile(result.sellerProfile, result.eventCount)
+        ? toAdminSellerProfile(result.sellerProfile, result.eventCount, sellerEvents)
         : null,
       createdAt: result.user.createdAt.toISOString(),
       updatedAt: result.user.updatedAt.toISOString(),

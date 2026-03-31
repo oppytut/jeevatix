@@ -101,6 +101,30 @@ export const adminSellerProfileSchema = z
       .nullable()
       .openapi({ example: '7dc4978f-0d2f-4f6a-b8c0-99f9f52d3d64' }),
     eventCount: z.number().int().nonnegative().openapi({ example: 7 }),
+    events: z
+      .array(
+        z
+          .object({
+            id: z.string().uuid().openapi({ example: '27c3278a-6ed1-41ab-b522-39c4f24ebf4f' }),
+            title: z.string().openapi({ example: 'Festival Musik Nusantara' }),
+            slug: z.string().openapi({ example: 'festival-musik-nusantara' }),
+            status: z
+              .enum([
+                'draft',
+                'pending_review',
+                'published',
+                'rejected',
+                'ongoing',
+                'completed',
+                'cancelled',
+              ])
+              .openapi({ example: 'published' }),
+            venueCity: z.string().openapi({ example: 'Jakarta' }),
+            startAt: z.string().datetime().openapi({ example: '2026-06-10T19:00:00.000Z' }),
+          })
+          .openapi('AdminSellerEventSummary'),
+      )
+      .openapi('AdminSellerEventSummaryList'),
     createdAt: z.string().datetime().openapi({ example: '2026-03-30T10:00:00.000Z' }),
     updatedAt: z.string().datetime().openapi({ example: '2026-03-30T10:00:00.000Z' }),
   })

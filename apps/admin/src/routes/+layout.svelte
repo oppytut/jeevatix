@@ -32,6 +32,26 @@
   const isLoginRoute = $derived(String(page.url.pathname) === '/login');
   const currentUser = $derived(data.currentUser ?? null);
 
+  function isActive(item: (typeof menuItems)[number]) {
+    if (item === 'Dashboard') {
+      return page.route.id === '/';
+    }
+
+    if (item === 'Users') {
+      return page.url.pathname.startsWith('/users');
+    }
+
+    if (item === 'Sellers') {
+      return page.url.pathname.startsWith('/sellers');
+    }
+
+    if (item === 'Categories') {
+      return page.url.pathname.startsWith('/categories');
+    }
+
+    return false;
+  }
+
   async function handleLogout() {
     await logout();
     await goto(resolve('/login'), { replaceState: true });
@@ -71,25 +91,45 @@
 
         <nav class="mt-6 flex-1 space-y-2">
           {#each menuItems as item (item)}
-            {@const isActiveItem =
-              (item === 'Dashboard' && page.route.id === '/') ||
-              (item === 'Categories' && page.route.id === '/categories')}
-            {#if item === 'Categories'}
+            {#if item === 'Dashboard'}
+              <a
+                href={resolve('/')}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+              >
+                <span>{item}</span>
+                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
+              </a>
+            {:else if item === 'Users'}
+              <a
+                href={resolve('/users')}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+              >
+                <span>{item}</span>
+                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
+              </a>
+            {:else if item === 'Sellers'}
+              <a
+                href={resolve('/sellers')}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+              >
+                <span>{item}</span>
+                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
+              </a>
+            {:else if item === 'Categories'}
               <a
                 href={resolve('/categories')}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActiveItem ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
               >
                 <span>{item}</span>
                 <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
               </a>
             {:else}
-              <a
-                href={resolve('/')}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActiveItem ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+              <div
+                class="flex items-center justify-between rounded-2xl border border-white/5 px-4 py-3 text-sm font-medium text-slate-500"
               >
                 <span>{item}</span>
-                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
-              </a>
+                <span class="text-xs tracking-[0.3em] uppercase">Soon</span>
+              </div>
             {/if}
           {/each}
         </nav>

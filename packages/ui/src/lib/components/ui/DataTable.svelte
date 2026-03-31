@@ -34,6 +34,7 @@
   export let emptyMessage = 'No records available.';
   export let actionHeader = 'Actions';
   export let rowActions: Snippet<[DataTableRow]> | undefined = undefined;
+  export let onRowClick: ((row: DataTableRow) => void) | undefined = undefined;
 
   let normalizedColumns: DataTableColumnView[] = [];
   let normalizedRows: DataTableRow[] = [];
@@ -105,7 +106,13 @@
       <tbody class="divide-y divide-slate-100">
         {#if normalizedRows.length > 0}
           {#each normalizedRows as row, index (index)}
-            <tr class="hover:bg-jeevatix-50/60 transition">
+            <tr
+              class={cn(
+                'transition',
+                onRowClick ? 'hover:bg-jeevatix-50/60 cursor-pointer' : 'hover:bg-jeevatix-50/60',
+              )}
+              onclick={() => onRowClick?.(row)}
+            >
               {#each normalizedColumns as column (getColumnKey(column))}
                 <td class={cn('px-6 py-4 text-slate-700', getAlignClass(getColumnAlign(column)))}>
                   {getCellValue(row, getColumnKey(column))}

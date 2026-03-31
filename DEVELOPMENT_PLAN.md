@@ -1056,7 +1056,7 @@ Dependensi: T-2.1 sudah selesai (auth middleware tersedia).
 
 Buat 3 file:
 
-2. **`apps/api/src/schemas/upload.schema.ts`:** — Validasi konstanta: ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 _ 1024 _ 1024. uploadResponseSchema: { url }.openapi('UploadResponse').
+2. **`apps/api/src/schemas/upload.schema.ts`:** — Validasi konstanta: ALLOWED*TYPES = ['image/jpeg', 'image/png', 'image/webp'], MAX_SIZE = 5 * 1024 \_ 1024. uploadResponseSchema: { url }.openapi('UploadResponse').
 3. **`apps/api/src/services/upload.service.ts`:** — uploadFile(env, file): validasi tipe & ukuran, generate key unik `uploads/{uuid}.{extension}`, upload ke R2, return { url }.
 4. **`apps/api/src/routes/upload.ts`** — Tags: ['Upload'], protected (authMiddleware). POST /upload — Terima multipart form data, call uploadService.uploadFile().
 5. Mount router di apps/api/src/index.ts.
@@ -1283,7 +1283,7 @@ Buat 3 file:
 Mount di index.ts.
 ```
 
-### Task 3.5 — Admin User Management UI
+### Task 3.5 — Admin User Management UI [DONE]
 
 | Key          | Value                                  |
 | ------------ | -------------------------------------- |
