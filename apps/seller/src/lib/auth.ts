@@ -18,9 +18,9 @@ export const SELLER_REFRESH_TOKEN_COOKIE = 'jeevatix_seller_refresh_token';
 export const SELLER_USER_COOKIE = 'jeevatix_seller_user';
 
 const ACCESS_TOKEN_REFRESH_BUFFER_MS = 30_000;
-const ACCESS_TOKEN_MAX_AGE = 60 * 15;
-const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7;
-const USER_COOKIE_MAX_AGE = REFRESH_TOKEN_MAX_AGE;
+export const ACCESS_TOKEN_MAX_AGE = 60 * 15;
+export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7;
+export const USER_COOKIE_MAX_AGE = REFRESH_TOKEN_MAX_AGE;
 
 export type SellerAuthUser = {
   id: string;

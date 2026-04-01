@@ -2751,7 +2751,7 @@ Pastikan WebSocket auto-reconnect jika koneksi terputus.
 
 **Tujuan:** Dashboard analytics untuk admin & seller, lengkapi semua halaman admin yang tersisa.
 
-### Task 9.1 — Seller Dashboard
+### Task 9.1 — Seller Dashboard [DONE]
 
 | Key          | Value                                    |
 | ------------ | ---------------------------------------- |
