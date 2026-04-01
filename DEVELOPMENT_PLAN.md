@@ -2543,7 +2543,7 @@ Di `apps/seller/`:
 Mount API routes di index.ts.
 ```
 
-### Task 7.6 — Seller Notification UI
+### Task 7.6 — Seller Notification UI [DONE]
 
 | Key          | Value                                        |
 | ------------ | -------------------------------------------- |

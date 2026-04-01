@@ -1,11 +1,15 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
+  import { Bell } from '@lucide/svelte';
+  import { onMount } from 'svelte';
   import type { Snippet } from 'svelte';
 
   import './layout.css';
   import favicon from '$lib/assets/favicon.svg';
+  import { apiGetResponse } from '$lib/api';
   import { logout } from '$lib/auth';
   import type { SellerAuthUser } from '$lib/auth';
 
@@ -14,7 +18,7 @@
     { label: 'Events', href: '/events', enabled: true },
     { label: 'Orders', href: '/orders', enabled: true },
     { label: 'Check-in', href: '/events/checkin', enabled: false },
-    { label: 'Notifications', href: '/notifications', enabled: false },
+    { label: 'Notifications', href: '/notifications', enabled: true },
     { label: 'Profile', href: '/profile', enabled: true },
   ] as const;
 
@@ -32,6 +36,23 @@
 
   const isAuthRoute = $derived(authRoutes.has(String(page.url.pathname)));
   const currentUser = $derived(data.currentUser ?? null);
+  let unreadCount = $state(0);
+
+  async function loadUnreadCount() {
+    if (!browser || isAuthRoute) {
+      return;
+    }
+
+    try {
+      const response = await apiGetResponse<
+        { notifications: Array<unknown>; unread_count: number },
+        { total: number; page: number; limit: number; totalPages: number }
+      >('/notifications?page=1&limit=20');
+      unreadCount = response.data.unread_count;
+    } catch {
+      unreadCount = 0;
+    }
+  }
 
   function isActive(href: string) {
     if (href === '/') {
@@ -49,6 +70,24 @@
     await logout();
     await goto(resolve('/login'), { replaceState: true });
   }
+
+  onMount(() => {
+    if (!browser || isAuthRoute) {
+      return;
+    }
+
+    void loadUnreadCount();
+
+    const handleNotificationUpdate = () => {
+      void loadUnreadCount();
+    };
+
+    window.addEventListener('seller-notifications-updated', handleNotificationUpdate);
+
+    return () => {
+      window.removeEventListener('seller-notifications-updated', handleNotificationUpdate);
+    };
+  });
 </script>
 
 <svelte:head>
@@ -75,14 +114,34 @@
     >
       <div class="flex h-full flex-col px-6 py-8">
         <div class="space-y-3 border-b border-white/10 pb-6">
-          <p class="text-xs font-semibold tracking-[0.35em] text-emerald-200/70 uppercase">
-            Jeevatix
-          </p>
-          <h1 class="text-2xl font-semibold tracking-tight">Seller Studio</h1>
-          <p class="text-sm leading-6 text-emerald-100/70">
-            Ruang kerja seller untuk memantau penjualan, check-in, dan performa event secara
-            real-time.
-          </p>
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-3">
+              <p class="text-xs font-semibold tracking-[0.35em] text-emerald-200/70 uppercase">
+                Jeevatix
+              </p>
+              <h1 class="text-2xl font-semibold tracking-tight">Seller Studio</h1>
+              <p class="text-sm leading-6 text-emerald-100/70">
+                Ruang kerja seller untuk memantau penjualan, check-in, dan performa event secara
+                real-time.
+              </p>
+            </div>
+
+            {#if !isAuthRoute}
+              <button
+                type="button"
+                class="relative inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/8 text-emerald-50 transition hover:border-white/20 hover:bg-white/12 hover:text-white"
+                onclick={() => goto(resolve('/notifications'))}
+                aria-label="Buka notifikasi seller"
+              >
+                <Bell class="size-5" />
+                {#if unreadCount > 0}
+                  <span class="absolute -right-1 -top-1 inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-1.5 py-1 text-[0.7rem] font-semibold leading-none text-white">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                {/if}
+              </button>
+            {/if}
+          </div>
         </div>
 
         <nav class="mt-6 flex-1 space-y-2">
@@ -111,6 +170,20 @@
                 >
                   <span>{item.label}</span>
                   <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                </a>
+              {:else if item.href === '/notifications'}
+                <a
+                  href={resolve('/notifications')}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-white/12 text-white' : 'border-white/10 bg-white/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <span>{item.label}</span>
+                  {#if unreadCount > 0}
+                    <span class="inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-1.5 py-1 text-[0.7rem] font-semibold leading-none text-white">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  {:else}
+                    <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                  {/if}
                 </a>
               {:else}
                 <a
