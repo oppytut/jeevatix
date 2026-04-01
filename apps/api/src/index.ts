@@ -18,6 +18,7 @@ import {
   type ReservationCleanupMessage,
 } from './queues/reservation-cleanup';
 import reservationRoutes from './routes/reservations';
+import sellerCheckinRoutes from './routes/seller/checkin';
 import sellerEventRoutes from './routes/seller/events';
 import sellerProfileRoutes from './routes/seller/profile';
 import sellerTierRoutes from './routes/seller/tiers';
@@ -50,6 +51,7 @@ app.route('/orders', orderRoutes);
 app.route('/', paymentRoutes);
 app.route('/', publicEventRoutes);
 app.route('/reservations', reservationRoutes);
+app.route('/seller', sellerCheckinRoutes);
 app.route('/seller', sellerEventRoutes);
 app.route('/seller', sellerProfileRoutes);
 app.route('/seller', sellerTierRoutes);

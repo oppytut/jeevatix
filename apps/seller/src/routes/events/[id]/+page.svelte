@@ -11,6 +11,7 @@
     LoaderCircle,
     MapPinned,
     Pencil,
+    QrCode,
     Send,
     Ticket,
   } from '@lucide/svelte';
@@ -192,6 +193,14 @@
     void goto(resolve(`/events/${eventDetail.id}/tiers`));
   }
 
+  function goToCheckin() {
+    if (!eventDetail) {
+      return;
+    }
+
+    void goto(`/events/${eventDetail.id}/checkin`);
+  }
+
   const summary = $derived(
     eventDetail
       ? {
@@ -262,6 +271,10 @@
               <Button variant="outline" type="button" class="border-white/30 bg-white/10 text-white hover:bg-white/20" onclick={goToTiers}>
                 <Ticket class="mr-2 size-4" />
                 Kelola Tier
+              </Button>
+              <Button variant="outline" type="button" class="border-white/30 bg-white/10 text-white hover:bg-white/20" onclick={goToCheckin}>
+                <QrCode class="mr-2 size-4" />
+                Check-in
               </Button>
               <Button type="button" onclick={goToEdit}>
                 <Pencil class="mr-2 size-4" />

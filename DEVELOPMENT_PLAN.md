@@ -2383,7 +2383,7 @@ Di `apps/buyer/`:
 Protect kedua halaman: redirect ke /login jika belum login.
 ```
 
-### Task 7.3 — Check-in API & UI (Seller)
+### Task 7.3 — Check-in API & UI (Seller) [DONE]
 
 | Key          | Value                                                                                                                                                                              |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
