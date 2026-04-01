@@ -2141,17 +2141,17 @@ Buat file `apps/api/src/queues/reservation-cleanup.ts`:
      b. Get Durable Object instance dan call cancelReservation(reservationId) untuk restore in-memory counter.
      c. (Opsional) Send notification ke buyer: 'payment_reminder' jika mendekati expire, atau info bahwa reservasi sudah expired.
 3. Daftarkan Queue consumer di `wrangler.toml`:
-   ```toml
+   ~~~toml
    [[queues.consumers]]
    queue = "reservation-cleanup"
    max_batch_size = 10
    max_batch_timeout = 30
-   ```
+   ~~~
 4. Juga setup cron trigger di wrangler.toml untuk menjalankan cleanup setiap 1 menit:
-   ```toml
+   ~~~toml
    [triggers]
    crons = ["* * * * *"]
-   ```
+   ~~~
 
 Pastikan cleanup idempotent (jangan proses reservation yang sudah expired).
 
