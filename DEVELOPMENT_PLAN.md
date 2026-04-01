@@ -1927,7 +1927,7 @@ open http://localhost:4301/events/slug-event # detail event
 
 **Prompt:**
 
-````
+```
 Referensi: DATABASE_DESIGN.md (Concurrency & War Ticket Flow, tabel reservations, ticket_tiers).
 
 Kerjakan Task T-6.1: Durable Object TicketReserver.
@@ -1947,16 +1947,15 @@ Buat file `apps/api/src/durable-objects/ticket-reserver.ts`:
 7. Method getAvailability(tierId: string) — return { remaining: quota - soldCount - pendingReservations }.
 
 8. Tambahkan di `wrangler.toml`:
-   ```toml
+   ~~~toml
    [durable_objects]
    bindings = [{ name = "TICKET_RESERVER", class_name = "TicketReserver" }]
    [[migrations]]
    tag = "v1"
    new_classes = ["TicketReserver"]
-````
+   ~~~
 
 INI ADALAH BAGIAN PALING KRITIS. Pastikan semua operasi stok atomik dan concurrent-safe.
-
 ```
 
 ### Task 6.2 — Reservation API
