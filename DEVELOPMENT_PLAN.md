@@ -2107,7 +2107,7 @@ Mount di index.ts.
 
 ```
 
-### Task 6.5 — Cloudflare Queue: Reservation Cleanup
+### Task 6.5 — Cloudflare Queue: Reservation Cleanup [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

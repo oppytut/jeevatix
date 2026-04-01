@@ -14,3 +14,15 @@ new_classes = ["TicketReserver"]
 [[r2_buckets]]
 binding = "BUCKET"
 bucket_name = "jeevatix-uploads"
+
+[[queues.producers]]
+binding = "RESERVATION_CLEANUP_QUEUE"
+queue = "reservation-cleanup"
+
+[[queues.consumers]]
+queue = "reservation-cleanup"
+max_batch_size = 10
+max_batch_timeout = 30
+
+[triggers]
+crons = ["* * * * *"]

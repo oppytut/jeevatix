@@ -11,6 +11,12 @@ import publicEventRoutes from './routes/events';
 import notificationRoutes from './routes/notifications';
 import orderRoutes from './routes/orders';
 import paymentRoutes from './routes/payments';
+import {
+  enqueueReservationCleanup,
+  reservationCleanupQueueHandler,
+  type ReservationCleanupEnv,
+  type ReservationCleanupMessage,
+} from './queues/reservation-cleanup';
 import reservationRoutes from './routes/reservations';
 import sellerEventRoutes from './routes/seller/events';
 import sellerProfileRoutes from './routes/seller/profile';
@@ -49,5 +55,24 @@ app.route('/seller', sellerTierRoutes);
 app.route('/upload', uploadRoutes);
 app.route('/users', usersRoutes);
 
-export default app;
+const worker = Object.assign(app, {
+  async queue(
+    batch: MessageBatch<ReservationCleanupMessage>,
+    env: ReservationCleanupEnv,
+    ctx: ExecutionContext,
+  ) {
+    await reservationCleanupQueueHandler(batch, env, ctx);
+  },
+
+  async scheduled(
+    controller: ScheduledController,
+    env: ReservationCleanupEnv,
+    ctx: ExecutionContext,
+  ) {
+    ctx.waitUntil(enqueueReservationCleanup(env, controller.scheduledTime));
+  },
+});
+
+export default worker;
+export { app };
 export { TicketReserver };
