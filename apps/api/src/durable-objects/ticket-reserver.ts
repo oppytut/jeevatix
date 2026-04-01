@@ -342,6 +342,12 @@ export class TicketReserver extends DurableObjectBase {
     }
 
     if (reservation.status !== 'active') {
+      const refreshedTierState = await this.loadTierState(reservation.ticketTierId);
+
+      if (refreshedTierState) {
+        this.tierStates.set(reservation.ticketTierId, refreshedTierState);
+      }
+
       return {
         ok: true,
         reservation_id: reservation.id,
