@@ -2198,7 +2198,7 @@ Di `apps/buyer/`:
 
 ```
 
-### Task 6.7 — Order History UI (Buyer)
+### Task 6.7 — Order History UI (Buyer) [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

@@ -145,6 +145,19 @@ export type OrderPayment = {
   updated_at: string;
 };
 
+export type OrderListItem = {
+  id: string;
+  reservation_id: string | null;
+  order_number: string;
+  status: 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'refunded';
+  total_amount: number;
+  event_id: string;
+  event_slug: string;
+  event_title: string;
+  created_at: string;
+  expires_at: string;
+};
+
 export type OrderDetail = {
   id: string;
   reservation_id: string | null;
