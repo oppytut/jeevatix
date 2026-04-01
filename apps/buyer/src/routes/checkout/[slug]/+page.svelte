@@ -157,7 +157,7 @@
                   value={tier.id}
                   bind:group={selectedTierId}
                   checked={selectedTierId === tier.id}
-                  disabled={tier.remaining === 0}
+                  disabled={Boolean(reservation) || tier.remaining === 0}
                 />
 
                 <div class="flex items-start justify-between gap-4">
@@ -200,7 +200,7 @@
               </div>
 
               <div class="flex items-center gap-3">
-                <button type="button" class="flex size-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600" aria-label="Kurangi jumlah tiket" onclick={decreaseQuantity}>
+                  <button type="button" class="flex size-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Kurangi jumlah tiket" onclick={decreaseQuantity} disabled={Boolean(reservation)}>
                   <Minus class="size-4" />
                 </button>
                 <Input
@@ -210,8 +210,9 @@
                   max={String(maxSelectableQuantity)}
                   bind:value={quantity}
                   class="w-20 text-center"
+                    disabled={Boolean(reservation)}
                 />
-                <button type="button" class="flex size-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600" aria-label="Tambah jumlah tiket" onclick={increaseQuantity}>
+                  <button type="button" class="flex size-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Tambah jumlah tiket" onclick={increaseQuantity} disabled={Boolean(reservation)}>
                   <Plus class="size-4" />
                 </button>
               </div>
@@ -230,10 +231,16 @@
             </div>
           {/if}
 
-          <Button type="submit" class="w-full rounded-full px-6 py-3" disabled={!activeTier || activeTier.remaining === 0}>
+            <Button type="submit" class="w-full rounded-full px-6 py-3" disabled={Boolean(reservation) || !activeTier || activeTier.remaining === 0}>
             Reservasi Tiket
             <MoveRight class="size-4" />
           </Button>
+
+            {#if reservation}
+              <p class="text-sm leading-6 text-slate-600">
+                Tier dan jumlah tiket dikunci selama reservasi aktif agar ringkasan checkout tetap sesuai dengan slot yang sedang Anda pegang.
+              </p>
+            {/if}
         </form>
       {/if}
     </Card>

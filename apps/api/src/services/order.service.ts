@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, lte, sql } from 'drizzle-orm';
 
 import type {
   CreateOrderInput,
@@ -150,6 +150,28 @@ async function invokeTicketReserverConfirm(
   }
 
   return body;
+}
+
+async function expirePendingOrder(databaseUrl: string | undefined, orderId: string) {
+  const database = getDatabase(databaseUrl);
+
+  await database
+    .update(orders)
+    .set({
+      status: 'expired',
+      updatedAt: new Date(),
+    })
+    .where(and(eq(orders.id, orderId), eq(orders.status, 'pending'), lte(orders.expiresAt, new Date())));
+}
+
+async function cleanupFailedOrder(orderId: string, databaseUrl?: string) {
+  const database = getDatabase(databaseUrl);
+
+  await database.transaction(async (tx) => {
+    await tx.delete(payments).where(eq(payments.orderId, orderId));
+    await tx.delete(orderItems).where(eq(orderItems.orderId, orderId));
+    await tx.delete(orders).where(eq(orders.id, orderId));
+  });
 }
 
 function toOrderListItem(row: {
@@ -375,23 +397,30 @@ export const orderService = {
         updatedAt: new Date(),
       });
 
-      await tx
-        .update(reservations)
-        .set({
-          status: 'converted',
-        })
-        .where(eq(reservations.id, reservation.id));
-
       return order;
     });
 
-    const confirmResult = await invokeTicketReserverConfirm(
-      env,
-      reservation.ticketTier.id,
-      reservation.id,
-    );
+    let confirmResult: Awaited<ReturnType<typeof invokeTicketReserverConfirm>>;
+
+    try {
+      confirmResult = await invokeTicketReserverConfirm(env, reservation.ticketTier.id, reservation.id);
+    } catch (error) {
+      const refreshedReservation = await database.query.reservations.findFirst({
+        where: eq(reservations.id, reservation.id),
+        columns: {
+          status: true,
+        },
+      });
+
+      if (refreshedReservation?.status !== 'converted') {
+        await cleanupFailedOrder(createdOrder.id, databaseUrl);
+      }
+
+      throw error;
+    }
 
     if (confirmResult.status !== 'converted') {
+      await cleanupFailedOrder(createdOrder.id, databaseUrl);
       throw new OrderServiceError('INVALID_STATE', 'Reservation could not be confirmed.');
     }
 
@@ -415,6 +444,14 @@ export const orderService = {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const offset = (page - 1) * limit;
+
+    await database
+      .update(orders)
+      .set({
+        status: 'expired',
+        updatedAt: new Date(),
+      })
+      .where(and(eq(orders.userId, userId), eq(orders.status, 'pending'), lte(orders.expiresAt, new Date())));
 
     const [aggregate] = await database
       .select({
@@ -490,6 +527,8 @@ export const orderService = {
   },
 
   async getOrderDetail(userId: string, orderId: string, databaseUrl?: string): Promise<OrderDetail> {
+    await expirePendingOrder(databaseUrl, orderId);
+
     const database = getDatabase(databaseUrl);
     const order = await database.query.orders.findFirst({
       where: eq(orders.id, orderId),

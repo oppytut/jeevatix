@@ -4,6 +4,27 @@ import { createTransactionTestContext } from './transaction-test-helpers';
 
 const context = createTransactionTestContext('vitest-p6-order');
 
+class FailingConfirmNamespace {
+  idFromName(name: string) {
+    return name;
+  }
+
+  get() {
+    return {
+      async fetch() {
+        return Response.json(
+          {
+            ok: false,
+            error: 'INVALID_STATE',
+            message: 'Reservation confirm failed for regression test.',
+          },
+          { status: 409 },
+        );
+      },
+    };
+  }
+}
+
 describe.sequential('Phase 6 Order API', () => {
   beforeAll(async () => {
     await context.cleanupTestData();
@@ -281,5 +302,92 @@ describe.sequential('Phase 6 Order API', () => {
     expect(forbiddenResponse.status).toBe(403);
     expect(forbiddenPayload.success).toBe(false);
     expect(forbiddenPayload.error.code).toBe('FORBIDDEN');
+  });
+
+  it('rolls back transient order records when reservation confirmation fails', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const { tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+
+    const reservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: tier.id,
+        quantity: 1,
+      },
+    });
+    const reservationPayload = await context.readJson<{
+      data: { reservation_id: string };
+    }>(reservationResponse);
+
+    const orderResponse = await context.requestJson('/orders', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        reservation_id: reservationPayload.data.reservation_id,
+      },
+      envOverride: {
+        TICKET_RESERVER: new FailingConfirmNamespace() as unknown as DurableObjectNamespace,
+      },
+    });
+    const orderPayload = await context.readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(orderResponse);
+
+    const reservationRecord = await context.getReservation(reservationPayload.data.reservation_id);
+    const orderRecord = await context.getOrderByReservationId(reservationPayload.data.reservation_id);
+
+    expect(orderResponse.status).toBe(409);
+    expect(orderPayload.success).toBe(false);
+    expect(orderPayload.error.code).toBe('INVALID_STATE');
+    expect(reservationRecord?.status).toBe('active');
+    expect(orderRecord).toBeUndefined();
+  });
+
+  it('marks a pending order as expired when it is read after the payment window closes', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const { tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+
+    const reservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: tier.id,
+        quantity: 1,
+      },
+    });
+    const reservationPayload = await context.readJson<{
+      data: { reservation_id: string };
+    }>(reservationResponse);
+
+    const orderResponse = await context.requestJson('/orders', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        reservation_id: reservationPayload.data.reservation_id,
+      },
+    });
+    const orderPayload = await context.readJson<{
+      data: { id: string };
+    }>(orderResponse);
+
+    await context.expireOrder(orderPayload.data.id);
+
+    const detailResponse = await context.requestJson(`/orders/${orderPayload.data.id}`, {
+      token: buyer.token,
+    });
+    const detailPayload = await context.readJson<{
+      success: boolean;
+      data: { status: string };
+    }>(detailResponse);
+    const orderRecord = await context.getOrder(orderPayload.data.id);
+
+    expect(detailResponse.status).toBe(200);
+    expect(detailPayload.success).toBe(true);
+    expect(detailPayload.data.status).toBe('expired');
+    expect(orderRecord?.status).toBe('expired');
   });
 });

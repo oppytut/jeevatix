@@ -133,7 +133,7 @@ function buildMockPaymentUrl(externalRef: string, method: InitiatePaymentInput['
 
 async function verifyWebhookSignature(
   headers: Headers,
-  body: PaymentWebhookInput,
+  rawBody: string,
   env: PaymentServiceEnv,
 ) {
   const providedSignature = headers.get('x-payment-signature');
@@ -142,11 +142,36 @@ async function verifyWebhookSignature(
     throw new PaymentServiceError('INVALID_SIGNATURE', 'Missing payment webhook signature.');
   }
 
-  const expectedSignature = await signWebhookPayload(JSON.stringify(body), getWebhookSecret(env));
+  const expectedSignature = await signWebhookPayload(rawBody, getWebhookSecret(env));
 
   if (!secureEqual(providedSignature, expectedSignature)) {
     throw new PaymentServiceError('INVALID_SIGNATURE', 'Invalid payment webhook signature.');
   }
+}
+
+async function markOrderExpiredIfNeeded(
+  orderId: string,
+  status: 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'refunded',
+  expiresAt: Date,
+  databaseUrl?: string,
+) {
+  if (status !== 'pending') {
+    return;
+  }
+
+  if (expiresAt.getTime() > Date.now()) {
+    return;
+  }
+
+  const database = getDatabase(databaseUrl);
+
+  await database
+    .update(orders)
+    .set({
+      status: 'expired',
+      updatedAt: new Date(),
+    })
+    .where(eq(orders.id, orderId));
 }
 
 // Ticket issuance is implemented fully in Phase 7; keep the invocation stable for now.
@@ -257,22 +282,29 @@ export const paymentService = {
       throw new PaymentServiceError('FORBIDDEN', 'You do not have access to this order.');
     }
 
-    if (order.status !== 'pending' || order.payment.status !== 'pending') {
-      throw new PaymentServiceError('INVALID_STATE', 'Order is not awaiting payment.');
-    }
+    await markOrderExpiredIfNeeded(order.id, order.status, order.expiresAt, env.DATABASE_URL);
 
     if (order.expiresAt.getTime() <= Date.now()) {
       throw new PaymentServiceError('INVALID_STATE', 'Order payment window has expired.');
     }
 
-    const externalRef = order.payment.externalRef ?? buildExternalRef();
+    if (order.status !== 'pending' || !['pending', 'failed'].includes(order.payment.status)) {
+      throw new PaymentServiceError('INVALID_STATE', 'Order is not awaiting payment.');
+    }
+
+    const externalRef =
+      order.payment.status === 'failed' || !order.payment.externalRef
+        ? buildExternalRef()
+        : order.payment.externalRef;
     const paymentUrl = buildMockPaymentUrl(externalRef, input.method);
 
     const [updatedPayment] = await database
       .update(payments)
       .set({
         method: input.method,
+        status: 'pending',
         externalRef,
+        paidAt: null,
         updatedAt: new Date(),
       })
       .where(eq(payments.id, order.payment.id))
@@ -300,9 +332,10 @@ export const paymentService = {
   async handleWebhook(
     env: PaymentServiceEnv,
     headers: Headers,
+    rawBody: string,
     body: PaymentWebhookInput,
   ): Promise<PaymentWebhookPayload> {
-    await verifyWebhookSignature(headers, body, env);
+    await verifyWebhookSignature(headers, rawBody, env);
 
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
     const database = getDatabase(databaseUrl);
@@ -383,6 +416,13 @@ export const paymentService = {
     if (payment.order.status !== 'pending') {
       throw new PaymentServiceError('INVALID_STATE', 'Order is not awaiting payment confirmation.');
     }
+
+    await markOrderExpiredIfNeeded(
+      payment.order.id,
+      payment.order.status,
+      payment.order.expiresAt,
+      databaseUrl,
+    );
 
     if (payment.order.expiresAt.getTime() <= Date.now()) {
       throw new PaymentServiceError('INVALID_STATE', 'Order payment window has expired.');

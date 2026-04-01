@@ -180,4 +180,76 @@ describe.sequential('Phase 6 Reservation API', () => {
     expect(payload.success).toBe(false);
     expect(payload.error.code).toBe('UNAUTHORIZED');
   });
+
+  it('rejects a second active reservation for the same event even when another event is also reserved', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const firstEvent = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+    const secondEvent = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+
+    const firstReservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: firstEvent.tier.id,
+        quantity: 1,
+      },
+    });
+
+    const secondReservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: secondEvent.tier.id,
+        quantity: 1,
+      },
+    });
+
+    const duplicateReservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: firstEvent.tier.id,
+        quantity: 1,
+      },
+    });
+    const duplicateReservationPayload = await context.readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(duplicateReservationResponse);
+
+    expect(firstReservationResponse.status).toBe(201);
+    expect(secondReservationResponse.status).toBe(201);
+    expect(duplicateReservationResponse.status).toBe(409);
+    expect(duplicateReservationPayload.success).toBe(false);
+    expect(duplicateReservationPayload.error.code).toBe('ACTIVE_RESERVATION_EXISTS');
+  });
+
+  it('rejects reservations outside the active sale window', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const { tier } = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+      saleStartAt: new Date('2035-01-01T00:00:00.000Z'),
+      saleEndAt: new Date('2035-01-02T00:00:00.000Z'),
+    });
+
+    const response = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: tier.id,
+        quantity: 1,
+      },
+    });
+    const payload = await context.readJson<{
+      success: boolean;
+      error: { code: string; message: string };
+    }>(response);
+
+    expect(response.status).toBe(409);
+    expect(payload.success).toBe(false);
+    expect(payload.error.code).toBe('INVALID_STATE');
+    expect(payload.error.message).toContain('sale window');
+  });
 });

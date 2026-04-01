@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, gt, lte, sql } from 'drizzle-orm';
 
 import type {
   CreateReservationInput,
@@ -43,11 +43,15 @@ type TicketTierAvailabilityRecord = {
   id: string;
   name: string;
   status: 'available' | 'sold_out' | 'hidden';
+  saleStartAt: Date | null;
+  saleEndAt: Date | null;
   eventId: string;
   eventTitle: string;
   eventSlug: string;
   eventStatus: 'draft' | 'pending_review' | 'published' | 'rejected' | 'ongoing' | 'completed' | 'cancelled';
   maxTicketsPerOrder: number;
+  eventSaleStartAt: Date;
+  eventSaleEndAt: Date;
 };
 
 export class ReservationServiceError extends Error {
@@ -111,6 +115,8 @@ async function getTierAvailabilityRecord(
       id: true,
       name: true,
       status: true,
+      saleStartAt: true,
+      saleEndAt: true,
     },
     with: {
       event: {
@@ -120,6 +126,8 @@ async function getTierAvailabilityRecord(
           title: true,
           status: true,
           maxTicketsPerOrder: true,
+          saleStartAt: true,
+          saleEndAt: true,
         },
       },
     },
@@ -133,15 +141,33 @@ async function getTierAvailabilityRecord(
     throw new ReservationServiceError('INVALID_STATE', 'Ticket tier is not available for reservation.');
   }
 
+  const now = new Date();
+  const effectiveSaleStartAt =
+    tier.saleStartAt && tier.saleStartAt.getTime() > tier.event.saleStartAt.getTime()
+      ? tier.saleStartAt
+      : tier.event.saleStartAt;
+  const effectiveSaleEndAt =
+    tier.saleEndAt && tier.saleEndAt.getTime() < tier.event.saleEndAt.getTime()
+      ? tier.saleEndAt
+      : tier.event.saleEndAt;
+
+  if (effectiveSaleStartAt.getTime() > now.getTime() || effectiveSaleEndAt.getTime() < now.getTime()) {
+    throw new ReservationServiceError('INVALID_STATE', 'Ticket tier is outside the active sale window.');
+  }
+
   return {
     id: tier.id,
     name: tier.name,
     status: tier.status,
+    saleStartAt: tier.saleStartAt,
+    saleEndAt: tier.saleEndAt,
     eventId: tier.event.id,
     eventTitle: tier.event.title,
     eventSlug: tier.event.slug,
     eventStatus: tier.event.status,
     maxTicketsPerOrder: tier.event.maxTicketsPerOrder,
+    eventSaleStartAt: tier.event.saleStartAt,
+    eventSaleEndAt: tier.event.saleEndAt,
   };
 }
 
@@ -151,25 +177,24 @@ async function ensureNoActiveReservationForEvent(
   databaseUrl?: string,
 ) {
   const database = getDatabase(databaseUrl);
-  const activeReservation = await database.query.reservations.findFirst({
-    where: and(eq(reservations.userId, userId), eq(reservations.status, 'active')),
-    columns: {
-      id: true,
-      expiresAt: true,
-    },
-    with: {
-      ticketTier: {
-        columns: {
-          eventId: true,
-        },
-      },
-    },
-  });
+  const activeReservation = await database
+    .select({
+      id: reservations.id,
+      expiresAt: reservations.expiresAt,
+    })
+    .from(reservations)
+    .innerJoin(ticketTiers, eq(reservations.ticketTierId, ticketTiers.id))
+    .where(
+      and(
+        eq(reservations.userId, userId),
+        eq(reservations.status, 'active'),
+        eq(ticketTiers.eventId, eventId),
+        gt(reservations.expiresAt, new Date()),
+      ),
+    )
+    .limit(1);
 
-  if (
-    activeReservation?.ticketTier.eventId === eventId &&
-    activeReservation.expiresAt.getTime() > Date.now()
-  ) {
+  if (activeReservation[0]) {
     throw new ReservationServiceError(
       'ACTIVE_RESERVATION_EXISTS',
       'You already have an active reservation for this event.',

@@ -7,6 +7,7 @@ import {
   type OrderDetail,
   type PublicEventDetail,
   type ReservationCreatePayload,
+  type ReservationDetail,
 } from '$lib/api';
 import { ApiError, clearAuthSession } from '$lib/auth';
 
@@ -183,15 +184,22 @@ export const actions = {
         throw redirect(303, '/login');
       }
 
+      const reservation = reservationId
+        ? await apiGet<ReservationDetail>(`/reservations/${reservationId}`, {
+            fetchFn: fetch,
+            cookies,
+          })
+            .then((detail) => ({
+              reservation_id: detail.id,
+              expires_at: detail.expires_at,
+            }))
+            .catch(() => null)
+        : null;
+
       return fail(caughtError instanceof ApiError ? caughtError.status : 500, {
         reservationError:
           caughtError instanceof ApiError ? caughtError.message : 'Gagal membuat order dari reservasi.',
-        reservation: reservationId
-          ? {
-              reservation_id: reservationId,
-              expires_at: formData.get('reservation_expires_at')?.toString() ?? new Date().toISOString(),
-            }
-          : null,
+        reservation,
         selectedTierId,
         quantity,
       });

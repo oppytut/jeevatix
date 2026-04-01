@@ -283,4 +283,80 @@ describe.sequential('Phase 6 Payment API', () => {
     expect(detailPayload.data.payment.status).toBe('success');
     expect(detailPayload.data.payment.paid_at).toBeTruthy();
   });
+
+  it('allows retrying payment after a failed webhook while the order is still pending', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const { tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+
+    const reservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: tier.id,
+        quantity: 1,
+      },
+    });
+    const reservationPayload = await context.readJson<{
+      data: { reservation_id: string };
+    }>(reservationResponse);
+
+    const orderResponse = await context.requestJson('/orders', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        reservation_id: reservationPayload.data.reservation_id,
+      },
+    });
+    const orderPayload = await context.readJson<{
+      data: { id: string };
+    }>(orderResponse);
+
+    const firstPayResponse = await context.requestJson(`/payments/${orderPayload.data.id}/pay`, {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        method: 'credit_card',
+      },
+    });
+    const firstPayPayload = await context.readJson<{
+      data: { external_ref: string };
+    }>(firstPayResponse);
+
+    const failedWebhookBody = {
+      external_ref: firstPayPayload.data.external_ref,
+      status: 'failed',
+    };
+    const failedWebhookSignature = await context.signWebhook(failedWebhookBody);
+
+    const failedWebhookResponse = await context.requestJson('/webhooks/payment', {
+      method: 'POST',
+      body: failedWebhookBody,
+      headers: {
+        'x-payment-signature': failedWebhookSignature,
+      },
+    });
+
+    const retryPayResponse = await context.requestJson(`/payments/${orderPayload.data.id}/pay`, {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        method: 'bank_transfer',
+      },
+    });
+    const retryPayPayload = await context.readJson<{
+      success: boolean;
+      data: { external_ref: string; method: string; status: string };
+    }>(retryPayResponse);
+    const paymentRecord = await context.getPaymentByOrderId(orderPayload.data.id);
+
+    expect(failedWebhookResponse.status).toBe(200);
+    expect(retryPayResponse.status).toBe(200);
+    expect(retryPayPayload.success).toBe(true);
+    expect(retryPayPayload.data.method).toBe('bank_transfer');
+    expect(retryPayPayload.data.status).toBe('pending');
+    expect(retryPayPayload.data.external_ref).not.toBe(firstPayPayload.data.external_ref);
+    expect(paymentRecord?.status).toBe('pending');
+    expect(paymentRecord?.externalRef).toBe(retryPayPayload.data.external_ref);
+  });
 });

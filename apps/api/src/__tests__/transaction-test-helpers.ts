@@ -59,6 +59,12 @@ type JsonRequestOptions = {
   token?: string;
   body?: Record<string, unknown>;
   headers?: HeadersInit;
+  envOverride?: Partial<{
+    JWT_SECRET: string;
+    DATABASE_URL: string;
+    PAYMENT_WEBHOOK_SECRET: string;
+    TICKET_RESERVER: DurableObjectNamespace;
+  }>;
 };
 
 type BuyerFixture = {
@@ -181,7 +187,10 @@ export function createTransactionTestContext(prefix: string) {
         headers,
         body: options.body ? JSON.stringify(options.body) : undefined,
       },
-      buildEnv(),
+      {
+        ...buildEnv(),
+        ...options.envOverride,
+      },
     );
   }
 
@@ -245,12 +254,17 @@ export function createTransactionTestContext(prefix: string) {
     price?: number;
     soldCount?: number;
     maxTicketsPerOrder?: number;
+    saleStartAt?: Date;
+    saleEndAt?: Date;
+    tierSaleStartAt?: Date | null;
+    tierSaleEndAt?: Date | null;
   }): Promise<EventFixture> {
     const eventTitle = `Vitest ${prefix} Event ${crypto.randomUUID()}`;
-    const startAt = new Date('2031-08-15T19:00:00.000Z');
-    const endAt = new Date('2031-08-15T22:00:00.000Z');
-    const saleStartAt = new Date('2031-07-01T10:00:00.000Z');
-    const saleEndAt = new Date('2031-08-14T23:00:00.000Z');
+    const now = Date.now();
+    const startAt = new Date(now + 14 * 24 * 60 * 60 * 1000);
+    const endAt = new Date(startAt.getTime() + 3 * 60 * 60 * 1000);
+    const saleStartAt = input.saleStartAt ?? new Date(now - 24 * 60 * 60 * 1000);
+    const saleEndAt = input.saleEndAt ?? new Date(now + 7 * 24 * 60 * 60 * 1000);
 
     const [event] = await database
       .insert(events)
@@ -286,8 +300,8 @@ export function createTransactionTestContext(prefix: string) {
         soldCount: input.soldCount ?? 0,
         sortOrder: 0,
         status: 'available',
-        saleStartAt,
-        saleEndAt,
+        saleStartAt: input.tierSaleStartAt ?? saleStartAt,
+        saleEndAt: input.tierSaleEndAt ?? saleEndAt,
       })
       .returning();
 
@@ -316,10 +330,30 @@ export function createTransactionTestContext(prefix: string) {
     });
   }
 
+  async function getOrderByReservationId(reservationId: string) {
+    return database.query.orders.findFirst({
+      where: eq(orders.reservationId, reservationId),
+      with: {
+        orderItems: true,
+        payment: true,
+      },
+    });
+  }
+
   async function getPaymentByOrderId(orderId: string) {
     return database.query.payments.findFirst({
       where: eq(payments.orderId, orderId),
     });
+  }
+
+  async function expireOrder(orderId: string, expiresAt = new Date(Date.now() - 60_000)) {
+    await database
+      .update(orders)
+      .set({
+        expiresAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId));
   }
 
   async function signWebhook(body: Record<string, unknown>) {
@@ -389,7 +423,9 @@ export function createTransactionTestContext(prefix: string) {
     createBuyerFixture,
     createSellerFixture,
     createEventFixture,
+    expireOrder,
     getOrder,
+    getOrderByReservationId,
     getPaymentByOrderId,
     getReservation,
     getTicketTier,

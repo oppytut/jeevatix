@@ -15,6 +15,10 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('/payments/*', authMiddleware);
 app.use('/payments/*', roleMiddleware('buyer'));
+app.use('/webhooks/payment', async (c, next) => {
+  c.set('paymentWebhookRawBody', await c.req.raw.clone().text());
+  await next();
+});
 
 function jsonError(code: string, message: string) {
   return {
@@ -173,10 +177,11 @@ app.openapi(initiatePaymentRoute, async (c) => {
 });
 
 app.openapi(paymentWebhookRoute, async (c) => {
+  const rawBody = (c.get('paymentWebhookRawBody') as string | undefined) ?? '';
   const body = c.req.valid('json');
 
   try {
-    const result = await paymentService.handleWebhook(c.env, c.req.raw.headers, body);
+    const result = await paymentService.handleWebhook(c.env, c.req.raw.headers, rawBody, body);
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
