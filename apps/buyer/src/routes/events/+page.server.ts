@@ -4,13 +4,21 @@ import { error } from '@sveltejs/kit';
 
 import {
   apiGet,
+  apiGetResponse,
   buildEventQuery,
   type PaginationMeta,
   type PublicCategory,
   type PublicEventListItem,
-  type PublicEventListResponse,
 } from '$lib/api';
 import { ApiError } from '$lib/auth';
+
+const EVENT_QUERY_PAGE_LIMIT = 100;
+
+function getEndOfDayTimestamp(value: string) {
+  const date = new Date(value);
+  date.setUTCHours(23, 59, 59, 999);
+  return date.getTime();
+}
 
 function normalizePositiveInt(value: string | null, fallback: number) {
   const parsed = Number(value);
@@ -44,7 +52,7 @@ function filterEvents(
 
     const eventStart = new Date(event.start_at).getTime();
     const matchesDateFrom = !filters.dateFrom || eventStart >= new Date(filters.dateFrom).getTime();
-    const matchesDateTo = !filters.dateTo || eventStart <= new Date(filters.dateTo).getTime();
+    const matchesDateTo = !filters.dateTo || eventStart <= getEndOfDayTimestamp(filters.dateTo);
 
     const minPrice = event.min_price ?? 0;
     const matchesPriceMin = !filters.priceMin || minPrice >= Number(filters.priceMin);
@@ -76,6 +84,36 @@ function paginateEvents(events: PublicEventListItem[], page: number, limit: numb
   };
 }
 
+async function fetchAllEventPages(
+  fetchFn: typeof fetch,
+  buildPath: (page: number, limit: number) => string,
+) {
+  const firstPage = await apiGetResponse<PublicEventListItem[], PaginationMeta>(
+    buildPath(1, EVENT_QUERY_PAGE_LIMIT),
+    {
+      fetchFn,
+      requiresAuth: false,
+    },
+  );
+
+  const events = [...firstPage.data];
+  const totalPages = firstPage.meta?.totalPages ?? (events.length === 0 ? 0 : 1);
+
+  for (let currentPage = 2; currentPage <= totalPages; currentPage += 1) {
+    const nextPage = await apiGetResponse<PublicEventListItem[], PaginationMeta>(
+      buildPath(currentPage, EVENT_QUERY_PAGE_LIMIT),
+      {
+        fetchFn,
+        requiresAuth: false,
+      },
+    );
+
+    events.push(...nextPage.data);
+  }
+
+  return events;
+}
+
 export const load = (async ({ fetch, url }) => {
   const search = url.searchParams.get('search')?.trim() ?? '';
   const selectedCategories = url.searchParams.getAll('category').filter(Boolean);
@@ -88,21 +126,20 @@ export const load = (async ({ fetch, url }) => {
   const limit = normalizePositiveInt(url.searchParams.get('limit'), 12);
 
   try {
-    const [categories, citySource] = await Promise.all([
+    const [categories, allPublicEvents] = await Promise.all([
       apiGet<PublicCategory[]>('/categories', {
         fetchFn: fetch,
         requiresAuth: false,
       }),
-      apiGet<PublicEventListResponse>(`/events${buildEventQuery({ limit: 100, page: 1 })}`, {
-        fetchFn: fetch,
-        requiresAuth: false,
-      }),
+      fetchAllEventPages(fetch, (pageNumber, pageSize) =>
+        `/events${buildEventQuery({ limit: pageSize, page: pageNumber })}`,
+      ),
     ]);
 
-    let eventsResponse: PublicEventListResponse;
+    let eventsResponse: { data: PublicEventListItem[]; meta: PaginationMeta };
 
     if (selectedCategories.length <= 1) {
-      eventsResponse = await apiGet<PublicEventListResponse>(
+      const response = await apiGetResponse<PublicEventListItem[], PaginationMeta>(
         `/events${buildEventQuery({
           search,
           category: selectedCategories[0] ?? '',
@@ -119,24 +156,28 @@ export const load = (async ({ fetch, url }) => {
           requiresAuth: false,
         },
       );
+
+      eventsResponse = {
+        data: response.data,
+        meta: response.meta ?? {
+          total: response.data.length,
+          page,
+          limit,
+          totalPages: response.data.length === 0 ? 0 : 1,
+        },
+      };
     } else {
       const categoryResponses = await Promise.all(
         selectedCategories.map((slug) =>
-          apiGet<PublicEventListResponse>(
-            `/categories/${slug}/events${buildEventQuery({ limit: 100, page: 1 })}`,
-            {
-              fetchFn: fetch,
-              requiresAuth: false,
-            },
+          fetchAllEventPages(fetch, (pageNumber, pageSize) =>
+            `/categories/${slug}/events${buildEventQuery({ limit: pageSize, page: pageNumber })}`,
           ),
         ),
       );
 
       const combined = Array.from(
         new Map(
-          categoryResponses
-            .flatMap((response) => response.data)
-            .map((event) => [event.id, event]),
+          categoryResponses.flatMap((response) => response).map((event) => [event.id, event]),
         ).values(),
       ).sort(
         (left, right) => new Date(left.start_at).getTime() - new Date(right.start_at).getTime(),
@@ -150,12 +191,12 @@ export const load = (async ({ fetch, url }) => {
     }
 
     const cityOptions = Array.from(
-      new Set(citySource.data.map((event) => event.venue_city).filter(Boolean)),
+      new Set(allPublicEvents.map((event) => event.venue_city).filter(Boolean)),
     ).sort((left, right) => left.localeCompare(right));
 
     const maxPrice = Math.max(
       500000,
-      ...citySource.data.map((event) => event.min_price ?? 0),
+      ...allPublicEvents.map((event) => event.min_price ?? 0),
     );
 
     return {

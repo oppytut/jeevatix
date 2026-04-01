@@ -66,6 +66,12 @@ function numericToNumber(value: string | number | null | undefined) {
   return typeof value === 'number' ? value : Number(value);
 }
 
+function toInclusiveEndOfDay(value: string) {
+  const date = new Date(value);
+  date.setUTCHours(23, 59, 59, 999);
+  return date;
+}
+
 function toPaginationMeta(total: number, page: number, limit: number): PublicEventsPaginationMeta {
   return {
     total,
@@ -113,7 +119,7 @@ function buildListConditions(query: ListEventsQuery) {
   }
 
   if (query.date_to) {
-    conditions.push(lte(events.startAt, new Date(query.date_to)));
+    conditions.push(lte(events.startAt, toInclusiveEndOfDay(query.date_to)));
   }
 
   if (query.category) {

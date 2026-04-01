@@ -4,9 +4,11 @@ import { error } from '@sveltejs/kit';
 
 import {
   apiGet,
+  apiGetResponse,
   buildEventQuery,
+  type PaginationMeta,
   type PublicCategory,
-  type PublicEventListResponse,
+  type PublicEventListItem,
 } from '$lib/api';
 import { ApiError } from '$lib/auth';
 
@@ -30,7 +32,7 @@ export const load = (async ({ fetch, params, url }) => {
         fetchFn: fetch,
         requiresAuth: false,
       }),
-      apiGet<PublicEventListResponse>(
+      apiGetResponse<PublicEventListItem[], PaginationMeta>(
         `/categories/${params.slug}/events${buildEventQuery({ page, limit })}`,
         {
           fetchFn: fetch,

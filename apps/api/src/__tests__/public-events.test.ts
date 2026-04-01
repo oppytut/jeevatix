@@ -157,13 +157,20 @@ async function createEventFixture(input: {
   city: string;
   status: EventStatus;
   isFeatured?: boolean;
+  startAt?: Date;
+  endAt?: Date;
+  saleStartAt?: Date;
+  saleEndAt?: Date;
+  regularPrice?: number;
+  vipPrice?: number;
+  hiddenPrice?: number;
 }) {
   const title = createEventTitle(input.titleLabel);
   const slug = `${TEST_EVENT_SLUG_PREFIX}-${slugify(input.titleLabel)}-${crypto.randomUUID()}`;
-  const startAt = new Date('2031-08-15T19:00:00.000Z');
-  const endAt = new Date('2031-08-15T22:00:00.000Z');
-  const saleStartAt = new Date('2031-07-01T10:00:00.000Z');
-  const saleEndAt = new Date('2031-08-14T23:59:59.000Z');
+  const startAt = input.startAt ?? new Date('2031-08-15T19:00:00.000Z');
+  const endAt = input.endAt ?? new Date(startAt.getTime() + 3 * 60 * 60 * 1000);
+  const saleStartAt = input.saleStartAt ?? new Date(startAt.getTime() - 45 * 24 * 60 * 60 * 1000);
+  const saleEndAt = input.saleEndAt ?? new Date(startAt.getTime() - 24 * 60 * 60 * 1000);
 
   const [event] = await database
     .insert(events)
@@ -211,7 +218,7 @@ async function createEventFixture(input: {
       eventId: event.id,
       name: 'Regular',
       description: 'Akses reguler untuk public event test.',
-      price: '125000',
+      price: String(input.regularPrice ?? 125000),
       quota: 120,
       soldCount: 20,
       sortOrder: 0,
@@ -223,7 +230,7 @@ async function createEventFixture(input: {
       eventId: event.id,
       name: 'VIP',
       description: 'Akses VIP untuk public event test.',
-      price: '250000',
+      price: String(input.vipPrice ?? 250000),
       quota: 40,
       soldCount: 10,
       sortOrder: 1,
@@ -235,7 +242,7 @@ async function createEventFixture(input: {
       eventId: event.id,
       name: 'Hidden',
       description: 'Tier ini tidak boleh tampil di public.',
-      price: '500000',
+      price: String(input.hiddenPrice ?? 500000),
       quota: 10,
       soldCount: 0,
       sortOrder: 2,
@@ -468,6 +475,126 @@ describe.sequential('Phase 5 Public Event API', () => {
     expect(payload.data).toEqual([
       expect.objectContaining({ id: bandungEvent.id, venue_city: 'Bandung' }),
     ]);
+  });
+
+  it('treats date_to as inclusive through the end of the selected day', async () => {
+    const { sellerProfile } = await createSellerFixture();
+    const category = await createCategoryFixture('Inclusive Date');
+    const keyword = `inclusive-date-${crypto.randomUUID()}`;
+
+    const sameDayEvent = await createEventFixture({
+      sellerProfileId: sellerProfile.id,
+      categoryId: category.id,
+      titleLabel: keyword,
+      description: `Event dengan keyword ${keyword} pada hari yang sama.`,
+      city: 'Jakarta',
+      status: 'published',
+      startAt: new Date('2031-08-15T19:00:00.000Z'),
+    });
+    await createEventFixture({
+      sellerProfileId: sellerProfile.id,
+      categoryId: category.id,
+      titleLabel: `${keyword}-next-day`,
+      description: `Event keyword ${keyword} pada hari berikutnya.`,
+      city: 'Jakarta',
+      status: 'published',
+      startAt: new Date('2031-08-16T09:00:00.000Z'),
+    });
+
+    const response = await requestJson(`/events?search=${keyword}&date_to=2031-08-15`);
+    const payload = await readJson<JsonSuccess<Array<{ id: string }>>>(response);
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(payload.data).toEqual([
+      expect.objectContaining({ id: sameDayEvent.id }),
+    ]);
+  });
+
+  it('filters events by price range', async () => {
+    const { sellerProfile } = await createSellerFixture();
+    const category = await createCategoryFixture('Price Range');
+    const keyword = `price-range-${crypto.randomUUID()}`;
+
+    await createEventFixture({
+      sellerProfileId: sellerProfile.id,
+      categoryId: category.id,
+      titleLabel: `${keyword}-budget`,
+      description: `Event budget ${keyword}.`,
+      city: 'Bandung',
+      status: 'published',
+      regularPrice: 100000,
+      vipPrice: 150000,
+    });
+    const matchingEvent = await createEventFixture({
+      sellerProfileId: sellerProfile.id,
+      categoryId: category.id,
+      titleLabel: `${keyword}-premium`,
+      description: `Event premium ${keyword}.`,
+      city: 'Bandung',
+      status: 'published',
+      regularPrice: 300000,
+      vipPrice: 350000,
+    });
+
+    const response = await requestJson(
+      `/events?search=${keyword}&price_min=200000&price_max=320000`,
+    );
+    const payload = await readJson<JsonSuccess<Array<{ id: string }>>>(response);
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(payload.data).toEqual([
+      expect.objectContaining({ id: matchingEvent.id }),
+    ]);
+  });
+
+  it('returns distinct slices across pagination pages', async () => {
+    const { sellerProfile } = await createSellerFixture();
+    const category = await createCategoryFixture('Pagination Slice');
+    const keyword = `pagination-slice-${crypto.randomUUID()}`;
+
+    await createEventFixture({
+      sellerProfileId: sellerProfile.id,
+      categoryId: category.id,
+      titleLabel: `${keyword}-one`,
+      description: `Event pertama ${keyword}.`,
+      city: 'Surabaya',
+      status: 'published',
+      startAt: new Date('2031-08-15T09:00:00.000Z'),
+    });
+    const secondEvent = await createEventFixture({
+      sellerProfileId: sellerProfile.id,
+      categoryId: category.id,
+      titleLabel: `${keyword}-two`,
+      description: `Event kedua ${keyword}.`,
+      city: 'Surabaya',
+      status: 'published',
+      startAt: new Date('2031-08-16T09:00:00.000Z'),
+    });
+    const thirdEvent = await createEventFixture({
+      sellerProfileId: sellerProfile.id,
+      categoryId: category.id,
+      titleLabel: `${keyword}-three`,
+      description: `Event ketiga ${keyword}.`,
+      city: 'Surabaya',
+      status: 'published',
+      startAt: new Date('2031-08-17T09:00:00.000Z'),
+    });
+
+    const firstPageResponse = await requestJson(`/events?search=${keyword}&page=1&limit=1`);
+    const secondPageResponse = await requestJson(`/events?search=${keyword}&page=2&limit=1`);
+    const firstPagePayload = await readJson<JsonSuccess<Array<{ id: string }>>>(firstPageResponse);
+    const secondPagePayload = await readJson<JsonSuccess<Array<{ id: string }>>>(secondPageResponse);
+
+    expect(firstPageResponse.status).toBe(200);
+    expect(secondPageResponse.status).toBe(200);
+    expect(firstPagePayload.success).toBe(true);
+    expect(secondPagePayload.success).toBe(true);
+    expect(firstPagePayload.meta).toMatchObject({ total: 3, page: 1, limit: 1, totalPages: 3 });
+    expect(secondPagePayload.meta).toMatchObject({ total: 3, page: 2, limit: 1, totalPages: 3 });
+    expect(firstPagePayload.data[0]?.id).not.toBe(secondPagePayload.data[0]?.id);
+    expect([secondEvent.id, thirdEvent.id]).toContain(secondPagePayload.data[0]?.id);
   });
 
   it('returns only published or ongoing events in public listing', async () => {

@@ -1,5 +1,7 @@
 import type { Cookies } from '@sveltejs/kit';
 
+import { dev } from '$app/environment';
+
 export const API_BASE_URL = 'http://localhost:8787';
 
 export const BUYER_ACCESS_TOKEN_COOKIE = 'jeevatix_buyer_access_token';
@@ -81,7 +83,7 @@ function getCookieOptions(maxAge: number) {
     path: '/',
     httpOnly: true,
     sameSite: 'lax' as const,
-    secure: false,
+    secure: !dev,
     maxAge,
   };
 }

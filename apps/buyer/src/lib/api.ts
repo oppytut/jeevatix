@@ -110,6 +110,11 @@ export type PublicEventListResponse = {
   meta: PaginationMeta;
 };
 
+export type ApiEnvelope<T, TMeta = unknown> = {
+  data: T;
+  meta?: TMeta;
+};
+
 export type BuyerNotification = {
   id: string;
   type:
@@ -245,6 +250,15 @@ async function buildAuthHeaders(requiresAuth: boolean, cookies?: Cookies) {
 }
 
 async function request<T>(method: string, path: string, options: RequestOptions): Promise<T> {
+  const payload = await requestResponse<T>(method, path, options);
+  return payload.data;
+}
+
+async function requestResponse<T, TMeta = unknown>(
+  method: string,
+  path: string,
+  options: RequestOptions,
+): Promise<ApiEnvelope<T, TMeta>> {
   const {
     body,
     headers,
@@ -278,7 +292,10 @@ async function request<T>(method: string, path: string, options: RequestOptions)
     const refreshedAccessToken = await refreshSession(fetchFn, cookies);
 
     if (refreshedAccessToken) {
-      return request<T>(method, path, { ...options, retryOnUnauthorized: false });
+      return requestResponse<T, TMeta>(method, path, {
+        ...options,
+        retryOnUnauthorized: false,
+      });
     }
 
     clearAuthSession(cookies);
@@ -298,7 +315,10 @@ async function request<T>(method: string, path: string, options: RequestOptions)
     throw new ApiError('Invalid API response.', response.status, 'INVALID_RESPONSE');
   }
 
-  return payload.data;
+  return {
+    data: payload.data,
+    meta: payload.meta as TMeta | undefined,
+  };
 }
 
 export function apiGet<T>(
@@ -306,6 +326,13 @@ export function apiGet<T>(
   options: Omit<RequestOptions, 'body'>,
 ) {
   return request<T>('GET', path, options);
+}
+
+export function apiGetResponse<T, TMeta = unknown>(
+  path: string,
+  options: Omit<RequestOptions, 'body'>,
+) {
+  return requestResponse<T, TMeta>('GET', path, options);
 }
 
 export function apiPost<T>(
