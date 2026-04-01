@@ -205,12 +205,12 @@
               Order masih menunggu pembayaran. Lanjutkan ke halaman payment untuk menyelesaikan transaksi.
             </p>
           {:else if data.order.status === 'confirmed'}
-            <Button class="w-full rounded-full px-6 py-3" disabled>
-              Tiket Sedang Disiapkan
+            <Button class="w-full rounded-full px-6 py-3" onclick={() => goto('/tickets')}>
+              Lihat Tiket Saya
               <Ticket class="size-4" />
             </Button>
             <p class="text-sm leading-6 text-slate-600">
-              Order sudah terkonfirmasi. Halaman tiket buyer akan diaktifkan bersama fitur ticketing pada Phase 7.
+              Order sudah terkonfirmasi. Buka halaman tiket untuk menampilkan QR code dan detail tiket event Anda.
             </p>
           {:else}
             <div class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600">

@@ -2341,7 +2341,7 @@ Install nanoid: `pnpm add nanoid` di apps/api.
 Mount di index.ts.
 ```
 
-### Task 7.2 — Ticket UI (Buyer)
+### Task 7.2 — Ticket UI (Buyer) [DONE]
 
 | Key          | Value                                      |
 | ------------ | ------------------------------------------ |

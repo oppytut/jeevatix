@@ -183,6 +183,49 @@ export type OrderDetail = {
   }>;
 };
 
+export type BuyerTicketListItem = {
+  id: string;
+  order_id: string;
+  order_number: string;
+  ticket_tier_id: string;
+  tier_name: string;
+  ticket_code: string;
+  status: 'valid' | 'used' | 'cancelled' | 'refunded';
+  issued_at: string;
+  event_id: string;
+  event_slug: string;
+  event_title: string;
+  event_start_at: string;
+  venue_name: string;
+  venue_city: string;
+};
+
+export type BuyerTicketDetail = {
+  id: string;
+  order_id: string;
+  order_number: string;
+  ticket_tier_id: string;
+  tier_name: string;
+  ticket_code: string;
+  qr_data: string;
+  attendee_name: string | null;
+  attendee_email: string | null;
+  status: 'valid' | 'used' | 'cancelled' | 'refunded';
+  issued_at: string;
+  checked_in_at: string | null;
+  event: {
+    id: string;
+    slug: string;
+    title: string;
+    banner_url: string | null;
+    start_at: string;
+    end_at: string;
+    venue_name: string;
+    venue_address: string | null;
+    venue_city: string;
+  };
+};
+
 export type InitiatePaymentPayload = {
   order_id: string;
   payment_id: string;
