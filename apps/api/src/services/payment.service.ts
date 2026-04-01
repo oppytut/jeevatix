@@ -7,6 +7,7 @@ import {
   type OrderConfirmationItem,
 } from './email';
 import { notificationService } from './notification.service';
+import { generateTickets } from './ticket-generator';
 import type {
   InitiatePaymentInput,
   InitiatePaymentPayload,
@@ -174,11 +175,6 @@ async function markOrderExpiredIfNeeded(
     .where(eq(orders.id, orderId));
 }
 
-// Ticket issuance is implemented fully in Phase 7; keep the invocation stable for now.
-async function generateTickets(_orderId: string) {
-  return [] as Array<{ ticket_code: string }>;
-}
-
 async function sendNotification(
   userId: string | null | undefined,
   type: PaymentNotificationType,
@@ -209,7 +205,7 @@ async function enqueuePostPaymentEffects(
   },
 ) {
   const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
-  const ticketResult = await generateTickets(payload.orderId);
+  const ticketResult = await generateTickets(payload.orderId, databaseUrl);
   const emailService = createEmailService({
     EMAIL_API_KEY: env.EMAIL_API_KEY,
     EMAIL_FROM: env.EMAIL_FROM,
@@ -405,6 +401,8 @@ export const paymentService = {
     }
 
     if (payment.status === 'success') {
+      await generateTickets(payment.order.id, databaseUrl);
+
       return {
         order_id: payment.order.id,
         payment_id: payment.id,

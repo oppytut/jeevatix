@@ -129,6 +129,9 @@ importers:
       hono:
         specifier: ^4.12.9
         version: 4.12.9
+      nanoid:
+        specifier: ^5.1.7
+        version: 5.1.7
       zod:
         specifier: ^4.3.6
         version: 4.3.6

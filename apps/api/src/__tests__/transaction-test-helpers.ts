@@ -47,6 +47,7 @@ const {
   payments,
   reservations,
   sellerProfiles,
+  tickets,
   ticketTiers,
   users,
   events,
@@ -396,6 +397,7 @@ export function createTransactionTestContext(prefix: string) {
       await database.delete(notifications).where(inArray(notifications.userId, userIds));
 
       if (orderIds.length > 0) {
+        await database.delete(tickets).where(inArray(tickets.orderId, orderIds));
         await database.delete(payments).where(inArray(payments.orderId, orderIds));
         await database.delete(orderItems).where(inArray(orderItems.orderId, orderIds));
         await database.delete(orders).where(inArray(orders.id, orderIds));

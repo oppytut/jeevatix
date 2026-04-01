@@ -2297,7 +2297,7 @@ cd apps/api && pnpm test   # reservation + order + payment tests pass
 
 **Tujuan:** Generate tiket setelah bayar, sistem check-in di venue, kirim notifikasi.
 
-### Task 7.1 — Ticket Generation
+### Task 7.1 — Ticket Generation [DONE]
 
 | Key          | Value                                                                                                                  |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------- |

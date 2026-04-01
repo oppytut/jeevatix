@@ -21,6 +21,7 @@ import reservationRoutes from './routes/reservations';
 import sellerEventRoutes from './routes/seller/events';
 import sellerProfileRoutes from './routes/seller/profile';
 import sellerTierRoutes from './routes/seller/tiers';
+import ticketRoutes from './routes/tickets';
 import uploadRoutes from './routes/upload';
 import usersRoutes from './routes/users';
 
@@ -52,6 +53,7 @@ app.route('/reservations', reservationRoutes);
 app.route('/seller', sellerEventRoutes);
 app.route('/seller', sellerProfileRoutes);
 app.route('/seller', sellerTierRoutes);
+app.route('/tickets', ticketRoutes);
 app.route('/upload', uploadRoutes);
 app.route('/users', usersRoutes);
 
