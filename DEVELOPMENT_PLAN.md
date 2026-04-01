@@ -1853,7 +1853,7 @@ Di `apps/buyer/`:
 Protect halaman: redirect ke /login jika belum login.
 ```
 
-### Task 5.5 — Phase 5 API Tests
+### Task 5.5 — Phase 5 API Tests [DONE]
 
 | Key          | Value                                          |
 | ------------ | ---------------------------------------------- |

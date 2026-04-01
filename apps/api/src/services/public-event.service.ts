@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, asc, eq, ilike, inArray, lte, gte, ne, sql } from 'drizzle-orm';
+import { and, asc, eq, ilike, inArray, lte, gte, ne, or, sql } from 'drizzle-orm';
 
 import type {
   ListEventsQuery,
@@ -97,13 +97,15 @@ function toEventListItem(row: EventListRow): PublicEventListItem {
 
 function buildListConditions(query: ListEventsQuery) {
   const conditions = [inArray(events.status, PUBLIC_EVENT_STATUSES)];
+  const locationQuery = query.location ?? query.city;
 
   if (query.search) {
-    conditions.push(ilike(events.title, `%${query.search.trim()}%`));
+    const searchTerm = `%${query.search.trim()}%`;
+    conditions.push(or(ilike(events.title, searchTerm), ilike(events.description, searchTerm)));
   }
 
-  if (query.city) {
-    conditions.push(ilike(events.venueCity, `%${query.city.trim()}%`));
+  if (locationQuery) {
+    conditions.push(ilike(events.venueCity, `%${locationQuery.trim()}%`));
   }
 
   if (query.date_from) {

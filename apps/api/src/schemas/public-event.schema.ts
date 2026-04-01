@@ -17,6 +17,7 @@ export const listEventsQuerySchema = z
     search: z.string().trim().min(1).optional().openapi({ example: 'festival musik' }),
     category: z.string().trim().min(1).optional().openapi({ example: 'musik' }),
     city: z.string().trim().min(1).optional().openapi({ example: 'Jakarta' }),
+    location: z.string().trim().min(1).optional().openapi({ example: 'Jakarta' }),
     date_from: z
       .string()
       .optional()
