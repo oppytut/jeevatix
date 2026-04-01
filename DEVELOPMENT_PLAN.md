@@ -2282,14 +2282,14 @@ Buat test files di `apps/api/src/__tests__/`:
 
 Gunakan Hono test helper (app.request()). Pastikan semua test pass.
 
-````
+```
 
 **Checkpoint Phase 6:**
 ```bash
 cd apps/api && pnpm test   # reservation + order + payment tests pass
 # Full flow test: browse event → checkout → reserve → create order → pay
 # Reservasi yang expired harus di-cleanup otomatis
-````
+```
 
 ---
 
