@@ -40,6 +40,14 @@
     emitChange(normalized);
   }
 
+  $effect(() => {
+    if (initialTiers.length === 0 && tiers.length > 0) {
+      return;
+    }
+
+    setTiers(initialTiers);
+  });
+
   function mergeAvailability(
     currentTiers: LiveAvailabilityTier[],
     updates: Array<{ tierId: string; remaining: number }>,
@@ -91,8 +99,6 @@
   }
 
   onMount(() => {
-    setTiers(initialTiers);
-
     if (!env.PUBLIC_PARTYKIT_HOST) {
       return;
     }

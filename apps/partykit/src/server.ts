@@ -80,28 +80,14 @@ export default class Server implements Party.Server {
   }
 
   async onMessage(message: string | ArrayBuffer | ArrayBufferView, sender: Party.Connection) {
-    const text =
-      typeof message === 'string'
-        ? message
-        : message instanceof ArrayBuffer
-          ? new TextDecoder().decode(message)
-          : new TextDecoder().decode(message.buffer);
+    void message;
 
-    let payload: unknown;
-
-    try {
-      payload = JSON.parse(text);
-    } catch {
-      sender.send(JSON.stringify({ ok: false, error: 'Message body must be valid JSON.' }));
-      return;
-    }
-
-    if (!isAvailabilityMessage(payload)) {
-      sender.send(JSON.stringify({ ok: false, error: 'Unsupported realtime message.' }));
-      return;
-    }
-
-    await this.broadcastAvailability(payload.data);
+    sender.send(
+      JSON.stringify({
+        ok: false,
+        error: 'Client websocket messages are not accepted for availability updates.',
+      }),
+    );
   }
 
   async onRequest(req: Party.Request) {
