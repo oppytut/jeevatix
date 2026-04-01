@@ -2238,7 +2238,7 @@ Protect kedua halaman: redirect ke /login jika belum login.
 
 ```
 
-### Task 6.8 — Phase 6 API Tests (Transaction Flow)
+### Task 6.8 — Phase 6 API Tests (Transaction Flow) [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

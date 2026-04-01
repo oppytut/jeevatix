@@ -7,10 +7,12 @@ const globalScope = globalThis as typeof globalThis & {
   process?: {
     env?: Record<string, string | undefined>;
   };
+  __jeevatixDbCache?: Map<string, Database>;
 };
 
 export function createDb(databaseUrl: string) {
   const client = postgres(databaseUrl, {
+    max: 1,
     prepare: false,
   });
 
@@ -18,6 +20,14 @@ export function createDb(databaseUrl: string) {
 }
 
 export type Database = ReturnType<typeof createDb>;
+
+function getDbCache() {
+  if (!globalScope.__jeevatixDbCache) {
+    globalScope.__jeevatixDbCache = new Map<string, Database>();
+  }
+
+  return globalScope.__jeevatixDbCache;
+}
 
 function getLocalDatabaseUrl() {
   return globalScope.process?.env?.DATABASE_URL;
@@ -30,7 +40,17 @@ export function getDb(databaseUrl?: string) {
     return null;
   }
 
-  return createDb(resolvedDatabaseUrl);
+  const cache = getDbCache();
+  const cachedDb = cache.get(resolvedDatabaseUrl);
+
+  if (cachedDb) {
+    return cachedDb;
+  }
+
+  const db = createDb(resolvedDatabaseUrl);
+  cache.set(resolvedDatabaseUrl, db);
+
+  return db;
 }
 
 export const db = getDb();
