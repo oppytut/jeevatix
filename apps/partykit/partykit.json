@@ -1,0 +1,4 @@
+{
+  "name": "jeevatix-realtime",
+  "main": "src/server.ts"
+}

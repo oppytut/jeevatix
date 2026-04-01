@@ -1,0 +1,16 @@
+{
+  "name": "@jeevatix/partykit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "partykit dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "partykit": "^0.0.115",
+    "partysocket": "^1.1.16"
+  }
+}

@@ -5,6 +5,8 @@ import { verifyToken, type TokenPayload, type UserRole } from '../lib/jwt';
 type AuthBindings = {
   JWT_SECRET: string;
   DATABASE_URL?: string;
+  PARTYKIT_HOST?: string;
+  PARTY_SECRET?: string;
   TICKET_RESERVER: DurableObjectNamespace;
   BUCKET: R2Bucket;
   UPLOAD_PUBLIC_URL?: string;

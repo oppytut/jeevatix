@@ -2647,7 +2647,7 @@ cd apps/api && pnpm test   # ticket + checkin + notification + seller-order test
 
 **Tujuan:** Live update ketersediaan tiket tanpa polling database.
 
-### Task 8.1 — PartyKit Server Setup
+### Task 8.1 — PartyKit Server Setup [DONE]
 
 | Key          | Value                               |
 | ------------ | ----------------------------------- |

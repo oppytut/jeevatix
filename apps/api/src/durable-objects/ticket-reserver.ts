@@ -5,6 +5,8 @@ const RESERVATION_TTL_MINUTES = 10;
 
 type TicketReserverEnv = {
   DATABASE_URL?: string;
+  PARTYKIT_HOST?: string;
+  PARTY_SECRET?: string;
 };
 
 type DurableObjectStateLike = {
@@ -12,6 +14,7 @@ type DurableObjectStateLike = {
 };
 
 type TierState = {
+  eventId: string;
   quota: number;
   soldCount: number;
   pendingReservations: number;
@@ -128,6 +131,14 @@ function getDatabaseUrl(envDatabaseUrl?: string) {
   return envDatabaseUrl ?? getProcessEnv('DATABASE_URL');
 }
 
+function getPartyKitHost(envPartyKitHost?: string) {
+  return envPartyKitHost ?? getProcessEnv('PARTYKIT_HOST');
+}
+
+function getPartySecret(envPartySecret?: string) {
+  return envPartySecret ?? getProcessEnv('PARTY_SECRET');
+}
+
 function badRequest(message: string): Response {
   return Response.json(
     {
@@ -191,6 +202,7 @@ export class TicketReserver extends DurableObjectBase {
       where: eq(ticketTiers.id, tierId),
       columns: {
         id: true,
+        eventId: true,
         quota: true,
         soldCount: true,
       },
@@ -213,6 +225,7 @@ export class TicketReserver extends DurableObjectBase {
     const soldCount = Math.max(0, tier.soldCount - pendingReservations);
 
     return {
+      eventId: tier.eventId,
       quota: tier.quota,
       soldCount,
       pendingReservations,
@@ -251,10 +264,44 @@ export class TicketReserver extends DurableObjectBase {
     return {
       ok: true,
       tier_id: tierId,
+      event_id: tierState.eventId,
       quota: tierState.quota,
       sold_count: tierState.soldCount,
       pending_reservations: tierState.pendingReservations,
     } satisfies InitializeResponse;
+  }
+
+  private async broadcastAvailability(tierId: string, tierState: TierState) {
+    const partyKitHost = getPartyKitHost(this.env.PARTYKIT_HOST);
+    const partySecret = getPartySecret(this.env.PARTY_SECRET);
+
+    if (!partyKitHost || !partySecret || !tierState.eventId) {
+      return;
+    }
+
+    try {
+      await fetch(`https://${partyKitHost}/parties/main/event-${tierState.eventId}`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-party-secret': partySecret,
+        },
+        body: JSON.stringify({
+          type: 'availability',
+          data: [
+            {
+              tierId,
+              remaining: Math.max(
+                0,
+                tierState.quota - tierState.soldCount - tierState.pendingReservations,
+              ),
+            },
+          ],
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to broadcast PartyKit availability update.', error);
+    }
   }
 
   async reserve(userId: string, tierId: string, quantity: number) {
@@ -315,6 +362,9 @@ export class TicketReserver extends DurableObjectBase {
     } catch (error) {
       tierState.pendingReservations = Math.max(0, tierState.pendingReservations - quantity);
       throw error;
+    }
+    finally {
+      await this.broadcastAvailability(tierId, tierState);
     }
   }
 
@@ -382,6 +432,8 @@ export class TicketReserver extends DurableObjectBase {
           })
           .where(eq(ticketTiers.id, reservation.ticketTierId));
       });
+
+      await this.broadcastAvailability(reservation.ticketTierId, tierState);
     }
 
     return {
