@@ -105,6 +105,80 @@ export type PublicEventDetail = {
   updated_at: string;
 };
 
+export type ReservationDetail = {
+  id: string;
+  user_id: string;
+  ticket_tier_id: string;
+  quantity: number;
+  status: 'active' | 'converted' | 'expired' | 'cancelled';
+  expires_at: string;
+  created_at: string;
+  remaining_seconds: number;
+  event_id: string;
+  event_slug: string;
+  event_title: string;
+  tier_name: string;
+};
+
+export type ReservationCreatePayload = {
+  reservation_id: string;
+  expires_at: string;
+};
+
+export type OrderItem = {
+  id: string;
+  ticket_tier_id: string;
+  tier_name: string;
+  quantity: number;
+  unit_price: number;
+  subtotal: number;
+};
+
+export type OrderPayment = {
+  id: string;
+  method: 'bank_transfer' | 'e_wallet' | 'credit_card' | 'virtual_account';
+  status: 'pending' | 'success' | 'failed' | 'refunded';
+  amount: number;
+  external_ref: string | null;
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type OrderDetail = {
+  id: string;
+  reservation_id: string | null;
+  order_number: string;
+  status: 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'refunded';
+  total_amount: number;
+  service_fee: number;
+  expires_at: string;
+  confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  event_id: string;
+  event_slug: string;
+  event_title: string;
+  items: OrderItem[];
+  payment: OrderPayment;
+  tickets: Array<{
+    id: string;
+    ticket_tier_id: string;
+    ticket_code: string;
+    status: 'valid' | 'used' | 'cancelled' | 'refunded';
+    issued_at: string;
+  }>;
+};
+
+export type InitiatePaymentPayload = {
+  order_id: string;
+  payment_id: string;
+  method: 'bank_transfer' | 'e_wallet' | 'credit_card' | 'virtual_account';
+  status: 'pending' | 'success' | 'failed' | 'refunded';
+  external_ref: string;
+  payment_url: string | null;
+};
+
 export type PublicEventListResponse = {
   data: PublicEventListItem[];
   meta: PaginationMeta;
@@ -349,6 +423,13 @@ export function apiPatch<T>(
   options: Omit<RequestOptions, 'body'>,
 ) {
   return request<T>('PATCH', path, { ...options, body });
+}
+
+export function apiDelete<T>(
+  path: string,
+  options: Omit<RequestOptions, 'body'>,
+) {
+  return request<T>('DELETE', path, options);
 }
 
 export { ApiError };

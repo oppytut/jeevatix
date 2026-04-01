@@ -2157,7 +2157,7 @@ Pastikan cleanup idempotent (jangan proses reservation yang sudah expired).
 
 ```
 
-### Task 6.6 — Checkout & Payment UI (Buyer)
+### Task 6.6 — Checkout & Payment UI (Buyer) [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
