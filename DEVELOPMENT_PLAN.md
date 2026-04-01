@@ -1958,7 +1958,7 @@ Buat file `apps/api/src/durable-objects/ticket-reserver.ts`:
 INI ADALAH BAGIAN PALING KRITIS. Pastikan semua operasi stok atomik dan concurrent-safe.
 ```
 
-### Task 6.2 — Reservation API
+### Task 6.2 — Reservation API [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |
