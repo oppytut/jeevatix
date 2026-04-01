@@ -2056,7 +2056,7 @@ Mount di index.ts.
 
 ```
 
-### Task 6.4 — Payment API
+### Task 6.4 — Payment API [DONE]
 
 | Key         | Value                                                      |
 | ----------- | ---------------------------------------------------------- |

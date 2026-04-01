@@ -56,6 +56,29 @@ async function countUnread(userId: string, databaseUrl?: string) {
 }
 
 export const notificationService = {
+  async sendNotification(
+    userId: string,
+    type: Notification['type'],
+    title: string,
+    body: string,
+    metadata?: Record<string, unknown>,
+    databaseUrl?: string,
+  ): Promise<Notification> {
+    const database = getDatabase(databaseUrl);
+    const [created] = await database
+      .insert(notifications)
+      .values({
+        userId,
+        type,
+        title,
+        body,
+        metadata,
+      })
+      .returning();
+
+    return toNotification(created);
+  },
+
   async listForUser(userId: string, databaseUrl?: string): Promise<NotificationListPayload> {
     const database = getDatabase(databaseUrl);
     const [rows, unreadCount] = await Promise.all([

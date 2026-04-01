@@ -8,6 +8,9 @@ type AuthBindings = {
   TICKET_RESERVER: DurableObjectNamespace;
   BUCKET: R2Bucket;
   UPLOAD_PUBLIC_URL?: string;
+  PAYMENT_WEBHOOK_SECRET?: string;
+  EMAIL_API_KEY?: string;
+  EMAIL_FROM?: string;
 };
 
 export type AuthUser = Pick<TokenPayload, 'id' | 'email' | 'role'>;
