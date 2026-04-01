@@ -2582,7 +2582,7 @@ Di `apps/seller/`:
    - Klik bell → navigate ke /notifications.
 ```
 
-### Task 7.7 — Phase 7 API Tests (Post-Transaction)
+### Task 7.7 — Phase 7 API Tests (Post-Transaction) [DONE]
 
 | Key          | Value                                                                                                                              |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |

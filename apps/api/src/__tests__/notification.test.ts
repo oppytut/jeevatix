@@ -213,6 +213,28 @@ describe.sequential('Phase 7 Notification API', () => {
     expect(sellerMaintenanceNotifications[0]?.type).toBe('info');
   });
 
+  it('forbids non-admin users from broadcasting notifications', async () => {
+    const seller = await context.createSellerFixture();
+
+    const response = await context.requestJson('/admin/notifications/broadcast', {
+      method: 'POST',
+      token: seller.token,
+      body: {
+        title: 'Maintenance',
+        body: 'Unauthorized broadcast attempt.',
+        target_role: 'buyer',
+      },
+    });
+    const payload = await context.readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(response);
+
+    expect(response.status).toBe(403);
+    expect(payload.success).toBe(false);
+    expect(payload.error.code).toBe('FORBIDDEN');
+  });
+
   it('sends payment reminders for soon-expiring reservations', async () => {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();
