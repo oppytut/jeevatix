@@ -20,6 +20,7 @@ import {
 import reservationRoutes from './routes/reservations';
 import sellerCheckinRoutes from './routes/seller/checkin';
 import sellerEventRoutes from './routes/seller/events';
+import sellerOrderRoutes from './routes/seller/orders';
 import sellerProfileRoutes from './routes/seller/profile';
 import sellerTierRoutes from './routes/seller/tiers';
 import ticketRoutes from './routes/tickets';
@@ -54,6 +55,7 @@ app.route('/', publicEventRoutes);
 app.route('/reservations', reservationRoutes);
 app.route('/seller', sellerCheckinRoutes);
 app.route('/seller', sellerEventRoutes);
+app.route('/seller', sellerOrderRoutes);
 app.route('/seller', sellerProfileRoutes);
 app.route('/seller', sellerTierRoutes);
 app.route('/tickets', ticketRoutes);

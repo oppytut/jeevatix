@@ -234,7 +234,7 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <Button variant="outline" type="button" onclick={() => goto(`/events/${eventId}`)}>
+        <Button variant="outline" type="button" onclick={() => goto(resolve(`/events/${eventId}`))}>
           <ArrowLeft class="mr-2 size-4" />
           Detail Event
         </Button>

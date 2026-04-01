@@ -198,7 +198,7 @@
       return;
     }
 
-    void goto(`/events/${eventDetail.id}/checkin`);
+    void goto(resolve(`/events/${eventDetail.id}/checkin`));
   }
 
   const summary = $derived(

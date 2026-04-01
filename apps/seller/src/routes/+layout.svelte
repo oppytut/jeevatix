@@ -12,7 +12,7 @@
   const menuItems = [
     { label: 'Dashboard', href: '/', enabled: true },
     { label: 'Events', href: '/events', enabled: true },
-    { label: 'Orders', href: '/orders', enabled: false },
+    { label: 'Orders', href: '/orders', enabled: true },
     { label: 'Check-in', href: '/events/checkin', enabled: false },
     { label: 'Notifications', href: '/notifications', enabled: false },
     { label: 'Profile', href: '/profile', enabled: true },
@@ -88,13 +88,39 @@
         <nav class="mt-6 flex-1 space-y-2">
           {#each menuItems as item (item.href)}
             {#if item.enabled}
-              <a
-                href={resolve(item.href)}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-white/12 text-white' : 'border-white/10 bg-white/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-white/10 hover:text-white'}`}
-              >
-                <span>{item.label}</span>
-                <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
-              </a>
+              {#if item.href === '/'}
+                <a
+                  href={resolve('/')}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-white/12 text-white' : 'border-white/10 bg-white/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <span>{item.label}</span>
+                  <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                </a>
+              {:else if item.href === '/events'}
+                <a
+                  href={resolve('/events')}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-white/12 text-white' : 'border-white/10 bg-white/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <span>{item.label}</span>
+                  <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                </a>
+              {:else if item.href === '/orders'}
+                <a
+                  href={resolve('/orders')}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-white/12 text-white' : 'border-white/10 bg-white/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <span>{item.label}</span>
+                  <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                </a>
+              {:else}
+                <a
+                  href={resolve('/profile')}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-white/12 text-white' : 'border-white/10 bg-white/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <span>{item.label}</span>
+                  <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                </a>
+              {/if}
             {:else}
               <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-emerald-50/85">
                 <span>{item.label}</span>
