@@ -1,9 +1,9 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, eq, lte } from 'drizzle-orm';
+import { and, eq, gt, gte, lte, sql } from 'drizzle-orm';
 
 import { notificationService } from '../services/notification.service';
 
-const { reservations } = schema;
+const { events, notifications, orderItems, orders, reservations, ticketTiers } = schema;
 
 export type ReservationCleanupMessage = {
   action: 'cleanup-expired-reservations';
@@ -85,8 +85,163 @@ async function expireReservation(
   return body;
 }
 
+async function reminderAlreadySent(
+  userId: string,
+  type: 'payment_reminder' | 'event_reminder',
+  metadataKey: 'reservation_id' | 'order_id',
+  metadataValue: string,
+  env: ReservationCleanupEnv,
+) {
+  const database = getDatabase(env);
+  const existingReminder = await database.query.notifications.findFirst({
+    where: and(
+      eq(notifications.userId, userId),
+      eq(notifications.type, type),
+      sql<boolean>`${notifications.metadata}->>${metadataKey} = ${metadataValue}`,
+    ),
+    columns: {
+      id: true,
+    },
+  });
+
+  return Boolean(existingReminder);
+}
+
+async function sendPaymentReminders(env: ReservationCleanupEnv) {
+  const database = getDatabase(env);
+  const now = new Date();
+  const reminderWindowEnd = new Date(now.getTime() + 2 * 60 * 1000);
+  const soonExpiringReservations = await database.query.reservations.findMany({
+    where: and(
+      eq(reservations.status, 'active'),
+      gt(reservations.expiresAt, now),
+      lte(reservations.expiresAt, reminderWindowEnd),
+    ),
+    columns: {
+      id: true,
+      userId: true,
+      expiresAt: true,
+    },
+    with: {
+      ticketTier: {
+        columns: {
+          id: true,
+        },
+        with: {
+          event: {
+            columns: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  let sent = 0;
+
+  for (const reservation of soonExpiringReservations) {
+    const alreadySent = await reminderAlreadySent(
+      reservation.userId,
+      'payment_reminder',
+      'reservation_id',
+      reservation.id,
+      env,
+    );
+
+    if (alreadySent) {
+      continue;
+    }
+
+    await notificationService.sendNotification(
+      reservation.userId,
+      'payment_reminder',
+      'Segera Bayar',
+      'Reservasi Anda akan expired dalam 2 menit.',
+      {
+        reservation_id: reservation.id,
+        event_id: reservation.ticketTier.event?.id ?? null,
+        event_title: reservation.ticketTier.event?.title ?? null,
+        expires_at: reservation.expiresAt.toISOString(),
+      },
+      env.DATABASE_URL ?? getProcessEnv('DATABASE_URL'),
+    );
+
+    sent += 1;
+  }
+
+  return sent;
+}
+
+async function sendEventReminders(env: ReservationCleanupEnv) {
+  const database = getDatabase(env);
+  const now = new Date();
+  const reminderWindowStart = new Date(now.getTime() + 23 * 60 * 60 * 1000);
+  const reminderWindowEnd = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+  const upcomingOrders = await database
+    .select({
+      orderId: orders.id,
+      orderNumber: orders.orderNumber,
+      userId: orders.userId,
+      eventId: events.id,
+      eventTitle: events.title,
+      eventStartAt: events.startAt,
+    })
+    .from(orders)
+    .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
+    .innerJoin(ticketTiers, eq(ticketTiers.id, orderItems.ticketTierId))
+    .innerJoin(events, eq(events.id, ticketTiers.eventId))
+    .where(
+      and(
+        eq(orders.status, 'confirmed'),
+        gte(events.startAt, reminderWindowStart),
+        lte(events.startAt, reminderWindowEnd),
+      ),
+    )
+    .groupBy(orders.id, orders.orderNumber, orders.userId, events.id, events.title, events.startAt);
+
+  let sent = 0;
+
+  for (const order of upcomingOrders) {
+    const alreadySent = await reminderAlreadySent(
+      order.userId,
+      'event_reminder',
+      'order_id',
+      order.orderId,
+      env,
+    );
+
+    if (alreadySent) {
+      continue;
+    }
+
+    await notificationService.sendNotification(
+      order.userId,
+      'event_reminder',
+      'Pengingat Event',
+      `Event ${order.eventTitle} akan dimulai dalam 24 jam.`,
+      {
+        order_id: order.orderId,
+        order_number: order.orderNumber,
+        event_id: order.eventId,
+        start_at: order.eventStartAt.toISOString(),
+      },
+      env.DATABASE_URL ?? getProcessEnv('DATABASE_URL'),
+    );
+
+    sent += 1;
+  }
+
+  return sent;
+}
+
 export async function cleanupExpiredReservations(env: ReservationCleanupEnv) {
   const database = getDatabase(env);
+  const [paymentReminderCount, eventReminderCount] = await Promise.all([
+    sendPaymentReminders(env),
+    sendEventReminders(env),
+  ]);
   const expiredReservations = await database.query.reservations.findMany({
     where: and(eq(reservations.status, 'active'), lte(reservations.expiresAt, new Date())),
     columns: {
@@ -136,6 +291,8 @@ export async function cleanupExpiredReservations(env: ReservationCleanupEnv) {
   );
 
   return {
+    payment_reminders: paymentReminderCount,
+    event_reminders: eventReminderCount,
     processed: results.filter((result) => result.status === 'expired').length,
     skipped: results.filter((result) => result.status !== 'expired').length,
   };

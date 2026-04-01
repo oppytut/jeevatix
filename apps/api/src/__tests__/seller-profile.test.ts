@@ -34,7 +34,7 @@ if (!database) {
   throw new Error('Failed to create database connection for seller profile tests.');
 }
 
-const { sellerProfiles, users } = schema;
+const { notifications, sellerProfiles, users } = schema;
 
 const TEST_EMAIL_PREFIX = 'vitest-p4-seller-profile-';
 
@@ -157,6 +157,7 @@ async function cleanupTestData() {
     );
   }
 
+  await database.delete(notifications).where(inArray(notifications.userId, userIds));
   await database.delete(users).where(inArray(users.id, userIds));
 }
 

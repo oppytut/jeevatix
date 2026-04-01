@@ -2,11 +2,14 @@ import { getDb, schema } from '@jeevatix/core';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 import type {
+  BroadcastNotificationInput,
   Notification,
+  NotificationListQuery,
   NotificationListPayload,
+  NotificationPaginationMeta,
 } from '../schemas/notification.schema';
 
-const { notifications } = schema;
+const { notifications, users } = schema;
 
 type NotificationRow = typeof notifications.$inferSelect;
 
@@ -45,12 +48,31 @@ function toNotification(record: NotificationRow): Notification {
   };
 }
 
+function toPaginationMeta(total: number, page: number, limit: number): NotificationPaginationMeta {
+  return {
+    total,
+    page,
+    limit,
+    totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+  };
+}
+
 async function countUnread(userId: string, databaseUrl?: string) {
   const database = getDatabase(databaseUrl);
   const [result] = await database
     .select({ count: sql<number>`count(*)::int` })
     .from(notifications)
     .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+
+  return result?.count ?? 0;
+}
+
+async function countAll(userId: string, databaseUrl?: string) {
+  const database = getDatabase(databaseUrl);
+  const [result] = await database
+    .select({ count: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(eq(notifications.userId, userId));
 
   return result?.count ?? 0;
 }
@@ -79,19 +101,33 @@ export const notificationService = {
     return toNotification(created);
   },
 
-  async listForUser(userId: string, databaseUrl?: string): Promise<NotificationListPayload> {
+  async listForUser(
+    userId: string,
+    query: NotificationListQuery,
+    databaseUrl?: string,
+  ): Promise<{ data: NotificationListPayload; meta: NotificationPaginationMeta }> {
     const database = getDatabase(databaseUrl);
-    const [rows, unreadCount] = await Promise.all([
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const offset = (page - 1) * limit;
+
+    const [rows, unreadCount, total] = await Promise.all([
       database.query.notifications.findMany({
         where: eq(notifications.userId, userId),
         orderBy: [desc(notifications.createdAt)],
+        limit,
+        offset,
       }),
       countUnread(userId, databaseUrl),
+      countAll(userId, databaseUrl),
     ]);
 
     return {
-      notifications: rows.map(toNotification),
-      unread_count: unreadCount,
+      data: {
+        notifications: rows.map(toNotification),
+        unread_count: unreadCount,
+      },
+      meta: toPaginationMeta(total, page, limit),
     };
   },
 
@@ -136,6 +172,50 @@ export const notificationService = {
     return {
       message: 'All notifications marked as read.',
       unread_count: 0,
+    };
+  },
+
+  async broadcast(
+    input: BroadcastNotificationInput,
+    databaseUrl?: string,
+  ): Promise<{ message: string; sent_count: number; target_role: 'buyer' | 'seller' | 'all' }> {
+    const database = getDatabase(databaseUrl);
+    const targetRole = input.target_role ?? 'all';
+    const recipients = await database.query.users.findMany({
+      where:
+        targetRole === 'all'
+          ? eq(users.status, 'active')
+          : and(eq(users.status, 'active'), eq(users.role, targetRole)),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (recipients.length === 0) {
+      return {
+        message: 'Broadcast notification sent successfully.',
+        sent_count: 0,
+        target_role: targetRole,
+      };
+    }
+
+    await database.insert(notifications).values(
+      recipients.map((recipient) => ({
+        userId: recipient.id,
+        type: 'info',
+        title: input.title,
+        body: input.body,
+        metadata: {
+          target_role: targetRole,
+          broadcast: true,
+        },
+      })),
+    );
+
+    return {
+      message: 'Broadcast notification sent successfully.',
+      sent_count: recipients.length,
+      target_role: targetRole,
     };
   },
 };

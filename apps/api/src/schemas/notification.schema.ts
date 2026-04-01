@@ -10,6 +10,15 @@ const notificationTypeSchema = z.enum([
   'info',
 ]);
 
+const broadcastTargetRoleSchema = z.enum(['buyer', 'seller', 'all']);
+
+export const notificationListQuerySchema = z
+  .object({
+    page: z.coerce.number().int().min(1).default(1).openapi({ example: 1 }),
+    limit: z.coerce.number().int().min(1).max(100).default(20).openapi({ example: 20 }),
+  })
+  .openapi('NotificationListQuery');
+
 export const notificationIdParamSchema = z
   .object({
     id: z.string().uuid().openapi({ example: '2ddc0a56-1b8d-44f3-9c7d-216b95ec5c5e' }),
@@ -35,10 +44,20 @@ export const notificationListPayloadSchema = z
   })
   .openapi('NotificationListPayload');
 
+export const notificationPaginationMetaSchema = z
+  .object({
+    total: z.number().int().nonnegative().openapi({ example: 42 }),
+    page: z.number().int().positive().openapi({ example: 1 }),
+    limit: z.number().int().positive().openapi({ example: 20 }),
+    totalPages: z.number().int().nonnegative().openapi({ example: 3 }),
+  })
+  .openapi('NotificationPaginationMeta');
+
 export const notificationListResponseSchema = z
   .object({
     success: z.literal(true),
     data: notificationListPayloadSchema,
+    meta: notificationPaginationMetaSchema,
   })
   .openapi('NotificationListResponse');
 
@@ -63,6 +82,29 @@ export const notificationReadAllResponseSchema = z
   })
   .openapi('NotificationReadAllResponse');
 
+export const broadcastSchema = z
+  .object({
+    title: z.string().trim().min(1).max(255).openapi({ example: 'Pengumuman Sistem' }),
+    body: z.string().trim().min(1).openapi({ example: 'Platform akan menjalani maintenance malam ini.' }),
+    target_role: broadcastTargetRoleSchema.default('all').optional().openapi({ example: 'all' }),
+  })
+  .openapi('BroadcastNotificationInput');
+
+export const broadcastNotificationPayloadSchema = z
+  .object({
+    message: z.string().openapi({ example: 'Broadcast notification sent successfully.' }),
+    sent_count: z.number().int().nonnegative().openapi({ example: 120 }),
+    target_role: broadcastTargetRoleSchema.openapi({ example: 'all' }),
+  })
+  .openapi('BroadcastNotificationPayload');
+
+export const broadcastNotificationResponseSchema = z
+  .object({
+    success: z.literal(true),
+    data: broadcastNotificationPayloadSchema,
+  })
+  .openapi('BroadcastNotificationResponse');
+
 export const notificationErrorResponseSchema = z
   .object({
     success: z.literal(false),
@@ -74,4 +116,7 @@ export const notificationErrorResponseSchema = z
   .openapi('NotificationErrorResponse');
 
 export type Notification = z.infer<typeof notificationSchema>;
+export type NotificationListQuery = z.infer<typeof notificationListQuerySchema>;
 export type NotificationListPayload = z.infer<typeof notificationListPayloadSchema>;
+export type NotificationPaginationMeta = z.infer<typeof notificationPaginationMetaSchema>;
+export type BroadcastNotificationInput = z.infer<typeof broadcastSchema>;

@@ -53,7 +53,7 @@ const {
   events,
 } = schema;
 
-type TestUserRole = 'buyer' | 'seller';
+type TestUserRole = 'buyer' | 'seller' | 'admin';
 
 type JsonRequestOptions = {
   method?: string;
@@ -76,6 +76,11 @@ type BuyerFixture = {
 type SellerFixture = {
   user: typeof users.$inferSelect;
   sellerProfile: typeof sellerProfiles.$inferSelect;
+  token: string;
+};
+
+type AdminFixture = {
+  user: typeof users.$inferSelect;
   token: string;
 };
 
@@ -249,6 +254,15 @@ export function createTransactionTestContext(prefix: string) {
     };
   }
 
+  async function createAdminFixture(): Promise<AdminFixture> {
+    const user = await createUser('admin');
+
+    return {
+      user,
+      token: await generateAccessToken({ id: user.id, email: user.email, role: user.role }, jwtSecret),
+    };
+  }
+
   async function createEventFixture(input: {
     sellerProfileId: string;
     quota?: number;
@@ -347,6 +361,13 @@ export function createTransactionTestContext(prefix: string) {
     });
   }
 
+  async function getNotificationsForUser(userId: string) {
+    return database.query.notifications.findMany({
+      where: eq(notifications.userId, userId),
+      orderBy: (notificationRows, { desc }) => [desc(notificationRows.createdAt)],
+    });
+  }
+
   async function expireOrder(orderId: string, expiresAt = new Date(Date.now() - 60_000)) {
     await database
       .update(orders)
@@ -422,10 +443,13 @@ export function createTransactionTestContext(prefix: string) {
 
   return {
     cleanupTestData,
+    createAdminFixture,
     createBuyerFixture,
     createSellerFixture,
     createEventFixture,
+    env: buildEnv,
     expireOrder,
+    getNotificationsForUser,
     getOrder,
     getOrderByReservationId,
     getPaymentByOrderId,

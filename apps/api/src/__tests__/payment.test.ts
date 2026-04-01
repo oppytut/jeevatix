@@ -136,6 +136,8 @@ describe.sequential('Phase 6 Payment API', () => {
     }>(webhookResponse);
 
     const orderRecord = await context.getOrder(orderPayload.data.id);
+    const buyerNotifications = await context.getNotificationsForUser(buyer.user.id);
+    const sellerNotifications = await context.getNotificationsForUser(seller.user.id);
 
     expect(webhookResponse.status).toBe(200);
     expect(webhookPayload.success).toBe(true);
@@ -144,6 +146,10 @@ describe.sequential('Phase 6 Payment API', () => {
     expect(webhookPayload.data.status).toBe('success');
     expect(orderRecord?.status).toBe('confirmed');
     expect(orderRecord?.payment?.status).toBe('success');
+    expect(buyerNotifications.some((notification) => notification.type === 'order_confirmed')).toBe(
+      true,
+    );
+    expect(sellerNotifications.some((notification) => notification.type === 'new_order')).toBe(true);
   });
 
   it('rejects payment webhook with an invalid signature', async () => {

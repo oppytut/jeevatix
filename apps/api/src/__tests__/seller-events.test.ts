@@ -34,8 +34,16 @@ if (!database) {
   throw new Error('Failed to create database connection for seller event tests.');
 }
 
-const { categories, eventCategories, eventImages, events, sellerProfiles, ticketTiers, users } =
-  schema;
+const {
+  categories,
+  eventCategories,
+  eventImages,
+  events,
+  notifications,
+  sellerProfiles,
+  ticketTiers,
+  users,
+} = schema;
 
 const TEST_EMAIL_PREFIX = 'vitest-p4-seller-events-';
 const TEST_CATEGORY_NAME_PREFIX = 'Vitest Phase 4 Seller Category';
@@ -229,6 +237,7 @@ async function cleanupTestData() {
       await database.delete(sellerProfiles).where(inArray(sellerProfiles.id, sellerProfileIds));
     }
 
+    await database.delete(notifications).where(inArray(notifications.userId, userIds));
     await database.delete(users).where(inArray(users.id, userIds));
   }
 

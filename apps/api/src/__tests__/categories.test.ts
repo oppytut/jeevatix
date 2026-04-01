@@ -34,7 +34,7 @@ if (!database) {
   throw new Error('Failed to create database connection for category tests.');
 }
 
-const { categories, eventCategories, events, sellerProfiles, users } = schema;
+const { categories, eventCategories, events, notifications, sellerProfiles, users } = schema;
 
 const TEST_EMAIL_PREFIX = 'vitest-p3-cat-';
 const TEST_CATEGORY_NAME_PREFIX = 'Vitest Phase 3 Category';
@@ -229,6 +229,7 @@ async function cleanupTestData() {
       await database.delete(sellerProfiles).where(inArray(sellerProfiles.id, sellerProfileIds));
     }
 
+    await database.delete(notifications).where(inArray(notifications.userId, userIds));
     await database.delete(users).where(inArray(users.id, userIds));
   }
 

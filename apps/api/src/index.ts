@@ -8,7 +8,7 @@ import { corsMiddleware } from './middleware/cors';
 import adminCategoryRoutes from './routes/admin/categories';
 import adminUserRoutes from './routes/admin/users';
 import publicEventRoutes from './routes/events';
-import notificationRoutes from './routes/notifications';
+import notificationRoutes, { adminNotificationRoutes } from './routes/notifications';
 import orderRoutes from './routes/orders';
 import paymentRoutes from './routes/payments';
 import {
@@ -44,6 +44,7 @@ app.doc('/doc', {
 app.get('/reference', apiReference({ spec: { url: '/doc' } }));
 
 app.route('/admin/categories', adminCategoryRoutes);
+app.route('/admin/notifications', adminNotificationRoutes);
 app.route('/admin', adminUserRoutes);
 app.route('/auth', authRoutes);
 app.route('/notifications', notificationRoutes);

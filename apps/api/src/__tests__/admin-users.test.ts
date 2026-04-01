@@ -34,7 +34,7 @@ if (!database) {
   throw new Error('Failed to create database connection for admin user tests.');
 }
 
-const { events, sellerProfiles, users } = schema;
+const { events, notifications, sellerProfiles, users } = schema;
 
 const TEST_EMAIL_PREFIX = 'vitest-p3-admin-';
 
@@ -190,6 +190,7 @@ async function cleanupTestData() {
     await database.delete(sellerProfiles).where(inArray(sellerProfiles.id, sellerProfileIds));
   }
 
+  await database.delete(notifications).where(inArray(notifications.userId, userIds));
   await database.delete(users).where(inArray(users.id, userIds));
 }
 

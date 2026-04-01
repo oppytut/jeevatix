@@ -1,10 +1,13 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
-import { authMiddleware, type AuthEnv } from '../middleware/auth';
+import { authMiddleware, type AuthEnv, roleMiddleware } from '../middleware/auth';
 import {
+  broadcastNotificationResponseSchema,
+  broadcastSchema,
   notificationErrorResponseSchema,
   notificationIdParamSchema,
   notificationListResponseSchema,
+  notificationListQuerySchema,
   notificationReadAllResponseSchema,
   notificationResponseSchema,
 } from '../schemas/notification.schema';
@@ -14,8 +17,10 @@ import {
 } from '../services/notification.service';
 
 const app = new OpenAPIHono<AuthEnv>();
+const adminApp = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
+adminApp.use('*', authMiddleware, roleMiddleware('admin'));
 
 function getProcessEnv(key: string) {
   return (
@@ -68,6 +73,9 @@ const listNotificationsRoute = createRoute({
   path: '/',
   tags: ['Notifications'],
   summary: 'List notifications for the authenticated user',
+  request: {
+    query: notificationListQuerySchema,
+  },
   responses: {
     200: {
       description: 'Notifications retrieved successfully',
@@ -94,9 +102,7 @@ const markReadRoute = createRoute({
   tags: ['Notifications'],
   summary: 'Mark a notification as read',
   request: {
-    params: {
-      schema: notificationIdParamSchema,
-    },
+    params: notificationIdParamSchema,
   },
   responses: {
     200: {
@@ -151,14 +157,60 @@ const markAllReadRoute = createRoute({
   },
 });
 
+const broadcastNotificationsRoute = createRoute({
+  method: 'post',
+  path: '/broadcast',
+  tags: ['Admin Notifications'],
+  summary: 'Broadcast a notification to all users or a target role',
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: broadcastSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Broadcast notification sent successfully',
+      content: {
+        'application/json': {
+          schema: broadcastNotificationResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Authentication required',
+      content: {
+        'application/json': {
+          schema: notificationErrorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Admin access required',
+      content: {
+        'application/json': {
+          schema: notificationErrorResponseSchema,
+        },
+      },
+    },
+  },
+});
+
 app.openapi(listNotificationsRoute, async (c) => {
+  const query = c.req.valid('query');
+
   try {
     const result = await notificationService.listForUser(
       c.var.user.id,
+      query,
       getDatabaseUrl(c.env.DATABASE_URL),
     );
 
-    return c.json({ success: true, data: result }, 200);
+    return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
     return handleError(c, error);
   }
@@ -193,4 +245,17 @@ app.openapi(markReadRoute, async (c) => {
   }
 });
 
+adminApp.openapi(broadcastNotificationsRoute, async (c) => {
+  const body = c.req.valid('json');
+
+  try {
+    const result = await notificationService.broadcast(body, getDatabaseUrl(c.env.DATABASE_URL));
+
+    return c.json({ success: true, data: result }, 200);
+  } catch (error) {
+    return handleError(c, error);
+  }
+});
+
 export default app;
+export { adminApp as adminNotificationRoutes };
