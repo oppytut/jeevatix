@@ -2692,7 +2692,7 @@ Dependensi: T-6.1 sudah selesai.
 4. Tambahkan script di root package.json: "dev:partykit": "cd apps/partykit && npx partykit dev".
 ```
 
-### Task 8.2 — PartyKit Client Integration
+### Task 8.2 — PartyKit Client Integration [DONE]
 
 | Key          | Value                                                    |
 | ------------ | -------------------------------------------------------- |

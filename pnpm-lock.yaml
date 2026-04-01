@@ -154,6 +154,9 @@ importers:
       '@jeevatix/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      partysocket:
+        specifier: ^1.1.16
+        version: 1.1.16
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
