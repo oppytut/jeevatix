@@ -1,6 +1,7 @@
 import { apiReference } from '@scalar/hono-api-reference';
 import { OpenAPIHono } from '@hono/zod-openapi';
 
+import { TicketReserver } from './durable-objects/ticket-reserver';
 import authRoutes from './routes/auth';
 import type { AuthEnv } from './middleware/auth';
 import { corsMiddleware } from './middleware/cors';
@@ -43,3 +44,4 @@ app.route('/upload', uploadRoutes);
 app.route('/users', usersRoutes);
 
 export default app;
+export { TicketReserver };

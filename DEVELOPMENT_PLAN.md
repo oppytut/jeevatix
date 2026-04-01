@@ -1903,7 +1903,7 @@ open http://localhost:4301/events/slug-event # detail event
 
 **Tujuan:** Implementasi flow inti: reservasi (Durable Objects) → order → payment. Ini adalah bagian paling kritis.
 
-### Task 6.1 — Durable Object: TicketReserver
+### Task 6.1 — Durable Object: TicketReserver [DONE]
 
 | Key          | Value                                             |
 | ------------ | ------------------------------------------------- |
