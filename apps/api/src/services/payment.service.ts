@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import {
   buildOrderConfirmationEmail,
@@ -445,25 +445,67 @@ export const paymentService = {
       };
     }
 
-    await database.transaction(async (tx) => {
-      await tx
+    const transitionResult = await database.transaction(async (tx) => {
+      const [updatedPayment] = await tx
         .update(payments)
         .set({
           status: 'success',
           paidAt,
           updatedAt: new Date(),
         })
-        .where(eq(payments.id, payment.id));
+        .where(and(eq(payments.id, payment.id), eq(payments.status, 'pending')))
+        .returning({
+          id: payments.id,
+        });
 
-      await tx
+      if (!updatedPayment) {
+        return {
+          transitioned: false,
+        } as const;
+      }
+
+      const [updatedOrder] = await tx
         .update(orders)
         .set({
           status: 'confirmed',
           confirmedAt: paidAt,
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, payment.order.id));
+        .where(and(eq(orders.id, payment.order.id), eq(orders.status, 'pending')))
+        .returning({
+          id: orders.id,
+        });
+
+      if (!updatedOrder) {
+        throw new PaymentServiceError('INVALID_STATE', 'Order is not awaiting payment confirmation.');
+      }
+
+      return {
+        transitioned: true,
+      } as const;
     });
+
+    if (!transitionResult.transitioned) {
+      const latestPayment = await database.query.payments.findFirst({
+        where: eq(payments.id, payment.id),
+        columns: {
+          status: true,
+        },
+      });
+
+      if (latestPayment?.status === 'success') {
+        await generateTickets(payment.order.id, databaseUrl);
+
+        return {
+          order_id: payment.order.id,
+          payment_id: payment.id,
+          external_ref: payment.externalRef,
+          status: 'ignored',
+        };
+      }
+
+      throw new PaymentServiceError('INVALID_STATE', 'Payment is not awaiting confirmation.');
+    }
 
     const firstEvent = payment.order.orderItems[0]?.ticketTier?.event;
     const sellerUserId = firstEvent?.sellerProfile?.userId;

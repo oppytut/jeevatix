@@ -1,6 +1,10 @@
+import { schema } from '@jeevatix/core';
+import { eq } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { createTransactionTestContext } from './transaction-test-helpers';
+import { database, createTransactionTestContext } from './transaction-test-helpers';
+
+const { tickets } = schema;
 
 const context = createTransactionTestContext('vitest-p6-payment');
 
@@ -150,6 +154,103 @@ describe.sequential('Phase 6 Payment API', () => {
       true,
     );
     expect(sellerNotifications.some((notification) => notification.type === 'new_order')).toBe(true);
+  });
+
+  it('handles duplicate payment success webhooks idempotently', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const { tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+
+    const reservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: tier.id,
+        quantity: 1,
+      },
+    });
+    const reservationPayload = await context.readJson<{
+      data: { reservation_id: string };
+    }>(reservationResponse);
+
+    const orderResponse = await context.requestJson('/orders', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        reservation_id: reservationPayload.data.reservation_id,
+      },
+    });
+    const orderPayload = await context.readJson<{
+      data: { id: string };
+    }>(orderResponse);
+
+    const payResponse = await context.requestJson(`/payments/${orderPayload.data.id}/pay`, {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        method: 'virtual_account',
+      },
+    });
+    const payPayload = await context.readJson<{
+      data: { external_ref: string; payment_id: string };
+    }>(payResponse);
+
+    const webhookBody = {
+      external_ref: payPayload.data.external_ref,
+      status: 'success',
+      paid_at: '2031-08-14T20:00:00.000Z',
+    };
+    const signature = await context.signWebhook(webhookBody);
+
+    const [firstResponse, secondResponse] = await Promise.all([
+      context.requestJson('/webhooks/payment', {
+        method: 'POST',
+        body: webhookBody,
+        headers: {
+          'x-payment-signature': signature,
+        },
+      }),
+      context.requestJson('/webhooks/payment', {
+        method: 'POST',
+        body: webhookBody,
+        headers: {
+          'x-payment-signature': signature,
+        },
+      }),
+    ]);
+
+    const firstPayload = await context.readJson<{
+      success: boolean;
+      data: { status: string };
+    }>(firstResponse);
+    const secondPayload = await context.readJson<{
+      success: boolean;
+      data: { status: string };
+    }>(secondResponse);
+
+    const orderRecord = await context.getOrder(orderPayload.data.id);
+    const paymentRecord = await context.getPaymentByOrderId(orderPayload.data.id);
+    const buyerNotifications = await context.getNotificationsForUser(buyer.user.id);
+    const sellerNotifications = await context.getNotificationsForUser(seller.user.id);
+    const issuedTickets = await database.query.tickets.findMany({
+      where: eq(tickets.orderId, orderPayload.data.id),
+    });
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect([firstPayload.data.status, secondPayload.data.status].sort()).toEqual([
+      'ignored',
+      'success',
+    ]);
+    expect(orderRecord?.status).toBe('confirmed');
+    expect(paymentRecord?.status).toBe('success');
+    expect(issuedTickets).toHaveLength(1);
+    expect(
+      buyerNotifications.filter((notification) => notification.type === 'order_confirmed'),
+    ).toHaveLength(1);
+    expect(sellerNotifications.filter((notification) => notification.type === 'new_order')).toHaveLength(
+      1,
+    );
   });
 
   it('rejects payment webhook with an invalid signature', async () => {
