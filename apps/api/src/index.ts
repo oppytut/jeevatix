@@ -6,6 +6,7 @@ import authRoutes from './routes/auth';
 import type { AuthEnv } from './middleware/auth';
 import { corsMiddleware } from './middleware/cors';
 import adminCategoryRoutes from './routes/admin/categories';
+import adminDashboardRoutes from './routes/admin/dashboard';
 import adminUserRoutes from './routes/admin/users';
 import publicEventRoutes from './routes/events';
 import notificationRoutes, { adminNotificationRoutes } from './routes/notifications';
@@ -46,6 +47,7 @@ app.doc('/doc', {
 app.get('/reference', apiReference({ spec: { url: '/doc' } }));
 
 app.route('/admin/categories', adminCategoryRoutes);
+app.route('/admin', adminDashboardRoutes);
 app.route('/admin/notifications', adminNotificationRoutes);
 app.route('/admin', adminUserRoutes);
 app.route('/auth', authRoutes);

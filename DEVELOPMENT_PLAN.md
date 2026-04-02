@@ -2793,7 +2793,7 @@ Di `apps/seller/`:
 Install chart library jika perlu: pnpm add chart.js (di workspace apps/seller).
 ```
 
-### Task 9.2 — Admin Dashboard
+### Task 9.2 — Admin Dashboard [DONE]
 
 | Key          | Value                                             |
 | ------------ | ------------------------------------------------- |
