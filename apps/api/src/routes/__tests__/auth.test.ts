@@ -34,7 +34,7 @@ if (!database) {
   throw new Error('Failed to create database connection for auth tests.');
 }
 
-const { refreshTokens, users } = schema;
+const { refreshTokens, sellerProfiles, users } = schema;
 const TEST_EMAIL_PREFIX = 'vitest-auth-';
 
 const adminApp = new OpenAPIHono<AuthEnv>();
@@ -126,6 +126,7 @@ async function cleanupTestUsers() {
 
   const userIds = testUsers.map((user) => user.id);
 
+  await database.delete(sellerProfiles).where(inArray(sellerProfiles.userId, userIds));
   await database.delete(refreshTokens).where(inArray(refreshTokens.userId, userIds));
   await database.delete(users).where(inArray(users.id, userIds));
 }
@@ -155,6 +156,34 @@ describe.sequential('Auth API', () => {
     expect(payload.data.access_token).toBeTruthy();
     expect(payload.data.refresh_token).toBeTruthy();
     expect(payload.data.user.role).toBe('buyer');
+  });
+
+  it('registers a seller and returns seller tokens', async () => {
+    const email = createTestEmail();
+
+    const response = await requestJson(app, '/auth/register/seller', {
+      method: 'POST',
+      body: {
+        email,
+        password: 'SellerPass123!',
+        full_name: 'Vitest Seller',
+        phone: '081234567891',
+        org_name: 'Vitest Organizer',
+        org_description: 'Organizer for auth coverage tests.',
+      },
+    });
+
+    const payload = await readJson<{
+      success: boolean;
+      data: { access_token: string; refresh_token: string; user: { email: string; role: string } };
+    }>(response);
+
+    expect(response.status).toBe(201);
+    expect(payload.success).toBe(true);
+    expect(payload.data.user.email).toBe(email);
+    expect(payload.data.user.role).toBe('seller');
+    expect(payload.data.access_token).toBeTruthy();
+    expect(payload.data.refresh_token).toBeTruthy();
   });
 
   it('rejects duplicate buyer registration', async () => {
@@ -325,6 +354,119 @@ describe.sequential('Auth API', () => {
     expect(payload.data.refresh_token).toBeTruthy();
     expect(payload.data.access_token).not.toBe(registerPayload.data.access_token);
     expect(payload.data.refresh_token).not.toBe(registerPayload.data.refresh_token);
+  });
+
+  it('logs out and rejects reuse of the revoked refresh token', async () => {
+    const { response: registerResponse } = await registerBuyer();
+    const registerPayload = await readJson<{
+      data: { refresh_token: string };
+    }>(registerResponse);
+
+    const logoutResponse = await requestJson(app, '/auth/logout', {
+      method: 'POST',
+      body: { refresh_token: registerPayload.data.refresh_token },
+    });
+    const logoutPayload = await readJson<{
+      success: boolean;
+      data: { message: string };
+    }>(logoutResponse);
+
+    const refreshResponse = await requestJson(app, '/auth/refresh', {
+      method: 'POST',
+      body: { refresh_token: registerPayload.data.refresh_token },
+    });
+    const refreshPayload = await readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(refreshResponse);
+
+    expect(logoutResponse.status).toBe(200);
+    expect(logoutPayload.success).toBe(true);
+    expect(logoutPayload.data.message).toBe('Logout successful.');
+    expect(refreshResponse.status).toBe(401);
+    expect(refreshPayload.success).toBe(false);
+    expect(refreshPayload.error.code).toBe('INVALID_REFRESH_TOKEN');
+  });
+
+  it('generates a reset token and allows password reset', async () => {
+    const { email, password } = await registerBuyer();
+
+    const forgotResponse = await requestJson(app, '/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    });
+    const forgotPayload = await readJson<{
+      success: boolean;
+      data: { message: string; reset_token?: string };
+    }>(forgotResponse);
+
+    const resetResponse = await requestJson(app, '/auth/reset-password', {
+      method: 'POST',
+      body: {
+        token: forgotPayload.data.reset_token ?? '',
+        password: 'ResetPass789#',
+      },
+    });
+    const resetPayload = await readJson<{
+      success: boolean;
+      data: { message: string };
+    }>(resetResponse);
+
+    const oldLoginResponse = await requestJson(app, '/auth/login', {
+      method: 'POST',
+      body: { email, password },
+    });
+    const newLoginResponse = await requestJson(app, '/auth/login', {
+      method: 'POST',
+      body: { email, password: 'ResetPass789#' },
+    });
+
+    expect(forgotResponse.status).toBe(200);
+    expect(forgotPayload.success).toBe(true);
+    expect(forgotPayload.data.reset_token).toBeTruthy();
+    expect(resetResponse.status).toBe(200);
+    expect(resetPayload.success).toBe(true);
+    expect(resetPayload.data.message).toBe('Password has been reset successfully.');
+    expect(oldLoginResponse.status).toBe(401);
+    expect(newLoginResponse.status).toBe(200);
+  });
+
+  it('verifies email with a valid token', async () => {
+    const { response: registerResponse } = await registerBuyer();
+    const registerPayload = await readJson<{
+      success: boolean;
+      data: { verify_email_token?: string; user: { email_verified_at: string | null } };
+    }>(registerResponse);
+
+    const verifyResponse = await requestJson(app, '/auth/verify-email', {
+      method: 'POST',
+      body: { token: registerPayload.data.verify_email_token ?? '' },
+    });
+    const verifyPayload = await readJson<{
+      success: boolean;
+      data: { message: string };
+    }>(verifyResponse);
+
+    expect(verifyResponse.status).toBe(200);
+    expect(verifyPayload.success).toBe(true);
+    expect(verifyPayload.data.message).toBe('Email has been verified successfully.');
+  });
+
+  it('returns the generic forgot-password response for unknown emails', async () => {
+    const response = await requestJson(app, '/auth/forgot-password', {
+      method: 'POST',
+      body: { email: createTestEmail() },
+    });
+
+    const payload = await readJson<{
+      success: boolean;
+      data: { message: string; reset_token?: string };
+    }>(response);
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(payload.data.message).toBe('If the email is registered, reset instructions have been generated.');
+    expect(payload.data.reset_token).toBeUndefined();
   });
 
   it('forbids a buyer from accessing an admin-only endpoint', async () => {

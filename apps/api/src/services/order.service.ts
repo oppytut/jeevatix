@@ -89,12 +89,12 @@ function getRandomFiveDigitNumber() {
   return (values[0] % 100000).toString().padStart(5, '0');
 }
 
-function formatOrderNumber(date: Date) {
+export function formatOrderNumber(date: Date, randomPart = getRandomFiveDigitNumber()) {
   const year = date.getUTCFullYear();
   const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
   const day = date.getUTCDate().toString().padStart(2, '0');
 
-  return `JVX-${year}${month}${day}-${getRandomFiveDigitNumber()}`;
+  return `JVX-${year}${month}${day}-${randomPart}`;
 }
 
 async function generateUniqueOrderNumber(databaseUrl?: string) {

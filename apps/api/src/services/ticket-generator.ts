@@ -47,8 +47,8 @@ function getDatabase(databaseUrl?: string) {
   return db;
 }
 
-function buildTicketCode() {
-  return `JVX-${generateTicketId()}`;
+export function buildTicketCode(ticketId = generateTicketId()) {
+  return `JVX-${ticketId}`;
 }
 
 function toIssuedTicket(row: {

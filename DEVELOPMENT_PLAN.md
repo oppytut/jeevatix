@@ -2913,7 +2913,7 @@ Setiap halaman punya filter, pagination, dan aksi.
 
 **Tujuan:** Pastikan semua fitur berfungsi, aman, dan siap deploy.
 
-### Task 10.1 — Coverage Verification & Gap Tests
+### Task 10.1 — Coverage Verification & Gap Tests [DONE]
 
 | Key          | Value                                                     |
 | ------------ | --------------------------------------------------------- |

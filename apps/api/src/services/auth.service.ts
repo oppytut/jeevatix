@@ -5,6 +5,7 @@ import { sign, verify } from 'hono/jwt';
 import {
   generateAccessToken,
   generateRefreshToken,
+  JWT_ALGORITHM,
   verifyToken,
   type TokenPayloadInput,
 } from '../lib/jwt';
@@ -153,7 +154,7 @@ async function signActionToken(
 }
 
 async function verifyActionToken(token: string, secret: string, expectedType: ActionTokenType) {
-  const payload = (await verify(token, secret)) as Partial<ActionTokenPayload>;
+  const payload = (await verify(token, secret, JWT_ALGORITHM)) as Partial<ActionTokenPayload>;
 
   if (
     typeof payload.sub !== 'string' ||

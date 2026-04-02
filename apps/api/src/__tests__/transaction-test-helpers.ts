@@ -45,6 +45,7 @@ const {
   orderItems,
   orders,
   payments,
+  refreshTokens,
   reservations,
   sellerProfiles,
   ticketCheckins,
@@ -417,6 +418,7 @@ export function createTransactionTestContext(prefix: string) {
       const orderIds = orderRows.map((order) => order.id);
 
       await database.delete(notifications).where(inArray(notifications.userId, userIds));
+      await database.delete(refreshTokens).where(inArray(refreshTokens.userId, userIds));
 
       if (orderIds.length > 0) {
         await database.delete(ticketCheckins).where(inArray(ticketCheckins.ticketId, database

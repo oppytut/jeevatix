@@ -12,12 +12,14 @@
     "format": "turbo run format",
     "format:check": "turbo run format:check",
     "test": "turbo run test",
+    "test:coverage": "turbo run test -- --coverage",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
+    "@vitest/coverage-v8": "^4.1.2",
     "aws-cdk-lib": "^2.245.0",
     "constructs": "^10.6.0",
     "eslint": "^9.37.0",
