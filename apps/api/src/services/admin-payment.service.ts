@@ -8,18 +8,36 @@ import type {
   UpdateAdminPaymentStatusInput,
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
+import {
+  OrderReservationServiceError,
+  releaseReservation,
+} from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
 
 const { orderItems, orders, payments, ticketTiers, tickets, users } = schema;
 
+type AdminPaymentServiceEnv = {
+  DATABASE_URL?: string;
+  TICKET_RESERVER?: DurableObjectNamespace;
+};
+
 export class AdminPaymentServiceError extends Error {
   constructor(
-    public readonly code: 'DATABASE_UNAVAILABLE' | 'INVALID_STATE' | 'PAYMENT_NOT_FOUND',
+    public readonly code:
+      | 'DATABASE_UNAVAILABLE'
+      | 'INVALID_STATE'
+      | 'PAYMENT_NOT_FOUND'
+      | 'RESERVATION_NOT_FOUND'
+      | 'TICKET_RESERVER_UNAVAILABLE',
     message: string,
   ) {
     super(message);
     this.name = 'AdminPaymentServiceError';
   }
+}
+
+function mapReservationError(error: OrderReservationServiceError) {
+  return new AdminPaymentServiceError(error.code, error.message);
 }
 
 function getDatabase(databaseUrl?: string) {
@@ -358,13 +376,19 @@ export const adminPaymentService = {
   async updatePaymentStatus(
     id: string,
     input: UpdateAdminPaymentStatusInput,
-    databaseUrl?: string,
+    env: AdminPaymentServiceEnv,
   ) {
-    const database = getDatabase(databaseUrl);
+    const database = getDatabase(env.DATABASE_URL);
     const payment = await database.query.payments.findFirst({
       where: eq(payments.id, id),
       with: {
         order: {
+          columns: {
+            id: true,
+            reservationId: true,
+            orderNumber: true,
+            status: true,
+          },
           with: {
             user: {
               columns: {
@@ -442,7 +466,7 @@ export const adminPaymentService = {
       });
 
       if (payment.order.tickets.length === 0) {
-        await generateTickets(payment.orderId, databaseUrl);
+        await generateTickets(payment.orderId, env.DATABASE_URL);
       }
 
       await Promise.all([
@@ -455,7 +479,7 @@ export const adminPaymentService = {
             order_id: payment.orderId,
             payment_id: payment.id,
           },
-          databaseUrl,
+          env.DATABASE_URL,
         ),
         sellerUserId
           ? notificationService.sendNotification(
@@ -468,7 +492,7 @@ export const adminPaymentService = {
                 payment_id: payment.id,
                 event_id: primaryEvent?.id,
               },
-              databaseUrl,
+              env.DATABASE_URL,
             )
           : Promise.resolve(),
       ]);
@@ -514,7 +538,7 @@ export const adminPaymentService = {
           order_id: payment.orderId,
           payment_id: payment.id,
         },
-        databaseUrl,
+        env.DATABASE_URL,
       );
 
       return {
@@ -531,6 +555,18 @@ export const adminPaymentService = {
         'INVALID_STATE',
         'Successful or refunded payments cannot be marked as failed.',
       );
+    }
+
+    if (payment.order.reservationId) {
+      try {
+        await releaseReservation(env, payment.order.reservationId, 'cancelled');
+      } catch (error) {
+        if (error instanceof OrderReservationServiceError) {
+          throw mapReservationError(error);
+        }
+
+        throw error;
+      }
     }
 
     await database.transaction(async (tx) => {
@@ -553,7 +589,7 @@ export const adminPaymentService = {
         order_id: payment.orderId,
         payment_id: payment.id,
       },
-      databaseUrl,
+      env.DATABASE_URL,
     );
 
     return {

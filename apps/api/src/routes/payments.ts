@@ -43,6 +43,8 @@ function getStatusFromError(error: PaymentServiceError) {
       return 409;
     case 'DATABASE_UNAVAILABLE':
     case 'PAYMENT_WEBHOOK_SECRET_MISSING':
+    case 'RESERVATION_NOT_FOUND':
+    case 'TICKET_RESERVER_UNAVAILABLE':
       return 500;
     default:
       return 400;

@@ -7,6 +7,10 @@ import type {
   OrderDetail,
   OrderListItem,
 } from '../schemas/order.schema';
+import {
+  OrderReservationServiceError,
+  releaseReservation,
+} from './order-reservation.service';
 
 const ORDER_EXPIRY_MINUTES = 30;
 const DEFAULT_PAYMENT_METHOD = 'bank_transfer';
@@ -152,8 +156,33 @@ async function invokeTicketReserverConfirm(
   return body;
 }
 
-async function expirePendingOrder(databaseUrl: string | undefined, orderId: string) {
-  const database = getDatabase(databaseUrl);
+async function expirePendingOrder(env: OrderServiceEnv, orderId: string) {
+  const database = getDatabase(env.DATABASE_URL);
+  const order = await database.query.orders.findFirst({
+    where: eq(orders.id, orderId),
+    columns: {
+      id: true,
+      reservationId: true,
+      status: true,
+      expiresAt: true,
+    },
+  });
+
+  if (!order || order.status !== 'pending' || order.expiresAt.getTime() > Date.now()) {
+    return;
+  }
+
+  if (order.reservationId) {
+    try {
+      await releaseReservation(env, order.reservationId, 'expired');
+    } catch (error) {
+      if (error instanceof OrderReservationServiceError) {
+        throw new OrderServiceError(error.code, error.message);
+      }
+
+      throw error;
+    }
+  }
 
   await database
     .update(orders)
@@ -161,7 +190,7 @@ async function expirePendingOrder(databaseUrl: string | undefined, orderId: stri
       status: 'expired',
       updatedAt: new Date(),
     })
-    .where(and(eq(orders.id, orderId), eq(orders.status, 'pending'), lte(orders.expiresAt, new Date())));
+    .where(and(eq(orders.id, orderId), eq(orders.status, 'pending')));
 }
 
 async function cleanupFailedOrder(orderId: string, databaseUrl?: string) {
@@ -424,13 +453,13 @@ export const orderService = {
       throw new OrderServiceError('INVALID_STATE', 'Reservation could not be confirmed.');
     }
 
-    return this.getOrderDetail(userId, createdOrder.id, databaseUrl);
+    return this.getOrderDetail(env, userId, createdOrder.id);
   },
 
   async listOrders(
+    env: OrderServiceEnv,
     userId: string,
     query: ListOrdersQuery,
-    databaseUrl?: string,
   ): Promise<{
     data: OrderListItem[];
     meta: {
@@ -440,18 +469,21 @@ export const orderService = {
       totalPages: number;
     };
   }> {
-    const database = getDatabase(databaseUrl);
+    const database = getDatabase(env.DATABASE_URL);
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const offset = (page - 1) * limit;
 
-    await database
-      .update(orders)
-      .set({
-        status: 'expired',
-        updatedAt: new Date(),
-      })
-      .where(and(eq(orders.userId, userId), eq(orders.status, 'pending'), lte(orders.expiresAt, new Date())));
+    const expiredOrders = await database.query.orders.findMany({
+      where: and(eq(orders.userId, userId), eq(orders.status, 'pending'), lte(orders.expiresAt, new Date())),
+      columns: {
+        id: true,
+      },
+    });
+
+    for (const expiredOrder of expiredOrders) {
+      await expirePendingOrder(env, expiredOrder.id);
+    }
 
     const [aggregate] = await database
       .select({
@@ -526,10 +558,10 @@ export const orderService = {
     };
   },
 
-  async getOrderDetail(userId: string, orderId: string, databaseUrl?: string): Promise<OrderDetail> {
-    await expirePendingOrder(databaseUrl, orderId);
+  async getOrderDetail(env: OrderServiceEnv, userId: string, orderId: string): Promise<OrderDetail> {
+    await expirePendingOrder(env, orderId);
 
-    const database = getDatabase(databaseUrl);
+    const database = getDatabase(env.DATABASE_URL);
     const order = await database.query.orders.findFirst({
       where: eq(orders.id, orderId),
       columns: {

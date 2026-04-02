@@ -7,6 +7,10 @@ import {
   type OrderConfirmationItem,
 } from './email';
 import { notificationService } from './notification.service';
+import {
+  OrderReservationServiceError,
+  releaseReservation,
+} from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
 import type {
   InitiatePaymentInput,
@@ -22,6 +26,7 @@ type PaymentServiceEnv = {
   PAYMENT_WEBHOOK_SECRET?: string;
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
+  TICKET_RESERVER?: DurableObjectNamespace;
 };
 
 type PaymentNotificationType = 'info' | 'new_order' | 'order_confirmed';
@@ -35,7 +40,9 @@ export class PaymentServiceError extends Error {
       | 'INVALID_STATE'
       | 'ORDER_NOT_FOUND'
       | 'PAYMENT_NOT_FOUND'
-      | 'PAYMENT_WEBHOOK_SECRET_MISSING',
+      | 'PAYMENT_WEBHOOK_SECRET_MISSING'
+      | 'RESERVATION_NOT_FOUND'
+      | 'TICKET_RESERVER_UNAVAILABLE',
     message: string,
   ) {
     super(message);
@@ -151,20 +158,35 @@ async function verifyWebhookSignature(
 }
 
 async function markOrderExpiredIfNeeded(
-  orderId: string,
-  status: 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'refunded',
-  expiresAt: Date,
-  databaseUrl?: string,
+  env: PaymentServiceEnv,
+  order: {
+    id: string;
+    reservationId: string | null;
+    status: 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'refunded';
+    expiresAt: Date;
+  },
 ) {
-  if (status !== 'pending') {
+  if (order.status !== 'pending') {
     return;
   }
 
-  if (expiresAt.getTime() > Date.now()) {
+  if (order.expiresAt.getTime() > Date.now()) {
     return;
   }
 
-  const database = getDatabase(databaseUrl);
+  const database = getDatabase(env.DATABASE_URL);
+
+  if (order.reservationId) {
+    try {
+      await releaseReservation(env, order.reservationId, 'expired');
+    } catch (error) {
+      if (error instanceof OrderReservationServiceError) {
+        throw new PaymentServiceError(error.code, error.message);
+      }
+
+      throw error;
+    }
+  }
 
   await database
     .update(orders)
@@ -172,7 +194,7 @@ async function markOrderExpiredIfNeeded(
       status: 'expired',
       updatedAt: new Date(),
     })
-    .where(eq(orders.id, orderId));
+    .where(and(eq(orders.id, order.id), eq(orders.status, 'pending')));
 }
 
 async function sendNotification(
@@ -255,6 +277,7 @@ export const paymentService = {
       columns: {
         id: true,
         userId: true,
+        reservationId: true,
         status: true,
         expiresAt: true,
       },
@@ -278,7 +301,7 @@ export const paymentService = {
       throw new PaymentServiceError('FORBIDDEN', 'You do not have access to this order.');
     }
 
-    await markOrderExpiredIfNeeded(order.id, order.status, order.expiresAt, env.DATABASE_URL);
+    await markOrderExpiredIfNeeded(env, order);
 
     if (order.expiresAt.getTime() <= Date.now()) {
       throw new PaymentServiceError('INVALID_STATE', 'Order payment window has expired.');
@@ -348,6 +371,7 @@ export const paymentService = {
           columns: {
             id: true,
             userId: true,
+            reservationId: true,
             orderNumber: true,
             status: true,
             expiresAt: true,
@@ -415,12 +439,7 @@ export const paymentService = {
       throw new PaymentServiceError('INVALID_STATE', 'Order is not awaiting payment confirmation.');
     }
 
-    await markOrderExpiredIfNeeded(
-      payment.order.id,
-      payment.order.status,
-      payment.order.expiresAt,
-      databaseUrl,
-    );
+    await markOrderExpiredIfNeeded(env, payment.order);
 
     if (payment.order.expiresAt.getTime() <= Date.now()) {
       throw new PaymentServiceError('INVALID_STATE', 'Order payment window has expired.');

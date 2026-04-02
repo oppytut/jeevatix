@@ -170,7 +170,7 @@ app.openapi(listOrdersRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await orderService.listOrders(c.var.user.id, query, c.env.DATABASE_URL);
+    const result = await orderService.listOrders(c.env, c.var.user.id, query);
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -182,7 +182,7 @@ app.openapi(getOrderDetailRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await orderService.getOrderDetail(c.var.user.id, params.id, c.env.DATABASE_URL);
+    const result = await orderService.getOrderDetail(c.env, c.var.user.id, params.id);
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

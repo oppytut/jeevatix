@@ -46,6 +46,7 @@ function jsonError(code: string, message: string) {
 function getStatusFromError(error: AdminPaymentServiceError) {
   switch (error.code) {
     case 'PAYMENT_NOT_FOUND':
+    case 'RESERVATION_NOT_FOUND':
       return 404;
     case 'INVALID_STATE':
       return 409;
@@ -176,7 +177,7 @@ app.openapi(updatePaymentStatusRoute, async (c) => {
     const result = await adminPaymentService.updatePaymentStatus(
       params.id,
       body,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      c.env,
     );
 
     return c.json({ success: true, data: result }, 200);

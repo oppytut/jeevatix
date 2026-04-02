@@ -42,6 +42,7 @@ function jsonError(code: string, message: string) {
 function getStatusFromError(error: AdminOrderServiceError) {
   switch (error.code) {
     case 'ORDER_NOT_FOUND':
+    case 'RESERVATION_NOT_FOUND':
       return 404;
     case 'INVALID_STATE':
       return 409;
@@ -189,7 +190,7 @@ app.openapi(cancelOrderRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminOrderService.cancelOrder(params.id, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminOrderService.cancelOrder(params.id, c.env);
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

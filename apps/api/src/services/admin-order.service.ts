@@ -7,17 +7,35 @@ import type {
   AdminOrderListQuery,
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
+import {
+  OrderReservationServiceError,
+  releaseReservation,
+} from './order-reservation.service';
 
 const { orderItems, orders, payments, ticketTiers, tickets, users } = schema;
 
+type AdminOrderServiceEnv = {
+  DATABASE_URL?: string;
+  TICKET_RESERVER?: DurableObjectNamespace;
+};
+
 export class AdminOrderServiceError extends Error {
   constructor(
-    public readonly code: 'DATABASE_UNAVAILABLE' | 'INVALID_STATE' | 'ORDER_NOT_FOUND',
+    public readonly code:
+      | 'DATABASE_UNAVAILABLE'
+      | 'INVALID_STATE'
+      | 'ORDER_NOT_FOUND'
+      | 'RESERVATION_NOT_FOUND'
+      | 'TICKET_RESERVER_UNAVAILABLE',
     message: string,
   ) {
     super(message);
     this.name = 'AdminOrderServiceError';
   }
+}
+
+function mapReservationError(error: OrderReservationServiceError) {
+  return new AdminOrderServiceError(error.code, error.message);
 }
 
 function getDatabase(databaseUrl?: string) {
@@ -445,13 +463,14 @@ export const adminOrderService = {
     };
   },
 
-  async cancelOrder(id: string, databaseUrl?: string) {
-    const database = getDatabase(databaseUrl);
+  async cancelOrder(id: string, env: AdminOrderServiceEnv) {
+    const database = getDatabase(env.DATABASE_URL);
     const order = await database.query.orders.findFirst({
       where: eq(orders.id, id),
       columns: {
         id: true,
         userId: true,
+        reservationId: true,
         status: true,
       },
       with: {
@@ -483,6 +502,18 @@ export const adminOrderService = {
       );
     }
 
+    if (order.reservationId) {
+      try {
+        await releaseReservation(env, order.reservationId, 'cancelled');
+      } catch (error) {
+        if (error instanceof OrderReservationServiceError) {
+          throw mapReservationError(error);
+        }
+
+        throw error;
+      }
+    }
+
     const now = new Date();
     await database.transaction(async (tx) => {
       await tx
@@ -508,7 +539,7 @@ export const adminOrderService = {
         order_id: id,
         action: 'cancel',
       },
-      databaseUrl,
+      env.DATABASE_URL,
     );
 
     return {

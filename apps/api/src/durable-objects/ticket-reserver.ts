@@ -391,7 +391,7 @@ export class TicketReserver extends DurableObjectBase {
       throw new Error('RESERVATION_NOT_FOUND');
     }
 
-    if (reservation.status !== 'active') {
+    if (reservation.status === 'cancelled' || reservation.status === 'expired') {
       const refreshedTierState = await this.loadTierState(reservation.ticketTierId);
 
       if (refreshedTierState) {
@@ -408,6 +408,14 @@ export class TicketReserver extends DurableObjectBase {
     const tierState = await this.ensureTierState(reservation.ticketTierId);
 
     if (nextStatus === 'converted') {
+      if (reservation.status !== 'active') {
+        return {
+          ok: true,
+          reservation_id: reservation.id,
+          status: reservation.status,
+        } satisfies ReservationStateResponse;
+      }
+
       tierState.pendingReservations = Math.max(0, tierState.pendingReservations - reservation.quantity);
       tierState.soldCount += reservation.quantity;
 
@@ -416,7 +424,11 @@ export class TicketReserver extends DurableObjectBase {
         .set({ status: 'converted' })
         .where(eq(reservations.id, reservation.id));
     } else {
-      tierState.pendingReservations = Math.max(0, tierState.pendingReservations - reservation.quantity);
+      if (reservation.status === 'active') {
+        tierState.pendingReservations = Math.max(0, tierState.pendingReservations - reservation.quantity);
+      } else {
+        tierState.soldCount = Math.max(0, tierState.soldCount - reservation.quantity);
+      }
 
       await database.transaction(async (tx) => {
         await tx
