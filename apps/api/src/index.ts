@@ -7,6 +7,9 @@ import type { AuthEnv } from './middleware/auth';
 import { corsMiddleware } from './middleware/cors';
 import adminCategoryRoutes from './routes/admin/categories';
 import adminDashboardRoutes from './routes/admin/dashboard';
+import adminEventRoutes from './routes/admin/events';
+import adminOrderRoutes from './routes/admin/orders';
+import adminPaymentRoutes from './routes/admin/payments';
 import adminUserRoutes from './routes/admin/users';
 import publicEventRoutes from './routes/events';
 import notificationRoutes, { adminNotificationRoutes } from './routes/notifications';
@@ -18,7 +21,7 @@ import {
   type ReservationCleanupEnv,
   type ReservationCleanupMessage,
 } from './queues/reservation-cleanup';
-import reservationRoutes from './routes/reservations';
+import reservationRoutes, { adminReservationRoutes } from './routes/reservations';
 import sellerCheckinRoutes from './routes/seller/checkin';
 import sellerDashboardRoutes from './routes/seller/dashboard';
 import sellerEventRoutes from './routes/seller/events';
@@ -48,7 +51,11 @@ app.get('/reference', apiReference({ spec: { url: '/doc' } }));
 
 app.route('/admin/categories', adminCategoryRoutes);
 app.route('/admin', adminDashboardRoutes);
+app.route('/admin', adminEventRoutes);
 app.route('/admin/notifications', adminNotificationRoutes);
+app.route('/admin', adminOrderRoutes);
+app.route('/admin', adminPaymentRoutes);
+app.route('/admin/reservations', adminReservationRoutes);
 app.route('/admin', adminUserRoutes);
 app.route('/auth', authRoutes);
 app.route('/notifications', notificationRoutes);

@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, eq, gt, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, ilike, or, sql } from 'drizzle-orm';
 
 import type {
   CreateReservationInput,
@@ -7,8 +7,12 @@ import type {
   ReservationDetail,
   ReservationStatePayload,
 } from '../schemas/reservation.schema';
+import type {
+  AdminReservationItem,
+  AdminReservationListQuery,
+} from '../schemas/admin.schema';
 
-const { orderItems, orders, reservations, ticketTiers } = schema;
+const { orderItems, orders, reservations, ticketTiers, users } = schema;
 
 type ReservationServiceEnv = {
   DATABASE_URL?: string;
@@ -366,6 +370,107 @@ export const reservationService = {
       expires_at: reservation.expiresAt.toISOString(),
       created_at: reservation.createdAt.toISOString(),
       remaining_seconds: getRemainingSeconds(reservation.expiresAt),
+    };
+  },
+
+  async listAdmin(
+    query: AdminReservationListQuery,
+    databaseUrl?: string,
+  ): Promise<{
+    data: AdminReservationItem[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
+    const database = getDatabase(databaseUrl);
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const offset = (page - 1) * limit;
+    const searchTerm = query.search ? `%${query.search}%` : undefined;
+    const conditions = [
+      query.status ? eq(reservations.status, query.status) : undefined,
+      query.eventId ? eq(ticketTiers.eventId, query.eventId) : undefined,
+      searchTerm
+        ? or(
+            ilike(users.fullName, searchTerm),
+            ilike(users.email, searchTerm),
+            ilike(ticketTiers.name, searchTerm),
+            ilike(schema.events.title, searchTerm),
+          )
+        : undefined,
+    ].filter((condition) => condition !== undefined);
+    const whereClause = and(...conditions);
+
+    const [totalRow, rows] = await Promise.all([
+      database
+        .select({ total: sql<number>`count(*)::int` })
+        .from(reservations)
+        .innerJoin(users, eq(users.id, reservations.userId))
+        .innerJoin(ticketTiers, eq(ticketTiers.id, reservations.ticketTierId))
+        .innerJoin(schema.events, eq(schema.events.id, ticketTiers.eventId))
+        .where(whereClause),
+      database
+        .select({
+          id: reservations.id,
+          status: reservations.status,
+          quantity: reservations.quantity,
+          expiresAt: reservations.expiresAt,
+          createdAt: reservations.createdAt,
+          buyerId: users.id,
+          buyerName: users.fullName,
+          buyerEmail: users.email,
+          buyerPhone: users.phone,
+          eventId: schema.events.id,
+          eventTitle: schema.events.title,
+          eventSlug: schema.events.slug,
+          venueCity: schema.events.venueCity,
+          startAt: schema.events.startAt,
+          ticketTierId: ticketTiers.id,
+          ticketTierName: ticketTiers.name,
+          ticketTierStatus: ticketTiers.status,
+        })
+        .from(reservations)
+        .innerJoin(users, eq(users.id, reservations.userId))
+        .innerJoin(ticketTiers, eq(ticketTiers.id, reservations.ticketTierId))
+        .innerJoin(schema.events, eq(schema.events.id, ticketTiers.eventId))
+        .where(whereClause)
+        .orderBy(desc(reservations.createdAt))
+        .limit(limit)
+        .offset(offset),
+    ]);
+
+    return {
+      data: rows.map((row) => ({
+        id: row.id,
+        status: row.status,
+        quantity: row.quantity,
+        expiresAt: row.expiresAt.toISOString(),
+        createdAt: row.createdAt.toISOString(),
+        remainingSeconds:
+          row.status === 'active' ? Math.max(0, Math.ceil((row.expiresAt.getTime() - Date.now()) / 1000)) : 0,
+        buyer: {
+          id: row.buyerId,
+          fullName: row.buyerName,
+          email: row.buyerEmail,
+          phone: row.buyerPhone,
+        },
+        event: {
+          id: row.eventId,
+          title: row.eventTitle,
+          slug: row.eventSlug,
+          venueCity: row.venueCity,
+          startAt: row.startAt.toISOString(),
+        },
+        ticketTier: {
+          id: row.ticketTierId,
+          name: row.ticketTierName,
+          status: row.ticketTierStatus,
+        },
+      })),
+      meta: {
+        total: totalRow[0]?.total ?? 0,
+        page,
+        limit,
+        totalPages: totalRow[0]?.total ? Math.ceil(totalRow[0].total / limit) : 0,
+      },
     };
   },
 

@@ -5,7 +5,7 @@
   import { BadgeCheck, RefreshCw, Search, Store } from '@lucide/svelte';
   import { Button, Card, DataTable, Input, Toast } from '@jeevatix/ui';
 
-  import { apiGet, ApiError } from '$lib/api';
+  import { apiGetEnvelope, ApiError } from '$lib/api';
 
   type AdminSellerListItem = {
     id: string;
@@ -28,11 +28,6 @@
     page: number;
     limit: number;
     totalPages: number;
-  };
-
-  type SellersResponse = {
-    data: AdminSellerListItem[];
-    meta: PaginationMeta;
   };
 
   type ToastState = {
@@ -109,9 +104,11 @@
     }
 
     try {
-      const result = await apiGet<SellersResponse>(`/admin/sellers?${getQueryString(page)}`);
+      const result = await apiGetEnvelope<AdminSellerListItem[], PaginationMeta>(
+        `/admin/sellers?${getQueryString(page)}`,
+      );
       sellers = result.data;
-      meta = result.meta;
+      meta = result.meta ?? meta;
     } catch (error) {
       const message = error instanceof ApiError ? error.message : 'Gagal memuat daftar seller.';
       pageError = message;

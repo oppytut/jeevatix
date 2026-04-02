@@ -3,6 +3,8 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
 import { errorResponseSchema } from '../schemas/auth.schema';
 import {
+  adminReservationListQuerySchema,
+  adminReservationsListResponseSchema,
   createReservationSchema,
   reservationCreateResponseSchema,
   reservationIdParamSchema,
@@ -12,9 +14,11 @@ import {
 import { ReservationServiceError, reservationService } from '../services/reservation.service';
 
 const app = new OpenAPIHono<AuthEnv>();
+const adminApp = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('buyer'));
+adminApp.use('*', authMiddleware, roleMiddleware('admin'));
 
 function jsonError(code: string, message: string) {
   return {
@@ -180,6 +184,26 @@ const cancelReservationRoute = createRoute({
   },
 });
 
+const listAdminReservationsRoute = createRoute({
+  method: 'get',
+  path: '/',
+  tags: ['Admin Reservations'],
+  summary: 'List reservations for admin monitoring',
+  request: {
+    query: adminReservationListQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Reservations retrieved successfully',
+      content: {
+        'application/json': {
+          schema: adminReservationsListResponseSchema,
+        },
+      },
+    },
+  },
+});
+
 app.openapi(createReservationRoute, async (c) => {
   const body = c.req.valid('json');
 
@@ -216,4 +240,17 @@ app.openapi(cancelReservationRoute, async (c) => {
   }
 });
 
+adminApp.openapi(listAdminReservationsRoute, async (c) => {
+  const query = c.req.valid('query');
+
+  try {
+    const result = await reservationService.listAdmin(query, c.env.DATABASE_URL);
+
+    return c.json({ success: true, data: result.data, meta: result.meta }, 200);
+  } catch (error) {
+    return handleError(c, error);
+  }
+});
+
 export default app;
+export { adminApp as adminReservationRoutes };

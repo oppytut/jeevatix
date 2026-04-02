@@ -2,6 +2,8 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../middleware/auth';
 import {
+  adminNotificationListQuerySchema,
+  adminNotificationsListResponseSchema,
   broadcastNotificationResponseSchema,
   broadcastSchema,
   notificationErrorResponseSchema,
@@ -200,6 +202,26 @@ const broadcastNotificationsRoute = createRoute({
   },
 });
 
+const adminListNotificationsRoute = createRoute({
+  method: 'get',
+  path: '/',
+  tags: ['Admin Notifications'],
+  summary: 'List notifications across the platform for admin review',
+  request: {
+    query: adminNotificationListQuerySchema,
+  },
+  responses: {
+    200: {
+      description: 'Notifications retrieved successfully',
+      content: {
+        'application/json': {
+          schema: adminNotificationsListResponseSchema,
+        },
+      },
+    },
+  },
+});
+
 app.openapi(listNotificationsRoute, async (c) => {
   const query = c.req.valid('query');
 
@@ -252,6 +274,18 @@ adminApp.openapi(broadcastNotificationsRoute, async (c) => {
     const result = await notificationService.broadcast(body, getDatabaseUrl(c.env.DATABASE_URL));
 
     return c.json({ success: true, data: result }, 200);
+  } catch (error) {
+    return handleError(c, error);
+  }
+});
+
+adminApp.openapi(adminListNotificationsRoute, async (c) => {
+  const query = c.req.valid('query');
+
+  try {
+    const result = await notificationService.listAdmin(query, getDatabaseUrl(c.env.DATABASE_URL));
+
+    return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
     return handleError(c, error);
   }

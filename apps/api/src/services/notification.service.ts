@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, or, sql } from 'drizzle-orm';
 
 import type {
   BroadcastNotificationInput,
@@ -8,6 +8,10 @@ import type {
   NotificationListPayload,
   NotificationPaginationMeta,
 } from '../schemas/notification.schema';
+import type {
+  AdminNotificationItem,
+  AdminNotificationListQuery,
+} from '../schemas/admin.schema';
 
 const { notifications, users } = schema;
 
@@ -128,6 +132,82 @@ export const notificationService = {
         unread_count: unreadCount,
       },
       meta: toPaginationMeta(total, page, limit),
+    };
+  },
+
+  async listAdmin(
+    query: AdminNotificationListQuery,
+    databaseUrl?: string,
+  ): Promise<{
+    data: { notifications: AdminNotificationItem[] };
+    meta: NotificationPaginationMeta;
+  }> {
+    const database = getDatabase(databaseUrl);
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const offset = (page - 1) * limit;
+    const searchTerm = query.search ? `%${query.search}%` : undefined;
+    const conditions = [
+      query.type ? eq(notifications.type, query.type) : undefined,
+      query.targetRole ? eq(users.role, query.targetRole) : undefined,
+      searchTerm
+        ? or(
+            ilike(notifications.title, searchTerm),
+            ilike(notifications.body, searchTerm),
+            ilike(users.fullName, searchTerm),
+            ilike(users.email, searchTerm),
+          )
+        : undefined,
+    ].filter((condition) => condition !== undefined);
+    const whereClause = and(...conditions);
+
+    const [totalRow, rows] = await Promise.all([
+      database
+        .select({ count: sql<number>`count(*)::int` })
+        .from(notifications)
+        .innerJoin(users, eq(users.id, notifications.userId))
+        .where(whereClause),
+      database
+        .select({
+          id: notifications.id,
+          type: notifications.type,
+          title: notifications.title,
+          body: notifications.body,
+          isRead: notifications.isRead,
+          metadata: notifications.metadata,
+          createdAt: notifications.createdAt,
+          userId: users.id,
+          userFullName: users.fullName,
+          userEmail: users.email,
+          userRole: users.role,
+        })
+        .from(notifications)
+        .innerJoin(users, eq(users.id, notifications.userId))
+        .where(whereClause)
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit)
+        .offset(offset),
+    ]);
+
+    return {
+      data: {
+        notifications: rows.map((row) => ({
+          id: row.id,
+          type: row.type,
+          title: row.title,
+          body: row.body,
+          isRead: row.isRead,
+          createdAt: row.createdAt.toISOString(),
+          metadata: (row.metadata as Record<string, unknown> | null | undefined) ?? null,
+          user: {
+            id: row.userId,
+            fullName: row.userFullName,
+            email: row.userEmail,
+            role: row.userRole,
+          },
+        })),
+      },
+      meta: toPaginationMeta(totalRow[0]?.count ?? 0, page, limit),
     };
   },
 

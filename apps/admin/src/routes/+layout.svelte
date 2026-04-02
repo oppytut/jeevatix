@@ -10,15 +10,23 @@
   import type { LayoutData } from './$types';
 
   const menuItems = [
-    'Dashboard',
-    'Users',
-    'Sellers',
-    'Events',
-    'Orders',
-    'Payments',
-    'Categories',
-    'Notifications',
-    'Reservations',
+    { label: 'Dashboard', href: '/', match: (pathname: string, routeId: string | null) => routeId === '/' },
+    { label: 'Users', href: '/users', match: (pathname: string) => pathname.startsWith('/users') },
+    { label: 'Sellers', href: '/sellers', match: (pathname: string) => pathname.startsWith('/sellers') },
+    { label: 'Events', href: '/events', match: (pathname: string) => pathname.startsWith('/events') },
+    { label: 'Orders', href: '/orders', match: (pathname: string) => pathname.startsWith('/orders') },
+    { label: 'Payments', href: '/payments', match: (pathname: string) => pathname.startsWith('/payments') },
+    { label: 'Categories', href: '/categories', match: (pathname: string) => pathname.startsWith('/categories') },
+    {
+      label: 'Notifications',
+      href: '/notifications',
+      match: (pathname: string) => pathname.startsWith('/notifications'),
+    },
+    {
+      label: 'Reservations',
+      href: '/reservations',
+      match: (pathname: string) => pathname.startsWith('/reservations'),
+    },
   ] as const;
 
   let {
@@ -33,23 +41,7 @@
   const currentUser = $derived(data.currentUser ?? null);
 
   function isActive(item: (typeof menuItems)[number]) {
-    if (item === 'Dashboard') {
-      return page.route.id === '/';
-    }
-
-    if (item === 'Users') {
-      return page.url.pathname.startsWith('/users');
-    }
-
-    if (item === 'Sellers') {
-      return page.url.pathname.startsWith('/sellers');
-    }
-
-    if (item === 'Categories') {
-      return page.url.pathname.startsWith('/categories');
-    }
-
-    return false;
+    return item.match(String(page.url.pathname), page.route.id ?? null);
   }
 
   async function handleLogout() {
@@ -90,47 +82,14 @@
         </div>
 
         <nav class="mt-6 flex-1 space-y-2">
-          {#each menuItems as item (item)}
-            {#if item === 'Dashboard'}
-              <a
-                href={resolve('/')}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
-              >
-                <span>{item}</span>
-                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
-              </a>
-            {:else if item === 'Users'}
-              <a
-                href={resolve('/users')}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
-              >
-                <span>{item}</span>
-                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
-              </a>
-            {:else if item === 'Sellers'}
-              <a
-                href={resolve('/sellers')}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
-              >
-                <span>{item}</span>
-                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
-              </a>
-            {:else if item === 'Categories'}
-              <a
-                href={resolve('/categories')}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
-              >
-                <span>{item}</span>
-                <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
-              </a>
-            {:else}
-              <div
-                class="flex items-center justify-between rounded-2xl border border-white/5 px-4 py-3 text-sm font-medium text-slate-500"
-              >
-                <span>{item}</span>
-                <span class="text-xs tracking-[0.3em] uppercase">Soon</span>
-              </div>
-            {/if}
+          {#each menuItems as item (item.label)}
+            <a
+              href={resolve(item.href)}
+              class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+            >
+              <span>{item.label}</span>
+              <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
+            </a>
           {/each}
         </nav>
 

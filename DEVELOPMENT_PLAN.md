@@ -2837,7 +2837,7 @@ Di `apps/admin/`:
 Install chart library jika perlu.
 ```
 
-### Task 9.3 — Admin Order & Payment Management
+### Task 9.3 — Admin Order & Payment Management [DONE]
 
 | Key          | Value                                                        |
 | ------------ | ------------------------------------------------------------ |
