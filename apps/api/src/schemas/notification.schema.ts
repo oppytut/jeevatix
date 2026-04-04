@@ -85,7 +85,11 @@ export const notificationReadAllResponseSchema = z
 export const broadcastSchema = z
   .object({
     title: z.string().trim().min(1).max(255).openapi({ example: 'Pengumuman Sistem' }),
-    body: z.string().trim().min(1).openapi({ example: 'Platform akan menjalani maintenance malam ini.' }),
+    body: z
+      .string()
+      .trim()
+      .min(1)
+      .openapi({ example: 'Platform akan menjalani maintenance malam ini.' }),
     target_role: broadcastTargetRoleSchema.default('all').optional().openapi({ example: 'all' }),
   })
   .openapi('BroadcastNotificationInput');

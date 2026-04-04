@@ -149,9 +149,7 @@
     return status.charAt(0).toUpperCase() + status.slice(1);
   }
 
-  function getPaymentVariant(
-    status: PaymentStatus,
-  ): 'default' | 'success' | 'neutral' | 'warning' {
+  function getPaymentVariant(status: PaymentStatus): 'default' | 'success' | 'neutral' | 'warning' {
     switch (status) {
       case 'success':
         return 'success';
@@ -271,7 +269,8 @@
         Detail pembayaran
       </h1>
       <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-        Rekonsiliasi payment, order terkait, dan tiket terbit sebelum menjalankan perubahan status manual.
+        Rekonsiliasi payment, order terkait, dan tiket terbit sebelum menjalankan perubahan status
+        manual.
       </p>
     </div>
 
@@ -293,11 +292,21 @@
   </div>
 
   {#if toast}
-    <Toast actionLabel={undefined} title={toast.title} description={toast.description} variant={toast.variant} />
+    <Toast
+      actionLabel={undefined}
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+    />
   {/if}
 
   {#if pageError}
-    <Toast title="Gagal memuat detail" description={pageError} actionLabel={undefined} variant="warning" />
+    <Toast
+      title="Gagal memuat detail"
+      description={pageError}
+      actionLabel={undefined}
+      variant="warning"
+    />
   {/if}
 
   {#if isLoading}
@@ -308,23 +317,45 @@
     </div>
   {:else if paymentDetail}
     <div class="grid gap-4 md:grid-cols-4">
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Status payment</p>
         <div class="mt-3">
-          <Badge variant={getPaymentVariant(paymentDetail.status)}>{formatStatus(paymentDetail.status)}</Badge>
+          <Badge variant={getPaymentVariant(paymentDetail.status)}
+            >{formatStatus(paymentDetail.status)}</Badge
+          >
         </div>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Status order</p>
         <div class="mt-3">
-          <Badge variant={getOrderVariant(paymentDetail.orderStatus)}>{formatOrderStatus(paymentDetail.orderStatus)}</Badge>
+          <Badge variant={getOrderVariant(paymentDetail.orderStatus)}
+            >{formatOrderStatus(paymentDetail.orderStatus)}</Badge
+          >
         </div>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Nominal</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{formatCurrency(paymentDetail.amount)}</p>
+        <p class="mt-2 text-3xl font-semibold text-slate-950">
+          {formatCurrency(paymentDetail.amount)}
+        </p>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Jumlah tiket</p>
         <p class="mt-2 text-3xl font-semibold text-slate-950">{totalTickets}</p>
       </Card>
@@ -357,19 +388,27 @@
           </div>
           <div>
             <p class="text-sm text-slate-500">Metode</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatMethod(paymentDetail.method)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatMethod(paymentDetail.method)}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">External ref</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{paymentDetail.externalRef ?? ' - '}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {paymentDetail.externalRef ?? ' - '}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Dibuat</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatDate(paymentDetail.createdAt)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatDate(paymentDetail.createdAt)}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Paid at</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatDate(paymentDetail.paidAt)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatDate(paymentDetail.paidAt)}
+            </p>
           </div>
         </div>
       </Card>
@@ -389,7 +428,9 @@
             >
               <div class="flex items-center justify-between gap-3">
                 <p class="font-semibold text-slate-950">{action.label}</p>
-                <Badge variant={getPaymentVariant(action.status)}>{formatStatus(action.status)}</Badge>
+                <Badge variant={getPaymentVariant(action.status)}
+                  >{formatStatus(action.status)}</Badge
+                >
               </div>
               <p class="mt-2 text-sm leading-6 text-slate-600">{action.description}</p>
             </button>
@@ -410,7 +451,9 @@
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <p class="font-semibold text-slate-950">{item.tierName}</p>
-                  <p class="mt-1 text-sm text-slate-500">Qty {item.quantity} x {formatCurrency(item.unitPrice)}</p>
+                  <p class="mt-1 text-sm text-slate-500">
+                    Qty {item.quantity} x {formatCurrency(item.unitPrice)}
+                  </p>
                 </div>
                 <p class="font-semibold text-slate-950">{formatCurrency(item.subtotal)}</p>
               </div>
@@ -459,8 +502,11 @@
     contentClass="max-w-xl"
   >
     <div class="space-y-6">
-      <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700">
-        Anda akan mengubah payment <span class="font-semibold">{paymentDetail?.orderNumber}</span> menjadi
+      <div
+        class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700"
+      >
+        Anda akan mengubah payment <span class="font-semibold">{paymentDetail?.orderNumber}</span>
+        menjadi
         <span class="font-semibold"> {pendingStatus ? formatStatus(pendingStatus) : '-'}</span>.
       </div>
 
@@ -476,7 +522,11 @@
           <CircleX class="mr-2 size-4" />
           Batal
         </Button>
-        <Button type="button" onclick={confirmStatusChange} disabled={isSubmitting || !pendingStatus}>
+        <Button
+          type="button"
+          onclick={confirmStatusChange}
+          disabled={isSubmitting || !pendingStatus}
+        >
           <BadgeCheck class="mr-2 size-4" />
           Simpan status
         </Button>

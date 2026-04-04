@@ -192,22 +192,37 @@
 
     <a
       href={resolve('/profile/password')}
-      class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-jeevatix-300 hover:bg-jeevatix-50"
+      class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition"
     >
       Ubah Password
     </a>
   </div>
 
   {#if toast}
-    <Toast title={toast.title} description={toast.description} variant={toast.variant} actionLabel={undefined} />
+    <Toast
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if pageError}
-    <Toast title="Gagal memuat profil" description={pageError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Gagal memuat profil"
+      description={pageError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if formError}
-    <Toast title="Perlu perhatian" description={formError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Perlu perhatian"
+      description={formError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
   <div class="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
@@ -227,9 +242,15 @@
             <div class="space-y-4">
               <div class="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50">
                 {#if form.logo_url}
-                  <img src={form.logo_url} alt="Logo organisasi seller" class="h-52 w-full object-cover" />
+                  <img
+                    src={form.logo_url}
+                    alt="Logo organisasi seller"
+                    class="h-52 w-full object-cover"
+                  />
                 {:else}
-                  <div class="flex h-52 items-center justify-center bg-[radial-gradient(circle_at_top,#ecfdf5_0%,#f8fafc_65%,#ffffff_100%)] text-slate-500">
+                  <div
+                    class="flex h-52 items-center justify-center bg-[radial-gradient(circle_at_top,#ecfdf5_0%,#f8fafc_65%,#ffffff_100%)] text-slate-500"
+                  >
                     <Building2 class="size-10" />
                   </div>
                 {/if}
@@ -244,7 +265,9 @@
                   class="hidden"
                   onchange={handleLogoUpload}
                 />
-                <span class="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-dashed border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-jeevatix-300 hover:bg-jeevatix-50">
+                <span
+                  class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-dashed border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition"
+                >
                   {#if isUploading}
                     <LoaderCircle class="size-4 animate-spin" />
                     Mengunggah...
@@ -260,7 +283,12 @@
               <div class="grid gap-5 sm:grid-cols-2">
                 <label class="block space-y-2 sm:col-span-2" for="org-name">
                   <span class="text-sm font-medium text-slate-700">Org Name</span>
-                  <Input id="org-name" bind:value={form.org_name} placeholder="Nama organisasi seller" maxlength={200} />
+                  <Input
+                    id="org-name"
+                    bind:value={form.org_name}
+                    placeholder="Nama organisasi seller"
+                    maxlength={200}
+                  />
                 </label>
 
                 <label class="block space-y-2 sm:col-span-2" for="org-description">
@@ -276,17 +304,33 @@
 
                 <label class="block space-y-2" for="bank-name">
                   <span class="text-sm font-medium text-slate-700">Bank Name</span>
-                  <Input id="bank-name" bind:value={form.bank_name} placeholder="Contoh: Bank Central Asia" maxlength={100} />
+                  <Input
+                    id="bank-name"
+                    bind:value={form.bank_name}
+                    placeholder="Contoh: Bank Central Asia"
+                    maxlength={100}
+                  />
                 </label>
 
                 <label class="block space-y-2" for="bank-account-number">
                   <span class="text-sm font-medium text-slate-700">Account Number</span>
-                  <Input id="bank-account-number" bind:value={form.bank_account_number} placeholder="Nomor rekening pencairan" maxlength={50} inputmode="numeric" />
+                  <Input
+                    id="bank-account-number"
+                    bind:value={form.bank_account_number}
+                    placeholder="Nomor rekening pencairan"
+                    maxlength={50}
+                    inputmode="numeric"
+                  />
                 </label>
 
                 <label class="block space-y-2 sm:col-span-2" for="bank-account-holder">
                   <span class="text-sm font-medium text-slate-700">Account Holder</span>
-                  <Input id="bank-account-holder" bind:value={form.bank_account_holder} placeholder="Nama pemilik rekening" maxlength={150} />
+                  <Input
+                    id="bank-account-holder"
+                    bind:value={form.bank_account_holder}
+                    placeholder="Nama pemilik rekening"
+                    maxlength={150}
+                  />
                 </label>
               </div>
 
@@ -298,7 +342,9 @@
                   Simpan Profil
                 </Button>
 
-                <span class="text-sm text-slate-500">Update terakhir: {formatDate(profile?.updated_at ?? null)}</span>
+                <span class="text-sm text-slate-500"
+                  >Update terakhir: {formatDate(profile?.updated_at ?? null)}</span
+                >
               </div>
             </div>
           </div>
@@ -314,27 +360,37 @@
       >
         {#if profile}
           <div class="space-y-5">
-            <div class={`rounded-[1.6rem] border px-5 py-4 ${profile.is_verified ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
+            <div
+              class={`rounded-[1.6rem] border px-5 py-4 ${profile.is_verified ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}
+            >
               <div class="flex items-center gap-3">
                 {#if profile.is_verified}
                   <CheckCircle2 class="size-5" />
                   <div>
                     <p class="text-sm font-semibold">Verified</p>
-                    <p class="text-sm opacity-80">Diverifikasi pada {formatDate(profile.verified_at)}</p>
+                    <p class="text-sm opacity-80">
+                      Diverifikasi pada {formatDate(profile.verified_at)}
+                    </p>
                   </div>
                 {:else}
                   <Clock3 class="size-5" />
                   <div>
                     <p class="text-sm font-semibold">Pending</p>
-                    <p class="text-sm opacity-80">Lengkapi profil agar proses review seller lebih cepat.</p>
+                    <p class="text-sm opacity-80">
+                      Lengkapi profil agar proses review seller lebih cepat.
+                    </p>
                   </div>
                 {/if}
               </div>
             </div>
 
-            <div class="space-y-4 rounded-[1.6rem] border border-white/70 bg-white/90 p-5 shadow-sm">
+            <div
+              class="space-y-4 rounded-[1.6rem] border border-white/70 bg-white/90 p-5 shadow-sm"
+            >
               <div>
-                <p class="text-xs font-semibold tracking-[0.3em] text-slate-500 uppercase">Owner Account</p>
+                <p class="text-xs font-semibold tracking-[0.3em] text-slate-500 uppercase">
+                  Owner Account
+                </p>
                 <p class="mt-2 text-lg font-semibold text-slate-950">{profile.full_name}</p>
                 <p class="text-sm text-slate-600">{profile.email}</p>
               </div>
@@ -361,12 +417,15 @@
         class="rounded-[2rem]"
       >
         <div class="space-y-4 text-sm text-slate-600">
-          <div class="flex items-start gap-3 rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4">
+          <div
+            class="flex items-start gap-3 rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4"
+          >
             <Landmark class="mt-0.5 size-4 text-slate-500" />
             <div>
               <p class="font-medium text-slate-900">Pastikan detail rekening valid</p>
               <p class="mt-1 leading-6">
-                Kesalahan nama pemilik atau nomor rekening akan memperlambat pencairan dana dari event yang sudah selesai.
+                Kesalahan nama pemilik atau nomor rekening akan memperlambat pencairan dana dari
+                event yang sudah selesai.
               </p>
             </div>
           </div>

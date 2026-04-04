@@ -220,7 +220,11 @@ app.openapi(getReservationRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await reservationService.getReservation(c.var.user.id, params.id, c.env.DATABASE_URL);
+    const result = await reservationService.getReservation(
+      c.var.user.id,
+      params.id,
+      c.env.DATABASE_URL,
+    );
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

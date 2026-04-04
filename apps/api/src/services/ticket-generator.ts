@@ -19,7 +19,11 @@ type IssuedTicket = {
 
 export class TicketServiceError extends Error {
   constructor(
-    public readonly code: 'DATABASE_UNAVAILABLE' | 'FORBIDDEN' | 'ORDER_NOT_FOUND' | 'TICKET_NOT_FOUND',
+    public readonly code:
+      | 'DATABASE_UNAVAILABLE'
+      | 'FORBIDDEN'
+      | 'ORDER_NOT_FOUND'
+      | 'TICKET_NOT_FOUND',
     message: string,
   ) {
     super(message);

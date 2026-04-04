@@ -414,8 +414,7 @@ async function requestResponse<T, TMeta = unknown>(
   const response = await fetchFn(`${API_BASE_URL}${path}`, {
     method,
     headers: requestHeaders,
-    body:
-      body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
+    body: body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
   });
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && cookies) {
@@ -451,10 +450,7 @@ async function requestResponse<T, TMeta = unknown>(
   };
 }
 
-export function apiGet<T>(
-  path: string,
-  options: Omit<RequestOptions, 'body'>,
-) {
+export function apiGet<T>(path: string, options: Omit<RequestOptions, 'body'>) {
   return request<T>('GET', path, options);
 }
 
@@ -465,26 +461,15 @@ export function apiGetResponse<T, TMeta = unknown>(
   return requestResponse<T, TMeta>('GET', path, options);
 }
 
-export function apiPost<T>(
-  path: string,
-  body: unknown,
-  options: Omit<RequestOptions, 'body'>,
-) {
+export function apiPost<T>(path: string, body: unknown, options: Omit<RequestOptions, 'body'>) {
   return request<T>('POST', path, { ...options, body });
 }
 
-export function apiPatch<T>(
-  path: string,
-  body: unknown,
-  options: Omit<RequestOptions, 'body'>,
-) {
+export function apiPatch<T>(path: string, body: unknown, options: Omit<RequestOptions, 'body'>) {
   return request<T>('PATCH', path, { ...options, body });
 }
 
-export function apiDelete<T>(
-  path: string,
-  options: Omit<RequestOptions, 'body'>,
-) {
+export function apiDelete<T>(path: string, options: Omit<RequestOptions, 'body'>) {
   return request<T>('DELETE', path, options);
 }
 

@@ -133,9 +133,12 @@
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div class="space-y-3">
       <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">S12</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Detail pesanan seller</h1>
+      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        Detail pesanan seller
+      </h1>
       <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-        Audit detail transaksi, profil buyer, item tiket yang dibeli, dan progres pembayaran untuk order ini.
+        Audit detail transaksi, profil buyer, item tiket yang dibeli, dan progres pembayaran untuk
+        order ini.
       </p>
     </div>
 
@@ -146,11 +149,19 @@
   </div>
 
   {#if pageError}
-    <Toast title="Gagal memuat order" description={pageError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Gagal memuat order"
+      description={pageError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if isLoading}
-    <Card title="Memuat order" description="Mohon tunggu, data transaksi seller sedang dipersiapkan.">
+    <Card
+      title="Memuat order"
+      description="Mohon tunggu, data transaksi seller sedang dipersiapkan."
+    >
       <div class="py-16 text-center text-sm text-slate-500">Memuat detail pesanan...</div>
     </Card>
   {:else if order}
@@ -165,23 +176,34 @@
             <div class="space-y-3">
               <div class="flex items-center gap-2">
                 <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                <Badge variant={getPaymentVariant(order.payment.status)}>{order.payment.status}</Badge>
+                <Badge variant={getPaymentVariant(order.payment.status)}
+                  >{order.payment.status}</Badge
+                >
               </div>
               <div class="text-sm text-slate-600">
                 <p><span class="font-medium text-slate-900">Event:</span> {order.event.title}</p>
-                <p><span class="font-medium text-slate-900">Venue:</span> {order.event.venue_city}</p>
-                <p><span class="font-medium text-slate-900">Mulai event:</span> {formatDate(order.event.start_at)}</p>
+                <p>
+                  <span class="font-medium text-slate-900">Venue:</span>
+                  {order.event.venue_city}
+                </p>
+                <p>
+                  <span class="font-medium text-slate-900">Mulai event:</span>
+                  {formatDate(order.event.start_at)}
+                </p>
               </div>
             </div>
 
             <div class="space-y-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
               <div class="flex items-center justify-between text-sm text-slate-600">
                 <span>Total amount</span>
-                <span class="font-semibold text-slate-950">{formatCurrency(order.total_amount)}</span>
+                <span class="font-semibold text-slate-950"
+                  >{formatCurrency(order.total_amount)}</span
+                >
               </div>
               <div class="flex items-center justify-between text-sm text-slate-600">
                 <span>Service fee</span>
-                <span class="font-semibold text-slate-950">{formatCurrency(order.service_fee)}</span>
+                <span class="font-semibold text-slate-950">{formatCurrency(order.service_fee)}</span
+                >
               </div>
               <div class="flex items-center justify-between text-sm text-slate-600">
                 <span>Dibuat</span>
@@ -189,7 +211,8 @@
               </div>
               <div class="flex items-center justify-between text-sm text-slate-600">
                 <span>Paid at</span>
-                <span class="font-semibold text-slate-950">{formatDate(order.payment.paid_at)}</span>
+                <span class="font-semibold text-slate-950">{formatDate(order.payment.paid_at)}</span
+                >
               </div>
             </div>
           </div>
@@ -216,7 +239,9 @@
                     <td class="px-4 py-4 font-medium text-slate-900">{item.tier_name}</td>
                     <td class="px-4 py-4 text-slate-700">{item.quantity}</td>
                     <td class="px-4 py-4 text-slate-700">{formatCurrency(item.unit_price)}</td>
-                    <td class="px-4 py-4 font-medium text-slate-900">{formatCurrency(item.subtotal)}</td>
+                    <td class="px-4 py-4 font-medium text-slate-900"
+                      >{formatCurrency(item.subtotal)}</td
+                    >
                   </tr>
                 {/each}
               </tbody>
@@ -232,7 +257,9 @@
           class="rounded-[2rem] border-slate-200 bg-white/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
         >
           <div class="space-y-3 text-sm text-slate-600">
-            <div class="flex items-start gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <div
+              class="flex items-start gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"
+            >
               <UserRound class="mt-0.5 size-4 text-slate-400" />
               <div>
                 <p class="font-semibold text-slate-950">{order.buyer.full_name}</p>
@@ -249,7 +276,9 @@
           class="rounded-[2rem] border-slate-200 bg-white/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
         >
           <div class="space-y-3 text-sm text-slate-600">
-            <div class="flex items-center gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <div
+              class="flex items-center gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"
+            >
               <Wallet class="size-4 text-slate-400" />
               <div>
                 <p class="font-semibold text-slate-950">{order.payment.method}</p>
@@ -258,7 +287,9 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <div
+              class="flex items-center gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"
+            >
               <ReceiptText class="size-4 text-slate-400" />
               <div>
                 <p class="font-semibold text-slate-950">External Ref</p>
@@ -266,7 +297,9 @@
               </div>
             </div>
 
-            <div class="flex items-center gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+            <div
+              class="flex items-center gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4"
+            >
               <CalendarClock class="size-4 text-slate-400" />
               <div>
                 <p class="font-semibold text-slate-950">Timeline</p>

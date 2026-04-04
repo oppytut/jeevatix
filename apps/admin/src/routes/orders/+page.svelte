@@ -236,14 +236,22 @@
   >
     <div class="space-y-3">
       <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A9</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Semua pesanan</h1>
+      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        Semua pesanan
+      </h1>
       <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-        Lacak order lintas event, cocokkan status order dan pembayaran, lalu buka detail untuk aksi refund atau cancel.
+        Lacak order lintas event, cocokkan status order dan pembayaran, lalu buka detail untuk aksi
+        refund atau cancel.
       </p>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
-      <Button variant="outline" type="button" onclick={() => loadOrders(meta.page, true)} disabled={isRefreshing || isLoading}>
+      <Button
+        variant="outline"
+        type="button"
+        onclick={() => loadOrders(meta.page, true)}
+        disabled={isRefreshing || isLoading}
+      >
         <RefreshCw class={`mr-2 size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         Refresh
       </Button>
@@ -251,11 +259,20 @@
   </div>
 
   {#if toast}
-    <Toast actionLabel={undefined} title={toast.title} description={toast.description} variant={toast.variant} />
+    <Toast
+      actionLabel={undefined}
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+    />
   {/if}
 
   <div class="grid gap-4 md:grid-cols-3">
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Total order</p>
@@ -266,7 +283,11 @@
         </div>
       </div>
     </Card>
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Confirmed di hasil</p>
@@ -277,7 +298,11 @@
         </div>
       </div>
     </Card>
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Nilai transaksi di hasil</p>
@@ -304,11 +329,17 @@
     >
       <div class="space-y-2">
         <label class="text-sm font-medium text-slate-700" for="order-search">Cari pesanan</label>
-        <Input id="order-search" bind:value={searchDraft} placeholder="Nomor order, buyer, email, atau event" />
+        <Input
+          id="order-search"
+          bind:value={searchDraft}
+          placeholder="Nomor order, buyer, email, atau event"
+        />
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="order-status-filter">Status order</label>
+        <label class="text-sm font-medium text-slate-700" for="order-status-filter"
+          >Status order</label
+        >
         <select
           id="order-status-filter"
           bind:value={statusFilter}
@@ -321,7 +352,9 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="payment-status-filter">Pembayaran</label>
+        <label class="text-sm font-medium text-slate-700" for="payment-status-filter"
+          >Pembayaran</label
+        >
         <select
           id="payment-status-filter"
           bind:value={paymentStatusFilter}
@@ -340,7 +373,12 @@
   </Card>
 
   {#if pageError}
-    <Toast title="Gagal memuat data" description={pageError} actionLabel={undefined} variant="warning" />
+    <Toast
+      title="Gagal memuat data"
+      description={pageError}
+      actionLabel={undefined}
+      variant="warning"
+    />
   {/if}
 
   <Card
@@ -351,11 +389,20 @@
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
-          <div class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"></div>
+          <div
+            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+          ></div>
         {/each}
       </div>
     {:else}
-      <DataTable title={undefined} description={undefined} {columns} rows={tableRows} emptyMessage="Tidak ada pesanan yang cocok dengan filter saat ini." actionHeader="Aksi">
+      <DataTable
+        title={undefined}
+        description={undefined}
+        {columns}
+        rows={tableRows}
+        emptyMessage="Tidak ada pesanan yang cocok dengan filter saat ini."
+        actionHeader="Aksi"
+      >
         {#snippet rowActions(row)}
           <Button variant="outline" size="sm" type="button" onclick={() => openOrderDetail(row)}>
             Detail
@@ -371,11 +418,23 @@
           pesanan.
         </p>
         <div class="flex items-center gap-3">
-          <Button variant="outline" type="button" onclick={previousPage} disabled={meta.page <= 1 || isLoading}>
+          <Button
+            variant="outline"
+            type="button"
+            onclick={previousPage}
+            disabled={meta.page <= 1 || isLoading}
+          >
             Sebelumnya
           </Button>
-          <span class="text-sm font-medium text-slate-600">Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span>
-          <Button variant="outline" type="button" onclick={nextPage} disabled={meta.totalPages <= meta.page || isLoading}>
+          <span class="text-sm font-medium text-slate-600"
+            >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
+          >
+          <Button
+            variant="outline"
+            type="button"
+            onclick={nextPage}
+            disabled={meta.totalPages <= meta.page || isLoading}
+          >
             Berikutnya
           </Button>
         </div>

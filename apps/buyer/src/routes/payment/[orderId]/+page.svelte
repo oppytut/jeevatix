@@ -29,7 +29,9 @@
 
   let now = $state(Date.now());
   let countdownInterval: ReturnType<typeof setInterval> | null = null;
-  let selectedMethod = $derived(form?.selectedMethod ?? data.order.payment.method ?? 'bank_transfer');
+  let selectedMethod = $derived(
+    form?.selectedMethod ?? data.order.payment.method ?? 'bank_transfer',
+  );
 
   const paymentMethods = [
     {
@@ -108,7 +110,9 @@
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
-  <div class="rounded-[2.5rem] border border-white/80 bg-[linear-gradient(135deg,#eef8ff_0%,#fff4e8_48%,#fffaf0_100%)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9">
+  <div
+    class="rounded-[2.5rem] border border-white/80 bg-[linear-gradient(135deg,#eef8ff_0%,#fff4e8_48%,#fffaf0_100%)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9"
+  >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
         <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">Payment</p>
@@ -116,18 +120,23 @@
           Selesaikan pembayaran order Anda.
         </h1>
         <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-          Pilih metode pembayaran yang paling nyaman, lalu lanjutkan ke gateway pembayaran mock Jeevatix.
+          Pilih metode pembayaran yang paling nyaman, lalu lanjutkan ke gateway pembayaran mock
+          Jeevatix.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
         <div class="rounded-[1.5rem] border border-white/70 bg-white/75 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Order Number</p>
+          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">
+            Order Number
+          </p>
           <p class="mt-2 text-sm font-medium text-slate-900">{data.order.order_number}</p>
         </div>
         <div class="rounded-[1.5rem] border border-white/70 bg-white/75 px-5 py-4 backdrop-blur">
           <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Status</p>
-          <p class={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusTone(data.order.status)}`}>
+          <p
+            class={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusTone(data.order.status)}`}
+          >
             {data.order.status}
           </p>
         </div>
@@ -136,11 +145,17 @@
   </div>
 
   <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-    <Card class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7">
+    <Card
+      class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+    >
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Metode Pembayaran</p>
-          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Pilih cara bayar</h2>
+          <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+            Metode Pembayaran
+          </p>
+          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+            Pilih cara bayar
+          </h2>
           <p class="mt-2 text-sm leading-6 text-slate-600">
             Order ini akan kedaluwarsa pada {formatLongDateTime(data.order.expires_at)} jika belum dibayar.
           </p>
@@ -153,7 +168,9 @@
       <form class="mt-8 space-y-5" method="POST" action="?/initiatePayment">
         <div class="space-y-4">
           {#each paymentMethods as paymentMethod (paymentMethod.value)}
-            <label class={`block cursor-pointer rounded-[1.75rem] border p-5 transition ${selectedMethod === paymentMethod.value ? 'border-sky-400 bg-sky-50/80 shadow-[0_16px_38px_rgba(14,165,233,0.12)]' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'}`}>
+            <label
+              class={`block cursor-pointer rounded-[1.75rem] border p-5 transition ${selectedMethod === paymentMethod.value ? 'border-sky-400 bg-sky-50/80 shadow-[0_16px_38px_rgba(14,165,233,0.12)]' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'}`}
+            >
               <input
                 class="sr-only"
                 type="radio"
@@ -164,7 +181,9 @@
               />
 
               <div class="flex items-start gap-4">
-                <div class="flex size-12 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-sm">
+                <div
+                  class="flex size-12 items-center justify-center rounded-2xl bg-white text-slate-700 shadow-sm"
+                >
                   <paymentMethod.icon class="size-5" />
                 </div>
                 <div>
@@ -177,18 +196,26 @@
         </div>
 
         {#if form?.paymentError}
-          <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div
+            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+          >
             {form.paymentError}
           </div>
         {/if}
 
         {#if form?.paymentSuccess}
-          <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div
+            class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+          >
             {form.paymentSuccess}
           </div>
         {/if}
 
-        <Button type="submit" class="w-full rounded-full px-6 py-3" disabled={getRemainingMs() <= 0 || data.order.status !== 'pending'}>
+        <Button
+          type="submit"
+          class="w-full rounded-full px-6 py-3"
+          disabled={getRemainingMs() <= 0 || data.order.status !== 'pending'}
+        >
           Bayar Sekarang
           <ArrowRight class="size-4" />
         </Button>
@@ -196,25 +223,38 @@
     </Card>
 
     <div class="space-y-6">
-      <Card class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7">
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Batas Waktu Bayar</p>
+      <Card
+        class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+      >
+        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+          Batas Waktu Bayar
+        </p>
         <div class="mt-5 rounded-[1.75rem] border border-amber-200 bg-amber-50 p-5">
           <div class="flex items-start gap-3">
             <Clock3 class="mt-0.5 size-5 text-amber-700" />
             <div>
-              <p class="text-4xl font-semibold tracking-tight text-slate-950">{formatCountdown(getRemainingMs())}</p>
+              <p class="text-4xl font-semibold tracking-tight text-slate-950">
+                {formatCountdown(getRemainingMs())}
+              </p>
               <p class="mt-3 text-sm leading-6 text-slate-600">
-                Selesaikan pembayaran sebelum {formatLongDateTime(data.order.expires_at)} agar order tidak hangus.
+                Selesaikan pembayaran sebelum {formatLongDateTime(data.order.expires_at)} agar order tidak
+                hangus.
               </p>
             </div>
           </div>
         </div>
       </Card>
 
-      <Card class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7">
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Ringkasan Order</p>
+      <Card
+        class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+      >
+        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+          Ringkasan Order
+        </p>
         <div class="mt-5 space-y-4">
-          <div class="flex items-start gap-3 rounded-[1.5rem] bg-slate-50 p-4 text-sm text-slate-600">
+          <div
+            class="flex items-start gap-3 rounded-[1.5rem] bg-slate-50 p-4 text-sm text-slate-600"
+          >
             <CalendarDays class="mt-0.5 size-4 text-orange-600" />
             <div>
               <p class="font-medium text-slate-900">{data.order.event_title}</p>
@@ -224,10 +264,14 @@
 
           <div class="space-y-3 rounded-[1.5rem] bg-slate-50 p-4">
             {#each data.order.items as item (item.id)}
-              <div class="flex items-end justify-between gap-4 border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
+              <div
+                class="flex items-end justify-between gap-4 border-b border-slate-200 pb-3 last:border-b-0 last:pb-0"
+              >
                 <div>
                   <p class="font-medium text-slate-900">{item.tier_name}</p>
-                  <p class="mt-1 text-sm text-slate-600">{item.quantity} tiket x {formatCurrency(item.unit_price)}</p>
+                  <p class="mt-1 text-sm text-slate-600">
+                    {item.quantity} tiket x {formatCurrency(item.unit_price)}
+                  </p>
                 </div>
                 <p class="text-sm font-semibold text-slate-950">{formatCurrency(item.subtotal)}</p>
               </div>
@@ -245,7 +289,9 @@
             </div>
             <div class="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
               <span class="text-base font-medium text-slate-900">Total Bayar</span>
-              <span class="text-2xl font-semibold text-slate-950">{formatCurrency(data.order.total_amount)}</span>
+              <span class="text-2xl font-semibold text-slate-950"
+                >{formatCurrency(data.order.total_amount)}</span
+              >
             </div>
           </div>
         </div>

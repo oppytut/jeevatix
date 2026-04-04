@@ -7,10 +7,7 @@ import type {
   OrderDetail,
   OrderListItem,
 } from '../schemas/order.schema';
-import {
-  OrderReservationServiceError,
-  releaseReservation,
-} from './order-reservation.service';
+import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
 
 const ORDER_EXPIRY_MINUTES = 30;
 const DEFAULT_PAYMENT_METHOD = 'bank_transfer';
@@ -432,7 +429,11 @@ export const orderService = {
     let confirmResult: Awaited<ReturnType<typeof invokeTicketReserverConfirm>>;
 
     try {
-      confirmResult = await invokeTicketReserverConfirm(env, reservation.ticketTier.id, reservation.id);
+      confirmResult = await invokeTicketReserverConfirm(
+        env,
+        reservation.ticketTier.id,
+        reservation.id,
+      );
     } catch (error) {
       const refreshedReservation = await database.query.reservations.findFirst({
         where: eq(reservations.id, reservation.id),
@@ -475,7 +476,11 @@ export const orderService = {
     const offset = (page - 1) * limit;
 
     const expiredOrders = await database.query.orders.findMany({
-      where: and(eq(orders.userId, userId), eq(orders.status, 'pending'), lte(orders.expiresAt, new Date())),
+      where: and(
+        eq(orders.userId, userId),
+        eq(orders.status, 'pending'),
+        lte(orders.expiresAt, new Date()),
+      ),
       columns: {
         id: true,
       },
@@ -558,7 +563,11 @@ export const orderService = {
     };
   },
 
-  async getOrderDetail(env: OrderServiceEnv, userId: string, orderId: string): Promise<OrderDetail> {
+  async getOrderDetail(
+    env: OrderServiceEnv,
+    userId: string,
+    orderId: string,
+  ): Promise<OrderDetail> {
     await expirePendingOrder(env, orderId);
 
     const database = getDatabase(env.DATABASE_URL);

@@ -243,7 +243,13 @@
     }
 
     if (step === 2) {
-      if (!form.venue_name.trim() || !form.start_at || !form.end_at || !form.sale_start_at || !form.sale_end_at) {
+      if (
+        !form.venue_name.trim() ||
+        !form.start_at ||
+        !form.end_at ||
+        !form.sale_start_at ||
+        !form.sale_end_at
+      ) {
         formError = 'Lengkapi venue serta seluruh field waktu penjualan dan event.';
         return false;
       }
@@ -342,13 +348,18 @@
 </svelte:head>
 
 <section class="space-y-8">
-  <div class="rounded-[2rem] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10">
+  <div
+    class="rounded-[2rem] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+  >
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
         <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">S7</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Buat event baru</h1>
+        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          Buat event baru
+        </h1>
         <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-          Susun event dari info dasar sampai tier tiket dalam satu alur kerja seller. Event akan disimpan sebagai draft terlebih dulu.
+          Susun event dari info dasar sampai tier tiket dalam satu alur kerja seller. Event akan
+          disimpan sebagai draft terlebih dulu.
         </p>
       </div>
 
@@ -378,11 +389,21 @@
   </div>
 
   {#if toast}
-    <Toast title={toast.title} description={toast.description} variant={toast.variant} actionLabel={undefined} />
+    <Toast
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if formError}
-    <Toast title="Perlu perhatian" description={formError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Perlu perhatian"
+      description={formError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
   <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -395,7 +416,12 @@
         <div class="space-y-5">
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700" for="title">Title Event</label>
-            <Input id="title" bind:value={form.title} placeholder="Festival Musik Nusantara" required />
+            <Input
+              id="title"
+              bind:value={form.title}
+              placeholder="Festival Musik Nusantara"
+              required
+            />
           </div>
 
           <div class="space-y-2">
@@ -403,7 +429,7 @@
             <textarea
               id="description"
               bind:value={form.description}
-              class="min-h-36 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-36 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Tuliskan konsep event, headline performer, dan pengalaman yang akan didapat pembeli tiket."
             ></textarea>
           </div>
@@ -417,13 +443,14 @@
             <div>
               <p class="text-sm font-medium text-slate-700">Kategori</p>
               <p class="mt-1 text-sm text-slate-500">
-                Endpoint kategori seller belum tersedia sebelum T-5.1, jadi opsi ini mengikuti seed kategori proyek saat ini.
+                Endpoint kategori seller belum tersedia sebelum T-5.1, jadi opsi ini mengikuti seed
+                kategori proyek saat ini.
               </p>
             </div>
             <div class="flex flex-wrap gap-2">
               {#each fallbackCategoryOptions as category (category.id)}
                 <button
-                  class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-jeevatix-300 hover:bg-jeevatix-50 hover:text-slate-900'}`}
+                  class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-slate-200 bg-white text-slate-600 hover:text-slate-900'}`}
                   onclick={() => toggleCategory(category.id)}
                   type="button"
                 >
@@ -437,27 +464,41 @@
         <div class="space-y-5">
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700" for="venue-name">Venue Name</label>
-            <Input id="venue-name" bind:value={form.venue_name} placeholder="Istora Senayan" required />
+            <Input
+              id="venue-name"
+              bind:value={form.venue_name}
+              placeholder="Istora Senayan"
+              required
+            />
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="venue-address">Venue Address</label>
+            <label class="text-sm font-medium text-slate-700" for="venue-address"
+              >Venue Address</label
+            >
             <textarea
               id="venue-address"
               bind:value={form.venue_address}
-              class="min-h-28 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-28 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Jl. Pintu Satu Senayan, Jakarta Pusat"
             ></textarea>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="venue-latitude">Latitude</label>
+              <label class="text-sm font-medium text-slate-700" for="venue-latitude">Latitude</label
+              >
               <Input id="venue-latitude" bind:value={form.venue_latitude} placeholder="-6.2187" />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="venue-longitude">Longitude</label>
-              <Input id="venue-longitude" bind:value={form.venue_longitude} placeholder="106.8022" />
+              <label class="text-sm font-medium text-slate-700" for="venue-longitude"
+                >Longitude</label
+              >
+              <Input
+                id="venue-longitude"
+                bind:value={form.venue_longitude}
+                placeholder="106.8022"
+              />
             </div>
           </div>
 
@@ -472,7 +513,12 @@
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="sale-start">Sale Start</label>
-              <Input id="sale-start" type="datetime-local" bind:value={form.sale_start_at} required />
+              <Input
+                id="sale-start"
+                type="datetime-local"
+                bind:value={form.sale_start_at}
+                required
+              />
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium text-slate-700" for="sale-end">Sale End</label>
@@ -481,8 +527,16 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="max-order">Max Tickets per Order</label>
-            <Input id="max-order" type="number" min="1" max="20" bind:value={form.max_tickets_per_order} />
+            <label class="text-sm font-medium text-slate-700" for="max-order"
+              >Max Tickets per Order</label
+            >
+            <Input
+              id="max-order"
+              type="number"
+              min="1"
+              max="20"
+              bind:value={form.max_tickets_per_order}
+            />
           </div>
         </div>
       {:else if currentStep === 3}
@@ -491,9 +545,13 @@
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p class="font-semibold text-slate-950">Banner Event</p>
-                <p class="mt-1 text-sm text-slate-500">Unggah visual utama untuk kartu event dan halaman detail.</p>
+                <p class="mt-1 text-sm text-slate-500">
+                  Unggah visual utama untuk kartu event dan halaman detail.
+                </p>
               </div>
-              <label class="inline-flex cursor-pointer items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-jeevatix-300 hover:bg-jeevatix-50">
+              <label
+                class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex cursor-pointer items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition"
+              >
                 {#if isUploadingBanner}
                   <LoaderCircle class="mr-2 size-4 animate-spin" />
                   Uploading...
@@ -501,14 +559,26 @@
                   <ImagePlus class="mr-2 size-4" />
                   Upload Banner
                 {/if}
-                <input class="hidden" type="file" accept="image/*" onchange={handleBannerUpload} disabled={isUploadingBanner} />
+                <input
+                  class="hidden"
+                  type="file"
+                  accept="image/*"
+                  onchange={handleBannerUpload}
+                  disabled={isUploadingBanner}
+                />
               </label>
             </div>
 
             {#if form.banner_url}
-              <img class="mt-5 h-60 w-full rounded-[1.4rem] object-cover" src={form.banner_url} alt="Banner event preview" />
+              <img
+                class="mt-5 h-60 w-full rounded-[1.4rem] object-cover"
+                src={form.banner_url}
+                alt="Banner event preview"
+              />
             {:else}
-              <div class="mt-5 flex h-52 items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white text-sm text-slate-500">
+              <div
+                class="mt-5 flex h-52 items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white text-sm text-slate-500"
+              >
                 Banner belum diunggah.
               </div>
             {/if}
@@ -518,9 +588,13 @@
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p class="font-semibold text-slate-950">Galeri Event</p>
-                <p class="mt-1 text-sm text-slate-500">Tambahkan visual pendukung venue, performer, atau ambience event.</p>
+                <p class="mt-1 text-sm text-slate-500">
+                  Tambahkan visual pendukung venue, performer, atau ambience event.
+                </p>
               </div>
-              <label class="inline-flex cursor-pointer items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-jeevatix-300 hover:bg-jeevatix-50">
+              <label
+                class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex cursor-pointer items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition"
+              >
                 {#if isUploadingGallery}
                   <LoaderCircle class="mr-2 size-4 animate-spin" />
                   Uploading...
@@ -528,7 +602,14 @@
                   <Plus class="mr-2 size-4" />
                   Tambah Gambar
                 {/if}
-                <input class="hidden" type="file" accept="image/*" multiple onchange={handleGalleryUpload} disabled={isUploadingGallery} />
+                <input
+                  class="hidden"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onchange={handleGalleryUpload}
+                  disabled={isUploadingGallery}
+                />
               </label>
             </div>
 
@@ -536,10 +617,20 @@
               <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {#each form.images as image (image.clientId)}
                   <div class="overflow-hidden rounded-[1.3rem] border border-slate-200 bg-white">
-                    <img class="h-40 w-full object-cover" src={image.image_url} alt="Galeri event" />
+                    <img
+                      class="h-40 w-full object-cover"
+                      src={image.image_url}
+                      alt="Galeri event"
+                    />
                     <div class="flex items-center justify-between px-4 py-3">
-                      <p class="text-xs font-medium tracking-[0.28em] text-slate-500 uppercase">Sort {image.sort_order}</p>
-                      <button class="text-sm font-medium text-rose-700" type="button" onclick={() => removeImage(image.clientId)}>
+                      <p class="text-xs font-medium tracking-[0.28em] text-slate-500 uppercase">
+                        Sort {image.sort_order}
+                      </p>
+                      <button
+                        class="text-sm font-medium text-rose-700"
+                        type="button"
+                        onclick={() => removeImage(image.clientId)}
+                      >
                         Hapus
                       </button>
                     </div>
@@ -547,7 +638,9 @@
                 {/each}
               </div>
             {:else}
-              <div class="mt-5 flex h-40 items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white text-sm text-slate-500">
+              <div
+                class="mt-5 flex h-40 items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white text-sm text-slate-500"
+              >
                 Belum ada galeri tambahan.
               </div>
             {/if}
@@ -558,7 +651,9 @@
           <div class="flex items-center justify-between gap-4">
             <div>
               <p class="font-semibold text-slate-950">Tier tiket</p>
-              <p class="mt-1 text-sm text-slate-500">Tambahkan semua tier yang akan muncul saat event mulai dijual.</p>
+              <p class="mt-1 text-sm text-slate-500">
+                Tambahkan semua tier yang akan muncul saat event mulai dijual.
+              </p>
             </div>
             <Button type="button" variant="outline" onclick={addTier}>
               <Plus class="mr-2 size-4" />
@@ -571,7 +666,9 @@
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <p class="font-semibold text-slate-950">Tier {index + 1}</p>
-                  <p class="mt-1 text-sm text-slate-500">Urutan tampil akan mengikuti posisi tier di bawah ini.</p>
+                  <p class="mt-1 text-sm text-slate-500">
+                    Urutan tampil akan mengikuti posisi tier di bawah ini.
+                  </p>
                 </div>
                 <button
                   class="inline-flex items-center rounded-full px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
@@ -586,33 +683,78 @@
 
               <div class="mt-5 grid gap-4 sm:grid-cols-2">
                 <div class="space-y-2 sm:col-span-2">
-                  <label class="text-sm font-medium text-slate-700" for={`tier-name-${tier.clientId}`}>Nama Tier</label>
-                  <Input id={`tier-name-${tier.clientId}`} bind:value={tier.name} placeholder="VIP Early Bird" required />
+                  <label
+                    class="text-sm font-medium text-slate-700"
+                    for={`tier-name-${tier.clientId}`}>Nama Tier</label
+                  >
+                  <Input
+                    id={`tier-name-${tier.clientId}`}
+                    bind:value={tier.name}
+                    placeholder="VIP Early Bird"
+                    required
+                  />
                 </div>
                 <div class="space-y-2 sm:col-span-2">
-                  <label class="text-sm font-medium text-slate-700" for={`tier-description-${tier.clientId}`}>Deskripsi</label>
+                  <label
+                    class="text-sm font-medium text-slate-700"
+                    for={`tier-description-${tier.clientId}`}>Deskripsi</label
+                  >
                   <textarea
                     id={`tier-description-${tier.clientId}`}
                     bind:value={tier.description}
-                    class="min-h-24 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    class="min-h-24 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
                     placeholder="Benefit, area duduk, atau akses khusus untuk tier ini."
                   ></textarea>
                 </div>
                 <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-700" for={`tier-price-${tier.clientId}`}>Harga</label>
-                  <Input id={`tier-price-${tier.clientId}`} type="number" min="0" bind:value={tier.price} placeholder="350000" required />
+                  <label
+                    class="text-sm font-medium text-slate-700"
+                    for={`tier-price-${tier.clientId}`}>Harga</label
+                  >
+                  <Input
+                    id={`tier-price-${tier.clientId}`}
+                    type="number"
+                    min="0"
+                    bind:value={tier.price}
+                    placeholder="350000"
+                    required
+                  />
                 </div>
                 <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-700" for={`tier-quota-${tier.clientId}`}>Quota</label>
-                  <Input id={`tier-quota-${tier.clientId}`} type="number" min="1" bind:value={tier.quota} placeholder="100" required />
+                  <label
+                    class="text-sm font-medium text-slate-700"
+                    for={`tier-quota-${tier.clientId}`}>Quota</label
+                  >
+                  <Input
+                    id={`tier-quota-${tier.clientId}`}
+                    type="number"
+                    min="1"
+                    bind:value={tier.quota}
+                    placeholder="100"
+                    required
+                  />
                 </div>
                 <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-700" for={`tier-sale-start-${tier.clientId}`}>Sale Start Tier</label>
-                  <Input id={`tier-sale-start-${tier.clientId}`} type="datetime-local" bind:value={tier.sale_start_at} />
+                  <label
+                    class="text-sm font-medium text-slate-700"
+                    for={`tier-sale-start-${tier.clientId}`}>Sale Start Tier</label
+                  >
+                  <Input
+                    id={`tier-sale-start-${tier.clientId}`}
+                    type="datetime-local"
+                    bind:value={tier.sale_start_at}
+                  />
                 </div>
                 <div class="space-y-2">
-                  <label class="text-sm font-medium text-slate-700" for={`tier-sale-end-${tier.clientId}`}>Sale End Tier</label>
-                  <Input id={`tier-sale-end-${tier.clientId}`} type="datetime-local" bind:value={tier.sale_end_at} />
+                  <label
+                    class="text-sm font-medium text-slate-700"
+                    for={`tier-sale-end-${tier.clientId}`}>Sale End Tier</label
+                  >
+                  <Input
+                    id={`tier-sale-end-${tier.clientId}`}
+                    type="datetime-local"
+                    bind:value={tier.sale_end_at}
+                  />
                 </div>
               </div>
             </div>
@@ -621,9 +763,15 @@
       {:else}
         <div class="space-y-6">
           <div class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/60 p-5">
-            <p class="text-sm font-semibold tracking-[0.28em] text-emerald-700 uppercase">Review Ringkas</p>
-            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{form.title || 'Untitled Event'}</h2>
-            <p class="mt-2 text-sm leading-6 text-slate-600">{form.description || 'Belum ada deskripsi event.'}</p>
+            <p class="text-sm font-semibold tracking-[0.28em] text-emerald-700 uppercase">
+              Review Ringkas
+            </p>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              {form.title || 'Untitled Event'}
+            </h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+              {form.description || 'Belum ada deskripsi event.'}
+            </p>
           </div>
 
           <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -649,9 +797,18 @@
             <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
               <p class="font-semibold text-slate-950">Lokasi & Waktu</p>
               <div class="mt-4 space-y-2 text-sm text-slate-600">
-                <p><span class="font-medium text-slate-900">Venue:</span> {form.venue_name || '—'}</p>
-                <p><span class="font-medium text-slate-900">Alamat:</span> {form.venue_address || '—'}</p>
-                <p><span class="font-medium text-slate-900">Kota:</span> {form.venue_city || '—'}</p>
+                <p>
+                  <span class="font-medium text-slate-900">Venue:</span>
+                  {form.venue_name || '—'}
+                </p>
+                <p>
+                  <span class="font-medium text-slate-900">Alamat:</span>
+                  {form.venue_address || '—'}
+                </p>
+                <p>
+                  <span class="font-medium text-slate-900">Kota:</span>
+                  {form.venue_city || '—'}
+                </p>
                 <p><span class="font-medium text-slate-900">Start:</span> {form.start_at || '—'}</p>
                 <p><span class="font-medium text-slate-900">End:</span> {form.end_at || '—'}</p>
               </div>
@@ -661,10 +818,14 @@
               <p class="font-semibold text-slate-950">Tier Preview</p>
               <div class="mt-4 space-y-3">
                 {#each form.tiers as tier (tier.clientId)}
-                  <div class="rounded-[1.1rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600">
+                  <div
+                    class="rounded-[1.1rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
+                  >
                     <div class="flex items-center justify-between gap-4">
                       <p class="font-semibold text-slate-950">{tier.name || 'Tier tanpa nama'}</p>
-                      <p class="font-medium text-slate-900">Rp {Number(tier.price || 0).toLocaleString('id-ID')}</p>
+                      <p class="font-medium text-slate-900">
+                        Rp {Number(tier.price || 0).toLocaleString('id-ID')}
+                      </p>
                     </div>
                     <p class="mt-2">Quota: {tier.quota || 0}</p>
                   </div>
@@ -676,7 +837,12 @@
       {/if}
 
       <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button variant="outline" type="button" onclick={goToPreviousStep} disabled={currentStep === 1 || isSubmitting}>
+        <Button
+          variant="outline"
+          type="button"
+          onclick={goToPreviousStep}
+          disabled={currentStep === 1 || isSubmitting}
+        >
           <ArrowLeft class="mr-2 size-4" />
           Kembali
         </Button>
@@ -706,10 +872,20 @@
         class="rounded-[2rem] border border-slate-200/80 bg-white/95"
       >
         <div class="space-y-3 text-sm text-slate-600">
-          <p class={form.title && form.category_ids.length > 0 ? 'text-emerald-700' : ''}>1. Info dasar dan kategori dipilih.</p>
-          <p class={form.venue_name && form.start_at && form.end_at ? 'text-emerald-700' : ''}>2. Venue dan jadwal event lengkap.</p>
+          <p class={form.title && form.category_ids.length > 0 ? 'text-emerald-700' : ''}>
+            1. Info dasar dan kategori dipilih.
+          </p>
+          <p class={form.venue_name && form.start_at && form.end_at ? 'text-emerald-700' : ''}>
+            2. Venue dan jadwal event lengkap.
+          </p>
           <p class={form.banner_url ? 'text-emerald-700' : ''}>3. Banner utama sudah diunggah.</p>
-          <p class={form.tiers.every((tier) => tier.name && tier.price && tier.quota) ? 'text-emerald-700' : ''}>4. Semua tier tiket terisi dengan harga dan quota.</p>
+          <p
+            class={form.tiers.every((tier) => tier.name && tier.price && tier.quota)
+              ? 'text-emerald-700'
+              : ''}
+          >
+            4. Semua tier tiket terisi dengan harga dan quota.
+          </p>
         </div>
       </Card>
 
@@ -720,16 +896,24 @@
       >
         <div class="space-y-4 text-sm text-slate-600">
           <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50/70 p-4">
-            <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">Status awal</p>
+            <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">
+              Status awal
+            </p>
             <p class="mt-2 text-base font-semibold text-slate-950">Draft</p>
           </div>
           <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50/70 p-4">
-            <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">Sale Window</p>
-            <p class="mt-2 text-base font-semibold text-slate-950">{form.sale_start_at || '—'} → {form.sale_end_at || '—'}</p>
+            <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">
+              Sale Window
+            </p>
+            <p class="mt-2 text-base font-semibold text-slate-950">
+              {form.sale_start_at || '—'} → {form.sale_end_at || '—'}
+            </p>
           </div>
           <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50/70 p-4">
             <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">Banner</p>
-            <p class="mt-2 text-base font-semibold text-slate-950">{form.banner_url ? 'Ready' : 'Belum ada'}</p>
+            <p class="mt-2 text-base font-semibold text-slate-950">
+              {form.banner_url ? 'Ready' : 'Belum ada'}
+            </p>
           </div>
         </div>
       </Card>

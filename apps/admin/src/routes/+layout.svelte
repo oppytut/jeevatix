@@ -10,13 +10,37 @@
   import type { LayoutData } from './$types';
 
   const menuItems = [
-    { label: 'Dashboard', href: '/', match: (pathname: string, routeId: string | null) => routeId === '/' },
+    {
+      label: 'Dashboard',
+      href: '/',
+      match: (pathname: string, routeId: string | null) => routeId === '/',
+    },
     { label: 'Users', href: '/users', match: (pathname: string) => pathname.startsWith('/users') },
-    { label: 'Sellers', href: '/sellers', match: (pathname: string) => pathname.startsWith('/sellers') },
-    { label: 'Events', href: '/events', match: (pathname: string) => pathname.startsWith('/events') },
-    { label: 'Orders', href: '/orders', match: (pathname: string) => pathname.startsWith('/orders') },
-    { label: 'Payments', href: '/payments', match: (pathname: string) => pathname.startsWith('/payments') },
-    { label: 'Categories', href: '/categories', match: (pathname: string) => pathname.startsWith('/categories') },
+    {
+      label: 'Sellers',
+      href: '/sellers',
+      match: (pathname: string) => pathname.startsWith('/sellers'),
+    },
+    {
+      label: 'Events',
+      href: '/events',
+      match: (pathname: string) => pathname.startsWith('/events'),
+    },
+    {
+      label: 'Orders',
+      href: '/orders',
+      match: (pathname: string) => pathname.startsWith('/orders'),
+    },
+    {
+      label: 'Payments',
+      href: '/payments',
+      match: (pathname: string) => pathname.startsWith('/payments'),
+    },
+    {
+      label: 'Categories',
+      href: '/categories',
+      match: (pathname: string) => pathname.startsWith('/categories'),
+    },
     {
       label: 'Notifications',
       href: '/notifications',

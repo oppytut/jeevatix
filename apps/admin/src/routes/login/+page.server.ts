@@ -31,7 +31,12 @@ type ErrorResponse = {
   };
 };
 
-function setCookie(cookies: import('@sveltejs/kit').Cookies, name: string, value: string, maxAge: number) {
+function setCookie(
+  cookies: import('@sveltejs/kit').Cookies,
+  name: string,
+  value: string,
+  maxAge: number,
+) {
   cookies.set(name, value, {
     path: '/',
     httpOnly: false,

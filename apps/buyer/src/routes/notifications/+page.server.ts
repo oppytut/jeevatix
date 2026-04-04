@@ -1,11 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 
-import {
-  apiGet,
-  apiPatch,
-  type BuyerNotification,
-  type BuyerNotificationsPayload,
-} from '$lib/api';
+import { apiGet, apiPatch, type BuyerNotification, type BuyerNotificationsPayload } from '$lib/api';
 import { ApiError, clearAuthSession } from '$lib/auth';
 
 function requireBuyerSession(locals: App.Locals) {

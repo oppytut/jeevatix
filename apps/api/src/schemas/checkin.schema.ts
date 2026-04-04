@@ -17,12 +17,20 @@ export const checkinEventParamsSchema = z
 export const checkinResultSchema = z
   .object({
     status: checkinStatusSchema.openapi({ example: 'SUCCESS' }),
-    ticket_id: z.string().uuid().nullable().openapi({ example: 'af1e1e0c-c77d-4d9d-8b0f-0ff713738d89' }),
+    ticket_id: z
+      .string()
+      .uuid()
+      .nullable()
+      .openapi({ example: 'af1e1e0c-c77d-4d9d-8b0f-0ff713738d89' }),
     ticket_code: z.string().nullable().openapi({ example: 'JVX-AB12CD34EF56' }),
     buyer_name: z.string().nullable().openapi({ example: 'Budi Santoso' }),
     buyer_email: z.string().email().nullable().openapi({ example: 'buyer@jeevatix.id' }),
     tier_name: z.string().nullable().openapi({ example: 'VIP' }),
-    checked_in_at: z.string().datetime().nullable().openapi({ example: '2026-04-01T09:45:00.000Z' }),
+    checked_in_at: z
+      .string()
+      .datetime()
+      .nullable()
+      .openapi({ example: '2026-04-01T09:45:00.000Z' }),
     message: z.string().openapi({ example: 'Ticket checked in successfully.' }),
   })
   .openapi('CheckinResult');

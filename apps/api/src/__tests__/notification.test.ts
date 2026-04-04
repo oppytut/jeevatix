@@ -273,7 +273,9 @@ describe.sequential('Phase 7 Notification API', () => {
   it('sends event reminders for confirmed orders that start within 24 hours', async () => {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();
-    const { event, tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+    const { event, tier } = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+    });
 
     const reservationResponse = await context.requestJson('/reservations', {
       method: 'POST',
@@ -337,7 +339,9 @@ describe.sequential('Phase 7 Notification API', () => {
 
     const result = await cleanupExpiredReservations(context.env());
     const buyerNotifications = await context.getNotificationsForUser(buyer.user.id);
-    const eventReminder = buyerNotifications.find((notification) => notification.type === 'event_reminder');
+    const eventReminder = buyerNotifications.find(
+      (notification) => notification.type === 'event_reminder',
+    );
 
     expect(result.event_reminders).toBe(1);
     expect(eventReminder).toBeTruthy();

@@ -153,7 +153,9 @@ describe.sequential('Phase 6 Payment API', () => {
     expect(buyerNotifications.some((notification) => notification.type === 'order_confirmed')).toBe(
       true,
     );
-    expect(sellerNotifications.some((notification) => notification.type === 'new_order')).toBe(true);
+    expect(sellerNotifications.some((notification) => notification.type === 'new_order')).toBe(
+      true,
+    );
   });
 
   it('handles duplicate payment success webhooks idempotently', async () => {
@@ -248,9 +250,9 @@ describe.sequential('Phase 6 Payment API', () => {
     expect(
       buyerNotifications.filter((notification) => notification.type === 'order_confirmed'),
     ).toHaveLength(1);
-    expect(sellerNotifications.filter((notification) => notification.type === 'new_order')).toHaveLength(
-      1,
-    );
+    expect(
+      sellerNotifications.filter((notification) => notification.type === 'new_order'),
+    ).toHaveLength(1);
   });
 
   it('rejects payment webhook with an invalid signature', async () => {

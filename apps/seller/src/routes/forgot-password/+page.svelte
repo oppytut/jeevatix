@@ -28,7 +28,8 @@
       successMessage = result.message;
       resetToken = result.reset_token ?? '';
     } catch (error) {
-      errorMessage = error instanceof ApiError ? error.message : 'Gagal mengirim instruksi reset password.';
+      errorMessage =
+        error instanceof ApiError ? error.message : 'Gagal mengirim instruksi reset password.';
     } finally {
       isSubmitting = false;
     }
@@ -51,13 +52,20 @@
   >
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-2">
-        <p class="text-sm font-semibold tracking-[0.32em] text-emerald-700/70 uppercase">Password Recovery</p>
-        <h1 class="text-3xl font-semibold tracking-tight text-slate-950">Reset akses Seller Studio</h1>
+        <p class="text-sm font-semibold tracking-[0.32em] text-emerald-700/70 uppercase">
+          Password Recovery
+        </p>
+        <h1 class="text-3xl font-semibold tracking-tight text-slate-950">
+          Reset akses Seller Studio
+        </h1>
         <p class="text-sm leading-6 text-slate-600">
-          Masukkan email akun seller Anda. Kami akan kirim instruksi reset password agar akses operasional bisa dipulihkan.
+          Masukkan email akun seller Anda. Kami akan kirim instruksi reset password agar akses
+          operasional bisa dipulihkan.
         </p>
       </div>
-      <div class="flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+      <div
+        class="flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700"
+      >
         <Mail class="size-7" />
       </div>
     </div>
@@ -77,23 +85,30 @@
       </div>
 
       {#if errorMessage}
-        <div class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div
+          class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+        >
           <TriangleAlert class="mt-0.5 size-4 shrink-0" />
           <p>{errorMessage}</p>
         </div>
       {/if}
 
       {#if successMessage}
-        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <div
+          class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+        >
           <p>{successMessage}</p>
           {#if resetToken}
-            <p class="mt-2 break-all font-medium">Dev reset token: {resetToken}</p>
+            <p class="mt-2 font-medium break-all">Dev reset token: {resetToken}</p>
           {/if}
         </div>
       {/if}
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <a class="text-sm font-medium text-emerald-700 hover:text-emerald-800" href={resolve('/login')}>
+        <a
+          class="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+          href={resolve('/login')}
+        >
           Kembali ke login
         </a>
         <Button type="submit" disabled={isSubmitting}>

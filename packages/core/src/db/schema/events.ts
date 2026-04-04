@@ -18,13 +18,20 @@ import { eventStatus } from './enums';
 import { sellerProfiles } from './users';
 import { ticketTiers } from './tickets';
 
-export const categories = pgTable('categories', {
-  id: serial('id').primaryKey(),
-  name: varchar('name', { length: 100 }).notNull(),
-  slug: varchar('slug', { length: 100 }).notNull(),
-  icon: varchar('icon', { length: 50 }),
-  createdAt: timestamptz('created_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => [uniqueIndex('categories_name_unique').on(table.name), uniqueIndex('categories_slug_unique').on(table.slug)]);
+export const categories = pgTable(
+  'categories',
+  {
+    id: serial('id').primaryKey(),
+    name: varchar('name', { length: 100 }).notNull(),
+    slug: varchar('slug', { length: 100 }).notNull(),
+    icon: varchar('icon', { length: 50 }),
+    createdAt: timestamptz('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('categories_name_unique').on(table.name),
+    uniqueIndex('categories_slug_unique').on(table.slug),
+  ],
+);
 
 export const events = pgTable(
   'events',

@@ -246,7 +246,11 @@
   {/if}
 
   <div class="grid gap-4 md:grid-cols-3">
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Total event</p>
@@ -258,7 +262,11 @@
       </div>
     </Card>
 
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Published di hasil</p>
@@ -270,7 +278,11 @@
       </div>
     </Card>
 
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Tiket terjual di hasil</p>
@@ -340,7 +352,9 @@
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
-          <div class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"></div>
+          <div
+            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+          ></div>
         {/each}
       </div>
     {:else}
@@ -367,10 +381,17 @@
           event.
         </p>
         <div class="flex items-center gap-3">
-          <Button variant="outline" type="button" onclick={previousPage} disabled={meta.page <= 1 || isLoading}>
+          <Button
+            variant="outline"
+            type="button"
+            onclick={previousPage}
+            disabled={meta.page <= 1 || isLoading}
+          >
             Sebelumnya
           </Button>
-          <span class="text-sm font-medium text-slate-600">Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span>
+          <span class="text-sm font-medium text-slate-600"
+            >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
+          >
           <Button
             variant="outline"
             type="button"

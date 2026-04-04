@@ -135,7 +135,9 @@
               >
                 <Bell class="size-5" />
                 {#if unreadCount > 0}
-                  <span class="absolute -right-1 -top-1 inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-1.5 py-1 text-[0.7rem] font-semibold leading-none text-white">
+                  <span
+                    class="absolute -top-1 -right-1 inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-1.5 py-1 text-[0.7rem] leading-none font-semibold text-white"
+                  >
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 {/if}
@@ -178,7 +180,9 @@
                 >
                   <span>{item.label}</span>
                   {#if unreadCount > 0}
-                    <span class="inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-1.5 py-1 text-[0.7rem] font-semibold leading-none text-white">
+                    <span
+                      class="inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-1.5 py-1 text-[0.7rem] leading-none font-semibold text-white"
+                    >
                       {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                   {:else}
@@ -195,7 +199,9 @@
                 </a>
               {/if}
             {:else}
-              <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-emerald-50/85">
+              <div
+                class="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-emerald-50/85"
+              >
                 <span>{item.label}</span>
                 <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Soon</span>
               </div>
@@ -203,9 +209,13 @@
           {/each}
         </nav>
 
-        <div class="space-y-4 rounded-[1.75rem] border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
+        <div
+          class="space-y-4 rounded-[1.75rem] border border-white/10 bg-white/8 p-4 backdrop-blur-sm"
+        >
           <div>
-            <p class="text-xs font-semibold tracking-[0.3em] text-amber-200/70 uppercase">Session</p>
+            <p class="text-xs font-semibold tracking-[0.3em] text-amber-200/70 uppercase">
+              Session
+            </p>
             <p class="mt-2 text-sm font-medium text-white">{currentUser?.full_name}</p>
             <p class="text-sm text-emerald-100/75">{currentUser?.email}</p>
           </div>

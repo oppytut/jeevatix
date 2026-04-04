@@ -40,7 +40,10 @@ export const ticketTiers = pgTable(
   (table) => [
     index('idx_ticket_tiers_event_id').on(table.eventId),
     index('idx_ticket_tiers_status').on(table.status),
-    check('ticket_tiers_sold_count_check', sql`${table.soldCount} >= 0 AND ${table.soldCount} <= ${table.quota}`),
+    check(
+      'ticket_tiers_sold_count_check',
+      sql`${table.soldCount} >= 0 AND ${table.soldCount} <= ${table.quota}`,
+    ),
   ],
 );
 

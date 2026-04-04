@@ -9,7 +9,8 @@ import type {
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
 
-const { eventImages, events, orderItems, orders, payments, sellerProfiles, ticketTiers, users } = schema;
+const { eventImages, events, orderItems, orders, payments, sellerProfiles, ticketTiers, users } =
+  schema;
 
 export class AdminEventServiceError extends Error {
   constructor(
@@ -25,7 +26,10 @@ function getDatabase(databaseUrl?: string) {
   const db = getDb(databaseUrl);
 
   if (!db) {
-    throw new AdminEventServiceError('DATABASE_UNAVAILABLE', 'Database connection is not available.');
+    throw new AdminEventServiceError(
+      'DATABASE_UNAVAILABLE',
+      'Database connection is not available.',
+    );
   }
 
   return db;
@@ -52,7 +56,14 @@ function toEventListItem(row: {
   id: string;
   title: string;
   slug: string;
-  status: 'draft' | 'pending_review' | 'published' | 'rejected' | 'ongoing' | 'completed' | 'cancelled';
+  status:
+    | 'draft'
+    | 'pending_review'
+    | 'published'
+    | 'rejected'
+    | 'ongoing'
+    | 'completed'
+    | 'cancelled';
   venueCity: string;
   startAt: Date;
   endAt: Date;

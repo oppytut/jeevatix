@@ -164,7 +164,11 @@ export const load = (async ({ cookies, fetch }) => {
     dashboardResult = await fetchDashboard(fetch, rotatedAccessToken);
   }
 
-  if (!dashboardResult.response.ok || !dashboardResult.payload || dashboardResult.payload.success === false) {
+  if (
+    !dashboardResult.response.ok ||
+    !dashboardResult.payload ||
+    dashboardResult.payload.success === false
+  ) {
     return {
       dashboard: null,
       loadError: getErrorMessage(dashboardResult.payload),

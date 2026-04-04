@@ -8,10 +8,7 @@ import type {
   NotificationListPayload,
   NotificationPaginationMeta,
 } from '../schemas/notification.schema';
-import type {
-  AdminNotificationItem,
-  AdminNotificationListQuery,
-} from '../schemas/admin.schema';
+import type { AdminNotificationItem, AdminNotificationListQuery } from '../schemas/admin.schema';
 
 const { notifications, users } = schema;
 
@@ -211,7 +208,11 @@ export const notificationService = {
     };
   },
 
-  async markAsRead(userId: string, notificationId: string, databaseUrl?: string): Promise<Notification> {
+  async markAsRead(
+    userId: string,
+    notificationId: string,
+    databaseUrl?: string,
+  ): Promise<Notification> {
     const database = getDatabase(databaseUrl);
     const existing = await database.query.notifications.findFirst({
       where: and(eq(notifications.id, notificationId), eq(notifications.userId, userId)),

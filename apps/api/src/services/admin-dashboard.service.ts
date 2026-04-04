@@ -11,7 +11,10 @@ import type {
 const { events, orderItems, orders, payments, users } = schema;
 
 export class AdminDashboardServiceError extends Error {
-  constructor(public readonly code: 'DATABASE_UNAVAILABLE', message: string) {
+  constructor(
+    public readonly code: 'DATABASE_UNAVAILABLE',
+    message: string,
+  ) {
     super(message);
     this.name = 'AdminDashboardServiceError';
   }
@@ -60,9 +63,7 @@ function buildDailyTransactions(
   days: number,
   rows: Array<{ date: string; transactionCount: number | string | null }>,
 ) {
-  const transactionsByDay = new Map(
-    rows.map((row) => [row.date, toNumber(row.transactionCount)]),
-  );
+  const transactionsByDay = new Map(rows.map((row) => [row.date, toNumber(row.transactionCount)]));
   const endDate = startOfDay(new Date());
   const startDate = addDays(endDate, -(days - 1));
   const points: AdminDashboardDailyTransaction[] = [];
@@ -83,7 +84,14 @@ function buildDailyTransactions(
 function toRecentEvent(record: {
   id: string;
   title: string;
-  status: 'draft' | 'pending_review' | 'published' | 'rejected' | 'ongoing' | 'completed' | 'cancelled';
+  status:
+    | 'draft'
+    | 'pending_review'
+    | 'published'
+    | 'rejected'
+    | 'ongoing'
+    | 'completed'
+    | 'cancelled';
   createdAt: Date;
   sellerProfile: {
     orgName: string;

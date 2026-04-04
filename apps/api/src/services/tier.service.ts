@@ -217,12 +217,7 @@ export const tierService = {
     return toSellerTier(updatedTier);
   },
 
-  async deleteTier(
-    sellerProfileId: string,
-    eventId: string,
-    tierId: string,
-    databaseUrl?: string,
-  ) {
+  async deleteTier(sellerProfileId: string, eventId: string, tierId: string, databaseUrl?: string) {
     const database = getDatabase(databaseUrl);
     const existingTier = await getOwnedTierRecord(sellerProfileId, eventId, tierId, databaseUrl);
 

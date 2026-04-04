@@ -34,10 +34,7 @@ type EventListRow = {
 
 export class PublicEventServiceError extends Error {
   constructor(
-    public readonly code:
-      | 'CATEGORY_NOT_FOUND'
-      | 'DATABASE_UNAVAILABLE'
-      | 'EVENT_NOT_FOUND',
+    public readonly code: 'CATEGORY_NOT_FOUND' | 'DATABASE_UNAVAILABLE' | 'EVENT_NOT_FOUND',
     message: string,
   ) {
     super(message);
@@ -134,10 +131,7 @@ function buildListConditions(query: ListEventsQuery) {
   }
 
   if (query.price_min !== undefined || query.price_max !== undefined) {
-    const tierConditions = [
-      eq(ticketTiers.eventId, events.id),
-      ne(ticketTiers.status, 'hidden'),
-    ];
+    const tierConditions = [eq(ticketTiers.eventId, events.id), ne(ticketTiers.status, 'hidden')];
 
     if (query.price_min !== undefined) {
       tierConditions.push(sql<boolean>`${ticketTiers.price} >= ${query.price_min.toString()}`);

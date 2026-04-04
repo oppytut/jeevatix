@@ -204,11 +204,7 @@ async function ensureCategoriesExist(categoryIds: number[], databaseUrl?: string
   return uniqueCategoryIds;
 }
 
-async function getOwnedEventRecord(
-  sellerProfileId: string,
-  eventId: string,
-  databaseUrl?: string,
-) {
+async function getOwnedEventRecord(sellerProfileId: string, eventId: string, databaseUrl?: string) {
   const database = getDatabase(databaseUrl);
   const event = await database.query.events.findFirst({
     where: eq(events.id, eventId),
@@ -225,7 +221,11 @@ async function getOwnedEventRecord(
   return event;
 }
 
-async function getEventDetailPayload(sellerProfileId: string, eventId: string, databaseUrl?: string) {
+async function getEventDetailPayload(
+  sellerProfileId: string,
+  eventId: string,
+  databaseUrl?: string,
+) {
   const database = getDatabase(databaseUrl);
   const event = await getOwnedEventRecord(sellerProfileId, eventId, databaseUrl);
 
@@ -253,7 +253,11 @@ async function getEventDetailPayload(sellerProfileId: string, eventId: string, d
   return toEventDetail(event, { categoryRows, imageRows, tierRows });
 }
 
-function toCreateEventValues(sellerProfileId: string, input: CreateEventInput | UpdateEventInput, slug: string) {
+function toCreateEventValues(
+  sellerProfileId: string,
+  input: CreateEventInput | UpdateEventInput,
+  slug: string,
+) {
   return {
     sellerProfileId,
     title: input.title?.trim() ?? '',

@@ -149,8 +149,12 @@ describe.sequential('Phase 6 Order API', () => {
   it('lists buyer orders with pagination metadata', async () => {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();
-    const firstEvent = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
-    const secondEvent = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+    const firstEvent = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+    });
+    const secondEvent = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+    });
 
     const firstReservationResponse = await context.requestJson('/reservations', {
       method: 'POST',
@@ -337,7 +341,9 @@ describe.sequential('Phase 6 Order API', () => {
     }>(orderResponse);
 
     const reservationRecord = await context.getReservation(reservationPayload.data.reservation_id);
-    const orderRecord = await context.getOrderByReservationId(reservationPayload.data.reservation_id);
+    const orderRecord = await context.getOrderByReservationId(
+      reservationPayload.data.reservation_id,
+    );
 
     expect(orderResponse.status).toBe(409);
     expect(orderPayload.success).toBe(false);

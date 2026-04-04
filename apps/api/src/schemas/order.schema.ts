@@ -2,20 +2,12 @@ import { z } from '@hono/zod-openapi';
 
 const orderStatusSchema = z.enum(['pending', 'confirmed', 'expired', 'cancelled', 'refunded']);
 const paymentStatusSchema = z.enum(['pending', 'success', 'failed', 'refunded']);
-const paymentMethodSchema = z.enum([
-  'bank_transfer',
-  'e_wallet',
-  'credit_card',
-  'virtual_account',
-]);
+const paymentMethodSchema = z.enum(['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account']);
 const ticketStatusSchema = z.enum(['valid', 'used', 'cancelled', 'refunded']);
 
 export const createOrderSchema = z
   .object({
-    reservation_id: z
-      .string()
-      .uuid()
-      .openapi({ example: '6f0bb2b8-a945-48ca-80d6-7486d18b2f0b' }),
+    reservation_id: z.string().uuid().openapi({ example: '6f0bb2b8-a945-48ca-80d6-7486d18b2f0b' }),
   })
   .openapi('CreateOrderInput');
 
@@ -71,10 +63,7 @@ export const orderListResponseSchema = z
 export const orderItemSchema = z
   .object({
     id: z.string().uuid().openapi({ example: '3f55db7f-8249-4eb0-bbde-1fc67f4e5d53' }),
-    ticket_tier_id: z
-      .string()
-      .uuid()
-      .openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
+    ticket_tier_id: z.string().uuid().openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
     tier_name: z.string().openapi({ example: 'VIP' }),
     quantity: z.number().int().min(1).openapi({ example: 2 }),
     unit_price: z.number().nonnegative().openapi({ example: 350000 }),
@@ -98,10 +87,7 @@ export const orderPaymentSchema = z
 export const orderTicketSchema = z
   .object({
     id: z.string().uuid().openapi({ example: 'af1e1e0c-c77d-4d9d-8b0f-0ff713738d89' }),
-    ticket_tier_id: z
-      .string()
-      .uuid()
-      .openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
+    ticket_tier_id: z.string().uuid().openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
     ticket_code: z.string().openapi({ example: 'JVX-ABC123XYZ789' }),
     status: ticketStatusSchema.openapi({ example: 'valid' }),
     issued_at: z.string().datetime().openapi({ example: '2026-04-01T03:05:00.000Z' }),

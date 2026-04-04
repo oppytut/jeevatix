@@ -131,8 +131,10 @@ export const load = (async ({ fetch, url }) => {
         fetchFn: fetch,
         requiresAuth: false,
       }),
-      fetchAllEventPages(fetch, (pageNumber, pageSize) =>
-        `/events${buildEventQuery({ limit: pageSize, page: pageNumber })}`,
+      fetchAllEventPages(
+        fetch,
+        (pageNumber, pageSize) =>
+          `/events${buildEventQuery({ limit: pageSize, page: pageNumber })}`,
       ),
     ]);
 
@@ -169,8 +171,10 @@ export const load = (async ({ fetch, url }) => {
     } else {
       const categoryResponses = await Promise.all(
         selectedCategories.map((slug) =>
-          fetchAllEventPages(fetch, (pageNumber, pageSize) =>
-            `/categories/${slug}/events${buildEventQuery({ limit: pageSize, page: pageNumber })}`,
+          fetchAllEventPages(
+            fetch,
+            (pageNumber, pageSize) =>
+              `/categories/${slug}/events${buildEventQuery({ limit: pageSize, page: pageNumber })}`,
           ),
         ),
       );
@@ -194,10 +198,7 @@ export const load = (async ({ fetch, url }) => {
       new Set(allPublicEvents.map((event) => event.venue_city).filter(Boolean)),
     ).sort((left, right) => left.localeCompare(right));
 
-    const maxPrice = Math.max(
-      500000,
-      ...allPublicEvents.map((event) => event.min_price ?? 0),
-    );
+    const maxPrice = Math.max(500000, ...allPublicEvents.map((event) => event.min_price ?? 0));
 
     return {
       events: eventsResponse.data,

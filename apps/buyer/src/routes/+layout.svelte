@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import './layout.css';
   import { Button } from '@jeevatix/ui';
   import favicon from '$lib/assets/favicon.svg';
@@ -16,7 +17,9 @@
 </svelte:head>
 
 <div class="bg-background text-foreground min-h-screen">
-  <div class="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fffaf3_0%,#fffdf8_38%,#f6fbff_100%)]">
+  <div
+    class="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fffaf3_0%,#fffdf8_38%,#f6fbff_100%)]"
+  >
     <div
       class="pointer-events-none absolute inset-0 opacity-90"
       style="background-image:
@@ -26,43 +29,56 @@
     ></div>
 
     <header class="relative z-10 px-6 py-5 sm:px-10 lg:px-16">
-      <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full border border-white/70 bg-white/75 px-5 py-3 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-        <a href="/" class="flex items-center gap-3">
-          <div class="flex size-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f97316,#facc15)] text-sm font-black text-slate-950">
+      <div
+        class="mx-auto flex max-w-6xl items-center justify-between gap-4 rounded-full border border-white/70 bg-white/75 px-5 py-3 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur"
+      >
+        <a href={resolve('/')} class="flex items-center gap-3">
+          <div
+            class="flex size-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f97316,#facc15)] text-sm font-black text-slate-950"
+          >
             J
           </div>
           <div>
-            <p class="text-xs font-semibold tracking-[0.3em] text-slate-500 uppercase">Buyer Portal</p>
+            <p class="text-xs font-semibold tracking-[0.3em] text-slate-500 uppercase">
+              Buyer Portal
+            </p>
             <p class="text-lg font-semibold tracking-tight text-slate-950">Jeevatix</p>
           </div>
         </a>
 
         <nav class="hidden items-center gap-5 text-sm font-medium text-slate-600 md:flex">
-          <a class="transition hover:text-slate-950" href="/">Beranda</a>
-          <a class="transition hover:text-slate-950" href="/events">Explore</a>
+          <a class="transition hover:text-slate-950" href={resolve('/')}>Beranda</a>
+          <a class="transition hover:text-slate-950" href={resolve('/events')}>Explore</a>
           {#if data.currentUser}
-            <a class="transition hover:text-slate-950" href="/notifications">Notifikasi</a>
-            <a class="transition hover:text-slate-950" href="/profile">Profil</a>
+            <a class="transition hover:text-slate-950" href={resolve('/notifications')}
+              >Notifikasi</a
+            >
+            <a class="transition hover:text-slate-950" href={resolve('/profile')}>Profil</a>
           {:else}
-            <a class="transition hover:text-slate-950" href="/login">Login</a>
-            <a class="transition hover:text-slate-950" href="/register">Daftar</a>
+            <a class="transition hover:text-slate-950" href={resolve('/login')}>Login</a>
+            <a class="transition hover:text-slate-950" href={resolve('/register')}>Daftar</a>
           {/if}
         </nav>
 
         <div class="flex items-center gap-3">
           {#if data.currentUser}
             <div class="hidden text-right sm:block">
-              <p class="text-xs font-semibold tracking-[0.28em] text-slate-500 uppercase">Signed In</p>
+              <p class="text-xs font-semibold tracking-[0.28em] text-slate-500 uppercase">
+                Signed In
+              </p>
               <p class="text-sm font-medium text-slate-900">{data.currentUser.full_name}</p>
             </div>
-            <a href="/profile">
+            <a href={resolve('/profile')}>
               <Button type="button" class="rounded-full px-5">Akun Saya</Button>
             </a>
           {:else}
-            <a class="hidden text-sm font-medium text-slate-600 transition hover:text-slate-950 sm:inline-flex" href="/login">
+            <a
+              class="hidden text-sm font-medium text-slate-600 transition hover:text-slate-950 sm:inline-flex"
+              href={resolve('/login')}
+            >
               Login
             </a>
-            <a href="/register">
+            <a href={resolve('/register')}>
               <Button type="button" class="rounded-full px-5">Buat Akun</Button>
             </a>
           {/if}

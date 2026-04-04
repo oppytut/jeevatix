@@ -465,7 +465,9 @@ describe.sequential('Auth API', () => {
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
-    expect(payload.data.message).toBe('If the email is registered, reset instructions have been generated.');
+    expect(payload.data.message).toBe(
+      'If the email is registered, reset instructions have been generated.',
+    );
     expect(payload.data.reset_token).toBeUndefined();
   });
 

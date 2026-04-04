@@ -7,10 +7,7 @@ import type {
   ReservationDetail,
   ReservationStatePayload,
 } from '../schemas/reservation.schema';
-import type {
-  AdminReservationItem,
-  AdminReservationListQuery,
-} from '../schemas/admin.schema';
+import type { AdminReservationItem, AdminReservationListQuery } from '../schemas/admin.schema';
 
 const { orderItems, orders, reservations, ticketTiers, users } = schema;
 
@@ -52,7 +49,14 @@ type TicketTierAvailabilityRecord = {
   eventId: string;
   eventTitle: string;
   eventSlug: string;
-  eventStatus: 'draft' | 'pending_review' | 'published' | 'rejected' | 'ongoing' | 'completed' | 'cancelled';
+  eventStatus:
+    | 'draft'
+    | 'pending_review'
+    | 'published'
+    | 'rejected'
+    | 'ongoing'
+    | 'completed'
+    | 'cancelled';
   maxTicketsPerOrder: number;
   eventSaleStartAt: Date;
   eventSaleEndAt: Date;
@@ -91,7 +95,10 @@ function getDatabase(databaseUrl?: string) {
   const db = getDb(databaseUrl ?? getProcessEnv('DATABASE_URL'));
 
   if (!db) {
-    throw new ReservationServiceError('DATABASE_UNAVAILABLE', 'Database connection is not available.');
+    throw new ReservationServiceError(
+      'DATABASE_UNAVAILABLE',
+      'Database connection is not available.',
+    );
   }
 
   return db;
@@ -142,7 +149,10 @@ async function getTierAvailabilityRecord(
   }
 
   if (tier.status === 'hidden' || !['published', 'ongoing'].includes(tier.event.status)) {
-    throw new ReservationServiceError('INVALID_STATE', 'Ticket tier is not available for reservation.');
+    throw new ReservationServiceError(
+      'INVALID_STATE',
+      'Ticket tier is not available for reservation.',
+    );
   }
 
   const now = new Date();
@@ -155,8 +165,14 @@ async function getTierAvailabilityRecord(
       ? tier.saleEndAt
       : tier.event.saleEndAt;
 
-  if (effectiveSaleStartAt.getTime() > now.getTime() || effectiveSaleEndAt.getTime() < now.getTime()) {
-    throw new ReservationServiceError('INVALID_STATE', 'Ticket tier is outside the active sale window.');
+  if (
+    effectiveSaleStartAt.getTime() > now.getTime() ||
+    effectiveSaleEndAt.getTime() < now.getTime()
+  ) {
+    throw new ReservationServiceError(
+      'INVALID_STATE',
+      'Ticket tier is outside the active sale window.',
+    );
   }
 
   return {
@@ -299,7 +315,10 @@ export const reservationService = {
       }
 
       if (result.error === 'DATABASE_UNAVAILABLE') {
-        throw new ReservationServiceError('DATABASE_UNAVAILABLE', 'Database connection is not available.');
+        throw new ReservationServiceError(
+          'DATABASE_UNAVAILABLE',
+          'Database connection is not available.',
+        );
       }
 
       throw new ReservationServiceError(
@@ -445,7 +464,9 @@ export const reservationService = {
         expiresAt: row.expiresAt.toISOString(),
         createdAt: row.createdAt.toISOString(),
         remainingSeconds:
-          row.status === 'active' ? Math.max(0, Math.ceil((row.expiresAt.getTime() - Date.now()) / 1000)) : 0,
+          row.status === 'active'
+            ? Math.max(0, Math.ceil((row.expiresAt.getTime() - Date.now()) / 1000))
+            : 0,
         buyer: {
           id: row.buyerId,
           fullName: row.buyerName,
@@ -522,7 +543,10 @@ export const reservationService = {
       }
 
       if (result.error === 'DATABASE_UNAVAILABLE') {
-        throw new ReservationServiceError('DATABASE_UNAVAILABLE', 'Database connection is not available.');
+        throw new ReservationServiceError(
+          'DATABASE_UNAVAILABLE',
+          'Database connection is not available.',
+        );
       }
 
       throw new ReservationServiceError(

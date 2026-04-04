@@ -7,10 +7,7 @@ import {
   type OrderConfirmationItem,
 } from './email';
 import { notificationService } from './notification.service';
-import {
-  OrderReservationServiceError,
-  releaseReservation,
-} from './order-reservation.service';
+import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
 import type {
   InitiatePaymentInput,
@@ -84,7 +81,9 @@ function getWebhookSecret(env: PaymentServiceEnv) {
 }
 
 function toHex(buffer: ArrayBuffer) {
-  return Array.from(new Uint8Array(buffer), (value) => value.toString(16).padStart(2, '0')).join('');
+  return Array.from(new Uint8Array(buffer), (value) => value.toString(16).padStart(2, '0')).join(
+    '',
+  );
 }
 
 function secureEqual(left: string, right: string) {
@@ -120,7 +119,9 @@ function getRandomToken(size = 8) {
   const values = new Uint8Array(size);
   crypto.getRandomValues(values);
 
-  return Array.from(values, (value) => value.toString(16).padStart(2, '0')).join('').slice(0, size);
+  return Array.from(values, (value) => value.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, size);
 }
 
 function buildExternalRef() {
@@ -139,11 +140,7 @@ function buildMockPaymentUrl(externalRef: string, method: InitiatePaymentInput['
   return url.toString();
 }
 
-async function verifyWebhookSignature(
-  headers: Headers,
-  rawBody: string,
-  env: PaymentServiceEnv,
-) {
+async function verifyWebhookSignature(headers: Headers, rawBody: string, env: PaymentServiceEnv) {
   const providedSignature = headers.get('x-payment-signature');
 
   if (!providedSignature) {
@@ -232,7 +229,11 @@ async function enqueuePostPaymentEffects(
     EMAIL_API_KEY: env.EMAIL_API_KEY,
     EMAIL_FROM: env.EMAIL_FROM,
   });
-  const orderEmail = buildOrderConfirmationEmail(payload.buyerName, payload.orderNumber, payload.items);
+  const orderEmail = buildOrderConfirmationEmail(
+    payload.buyerName,
+    payload.orderNumber,
+    payload.items,
+  );
 
   await Promise.allSettled([
     sendNotification(
@@ -496,7 +497,10 @@ export const paymentService = {
         });
 
       if (!updatedOrder) {
-        throw new PaymentServiceError('INVALID_STATE', 'Order is not awaiting payment confirmation.');
+        throw new PaymentServiceError(
+          'INVALID_STATE',
+          'Order is not awaiting payment confirmation.',
+        );
       }
 
       return {

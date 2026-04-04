@@ -160,7 +160,11 @@ export const publicEventTierSchema = z
     remaining: z.number().int().min(0).openapi({ example: 76 }),
     sort_order: z.number().int().min(0).openapi({ example: 0 }),
     status: ticketTierStatusSchema.openapi({ example: 'available' }),
-    sale_start_at: z.string().datetime().nullable().openapi({ example: '2026-05-01T10:00:00.000Z' }),
+    sale_start_at: z
+      .string()
+      .datetime()
+      .nullable()
+      .openapi({ example: '2026-05-01T10:00:00.000Z' }),
     sale_end_at: z.string().datetime().nullable().openapi({ example: '2026-06-01T10:00:00.000Z' }),
   })
   .openapi('PublicEventTier');
@@ -184,7 +188,10 @@ export const publicEventSellerSchema = z
 export const publicEventDetailSchema = z
   .object({
     id: z.string().uuid().openapi({ example: '27c3278a-6ed1-41ab-b522-39c4f24ebf4f' }),
-    seller_profile_id: z.string().uuid().openapi({ example: '5a197f34-d1df-4ec2-b0d4-2fd6a18ef61e' }),
+    seller_profile_id: z
+      .string()
+      .uuid()
+      .openapi({ example: '5a197f34-d1df-4ec2-b0d4-2fd6a18ef61e' }),
     slug: z.string().openapi({ example: 'festival-musik-nusantara' }),
     title: z.string().openapi({ example: 'Festival Musik Nusantara' }),
     description: z
@@ -192,7 +199,10 @@ export const publicEventDetailSchema = z
       .nullable()
       .openapi({ example: 'Festival musik lintas genre dengan artis nasional.' }),
     venue_name: z.string().openapi({ example: 'Istora Senayan' }),
-    venue_address: z.string().nullable().openapi({ example: 'Jl. Pintu Satu Senayan, Jakarta Pusat' }),
+    venue_address: z
+      .string()
+      .nullable()
+      .openapi({ example: 'Jl. Pintu Satu Senayan, Jakarta Pusat' }),
     venue_city: z.string().openapi({ example: 'Jakarta' }),
     venue_latitude: z.number().nullable().openapi({ example: -6.2187 }),
     venue_longitude: z.number().nullable().openapi({ example: 106.8022 }),

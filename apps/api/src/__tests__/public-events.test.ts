@@ -370,9 +370,10 @@ describe.sequential('Phase 5 Public Event API', () => {
     });
 
     const response = await requestJson('/events?page=1&limit=20');
-    const payload = await readJson<
-      JsonSuccess<Array<{ id: string; slug: string; status: 'published' | 'ongoing' }>>
-    >(response);
+    const payload =
+      await readJson<
+        JsonSuccess<Array<{ id: string; slug: string; status: 'published' | 'ongoing' }>>
+      >(response);
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
@@ -450,9 +451,7 @@ describe.sequential('Phase 5 Public Event API', () => {
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
-    expect(payload.data).toEqual([
-      expect.objectContaining({ id: musicEvent.id }),
-    ]);
+    expect(payload.data).toEqual([expect.objectContaining({ id: musicEvent.id })]);
   });
 
   it('filters events by location alias mapped to city', async () => {
@@ -477,7 +476,8 @@ describe.sequential('Phase 5 Public Event API', () => {
     });
 
     const response = await requestJson('/events?location=Bandung');
-    const payload = await readJson<JsonSuccess<Array<{ id: string; venue_city: string }>>>(response);
+    const payload =
+      await readJson<JsonSuccess<Array<{ id: string; venue_city: string }>>>(response);
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
@@ -515,9 +515,7 @@ describe.sequential('Phase 5 Public Event API', () => {
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
-    expect(payload.data).toEqual([
-      expect.objectContaining({ id: sameDayEvent.id }),
-    ]);
+    expect(payload.data).toEqual([expect.objectContaining({ id: sameDayEvent.id })]);
   });
 
   it('filters events by price range', async () => {
@@ -553,9 +551,7 @@ describe.sequential('Phase 5 Public Event API', () => {
 
     expect(response.status).toBe(200);
     expect(payload.success).toBe(true);
-    expect(payload.data).toEqual([
-      expect.objectContaining({ id: matchingEvent.id }),
-    ]);
+    expect(payload.data).toEqual([expect.objectContaining({ id: matchingEvent.id })]);
   });
 
   it('returns distinct slices across pagination pages', async () => {
@@ -594,7 +590,8 @@ describe.sequential('Phase 5 Public Event API', () => {
     const firstPageResponse = await requestJson(`/events?search=${keyword}&page=1&limit=1`);
     const secondPageResponse = await requestJson(`/events?search=${keyword}&page=2&limit=1`);
     const firstPagePayload = await readJson<JsonSuccess<Array<{ id: string }>>>(firstPageResponse);
-    const secondPagePayload = await readJson<JsonSuccess<Array<{ id: string }>>>(secondPageResponse);
+    const secondPagePayload =
+      await readJson<JsonSuccess<Array<{ id: string }>>>(secondPageResponse);
 
     expect(firstPageResponse.status).toBe(200);
     expect(secondPageResponse.status).toBe(200);

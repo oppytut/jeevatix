@@ -75,7 +75,8 @@
         variant: 'success',
       });
     } catch (error) {
-      formError = error instanceof ApiError ? error.message : 'Gagal mengubah password akun seller.';
+      formError =
+        error instanceof ApiError ? error.message : 'Gagal mengubah password akun seller.';
     } finally {
       isSubmitting = false;
     }
@@ -84,9 +85,7 @@
 
 <section class="space-y-8">
   <div class="space-y-3">
-    <p class="text-sm font-semibold tracking-[0.35em] text-emerald-700/70 uppercase">
-      Security
-    </p>
+    <p class="text-sm font-semibold tracking-[0.35em] text-emerald-700/70 uppercase">Security</p>
     <div class="space-y-2">
       <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
         Ubah Password
@@ -98,11 +97,21 @@
   </div>
 
   {#if toast}
-    <Toast title={toast.title} description={toast.description} variant={toast.variant} actionLabel={undefined} />
+    <Toast
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if formError}
-    <Toast title="Perlu perhatian" description={formError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Perlu perhatian"
+      description={formError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
   <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -114,17 +123,35 @@
       <form class="space-y-6" onsubmit={(event) => event.preventDefault()}>
         <label class="block space-y-2" for="old-password">
           <span class="text-sm font-medium text-slate-700">Old Password</span>
-          <Input id="old-password" bind:value={form.old_password} type="password" placeholder="Masukkan password saat ini" autocomplete="current-password" />
+          <Input
+            id="old-password"
+            bind:value={form.old_password}
+            type="password"
+            placeholder="Masukkan password saat ini"
+            autocomplete="current-password"
+          />
         </label>
 
         <label class="block space-y-2" for="new-password">
           <span class="text-sm font-medium text-slate-700">New Password</span>
-          <Input id="new-password" bind:value={form.new_password} type="password" placeholder="Minimal 8 karakter" autocomplete="new-password" />
+          <Input
+            id="new-password"
+            bind:value={form.new_password}
+            type="password"
+            placeholder="Minimal 8 karakter"
+            autocomplete="new-password"
+          />
         </label>
 
         <label class="block space-y-2" for="confirm-new-password">
           <span class="text-sm font-medium text-slate-700">Confirm New Password</span>
-          <Input id="confirm-new-password" bind:value={form.confirm_new_password} type="password" placeholder="Ulangi password baru" autocomplete="new-password" />
+          <Input
+            id="confirm-new-password"
+            bind:value={form.confirm_new_password}
+            type="password"
+            placeholder="Ulangi password baru"
+            autocomplete="new-password"
+          />
         </label>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -137,7 +164,7 @@
 
           <a
             href={resolve('/profile')}
-            class="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:border-jeevatix-300 hover:bg-jeevatix-50"
+            class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition"
           >
             Kembali ke Profil
           </a>
@@ -152,14 +179,20 @@
         class="rounded-[2rem] bg-[linear-gradient(180deg,rgba(236,253,245,0.9),rgba(255,255,255,1))]"
       >
         <div class="space-y-4 text-sm leading-6 text-slate-600">
-          <div class="flex items-start gap-3 rounded-[1.4rem] border border-emerald-200 bg-white/80 px-4 py-4">
+          <div
+            class="flex items-start gap-3 rounded-[1.4rem] border border-emerald-200 bg-white/80 px-4 py-4"
+          >
             <ShieldCheck class="mt-0.5 size-4 text-emerald-700" />
             <p>Gunakan kombinasi huruf besar, huruf kecil, angka, dan simbol jika memungkinkan.</p>
           </div>
 
-          <div class="flex items-start gap-3 rounded-[1.4rem] border border-slate-200 bg-white/80 px-4 py-4">
+          <div
+            class="flex items-start gap-3 rounded-[1.4rem] border border-slate-200 bg-white/80 px-4 py-4"
+          >
             <KeyRound class="mt-0.5 size-4 text-slate-700" />
-            <p>Hindari memakai password yang sama dengan email, marketplace, atau dashboard lain.</p>
+            <p>
+              Hindari memakai password yang sama dengan email, marketplace, atau dashboard lain.
+            </p>
           </div>
         </div>
       </Card>

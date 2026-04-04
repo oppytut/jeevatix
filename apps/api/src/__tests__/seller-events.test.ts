@@ -76,7 +76,10 @@ function slugifyCategoryName(name: string) {
     .replace(/-{2,}/g, '-');
 }
 
-function buildEventPayload(categoryId: number, title = `Vitest Seller Event ${crypto.randomUUID()}`) {
+function buildEventPayload(
+  categoryId: number,
+  title = `Vitest Seller Event ${crypto.randomUUID()}`,
+) {
   return {
     title,
     description: 'Event fixture untuk pengujian Phase 4 seller API.',
@@ -481,18 +484,15 @@ describe.sequential('Phase 4 Seller Event API', () => {
     expect(eventListPayload.success).toBe(false);
     expect(eventListPayload.error.code).toBe('FORBIDDEN');
 
-    const tierCreateResponse = await requestJson(
-      `/seller/events/${createPayload.data.id}/tiers`,
-      {
-        method: 'POST',
-        token: buyerToken,
-        body: {
-          name: 'Buyer Forbidden Tier',
-          price: 100000,
-          quota: 10,
-        },
+    const tierCreateResponse = await requestJson(`/seller/events/${createPayload.data.id}/tiers`, {
+      method: 'POST',
+      token: buyerToken,
+      body: {
+        name: 'Buyer Forbidden Tier',
+        price: 100000,
+        quota: 10,
       },
-    );
+    });
     const tierCreatePayload = await readJson<{
       success: boolean;
       error: { code: string };

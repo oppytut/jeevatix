@@ -1,6 +1,12 @@
 import { z } from '@hono/zod-openapi';
 
-const sellerOrderStatusSchema = z.enum(['pending', 'confirmed', 'expired', 'cancelled', 'refunded']);
+const sellerOrderStatusSchema = z.enum([
+  'pending',
+  'confirmed',
+  'expired',
+  'cancelled',
+  'refunded',
+]);
 const sellerPaymentStatusSchema = z.enum(['pending', 'success', 'failed', 'refunded']);
 const sellerPaymentMethodSchema = z.enum([
   'bank_transfer',
@@ -77,10 +83,7 @@ export const sellerOrderEventSchema = z
 export const sellerOrderItemSchema = z
   .object({
     id: z.string().uuid().openapi({ example: '3f55db7f-8249-4eb0-bbde-1fc67f4e5d53' }),
-    ticket_tier_id: z
-      .string()
-      .uuid()
-      .openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
+    ticket_tier_id: z.string().uuid().openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
     tier_name: z.string().openapi({ example: 'VIP' }),
     quantity: z.number().int().min(1).openapi({ example: 2 }),
     unit_price: z.number().nonnegative().openapi({ example: 350000 }),

@@ -149,7 +149,12 @@ app.openapi(submitCheckinRoute, async (c) => {
   const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
 
   try {
-    const result = await checkinService.checkin(c.var.user.id, params.id, body.ticket_code, databaseUrl);
+    const result = await checkinService.checkin(
+      c.var.user.id,
+      params.id,
+      body.ticket_code,
+      databaseUrl,
+    );
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

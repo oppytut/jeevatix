@@ -20,7 +20,9 @@ describe.sequential('Phase 7 Tickets API', () => {
   async function createConfirmedOrder(quantity = 1) {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();
-    const { event, tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+    const { event, tier } = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+    });
 
     const reservationResponse = await context.requestJson('/reservations', {
       method: 'POST',
@@ -30,7 +32,9 @@ describe.sequential('Phase 7 Tickets API', () => {
         quantity,
       },
     });
-    const reservationPayload = await context.readJson<{ data: { reservation_id: string } }>(reservationResponse);
+    const reservationPayload = await context.readJson<{ data: { reservation_id: string } }>(
+      reservationResponse,
+    );
 
     const orderResponse = await context.requestJson('/orders', {
       method: 'POST',

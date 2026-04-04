@@ -11,7 +11,10 @@ import {
   sellerTierResponseSchema,
   updateTierSchema,
 } from '../../schemas/tier.schema';
-import { SellerProfileServiceError, sellerProfileService } from '../../services/seller-profile.service';
+import {
+  SellerProfileServiceError,
+  sellerProfileService,
+} from '../../services/seller-profile.service';
 import { TierServiceError, tierService } from '../../services/tier.service';
 
 const app = new OpenAPIHono<AuthEnv>();

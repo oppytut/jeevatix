@@ -38,7 +38,8 @@ export const load = (async ({ fetch, params, locals }) => {
 
     return {
       event,
-      defaultTierId: event.tiers.find((tier) => tier.remaining > 0)?.id ?? event.tiers[0]?.id ?? null,
+      defaultTierId:
+        event.tiers.find((tier) => tier.remaining > 0)?.id ?? event.tiers[0]?.id ?? null,
     };
   } catch (caughtError) {
     if (caughtError instanceof ApiError) {
@@ -80,7 +81,8 @@ export const actions = {
 
       return {
         reservation,
-        reservationSuccess: 'Reservasi berhasil dibuat. Lanjutkan ke pembayaran sebelum waktu habis.',
+        reservationSuccess:
+          'Reservasi berhasil dibuat. Lanjutkan ke pembayaran sebelum waktu habis.',
         selectedTierId: ticketTierId,
         quantity: String(quantity),
       };
@@ -198,7 +200,9 @@ export const actions = {
 
       return fail(caughtError instanceof ApiError ? caughtError.status : 500, {
         reservationError:
-          caughtError instanceof ApiError ? caughtError.message : 'Gagal membuat order dari reservasi.',
+          caughtError instanceof ApiError
+            ? caughtError.message
+            : 'Gagal membuat order dari reservasi.',
         reservation,
         selectedTierId,
         quantity,

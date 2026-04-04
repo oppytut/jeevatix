@@ -20,7 +20,9 @@ describe.sequential('Phase 7 Seller Order API', () => {
   async function createConfirmedOrder() {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();
-    const { event, tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+    const { event, tier } = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+    });
 
     const reservationResponse = await context.requestJson('/reservations', {
       method: 'POST',
@@ -30,7 +32,9 @@ describe.sequential('Phase 7 Seller Order API', () => {
         quantity: 1,
       },
     });
-    const reservationPayload = await context.readJson<{ data: { reservation_id: string } }>(reservationResponse);
+    const reservationPayload = await context.readJson<{ data: { reservation_id: string } }>(
+      reservationResponse,
+    );
 
     const orderResponse = await context.requestJson('/orders', {
       method: 'POST',
@@ -71,9 +75,12 @@ describe.sequential('Phase 7 Seller Order API', () => {
   it('lists seller orders for the authenticated seller', async () => {
     const { seller, event, orderId } = await createConfirmedOrder();
 
-    const response = await context.requestJson(`/seller/orders?event_id=${event.id}&status=confirmed`, {
-      token: seller.token,
-    });
+    const response = await context.requestJson(
+      `/seller/orders?event_id=${event.id}&status=confirmed`,
+      {
+        token: seller.token,
+      },
+    );
     const payload = await context.readJson<{
       success: boolean;
       data: Array<{

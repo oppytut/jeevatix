@@ -45,7 +45,10 @@ function handleError(
   error: unknown,
 ) {
   if (error instanceof AdminEventServiceError) {
-    return c.json(jsonError(error.code, error.message), error.code === 'EVENT_NOT_FOUND' ? 404 : 500);
+    return c.json(
+      jsonError(error.code, error.message),
+      error.code === 'EVENT_NOT_FOUND' ? 404 : 500,
+    );
   }
 
   return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
@@ -143,7 +146,10 @@ app.openapi(getEventDetailRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminEventService.getEventDetail(params.id, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminEventService.getEventDetail(
+      params.id,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

@@ -8,10 +8,7 @@ import type {
   UpdateAdminPaymentStatusInput,
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
-import {
-  OrderReservationServiceError,
-  releaseReservation,
-} from './order-reservation.service';
+import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
 
 const { orderItems, orders, payments, ticketTiers, tickets, users } = schema;

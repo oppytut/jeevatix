@@ -246,7 +246,11 @@
   }
 
   async function deleteTier(tier: SellerTier) {
-    if (tier.sold_count > 0 || isDeletingTierId || !window.confirm(`Hapus tier \"${tier.name}\"?`)) {
+    if (
+      tier.sold_count > 0 ||
+      isDeletingTierId ||
+      !window.confirm(`Hapus tier \"${tier.name}\"?`)
+    ) {
       return;
     }
 
@@ -266,7 +270,8 @@
     } catch (error) {
       setToast({
         title: 'Gagal menghapus tier',
-        description: error instanceof ApiError ? error.message : 'Tier tidak dapat dihapus saat ini.',
+        description:
+          error instanceof ApiError ? error.message : 'Tier tidak dapat dihapus saat ini.',
         variant: 'warning',
       });
     } finally {
@@ -289,25 +294,45 @@
 
 <section class="space-y-8">
   {#if toast}
-    <Toast title={toast.title} description={toast.description} variant={toast.variant} actionLabel={undefined} />
+    <Toast
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if pageError}
-    <Toast title="Gagal memuat tier" description={pageError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Gagal memuat tier"
+      description={pageError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
-  <div class="rounded-[2rem] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10">
+  <div
+    class="rounded-[2rem] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+  >
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
         <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">S10</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Kelola tier tiket</h1>
+        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          Kelola tier tiket
+        </h1>
         <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-          Buat, edit, dan evaluasi tier tiket event seller. Penghapusan otomatis diblok jika tier sudah punya penjualan.
+          Buat, edit, dan evaluasi tier tiket event seller. Penghapusan otomatis diblok jika tier
+          sudah punya penjualan.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <Button variant="outline" type="button" onclick={() => loadPage(true)} disabled={isRefreshing || isLoading}>
+        <Button
+          variant="outline"
+          type="button"
+          onclick={() => loadPage(true)}
+          disabled={isRefreshing || isLoading}
+        >
           <RefreshCw class={`mr-2 size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
@@ -321,8 +346,12 @@
 
   {#if isLoading}
     <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-      <div class="h-[520px] animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
-      <div class="h-[520px] animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
+      <div
+        class="h-[520px] animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"
+      ></div>
+      <div
+        class="h-[520px] animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"
+      ></div>
     </div>
   {:else}
     <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
@@ -342,7 +371,9 @@
           </div>
           <div class="rounded-[1.3rem] border border-slate-200 bg-slate-50/70 p-4">
             <p class="text-sm text-slate-500">Total Quota</p>
-            <p class="mt-3 text-2xl font-semibold text-slate-950">{eventDetail?.total_quota ?? 0}</p>
+            <p class="mt-3 text-2xl font-semibold text-slate-950">
+              {eventDetail?.total_quota ?? 0}
+            </p>
           </div>
         </div>
 
@@ -367,7 +398,10 @@
               <div class="space-y-2 text-right">
                 <p class="font-semibold text-slate-950">{tier.sold_count}/{tier.quota}</p>
                 <div class="ml-auto h-2 w-24 overflow-hidden rounded-full bg-slate-100">
-                  <div class="h-full rounded-full bg-jeevatix-600" style={`width: ${tier.quota === 0 ? 0 : Math.min(100, (tier.sold_count / tier.quota) * 100)}%`}></div>
+                  <div
+                    class="bg-jeevatix-600 h-full rounded-full"
+                    style={`width: ${tier.quota === 0 ? 0 : Math.min(100, (tier.sold_count / tier.quota) * 100)}%`}
+                  ></div>
                 </div>
               </div>
             {:else}
@@ -378,7 +412,12 @@
           {#snippet rowActions(row)}
             {@const tier = (row as TableRow).original}
             <div class="flex justify-end gap-2">
-              <Button size="sm" variant="outline" type="button" onclick={() => populateFormFromTier(tier)}>
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                onclick={() => populateFormFromTier(tier)}
+              >
                 <Pencil class="mr-2 size-3.5" />
                 Edit
               </Button>
@@ -400,11 +439,15 @@
 
       <Card
         title={editingTierId ? 'Edit tier tiket' : 'Tambah tier tiket'}
-        description={editingTierId ? 'Perbarui harga, quota, atau status tier.' : 'Buat tier baru untuk event ini.'}
+        description={editingTierId
+          ? 'Perbarui harga, quota, atau status tier.'
+          : 'Buat tier baru untuk event ini.'}
         class="rounded-[2rem] border border-slate-200/80 bg-white/95"
       >
         {#if formError}
-          <div class="mb-4 rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div
+            class="mb-4 rounded-[1.25rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+          >
             {formError}
           </div>
         {/if}
@@ -416,11 +459,13 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="tier-description">Deskripsi</label>
+            <label class="text-sm font-medium text-slate-700" for="tier-description"
+              >Deskripsi</label
+            >
             <textarea
               id="tier-description"
               bind:value={form.description}
-              class="min-h-28 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-28 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Benefit untuk tier ini."
             ></textarea>
           </div>
@@ -443,7 +488,7 @@
               <select
                 id="tier-status"
                 bind:value={form.status}
-                class="w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                class="w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               >
                 <option value="available">available</option>
                 <option value="sold_out">sold_out</option>
@@ -475,8 +520,11 @@
           </div>
         </form>
 
-        <div class="mt-6 rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600">
-          Tier dengan `sold_count > 0` tidak bisa dihapus. Backend juga mengunci perubahan harga jika tiket sudah terjual.
+        <div
+          class="mt-6 rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
+        >
+          Tier dengan `sold_count > 0` tidak bisa dihapus. Backend juga mengunci perubahan harga
+          jika tiket sudah terjual.
         </div>
       </Card>
     </div>

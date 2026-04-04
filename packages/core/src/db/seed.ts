@@ -47,7 +47,8 @@ const eventSeeds = [
     endAt: new Date('2026-05-16T23:30:00+07:00'),
     saleStartAt: new Date('2026-04-01T10:00:00+07:00'),
     saleEndAt: new Date('2026-05-16T18:00:00+07:00'),
-    bannerUrl: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80',
+    bannerUrl:
+      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=1200&q=80',
     status: 'published' as const,
     maxTicketsPerOrder: 5,
     isFeatured: true,
@@ -102,7 +103,8 @@ const eventSeeds = [
     endAt: new Date('2026-06-06T17:00:00+07:00'),
     saleStartAt: new Date('2026-04-10T09:00:00+07:00'),
     saleEndAt: new Date('2026-06-05T23:00:00+07:00'),
-    bannerUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
+    bannerUrl:
+      'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80',
     status: 'published' as const,
     maxTicketsPerOrder: 4,
     isFeatured: false,
@@ -219,7 +221,8 @@ async function ensureSeller(adminUserId: string) {
     .values({
       userId: sellerUser.id,
       orgName: 'EventPro Indonesia',
-      orgDescription: 'Penyelenggara event musik, festival, dan experiential workshop berskala nasional.',
+      orgDescription:
+        'Penyelenggara event musik, festival, dan experiential workshop berskala nasional.',
       logoUrl:
         'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=400&q=80',
       bankName: 'Bank Central Asia',

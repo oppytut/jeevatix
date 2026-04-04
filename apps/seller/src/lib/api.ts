@@ -87,8 +87,7 @@ async function request<T>(method: string, path: string, options: RequestOptions 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: requestHeaders,
-    body:
-      body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
+    body: body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
   });
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && browser) {
@@ -141,8 +140,7 @@ async function requestResponse<T, TMeta = unknown>(
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: requestHeaders,
-    body:
-      body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
+    body: body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
   });
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && browser) {

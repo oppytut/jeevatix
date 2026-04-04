@@ -108,14 +108,15 @@ class TicketReserverBase {
   }
 }
 
-const DurableObjectBase = (
-  globalThis as typeof globalThis & {
-    DurableObject?: new (
-      ctx: DurableObjectStateLike,
-      env: TicketReserverEnv,
-    ) => TicketReserverBase;
-  }
-).DurableObject ?? TicketReserverBase;
+const DurableObjectBase =
+  (
+    globalThis as typeof globalThis & {
+      DurableObject?: new (
+        ctx: DurableObjectStateLike,
+        env: TicketReserverEnv,
+      ) => TicketReserverBase;
+    }
+  ).DurableObject ?? TicketReserverBase;
 
 function getProcessEnv(key: string) {
   return (
@@ -217,9 +218,7 @@ export class TicketReserver extends DurableObjectBase {
         quantity: sql<number>`coalesce(sum(${reservations.quantity}), 0)::int`,
       })
       .from(reservations)
-      .where(
-        and(eq(reservations.ticketTierId, tierId), eq(reservations.status, 'active')),
-      );
+      .where(and(eq(reservations.ticketTierId, tierId), eq(reservations.status, 'active')));
 
     const pendingReservations = Math.max(0, pendingReservationAggregate?.quantity ?? 0);
     const soldCount = Math.max(0, tier.soldCount - pendingReservations);
@@ -362,8 +361,7 @@ export class TicketReserver extends DurableObjectBase {
     } catch (error) {
       tierState.pendingReservations = Math.max(0, tierState.pendingReservations - quantity);
       throw error;
-    }
-    finally {
+    } finally {
       await this.broadcastAvailability(tierId, tierState);
     }
   }
@@ -416,7 +414,10 @@ export class TicketReserver extends DurableObjectBase {
         } satisfies ReservationStateResponse;
       }
 
-      tierState.pendingReservations = Math.max(0, tierState.pendingReservations - reservation.quantity);
+      tierState.pendingReservations = Math.max(
+        0,
+        tierState.pendingReservations - reservation.quantity,
+      );
       tierState.soldCount += reservation.quantity;
 
       await database
@@ -425,7 +426,10 @@ export class TicketReserver extends DurableObjectBase {
         .where(eq(reservations.id, reservation.id));
     } else {
       if (reservation.status === 'active') {
-        tierState.pendingReservations = Math.max(0, tierState.pendingReservations - reservation.quantity);
+        tierState.pendingReservations = Math.max(
+          0,
+          tierState.pendingReservations - reservation.quantity,
+        );
       } else {
         tierState.soldCount = Math.max(0, tierState.soldCount - reservation.quantity);
       }

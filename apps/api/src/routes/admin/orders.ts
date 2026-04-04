@@ -166,7 +166,10 @@ app.openapi(getOrderDetailRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminOrderService.getOrderDetail(params.id, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminOrderService.getOrderDetail(
+      params.id,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -178,7 +181,10 @@ app.openapi(refundOrderRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminOrderService.refundOrder(params.id, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminOrderService.refundOrder(
+      params.id,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

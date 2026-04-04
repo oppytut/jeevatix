@@ -13,8 +13,18 @@ export const updateSellerProfileSchema = z
       .optional()
       .openapi({ example: 'https://cdn.jeevatix.id/sellers/eventpro-logo.png' }),
     bank_name: z.string().max(100).nullable().optional().openapi({ example: 'Bank Central Asia' }),
-    bank_account_number: z.string().max(50).nullable().optional().openapi({ example: '1234567890' }),
-    bank_account_holder: z.string().max(150).nullable().optional().openapi({ example: 'PT EventPro Indonesia' }),
+    bank_account_number: z
+      .string()
+      .max(50)
+      .nullable()
+      .optional()
+      .openapi({ example: '1234567890' }),
+    bank_account_holder: z
+      .string()
+      .max(150)
+      .nullable()
+      .optional()
+      .openapi({ example: 'PT EventPro Indonesia' }),
   })
   .openapi('UpdateSellerProfileInput');
 
@@ -42,11 +52,7 @@ export const sellerProfileSchema = z
     bank_account_number: z.string().nullable().openapi({ example: '1234567890' }),
     bank_account_holder: z.string().nullable().openapi({ example: 'PT EventPro Indonesia' }),
     is_verified: z.boolean().openapi({ example: true }),
-    verified_at: z
-      .string()
-      .datetime()
-      .nullable()
-      .openapi({ example: '2026-03-30T10:00:00.000Z' }),
+    verified_at: z.string().datetime().nullable().openapi({ example: '2026-03-30T10:00:00.000Z' }),
     created_at: z.string().datetime().openapi({ example: '2026-03-30T10:00:00.000Z' }),
     updated_at: z.string().datetime().openapi({ example: '2026-03-30T10:00:00.000Z' }),
   })

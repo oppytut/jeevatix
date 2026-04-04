@@ -27,7 +27,14 @@ type AdminDashboard = {
     id: string;
     name: string;
     seller: string;
-    status: 'draft' | 'pending_review' | 'published' | 'rejected' | 'ongoing' | 'completed' | 'cancelled';
+    status:
+      | 'draft'
+      | 'pending_review'
+      | 'published'
+      | 'rejected'
+      | 'ongoing'
+      | 'completed'
+      | 'cancelled';
     created_at: string;
   }>;
   recent_orders: Array<{

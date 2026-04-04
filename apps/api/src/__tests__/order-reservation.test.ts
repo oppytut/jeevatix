@@ -43,7 +43,11 @@ describe.sequential('order reservation service', () => {
       token: buyer.token,
     });
 
-    const result = await releaseReservation(context.env(), reservationPayload.data.reservation_id, 'cancelled');
+    const result = await releaseReservation(
+      context.env(),
+      reservationPayload.data.reservation_id,
+      'cancelled',
+    );
 
     expect(result).toEqual({
       reservationId: reservationPayload.data.reservation_id,
@@ -68,7 +72,11 @@ describe.sequential('order reservation service', () => {
       data: { reservation_id: string };
     }>(reservationResponse);
 
-    const result = await releaseReservation(context.env(), reservationPayload.data.reservation_id, 'expired');
+    const result = await releaseReservation(
+      context.env(),
+      reservationPayload.data.reservation_id,
+      'expired',
+    );
     const reservationRecord = await context.getReservation(reservationPayload.data.reservation_id);
 
     expect(result).toEqual({

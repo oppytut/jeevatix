@@ -13,10 +13,7 @@ import {
   notificationReadAllResponseSchema,
   notificationResponseSchema,
 } from '../schemas/notification.schema';
-import {
-  NotificationServiceError,
-  notificationService,
-} from '../services/notification.service';
+import { NotificationServiceError, notificationService } from '../services/notification.service';
 
 const app = new OpenAPIHono<AuthEnv>();
 const adminApp = new OpenAPIHono<AuthEnv>();

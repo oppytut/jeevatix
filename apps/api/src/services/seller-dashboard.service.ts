@@ -1,15 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import {
-  and,
-  count,
-  desc,
-  eq,
-  exists,
-  gte,
-  inArray,
-  sql,
-  sum,
-} from 'drizzle-orm';
+import { and, count, desc, eq, exists, gte, inArray, sql, sum } from 'drizzle-orm';
 
 import type {
   SellerDashboard,
@@ -22,7 +12,10 @@ const { events, orderItems, orders, payments, ticketTiers } = schema;
 const UPCOMING_EVENT_STATUSES = ['draft', 'pending_review', 'published', 'ongoing'] as const;
 
 export class SellerDashboardServiceError extends Error {
-  constructor(public readonly code: 'DATABASE_UNAVAILABLE', message: string) {
+  constructor(
+    public readonly code: 'DATABASE_UNAVAILABLE',
+    message: string,
+  ) {
     super(message);
     this.name = 'SellerDashboardServiceError';
   }
@@ -81,7 +74,10 @@ function buildSellerOrderExistsCondition(
   );
 }
 
-function buildDailySales(days: number, rows: Array<{ date: string; ticketsSold: number | string | null }>) {
+function buildDailySales(
+  days: number,
+  rows: Array<{ date: string; ticketsSold: number | string | null }>,
+) {
   const ticketsByDay = new Map(rows.map((row) => [row.date, toNumber(row.ticketsSold)]));
   const endDate = startOfDay(new Date());
   const startDate = addDays(endDate, -(days - 1));

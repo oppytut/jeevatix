@@ -1,12 +1,7 @@
 import { fail, redirect } from '@sveltejs/kit';
 
 import { apiGet, apiPatch, apiPost } from '$lib/api';
-import {
-  ApiError,
-  clearAuthSession,
-  persistStoredUser,
-  type BuyerAuthUser,
-} from '$lib/auth';
+import { ApiError, clearAuthSession, persistStoredUser, type BuyerAuthUser } from '$lib/auth';
 
 type MessagePayload = {
   message: string;
@@ -102,8 +97,7 @@ export const actions = {
       }
 
       return fail(error instanceof ApiError ? error.status : 500, {
-        profileError:
-          error instanceof ApiError ? error.message : 'Gagal memperbarui profil buyer.',
+        profileError: error instanceof ApiError ? error.message : 'Gagal memperbarui profil buyer.',
       });
     }
   },
@@ -157,8 +151,7 @@ export const actions = {
       }
 
       return fail(error instanceof ApiError ? error.status : 500, {
-        passwordError:
-          error instanceof ApiError ? error.message : 'Gagal memperbarui password.',
+        passwordError: error instanceof ApiError ? error.message : 'Gagal memperbarui password.',
       });
     }
   },

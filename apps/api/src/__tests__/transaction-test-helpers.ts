@@ -161,7 +161,9 @@ async function signPaymentWebhookPayload(payload: Record<string, unknown>, secre
 
   const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(JSON.stringify(payload)));
 
-  return Array.from(new Uint8Array(signature), (value) => value.toString(16).padStart(2, '0')).join('');
+  return Array.from(new Uint8Array(signature), (value) => value.toString(16).padStart(2, '0')).join(
+    '',
+  );
 }
 
 export function createTransactionTestContext(prefix: string) {
@@ -228,7 +230,10 @@ export function createTransactionTestContext(prefix: string) {
 
     return {
       user,
-      token: await generateAccessToken({ id: user.id, email: user.email, role: user.role }, jwtSecret),
+      token: await generateAccessToken(
+        { id: user.id, email: user.email, role: user.role },
+        jwtSecret,
+      ),
     };
   }
 
@@ -252,7 +257,10 @@ export function createTransactionTestContext(prefix: string) {
     return {
       user,
       sellerProfile,
-      token: await generateAccessToken({ id: user.id, email: user.email, role: user.role }, jwtSecret),
+      token: await generateAccessToken(
+        { id: user.id, email: user.email, role: user.role },
+        jwtSecret,
+      ),
     };
   }
 
@@ -261,7 +269,10 @@ export function createTransactionTestContext(prefix: string) {
 
     return {
       user,
-      token: await generateAccessToken({ id: user.id, email: user.email, role: user.role }, jwtSecret),
+      token: await generateAccessToken(
+        { id: user.id, email: user.email, role: user.role },
+        jwtSecret,
+      ),
     };
   }
 
@@ -421,10 +432,17 @@ export function createTransactionTestContext(prefix: string) {
       await database.delete(refreshTokens).where(inArray(refreshTokens.userId, userIds));
 
       if (orderIds.length > 0) {
-        await database.delete(ticketCheckins).where(inArray(ticketCheckins.ticketId, database
-          .select({ id: tickets.id })
-          .from(tickets)
-          .where(inArray(tickets.orderId, orderIds))));
+        await database
+          .delete(ticketCheckins)
+          .where(
+            inArray(
+              ticketCheckins.ticketId,
+              database
+                .select({ id: tickets.id })
+                .from(tickets)
+                .where(inArray(tickets.orderId, orderIds)),
+            ),
+          );
         await database.delete(tickets).where(inArray(tickets.orderId, orderIds));
         await database.delete(payments).where(inArray(payments.orderId, orderIds));
         await database.delete(orderItems).where(inArray(orderItems.orderId, orderIds));

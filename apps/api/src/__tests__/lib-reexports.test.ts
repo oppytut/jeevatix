@@ -1,14 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  ACCESS_TOKEN_TTL_SECONDS,
-  generateAccessToken,
-  verifyToken,
-} from '../lib/jwt';
-import {
-  hashPassword,
-  verifyPassword,
-} from '../lib/password';
+import { ACCESS_TOKEN_TTL_SECONDS, generateAccessToken, verifyToken } from '../lib/jwt';
+import { hashPassword, verifyPassword } from '../lib/password';
 
 describe('api lib re-exports', () => {
   it('re-exports jwt helpers from core', async () => {

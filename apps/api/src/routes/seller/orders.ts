@@ -8,10 +8,7 @@ import {
   sellerOrderResponseSchema,
   sellerOrdersListResponseSchema,
 } from '../../schemas/seller-order.schema';
-import {
-  SellerOrderServiceError,
-  sellerOrderService,
-} from '../../services/seller-order.service';
+import { SellerOrderServiceError, sellerOrderService } from '../../services/seller-order.service';
 import {
   SellerProfileServiceError,
   sellerProfileService,

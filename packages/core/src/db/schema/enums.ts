@@ -14,11 +14,7 @@ export const eventStatus = pgEnum('event_status', [
   'cancelled',
 ]);
 
-export const ticketTierStatus = pgEnum('ticket_tier_status', [
-  'available',
-  'sold_out',
-  'hidden',
-]);
+export const ticketTierStatus = pgEnum('ticket_tier_status', ['available', 'sold_out', 'hidden']);
 
 export const orderStatus = pgEnum('order_status', [
   'pending',
@@ -28,12 +24,7 @@ export const orderStatus = pgEnum('order_status', [
   'refunded',
 ]);
 
-export const paymentStatus = pgEnum('payment_status', [
-  'pending',
-  'success',
-  'failed',
-  'refunded',
-]);
+export const paymentStatus = pgEnum('payment_status', ['pending', 'success', 'failed', 'refunded']);
 
 export const paymentMethod = pgEnum('payment_method', [
   'bank_transfer',

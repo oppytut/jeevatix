@@ -12,12 +12,7 @@ const eventStatusSchema = z.enum([
 
 const orderStatusSchema = z.enum(['pending', 'confirmed', 'expired', 'cancelled', 'refunded']);
 const paymentStatusSchema = z.enum(['pending', 'success', 'failed', 'refunded']);
-const paymentMethodSchema = z.enum([
-  'bank_transfer',
-  'e_wallet',
-  'credit_card',
-  'virtual_account',
-]);
+const paymentMethodSchema = z.enum(['bank_transfer', 'e_wallet', 'credit_card', 'virtual_account']);
 const reservationStatusSchema = z.enum(['active', 'converted', 'expired', 'cancelled']);
 const ticketTierStatusSchema = z.enum(['available', 'sold_out', 'hidden']);
 const ticketStatusSchema = z.enum(['valid', 'used', 'cancelled', 'refunded']);
@@ -45,7 +40,11 @@ export const adminEventListQuerySchema = z
     page: z.coerce.number().int().min(1).default(1).openapi({ example: 1 }),
     limit: z.coerce.number().int().min(1).max(100).default(20).openapi({ example: 20 }),
     status: eventStatusSchema.optional().openapi({ example: 'pending_review' }),
-    seller_id: z.string().uuid().optional().openapi({ example: '8ca73e15-7be4-4e68-b45e-3678bb1908f2' }),
+    seller_id: z
+      .string()
+      .uuid()
+      .optional()
+      .openapi({ example: '8ca73e15-7be4-4e68-b45e-3678bb1908f2' }),
     search: z.string().trim().min(1).optional().openapi({ example: 'festival musik' }),
   })
   .openapi('AdminEventListQuery');

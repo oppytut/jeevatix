@@ -146,7 +146,10 @@ app.openapi(listPaymentsRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await adminPaymentService.listPayments(query, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminPaymentService.listPayments(
+      query,
+      getDatabaseUrl(c.env.DATABASE_URL),
+    );
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -174,11 +177,7 @@ app.openapi(updatePaymentStatusRoute, async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const result = await adminPaymentService.updatePaymentStatus(
-      params.id,
-      body,
-      c.env,
-    );
+    const result = await adminPaymentService.updatePaymentStatus(params.id, body, c.env);
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

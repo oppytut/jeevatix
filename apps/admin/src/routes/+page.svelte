@@ -19,7 +19,14 @@
         id: string;
         name: string;
         seller: string;
-        status: 'draft' | 'pending_review' | 'published' | 'rejected' | 'ongoing' | 'completed' | 'cancelled';
+        status:
+          | 'draft'
+          | 'pending_review'
+          | 'published'
+          | 'rejected'
+          | 'ongoing'
+          | 'completed'
+          | 'cancelled';
         created_at: string;
       }>;
       recent_orders: Array<{
@@ -34,8 +41,9 @@
     loadError: string | null;
   };
 
-  type DailyTransactionPoint =
-    NonNullable<AdminDashboardPageData['dashboard']>['daily_transactions'][number];
+  type DailyTransactionPoint = NonNullable<
+    AdminDashboardPageData['dashboard']
+  >['daily_transactions'][number];
 
   let { data }: { data: AdminDashboardPageData } = $props();
 
@@ -140,19 +148,26 @@
 </svelte:head>
 
 <section class="space-y-8">
-  <div class="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-    <div class="grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_36%),linear-gradient(135deg,rgba(15,23,42,0.04),rgba(255,255,255,0.96)_45%,rgba(251,191,36,0.10)_100%)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]">
+  <div
+    class="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
+  >
+    <div
+      class="grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_36%),linear-gradient(135deg,rgba(15,23,42,0.04),rgba(255,255,255,0.96)_45%,rgba(251,191,36,0.10)_100%)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
+    >
       <div class="space-y-4">
         <p class="text-sm font-semibold tracking-[0.35em] text-slate-600 uppercase">A2</p>
         <h1 class="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
           Admin Dashboard
         </h1>
         <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-          Ringkasan operasional platform untuk membaca pertumbuhan pengguna, performa event, dan ritme transaksi harian dari satu layar.
+          Ringkasan operasional platform untuk membaca pertumbuhan pengguna, performa event, dan
+          ritme transaksi harian dari satu layar.
         </p>
       </div>
 
-      <div class="rounded-[1.75rem] border border-slate-900/10 bg-slate-950 p-6 text-white shadow-[0_20px_50px_rgba(15,23,42,0.24)]">
+      <div
+        class="rounded-[1.75rem] border border-slate-900/10 bg-slate-950 p-6 text-white shadow-[0_20px_50px_rgba(15,23,42,0.24)]"
+      >
         <div class="flex items-start justify-between gap-4">
           <div>
             <p class="text-sm font-medium text-slate-300">30-Day Transactions</p>
@@ -173,7 +188,9 @@
           </div>
           <div class="rounded-2xl border border-white/10 bg-white/6 p-4">
             <p class="text-xs font-medium tracking-[0.25em] text-slate-400 uppercase">Revenue</p>
-            <p class="mt-2 text-lg font-semibold">{formatCurrency(dashboard?.total_revenue ?? 0)}</p>
+            <p class="mt-2 text-lg font-semibold">
+              {formatCurrency(dashboard?.total_revenue ?? 0)}
+            </p>
           </div>
         </div>
       </div>
@@ -230,7 +247,9 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Total Revenue</p>
-          <p class="mt-3 text-3xl font-semibold text-slate-950">{formatCurrency(dashboard?.total_revenue ?? 0)}</p>
+          <p class="mt-3 text-3xl font-semibold text-slate-950">
+            {formatCurrency(dashboard?.total_revenue ?? 0)}
+          </p>
         </div>
         <div class="rounded-2xl bg-amber-50 p-3 text-amber-700">
           <Wallet class="size-5" />
@@ -242,7 +261,9 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Tiket Terjual</p>
-          <p class="mt-3 text-3xl font-semibold text-slate-950">{dashboard?.total_tickets_sold ?? 0}</p>
+          <p class="mt-3 text-3xl font-semibold text-slate-950">
+            {dashboard?.total_tickets_sold ?? 0}
+          </p>
         </div>
         <div class="rounded-2xl bg-emerald-50 p-3 text-emerald-700">
           <Ticket class="size-5" />
@@ -270,7 +291,9 @@
     description="Bar chart jumlah transaksi sukses dalam 30 hari terakhir."
     class="rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
   >
-    <div class="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,rgba(239,246,255,0.85),rgba(255,255,255,1))] p-4 sm:p-5">
+    <div
+      class="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,rgba(239,246,255,0.85),rgba(255,255,255,1))] p-4 sm:p-5"
+    >
       <svg
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
         class="h-auto w-full overflow-visible"
@@ -297,10 +320,10 @@
               : paddingLeft + index * (plotWidth / Math.max(transactions.length, 1))}
           {@const height = (point.transaction_count / maxTransactions) * plotHeight}
           <rect
-            x={x}
+            {x}
             y={paddingTop + plotHeight - height}
             width={barWidth}
-            height={height}
+            {height}
             rx="8"
             fill="rgb(37,99,235)"
             opacity="0.92"
@@ -308,7 +331,9 @@
         {/each}
       </svg>
 
-      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-medium tracking-[0.22em] text-slate-500 uppercase">
+      <div
+        class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-medium tracking-[0.22em] text-slate-500 uppercase"
+      >
         {#each chartLabels as label (label.date)}
           <span>{formatDayLabel(label.date)}</span>
         {/each}
@@ -323,7 +348,9 @@
       class="rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_events.length === 0}
-        <div class="flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+        <div
+          class="flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500"
+        >
           Belum ada event terbaru yang bisa ditampilkan.
         </div>
       {:else}
@@ -360,7 +387,9 @@
       class="rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_orders.length === 0}
-        <div class="flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+        <div
+          class="flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500"
+        >
           Belum ada pesanan terbaru yang bisa ditampilkan.
         </div>
       {:else}
@@ -379,7 +408,9 @@
                 <tr class="hover:bg-slate-50/80">
                   <td class="px-4 py-4 font-medium text-slate-950">{order.order_number}</td>
                   <td class="px-4 py-4 text-slate-700">{order.buyer}</td>
-                  <td class="px-4 py-4 font-medium text-slate-950">{formatCurrency(order.total_amount)}</td>
+                  <td class="px-4 py-4 font-medium text-slate-950"
+                    >{formatCurrency(order.total_amount)}</td
+                  >
                   <td class="px-4 py-4">
                     <Badge variant={getOrderStatusVariant(order.status)}>{order.status}</Badge>
                   </td>

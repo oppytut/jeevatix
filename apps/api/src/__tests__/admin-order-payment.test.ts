@@ -47,10 +47,13 @@ describe.sequential('Phase 9 Admin Order and Payment Operations', () => {
     });
     const orderPayload = await context.readJson<{ data: { id: string } }>(orderResponse);
 
-    const cancelResponse = await context.requestJson(`/admin/orders/${orderPayload.data.id}/cancel`, {
-      method: 'POST',
-      token: admin.token,
-    });
+    const cancelResponse = await context.requestJson(
+      `/admin/orders/${orderPayload.data.id}/cancel`,
+      {
+        method: 'POST',
+        token: admin.token,
+      },
+    );
     const cancelPayload = await context.readJson<{
       success: boolean;
       data: { status: string; paymentStatus: string };
@@ -103,13 +106,16 @@ describe.sequential('Phase 9 Admin Order and Payment Operations', () => {
 
     expect(paymentRecord?.id).toBeTruthy();
 
-    const updateResponse = await context.requestJson(`/admin/payments/${paymentRecord!.id}/status`, {
-      method: 'PATCH',
-      token: admin.token,
-      body: {
-        status: 'failed',
+    const updateResponse = await context.requestJson(
+      `/admin/payments/${paymentRecord!.id}/status`,
+      {
+        method: 'PATCH',
+        token: admin.token,
+        body: {
+          status: 'failed',
+        },
       },
-    });
+    );
     const updatePayload = await context.readJson<{
       success: boolean;
       data: { status: string; orderStatus: string };

@@ -37,16 +37,8 @@ const createTierSchemaBase = z.object({
   price: z.coerce.number().nonnegative().openapi({ example: 350000 }),
   quota: z.coerce.number().int().min(1).openapi({ example: 100 }),
   sort_order: z.coerce.number().int().min(0).default(0).openapi({ example: 0 }),
-  sale_start_at: z
-    .string()
-    .datetime()
-    .optional()
-    .openapi({ example: '2026-05-01T10:00:00.000Z' }),
-  sale_end_at: z
-    .string()
-    .datetime()
-    .optional()
-    .openapi({ example: '2026-06-01T10:00:00.000Z' }),
+  sale_start_at: z.string().datetime().optional().openapi({ example: '2026-05-01T10:00:00.000Z' }),
+  sale_end_at: z.string().datetime().optional().openapi({ example: '2026-06-01T10:00:00.000Z' }),
   status: ticketTierStatusSchema.optional().openapi({ example: 'available' }),
 });
 
@@ -86,7 +78,11 @@ export const sellerTierSchema = z
     sold_count: z.number().int().min(0).openapi({ example: 24 }),
     sort_order: z.number().int().min(0).openapi({ example: 0 }),
     status: ticketTierStatusSchema.openapi({ example: 'available' }),
-    sale_start_at: z.string().datetime().nullable().openapi({ example: '2026-05-01T10:00:00.000Z' }),
+    sale_start_at: z
+      .string()
+      .datetime()
+      .nullable()
+      .openapi({ example: '2026-05-01T10:00:00.000Z' }),
     sale_end_at: z.string().datetime().nullable().openapi({ example: '2026-06-01T10:00:00.000Z' }),
     created_at: z.string().datetime().openapi({ example: '2026-03-31T09:00:00.000Z' }),
     updated_at: z.string().datetime().openapi({ example: '2026-03-31T09:00:00.000Z' }),

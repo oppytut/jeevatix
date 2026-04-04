@@ -102,11 +102,7 @@ export const ticketTierInputSchema = z
       .datetime()
       .optional()
       .openapi({ example: '2026-05-01T10:00:00.000Z' }),
-    sale_end_at: z
-      .string()
-      .datetime()
-      .optional()
-      .openapi({ example: '2026-06-01T10:00:00.000Z' }),
+    sale_end_at: z.string().datetime().optional().openapi({ example: '2026-06-01T10:00:00.000Z' }),
   })
   .openapi('TicketTierInput');
 
@@ -134,7 +130,10 @@ const createEventSchemaBase = z.object({
     .optional()
     .openapi({ example: 'https://cdn.jeevatix.id/events/festival/banner.jpg' }),
   max_tickets_per_order: z.coerce.number().int().min(1).max(20).default(5).openapi({ example: 5 }),
-  category_ids: z.array(z.coerce.number().int().positive()).min(1).openapi({ example: [1, 4] }),
+  category_ids: z
+    .array(z.coerce.number().int().positive())
+    .min(1)
+    .openapi({ example: [1, 4] }),
   images: z.array(eventImageInputSchema).default([]).openapi('EventImageInputList'),
   tiers: z.array(ticketTierInputSchema).min(1).openapi('TicketTierInputList'),
 });
@@ -179,7 +178,11 @@ export const sellerEventTierSchema = z
     sold_count: z.number().int().min(0).openapi({ example: 24 }),
     sort_order: z.number().int().min(0).openapi({ example: 0 }),
     status: ticketTierStatusSchema.openapi({ example: 'available' }),
-    sale_start_at: z.string().datetime().nullable().openapi({ example: '2026-05-01T10:00:00.000Z' }),
+    sale_start_at: z
+      .string()
+      .datetime()
+      .nullable()
+      .openapi({ example: '2026-05-01T10:00:00.000Z' }),
     sale_end_at: z.string().datetime().nullable().openapi({ example: '2026-06-01T10:00:00.000Z' }),
     created_at: z.string().datetime().openapi({ example: '2026-03-31T09:00:00.000Z' }),
     updated_at: z.string().datetime().openapi({ example: '2026-03-31T09:00:00.000Z' }),
@@ -196,7 +199,10 @@ export const sellerEventListItemSchema = z
     end_at: z.string().datetime().openapi({ example: '2026-06-14T23:00:00.000Z' }),
     sale_start_at: z.string().datetime().openapi({ example: '2026-05-01T10:00:00.000Z' }),
     sale_end_at: z.string().datetime().openapi({ example: '2026-06-13T23:59:59.000Z' }),
-    banner_url: z.string().nullable().openapi({ example: 'https://cdn.jeevatix.id/events/festival/banner.jpg' }),
+    banner_url: z
+      .string()
+      .nullable()
+      .openapi({ example: 'https://cdn.jeevatix.id/events/festival/banner.jpg' }),
     status: eventStatusSchema.openapi({ example: 'draft' }),
     max_tickets_per_order: z.number().int().positive().openapi({ example: 5 }),
     total_quota: z.number().int().min(0).openapi({ example: 400 }),
@@ -209,7 +215,10 @@ export const sellerEventListItemSchema = z
 export const sellerEventDetailSchema = z
   .object({
     id: z.string().uuid().openapi({ example: '27c3278a-6ed1-41ab-b522-39c4f24ebf4f' }),
-    seller_profile_id: z.string().uuid().openapi({ example: '5a197f34-d1df-4ec2-b0d4-2fd6a18ef61e' }),
+    seller_profile_id: z
+      .string()
+      .uuid()
+      .openapi({ example: '5a197f34-d1df-4ec2-b0d4-2fd6a18ef61e' }),
     title: z.string().openapi({ example: 'Festival Musik Nusantara' }),
     slug: z.string().openapi({ example: 'festival-musik-nusantara' }),
     description: z
@@ -217,7 +226,10 @@ export const sellerEventDetailSchema = z
       .nullable()
       .openapi({ example: 'Festival musik lintas genre dengan artis nasional.' }),
     venue_name: z.string().openapi({ example: 'Istora Senayan' }),
-    venue_address: z.string().nullable().openapi({ example: 'Jl. Pintu Satu Senayan, Jakarta Pusat' }),
+    venue_address: z
+      .string()
+      .nullable()
+      .openapi({ example: 'Jl. Pintu Satu Senayan, Jakarta Pusat' }),
     venue_city: z.string().openapi({ example: 'Jakarta' }),
     venue_latitude: z.number().nullable().openapi({ example: -6.2187 }),
     venue_longitude: z.number().nullable().openapi({ example: 106.8022 }),
@@ -225,7 +237,10 @@ export const sellerEventDetailSchema = z
     end_at: z.string().datetime().openapi({ example: '2026-06-14T23:00:00.000Z' }),
     sale_start_at: z.string().datetime().openapi({ example: '2026-05-01T10:00:00.000Z' }),
     sale_end_at: z.string().datetime().openapi({ example: '2026-06-13T23:59:59.000Z' }),
-    banner_url: z.string().nullable().openapi({ example: 'https://cdn.jeevatix.id/events/festival/banner.jpg' }),
+    banner_url: z
+      .string()
+      .nullable()
+      .openapi({ example: 'https://cdn.jeevatix.id/events/festival/banner.jpg' }),
     status: eventStatusSchema.openapi({ example: 'pending_review' }),
     max_tickets_per_order: z.number().int().positive().openapi({ example: 5 }),
     total_quota: z.number().int().min(0).openapi({ example: 400 }),

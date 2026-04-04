@@ -151,7 +151,12 @@
       );
       notifications = response.data.notifications;
       unreadCount = response.data.unread_count;
-      meta = response.meta ?? { total: notifications.length, page, limit: meta.limit, totalPages: 1 };
+      meta = response.meta ?? {
+        total: notifications.length,
+        page,
+        limit: meta.limit,
+        totalPages: 1,
+      };
       broadcastUnreadCount();
     } catch (error) {
       pageError = error instanceof ApiError ? error.message : 'Gagal memuat notifikasi seller.';
@@ -169,7 +174,10 @@
     markingId = notification.id;
 
     try {
-      const updated = await apiPatch<SellerNotification>(`/notifications/${notification.id}/read`, {});
+      const updated = await apiPatch<SellerNotification>(
+        `/notifications/${notification.id}/read`,
+        {},
+      );
       notifications = notifications.map((entry) => (entry.id === updated.id ? updated : entry));
       unreadCount = Math.max(0, unreadCount - 1);
       broadcastUnreadCount();
@@ -234,7 +242,9 @@
 </svelte:head>
 
 <section class="space-y-8">
-  <div class="rounded-[2.5rem] border border-white/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_34%,#ecfeff_100%)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9">
+  <div
+    class="rounded-[2.5rem] border border-white/80 bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_34%,#ecfeff_100%)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9"
+  >
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
         <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">S16</p>
@@ -242,7 +252,8 @@
           Semua update seller terkumpul di satu inbox.
         </h1>
         <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-          Cek pesanan baru, persetujuan event, reminder penting, dan tindak lanjut operasional tanpa keluar dari workspace seller.
+          Cek pesanan baru, persetujuan event, reminder penting, dan tindak lanjut operasional tanpa
+          keluar dari workspace seller.
         </p>
       </div>
 
@@ -254,25 +265,50 @@
   </div>
 
   {#if toast}
-    <Toast title={toast.title} description={toast.description} variant={toast.variant} actionLabel={undefined} />
+    <Toast
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if pageError}
-    <Toast title="Gagal memuat notifikasi" description={pageError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Gagal memuat notifikasi"
+      description={pageError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
-  <Card class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7">
+  <Card
+    class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+  >
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Inbox</p>
-        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Pusat notifikasi seller</h2>
+        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          Pusat notifikasi seller
+        </h2>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <Button variant="outline" type="button" class="rounded-full px-5" onclick={() => loadNotifications(meta.page, true)} disabled={isLoading || isRefreshing}>
+        <Button
+          variant="outline"
+          type="button"
+          class="rounded-full px-5"
+          onclick={() => loadNotifications(meta.page, true)}
+          disabled={isLoading || isRefreshing}
+        >
           Refresh
         </Button>
-        <Button type="button" class="rounded-full px-5" onclick={markAllRead} disabled={unreadCount === 0 || isMarkingAll}>
+        <Button
+          type="button"
+          class="rounded-full px-5"
+          onclick={markAllRead}
+          disabled={unreadCount === 0 || isMarkingAll}
+        >
           Mark All as Read
         </Button>
       </div>
@@ -280,17 +316,26 @@
 
     <div class="mt-8 space-y-4">
       {#if isLoading}
-        <div class="rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center text-sm text-slate-500">
+        <div
+          class="rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center text-sm text-slate-500"
+        >
           Memuat notifikasi seller...
         </div>
       {:else if notifications.length === 0}
-        <div class="rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
-          <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+        <div
+          class="rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center"
+        >
+          <div
+            class="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+          >
             <BellRing class="size-7" />
           </div>
-          <h3 class="mt-5 text-2xl font-semibold tracking-tight text-slate-950">Belum ada notifikasi</h3>
+          <h3 class="mt-5 text-2xl font-semibold tracking-tight text-slate-950">
+            Belum ada notifikasi
+          </h3>
           <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
-            Saat ada pesanan baru atau perubahan status event, notifikasinya akan muncul di halaman ini.
+            Saat ada pesanan baru atau perubahan status event, notifikasinya akan muncul di halaman
+            ini.
           </p>
         </div>
       {:else}
@@ -304,7 +349,9 @@
             disabled={markingId === notification.id}
           >
             <div class="flex items-start gap-4">
-              <div class={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${getNotificationIconClass(notification.type)}`}>
+              <div
+                class={`flex size-12 shrink-0 items-center justify-center rounded-2xl ${getNotificationIconClass(notification.type)}`}
+              >
                 <NotificationIcon class="size-6" />
               </div>
 
@@ -314,7 +361,9 @@
                     <div class="flex flex-wrap items-center gap-2">
                       <h3 class="text-lg font-semibold text-slate-950">{notification.title}</h3>
                       {#if !notification.is_read}
-                        <span class="rounded-full bg-sky-600 px-2.5 py-1 text-[0.7rem] font-semibold tracking-[0.2em] text-white uppercase">
+                        <span
+                          class="rounded-full bg-sky-600 px-2.5 py-1 text-[0.7rem] font-semibold tracking-[0.2em] text-white uppercase"
+                        >
                           Unread
                         </span>
                       {/if}
@@ -323,8 +372,12 @@
                   </div>
 
                   <div class="shrink-0 text-left sm:text-right">
-                    <p class="text-sm font-medium text-slate-900">{formatRelativeTime(notification.created_at)}</p>
-                    <p class="mt-1 text-xs text-slate-500">{formatLongDateTime(notification.created_at)}</p>
+                    <p class="text-sm font-medium text-slate-900">
+                      {formatRelativeTime(notification.created_at)}
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500">
+                      {formatLongDateTime(notification.created_at)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -334,16 +387,28 @@
       {/if}
     </div>
 
-    <div class="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      class="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between"
+    >
       <p class="text-sm text-slate-500">
         Page {meta.page} dari {Math.max(meta.totalPages, 1)} • Total {meta.total} notifikasi
       </p>
 
       <div class="flex items-center gap-3">
-        <Button variant="outline" type="button" onclick={() => changePage(meta.page - 1)} disabled={meta.page <= 1 || isRefreshing}>
+        <Button
+          variant="outline"
+          type="button"
+          onclick={() => changePage(meta.page - 1)}
+          disabled={meta.page <= 1 || isRefreshing}
+        >
           Sebelumnya
         </Button>
-        <Button variant="outline" type="button" onclick={() => changePage(meta.page + 1)} disabled={meta.page >= meta.totalPages || meta.totalPages === 0 || isRefreshing}>
+        <Button
+          variant="outline"
+          type="button"
+          onclick={() => changePage(meta.page + 1)}
+          disabled={meta.page >= meta.totalPages || meta.totalPages === 0 || isRefreshing}
+        >
           Berikutnya
         </Button>
       </div>

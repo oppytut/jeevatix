@@ -161,7 +161,10 @@ export const checkinService = {
       if (!updatedTicket) {
         const latestCandidate = await getCheckinCandidate(eventId, normalizedCode, databaseUrl);
 
-        if (latestCandidate && (latestCandidate.ticketStatus === 'used' || latestCandidate.checkedInAt)) {
+        if (
+          latestCandidate &&
+          (latestCandidate.ticketStatus === 'used' || latestCandidate.checkedInAt)
+        ) {
           return buildAlreadyUsedResult(latestCandidate);
         }
 

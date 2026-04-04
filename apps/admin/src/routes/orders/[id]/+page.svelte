@@ -154,9 +154,7 @@
     }
   }
 
-  function getPaymentVariant(
-    status: PaymentStatus,
-  ): 'default' | 'success' | 'neutral' | 'warning' {
+  function getPaymentVariant(status: PaymentStatus): 'default' | 'success' | 'neutral' | 'warning' {
     switch (status) {
       case 'success':
         return 'success';
@@ -168,9 +166,7 @@
     }
   }
 
-  function getTicketVariant(
-    status: TicketStatus,
-  ): 'default' | 'success' | 'neutral' | 'warning' {
+  function getTicketVariant(status: TicketStatus): 'default' | 'success' | 'neutral' | 'warning' {
     switch (status) {
       case 'valid':
         return 'success';
@@ -215,7 +211,9 @@
     isSubmitting = true;
 
     try {
-      const result = await apiPost<OrderActionPayload>(`/admin/orders/${orderDetail.id}/${pendingAction}`);
+      const result = await apiPost<OrderActionPayload>(
+        `/admin/orders/${orderDetail.id}/${pendingAction}`,
+      );
 
       orderDetail = {
         ...orderDetail,
@@ -285,7 +283,8 @@
         Detail pesanan
       </h1>
       <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-        Audit status order, pembayaran, tiket terbit, dan jalankan intervensi administratif bila dibutuhkan.
+        Audit status order, pembayaran, tiket terbit, dan jalankan intervensi administratif bila
+        dibutuhkan.
       </p>
     </div>
 
@@ -307,11 +306,21 @@
   </div>
 
   {#if toast}
-    <Toast actionLabel={undefined} title={toast.title} description={toast.description} variant={toast.variant} />
+    <Toast
+      actionLabel={undefined}
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+    />
   {/if}
 
   {#if pageError}
-    <Toast title="Gagal memuat detail" description={pageError} actionLabel={undefined} variant="warning" />
+    <Toast
+      title="Gagal memuat detail"
+      description={pageError}
+      actionLabel={undefined}
+      variant="warning"
+    />
   {/if}
 
   {#if isLoading}
@@ -322,13 +331,23 @@
     </div>
   {:else if orderDetail}
     <div class="grid gap-4 md:grid-cols-4">
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Status order</p>
         <div class="mt-3">
-          <Badge variant={getOrderVariant(orderDetail.status)}>{formatOrderStatus(orderDetail.status)}</Badge>
+          <Badge variant={getOrderVariant(orderDetail.status)}
+            >{formatOrderStatus(orderDetail.status)}</Badge
+          >
         </div>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Status pembayaran</p>
         <div class="mt-3">
           <Badge variant={getPaymentVariant(orderDetail.payment.status)}>
@@ -336,11 +355,21 @@
           </Badge>
         </div>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Nilai transaksi</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{formatCurrency(orderDetail.totalAmount)}</p>
+        <p class="mt-2 text-3xl font-semibold text-slate-950">
+          {formatCurrency(orderDetail.totalAmount)}
+        </p>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Jumlah tiket</p>
         <p class="mt-2 text-3xl font-semibold text-slate-950">{totalTickets}</p>
       </Card>
@@ -359,7 +388,9 @@
           </div>
           <div>
             <p class="text-sm text-slate-500">Reservation ID</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{orderDetail.reservationId ?? ' - '}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {orderDetail.reservationId ?? ' - '}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Buyer</p>
@@ -373,19 +404,27 @@
           </div>
           <div>
             <p class="text-sm text-slate-500">Dibuat</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatDate(orderDetail.createdAt)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatDate(orderDetail.createdAt)}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Confirmed at</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatDate(orderDetail.confirmedAt)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatDate(orderDetail.confirmedAt)}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Expires at</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatDate(orderDetail.expiresAt)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatDate(orderDetail.expiresAt)}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Service fee</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatCurrency(orderDetail.serviceFee)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatCurrency(orderDetail.serviceFee)}
+            </p>
           </div>
         </div>
       </Card>
@@ -446,11 +485,15 @@
           </div>
           <div>
             <p class="text-sm text-slate-500">External ref</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{orderDetail.payment.externalRef ?? ' - '}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {orderDetail.payment.externalRef ?? ' - '}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Paid at</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatDate(orderDetail.payment.paidAt)}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {formatDate(orderDetail.payment.paidAt)}
+            </p>
           </div>
         </div>
       </Card>
@@ -466,7 +509,9 @@
               <div class="flex items-center justify-between gap-4">
                 <div>
                   <p class="font-semibold text-slate-950">{item.tierName}</p>
-                  <p class="mt-1 text-sm text-slate-500">Qty {item.quantity} x {formatCurrency(item.unitPrice)}</p>
+                  <p class="mt-1 text-sm text-slate-500">
+                    Qty {item.quantity} x {formatCurrency(item.unitPrice)}
+                  </p>
                 </div>
                 <p class="font-semibold text-slate-950">{formatCurrency(item.subtotal)}</p>
               </div>
@@ -495,11 +540,15 @@
               <div class="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
                   <p class="text-sm text-slate-500">Issued at</p>
-                  <p class="mt-2 text-sm font-medium text-slate-900">{formatDate(ticket.issuedAt)}</p>
+                  <p class="mt-2 text-sm font-medium text-slate-900">
+                    {formatDate(ticket.issuedAt)}
+                  </p>
                 </div>
                 <div>
                   <p class="text-sm text-slate-500">Checked in</p>
-                  <p class="mt-2 text-sm font-medium text-slate-900">{formatDate(ticket.checkedInAt)}</p>
+                  <p class="mt-2 text-sm font-medium text-slate-900">
+                    {formatDate(ticket.checkedInAt)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -522,7 +571,9 @@
     contentClass="max-w-xl"
   >
     <div class="space-y-6">
-      <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700">
+      <div
+        class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700"
+      >
         Anda akan menjalankan aksi
         <span class="font-semibold"> {pendingAction === 'refund' ? 'refund' : 'cancel'}</span>
         untuk order <span class="font-semibold">{orderDetail?.orderNumber}</span>.

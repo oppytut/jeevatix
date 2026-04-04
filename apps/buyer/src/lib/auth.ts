@@ -157,7 +157,12 @@ export function clearAuthSession(cookies: Cookies) {
   cookies.delete(BUYER_USER_COOKIE, { path: '/' });
 }
 
-export async function login(fetchFn: typeof fetch, cookies: Cookies, email: string, password: string) {
+export async function login(
+  fetchFn: typeof fetch,
+  cookies: Cookies,
+  email: string,
+  password: string,
+) {
   const response = await fetchFn(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: {

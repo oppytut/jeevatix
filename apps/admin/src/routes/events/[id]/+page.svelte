@@ -254,7 +254,8 @@
     } catch (error) {
       setToast({
         title: 'Gagal memperbarui status',
-        description: error instanceof ApiError ? error.message : 'Perubahan status event gagal disimpan.',
+        description:
+          error instanceof ApiError ? error.message : 'Perubahan status event gagal disimpan.',
         variant: 'warning',
       });
     } finally {
@@ -286,9 +287,7 @@
   >
     <div class="space-y-3">
       <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A8</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-        Detail event
-      </h1>
+      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Detail event</h1>
       <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
         Audit seller, kategori, jadwal penjualan, dan tier tiket sebelum mengambil keputusan status.
       </p>
@@ -337,7 +336,11 @@
     </div>
   {:else if eventDetail}
     <div class="grid gap-4 md:grid-cols-4">
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Status</p>
         <div class="mt-3">
           <Badge variant={getStatusVariant(eventDetail.status)}>
@@ -345,15 +348,27 @@
           </Badge>
         </div>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Order masuk</p>
         <p class="mt-2 text-3xl font-semibold text-slate-950">{eventDetail.stats.orderCount}</p>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Tiket terjual</p>
         <p class="mt-2 text-3xl font-semibold text-slate-950">{eventDetail.stats.ticketsSold}</p>
       </Card>
-      <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+      <Card
+        title={undefined}
+        description={undefined}
+        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      >
         <p class="text-sm text-slate-500">Gross revenue</p>
         <p class="mt-2 text-3xl font-semibold text-slate-950">
           {formatCurrency(eventDetail.stats.grossRevenue)}
@@ -389,23 +404,33 @@
             </div>
             <div>
               <p class="text-sm text-slate-500">Maks tiket per order</p>
-              <p class="mt-2 text-base font-medium text-slate-900">{eventDetail.maxTicketsPerOrder}</p>
+              <p class="mt-2 text-base font-medium text-slate-900">
+                {eventDetail.maxTicketsPerOrder}
+              </p>
             </div>
             <div>
               <p class="text-sm text-slate-500">Mulai event</p>
-              <p class="mt-2 text-base font-medium text-slate-900">{formatDate(eventDetail.startAt)}</p>
+              <p class="mt-2 text-base font-medium text-slate-900">
+                {formatDate(eventDetail.startAt)}
+              </p>
             </div>
             <div>
               <p class="text-sm text-slate-500">Selesai event</p>
-              <p class="mt-2 text-base font-medium text-slate-900">{formatDate(eventDetail.endAt)}</p>
+              <p class="mt-2 text-base font-medium text-slate-900">
+                {formatDate(eventDetail.endAt)}
+              </p>
             </div>
             <div>
               <p class="text-sm text-slate-500">Mulai jual</p>
-              <p class="mt-2 text-base font-medium text-slate-900">{formatDate(eventDetail.saleStartAt)}</p>
+              <p class="mt-2 text-base font-medium text-slate-900">
+                {formatDate(eventDetail.saleStartAt)}
+              </p>
             </div>
             <div>
               <p class="text-sm text-slate-500">Selesai jual</p>
-              <p class="mt-2 text-base font-medium text-slate-900">{formatDate(eventDetail.saleEndAt)}</p>
+              <p class="mt-2 text-base font-medium text-slate-900">
+                {formatDate(eventDetail.saleEndAt)}
+              </p>
             </div>
             <div class="md:col-span-2">
               <p class="text-sm text-slate-500">Alamat venue</p>
@@ -470,7 +495,9 @@
           </div>
           <div>
             <p class="text-sm text-slate-500">Phone</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{eventDetail.seller.phone ?? ' - '}</p>
+            <p class="mt-2 text-base font-medium text-slate-900">
+              {eventDetail.seller.phone ?? ' - '}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500">Verifikasi</p>
@@ -534,11 +561,15 @@
         </div>
         <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4">
           <p class="text-sm text-slate-500">Confirmed order</p>
-          <p class="mt-2 text-2xl font-semibold text-slate-950">{eventDetail.stats.confirmedOrderCount}</p>
+          <p class="mt-2 text-2xl font-semibold text-slate-950">
+            {eventDetail.stats.confirmedOrderCount}
+          </p>
         </div>
         <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4">
           <p class="text-sm text-slate-500">Featured</p>
-          <p class="mt-2 text-2xl font-semibold text-slate-950">{eventDetail.isFeatured ? 'Ya' : 'Tidak'}</p>
+          <p class="mt-2 text-2xl font-semibold text-slate-950">
+            {eventDetail.isFeatured ? 'Ya' : 'Tidak'}
+          </p>
         </div>
       </div>
 
@@ -548,9 +579,17 @@
             <div class="flex items-start justify-between gap-4">
               <div>
                 <p class="text-lg font-semibold text-slate-950">{tier.name}</p>
-                <p class="mt-1 text-sm text-slate-500">{tier.description ?? 'Tanpa deskripsi tier.'}</p>
+                <p class="mt-1 text-sm text-slate-500">
+                  {tier.description ?? 'Tanpa deskripsi tier.'}
+                </p>
               </div>
-              <Badge variant={tier.status === 'available' ? 'success' : tier.status === 'sold_out' ? 'warning' : 'neutral'}>
+              <Badge
+                variant={tier.status === 'available'
+                  ? 'success'
+                  : tier.status === 'sold_out'
+                    ? 'warning'
+                    : 'neutral'}
+              >
                 {formatTierStatus(tier.status)}
               </Badge>
             </div>
@@ -589,9 +628,13 @@
     contentClass="max-w-xl"
   >
     <div class="space-y-6">
-      <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700">
+      <div
+        class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700"
+      >
         Anda akan mengubah status <span class="font-semibold">{eventDetail?.title}</span> menjadi
-        <span class="font-semibold"> {pendingStatus ? formatEventStatus(pendingStatus) : '-'}</span>.
+        <span class="font-semibold">
+          {pendingStatus ? formatEventStatus(pendingStatus) : '-'}</span
+        >.
       </div>
 
       <div class="flex items-center justify-end gap-3">
@@ -606,7 +649,11 @@
           <CircleX class="mr-2 size-4" />
           Batal
         </Button>
-        <Button type="button" onclick={confirmStatusChange} disabled={isSubmitting || !pendingStatus}>
+        <Button
+          type="button"
+          onclick={confirmStatusChange}
+          disabled={isSubmitting || !pendingStatus}
+        >
           <BadgeCheck class="mr-2 size-4" />
           Simpan status
         </Button>

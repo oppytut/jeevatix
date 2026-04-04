@@ -286,13 +286,16 @@ describe.sequential('Phase 10 Admin coverage tests', () => {
       };
     }>(detailResponse);
 
-    const updateResponse = await context.requestJson(`/admin/payments/${fixture.payment.id}/status`, {
-      method: 'PATCH',
-      token: fixture.admin.token,
-      body: {
-        status: 'success',
+    const updateResponse = await context.requestJson(
+      `/admin/payments/${fixture.payment.id}/status`,
+      {
+        method: 'PATCH',
+        token: fixture.admin.token,
+        body: {
+          status: 'success',
+        },
       },
-    });
+    );
     const updatePayload = await context.readJson<{
       success: boolean;
       data: { id: string; status: string; orderStatus: string };

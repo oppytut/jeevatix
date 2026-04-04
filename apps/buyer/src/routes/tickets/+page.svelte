@@ -1,7 +1,14 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
-  import { CalendarDays, ChevronLeft, ChevronRight, MapPin, Ticket, TicketCheck } from '@lucide/svelte';
+  import {
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
+    MapPin,
+    Ticket,
+    TicketCheck,
+  } from '@lucide/svelte';
 
   import { Button, Card } from '@jeevatix/ui';
 
@@ -45,17 +52,17 @@
   }
 
   function getGroupedTickets() {
-    const grouped = new Map<string, TicketGroup>();
+    const grouped: Record<string, TicketGroup> = {};
 
     for (const ticket of data.tickets) {
-      const existingGroup = grouped.get(ticket.event_id);
+      const existingGroup = grouped[ticket.event_id];
 
       if (existingGroup) {
         existingGroup.tickets.push(ticket);
         continue;
       }
 
-      grouped.set(ticket.event_id, {
+      grouped[ticket.event_id] = {
         eventId: ticket.event_id,
         eventTitle: ticket.event_title,
         eventSlug: ticket.event_slug,
@@ -63,10 +70,10 @@
         venueName: ticket.venue_name,
         venueCity: ticket.venue_city,
         tickets: [ticket],
-      });
+      };
     }
 
-    return Array.from(grouped.values());
+    return Object.values(grouped);
   }
 
   function goToTicket(ticketId: string) {
@@ -78,7 +85,7 @@
       return;
     }
 
-    void goto(resolve(`/tickets?page=${page}`));
+    window.location.assign(`${resolve('/tickets')}?page=${page}`);
   }
 
   function getVisiblePages() {
@@ -103,7 +110,9 @@
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
-  <div class="rounded-[2.5rem] border border-white/80 bg-[linear-gradient(135deg,#edfdf5_0%,#f8fbff_48%,#fff7ed_100%)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9">
+  <div
+    class="rounded-[2.5rem] border border-white/80 bg-[linear-gradient(135deg,#edfdf5_0%,#f8fbff_48%,#fff7ed_100%)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9"
+  >
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
         <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">Tickets</p>
@@ -111,28 +120,39 @@
           Semua tiket Anda siap dipakai kapan saja.
         </h1>
         <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-          Simpan akses cepat ke tiket aktif, lihat event yang akan datang, dan buka QR code tiket hanya dalam satu langkah.
+          Simpan akses cepat ke tiket aktif, lihat event yang akan datang, dan buka QR code tiket
+          hanya dalam satu langkah.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
         <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Total Tickets</p>
+          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">
+            Total Tickets
+          </p>
           <p class="mt-2 text-3xl font-semibold text-slate-950">{data.meta.total}</p>
         </div>
         <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Grouped Events</p>
+          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">
+            Grouped Events
+          </p>
           <p class="mt-2 text-3xl font-semibold text-slate-950">{getGroupedTickets().length}</p>
         </div>
       </div>
     </div>
   </div>
 
-  <Card class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7">
+  <Card
+    class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+  >
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Ticket Wallet</p>
-        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Daftar tiket buyer</h2>
+        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+          Ticket Wallet
+        </p>
+        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          Daftar tiket buyer
+        </h2>
       </div>
 
       <div class="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600">
@@ -141,25 +161,42 @@
     </div>
 
     {#if data.tickets.length === 0}
-      <div class="mt-8 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center">
-        <div class="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+      <div
+        class="mt-8 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center"
+      >
+        <div
+          class="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+        >
           <Ticket class="size-7" />
         </div>
-        <h3 class="mt-5 text-2xl font-semibold tracking-tight text-slate-950">Belum ada tiket aktif</h3>
+        <h3 class="mt-5 text-2xl font-semibold tracking-tight text-slate-950">
+          Belum ada tiket aktif
+        </h3>
         <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
-          Setelah pembayaran sukses, tiket Anda akan otomatis muncul di sini lengkap dengan kode tiket dan detail event.
+          Setelah pembayaran sukses, tiket Anda akan otomatis muncul di sini lengkap dengan kode
+          tiket dan detail event.
         </p>
-        <Button class="mt-6 rounded-full px-5" onclick={() => goto(resolve('/events'))}>Jelajahi Event</Button>
+        <Button class="mt-6 rounded-full px-5" onclick={() => goto(resolve('/events'))}
+          >Jelajahi Event</Button
+        >
       </div>
     {:else}
       <div class="mt-8 space-y-6">
         {#each getGroupedTickets() as group (group.eventId)}
-          <section class="space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 sm:p-6">
+          <section
+            class="space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 sm:p-6"
+          >
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">{group.tickets.length} tiket</p>
-                <h3 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{group.eventTitle}</h3>
-                <div class="mt-3 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+                <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">
+                  {group.tickets.length} tiket
+                </p>
+                <h3 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                  {group.eventTitle}
+                </h3>
+                <div
+                  class="mt-3 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
+                >
                   <span class="inline-flex items-center gap-2">
                     <CalendarDays class="size-4 text-emerald-700" />
                     {formatEventDateRange(group.eventStartAt)}
@@ -171,7 +208,11 @@
                 </div>
               </div>
 
-              <Button variant="outline" class="rounded-full px-5" onclick={() => goto(resolve('/events/[slug]', { slug: group.eventSlug }))}>
+              <Button
+                variant="outline"
+                class="rounded-full px-5"
+                onclick={() => goto(resolve('/events/[slug]', { slug: group.eventSlug }))}
+              >
                 Lihat Event
               </Button>
             </div>
@@ -185,24 +226,38 @@
                 >
                   <div class="flex items-start justify-between gap-4">
                     <div>
-                      <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">{ticket.order_number}</p>
+                      <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">
+                        {ticket.order_number}
+                      </p>
                       <h4 class="mt-2 text-lg font-semibold text-slate-950">{ticket.tier_name}</h4>
                     </div>
-                    <span class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${getStatusTone(ticket.status)}`}>
+                    <span
+                      class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${getStatusTone(ticket.status)}`}
+                    >
                       {ticket.status}
                     </span>
                   </div>
 
                   <div class="mt-5 space-y-3">
                     <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                      <p class="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">Kode Tiket</p>
-                      <p class="mt-2 font-mono text-sm font-semibold tracking-[0.22em] text-slate-950">{maskTicketCode(ticket.ticket_code)}</p>
+                      <p class="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">
+                        Kode Tiket
+                      </p>
+                      <p
+                        class="mt-2 font-mono text-sm font-semibold tracking-[0.22em] text-slate-950"
+                      >
+                        {maskTicketCode(ticket.ticket_code)}
+                      </p>
                     </div>
 
-                    <div class="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    <div
+                      class="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600"
+                    >
                       <TicketCheck class="mt-0.5 size-4 text-emerald-700" />
                       <div>
-                        <p class="font-medium text-slate-900">Diterbitkan {formatRelativeTime(ticket.issued_at)}</p>
+                        <p class="font-medium text-slate-900">
+                          Diterbitkan {formatRelativeTime(ticket.issued_at)}
+                        </p>
                         <p class="mt-1">Tap untuk membuka detail dan QR code tiket.</p>
                       </div>
                     </div>

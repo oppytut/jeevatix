@@ -29,10 +29,7 @@ export const ticketListItemSchema = z
     id: z.string().uuid().openapi({ example: 'af1e1e0c-c77d-4d9d-8b0f-0ff713738d89' }),
     order_id: z.string().uuid().openapi({ example: 'f4fe78e2-4909-4fd4-bf51-f65077a355ea' }),
     order_number: z.string().openapi({ example: 'JVX-20260401-48291' }),
-    ticket_tier_id: z
-      .string()
-      .uuid()
-      .openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
+    ticket_tier_id: z.string().uuid().openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
     tier_name: z.string().openapi({ example: 'VIP' }),
     ticket_code: z.string().openapi({ example: 'JVX-AB12CD34EF56' }),
     status: ticketStatusSchema.openapi({ example: 'valid' }),
@@ -59,10 +56,7 @@ export const ticketDetailSchema = z
     id: z.string().uuid().openapi({ example: 'af1e1e0c-c77d-4d9d-8b0f-0ff713738d89' }),
     order_id: z.string().uuid().openapi({ example: 'f4fe78e2-4909-4fd4-bf51-f65077a355ea' }),
     order_number: z.string().openapi({ example: 'JVX-20260401-48291' }),
-    ticket_tier_id: z
-      .string()
-      .uuid()
-      .openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
+    ticket_tier_id: z.string().uuid().openapi({ example: '9012ee69-d83a-44b2-9588-9622a736ab42' }),
     tier_name: z.string().openapi({ example: 'VIP' }),
     ticket_code: z.string().openapi({ example: 'JVX-AB12CD34EF56' }),
     qr_data: z.string().openapi({ example: 'JVX-AB12CD34EF56' }),
@@ -76,7 +70,10 @@ export const ticketDetailSchema = z
         id: z.string().uuid().openapi({ example: '27c3278a-6ed1-41ab-b522-39c4f24ebf4f' }),
         slug: z.string().openapi({ example: 'festival-musik-nusantara' }),
         title: z.string().openapi({ example: 'Festival Musik Nusantara' }),
-        banner_url: z.string().nullable().openapi({ example: 'https://cdn.jeevatix.id/banner.png' }),
+        banner_url: z
+          .string()
+          .nullable()
+          .openapi({ example: 'https://cdn.jeevatix.id/banner.png' }),
         start_at: z.string().datetime().openapi({ example: '2026-06-01T12:00:00.000Z' }),
         end_at: z.string().datetime().openapi({ example: '2026-06-01T18:00:00.000Z' }),
         venue_name: z.string().openapi({ example: 'Istora Senayan' }),

@@ -46,17 +46,25 @@
 
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-          <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">Events</p>
+          <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">
+            Events
+          </p>
           <p class="mt-3 text-3xl font-semibold">S6</p>
           <p class="mt-2 text-sm text-emerald-100/75">Publikasikan dan kelola event seller.</p>
         </div>
         <div class="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-          <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">Orders</p>
+          <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">
+            Orders
+          </p>
           <p class="mt-3 text-3xl font-semibold">S11</p>
-          <p class="mt-2 text-sm text-emerald-100/75">Pantau order masuk dan status pembayarannya.</p>
+          <p class="mt-2 text-sm text-emerald-100/75">
+            Pantau order masuk dan status pembayarannya.
+          </p>
         </div>
         <div class="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-          <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">Check-in</p>
+          <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">
+            Check-in
+          </p>
           <p class="mt-3 text-3xl font-semibold">S13</p>
           <p class="mt-2 text-sm text-emerald-100/75">Validasi tiket dengan alur check-in cepat.</p>
         </div>
@@ -71,14 +79,20 @@
       >
         <div class="flex items-start justify-between gap-4">
           <div class="space-y-2">
-            <p class="text-sm font-semibold tracking-[0.32em] text-emerald-700/70 uppercase">Sign In</p>
-            <h2 class="text-3xl font-semibold tracking-tight text-slate-950">Masuk ke Seller Studio</h2>
+            <p class="text-sm font-semibold tracking-[0.32em] text-emerald-700/70 uppercase">
+              Sign In
+            </p>
+            <h2 class="text-3xl font-semibold tracking-tight text-slate-950">
+              Masuk ke Seller Studio
+            </h2>
             <p class="text-sm leading-6 text-slate-600">
               Gunakan akun seller untuk mengelola event, tiket, dan notifikasi operasional.
             </p>
           </div>
 
-          <div class="flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+          <div
+            class="flex size-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700"
+          >
             <KeyRound class="size-7" />
           </div>
         </div>
@@ -100,7 +114,10 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-4">
               <label class="text-sm font-medium text-slate-700" for="password">Password</label>
-              <a class="text-sm font-medium text-emerald-700 hover:text-emerald-800" href={resolve('/forgot-password')}>
+              <a
+                class="text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                href={resolve('/forgot-password')}
+              >
                 Lupa password?
               </a>
             </div>
@@ -115,7 +132,9 @@
           </div>
 
           {#if form?.error}
-            <div class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div
+              class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+            >
               <TriangleAlert class="mt-0.5 size-4 shrink-0" />
               <p>{form.error}</p>
             </div>
@@ -127,7 +146,10 @@
         {#snippet footer()}
           <div class="flex items-center justify-between gap-4 text-sm text-slate-500">
             <p>Belum punya akun seller?</p>
-            <a class="font-medium text-emerald-700 hover:text-emerald-800" href={resolve('/register')}>
+            <a
+              class="font-medium text-emerald-700 hover:text-emerald-800"
+              href={resolve('/register')}
+            >
               Daftar sekarang
             </a>
           </div>

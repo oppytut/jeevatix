@@ -1,11 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 
-import {
-  apiGet,
-  apiPost,
-  type InitiatePaymentPayload,
-  type OrderDetail,
-} from '$lib/api';
+import { apiGet, apiPost, type InitiatePaymentPayload, type OrderDetail } from '$lib/api';
 import { ApiError, clearAuthSession } from '$lib/auth';
 
 function requireBuyerSession(locals: App.Locals) {

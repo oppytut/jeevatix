@@ -298,7 +298,10 @@ export async function cleanupExpiredReservations(env: ReservationCleanupEnv) {
   };
 }
 
-export async function enqueueReservationCleanup(env: ReservationCleanupEnv, scheduledTime?: number) {
+export async function enqueueReservationCleanup(
+  env: ReservationCleanupEnv,
+  scheduledTime?: number,
+) {
   if (!env.RESERVATION_CLEANUP_QUEUE) {
     return cleanupExpiredReservations(env);
   }

@@ -169,7 +169,10 @@
     } catch (error) {
       setToast({
         title: 'Gagal submit review',
-        description: error instanceof ApiError ? error.message : 'Event belum bisa dikirim ulang untuk review.',
+        description:
+          error instanceof ApiError
+            ? error.message
+            : 'Event belum bisa dikirim ulang untuk review.',
         variant: 'warning',
       });
     } finally {
@@ -228,11 +231,21 @@
 
 <section class="space-y-8">
   {#if toast}
-    <Toast title={toast.title} description={toast.description} variant={toast.variant} actionLabel={undefined} />
+    <Toast
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if pageError}
-    <Toast title="Gagal memuat detail event" description={pageError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Gagal memuat detail event"
+      description={pageError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if isLoading}
@@ -244,35 +257,64 @@
       </div>
     </div>
   {:else if eventDetail}
-    <div class="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+    <div
+      class="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
+    >
       <div class="relative h-72 overflow-hidden bg-slate-100">
         {#if eventDetail.banner_url}
-          <img class="h-full w-full object-cover" src={eventDetail.banner_url} alt={eventDetail.title} />
+          <img
+            class="h-full w-full object-cover"
+            src={eventDetail.banner_url}
+            alt={eventDetail.title}
+          />
         {:else}
-          <div class="flex h-full items-center justify-center text-sm text-slate-500">Banner event belum tersedia.</div>
+          <div class="flex h-full items-center justify-center text-sm text-slate-500">
+            Banner event belum tersedia.
+          </div>
         {/if}
-        <div class="absolute inset-0 bg-linear-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
+        <div
+          class="absolute inset-0 bg-linear-to-t from-slate-950/80 via-slate-950/20 to-transparent"
+        ></div>
         <div class="absolute inset-x-0 bottom-0 p-8 sm:p-10">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div class="space-y-3 text-white">
               <div class="flex flex-wrap items-center gap-3">
-                <Badge variant={getStatusBadgeVariant(eventDetail.status)}>{getStatusLabel(eventDetail.status)}</Badge>
+                <Badge variant={getStatusBadgeVariant(eventDetail.status)}
+                  >{getStatusLabel(eventDetail.status)}</Badge
+                >
                 <span class="text-sm font-medium text-white/80">{eventDetail.venue_city}</span>
               </div>
               <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">{eventDetail.title}</h1>
-              <p class="max-w-3xl text-sm leading-6 text-white/80">{eventDetail.description ?? 'Belum ada deskripsi event.'}</p>
+              <p class="max-w-3xl text-sm leading-6 text-white/80">
+                {eventDetail.description ?? 'Belum ada deskripsi event.'}
+              </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-              <Button variant="outline" type="button" class="border-white/30 bg-white/10 text-white hover:bg-white/20" onclick={() => goto(resolve('/events'))}>
+              <Button
+                variant="outline"
+                type="button"
+                class="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                onclick={() => goto(resolve('/events'))}
+              >
                 <ArrowLeft class="mr-2 size-4" />
                 Daftar Event
               </Button>
-              <Button variant="outline" type="button" class="border-white/30 bg-white/10 text-white hover:bg-white/20" onclick={goToTiers}>
+              <Button
+                variant="outline"
+                type="button"
+                class="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                onclick={goToTiers}
+              >
                 <Ticket class="mr-2 size-4" />
                 Kelola Tier
               </Button>
-              <Button variant="outline" type="button" class="border-white/30 bg-white/10 text-white hover:bg-white/20" onclick={goToCheckin}>
+              <Button
+                variant="outline"
+                type="button"
+                class="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                onclick={goToCheckin}
+              >
                 <QrCode class="mr-2 size-4" />
                 Check-in
               </Button>
@@ -301,7 +343,9 @@
       </div>
       <div class="rounded-[1.6rem] border border-slate-200/80 bg-white p-6 shadow-sm">
         <p class="text-sm text-slate-500">Sell-through</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{summary.soldPercentage.toFixed(0)}%</p>
+        <p class="mt-3 text-3xl font-semibold text-slate-950">
+          {summary.soldPercentage.toFixed(0)}%
+        </p>
       </div>
     </div>
 
@@ -315,23 +359,29 @@
           <div class="grid gap-5 lg:grid-cols-2">
             <div class="space-y-4 text-sm text-slate-600">
               <div class="flex items-start gap-3">
-                <CalendarDays class="mt-0.5 size-4 text-jeevatix-600" />
+                <CalendarDays class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
                   <p class="font-semibold text-slate-950">Jadwal Event</p>
-                  <p>{formatDateTime(eventDetail.start_at)} → {formatDateTime(eventDetail.end_at)}</p>
+                  <p>
+                    {formatDateTime(eventDetail.start_at)} → {formatDateTime(eventDetail.end_at)}
+                  </p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <ChartColumn class="mt-0.5 size-4 text-jeevatix-600" />
+                <ChartColumn class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
                   <p class="font-semibold text-slate-950">Jendela Penjualan</p>
-                  <p>{formatDateTime(eventDetail.sale_start_at)} → {formatDateTime(eventDetail.sale_end_at)}</p>
+                  <p>
+                    {formatDateTime(eventDetail.sale_start_at)} → {formatDateTime(
+                      eventDetail.sale_end_at,
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
             <div class="space-y-4 text-sm text-slate-600">
               <div class="flex items-start gap-3">
-                <MapPinned class="mt-0.5 size-4 text-jeevatix-600" />
+                <MapPinned class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
                   <p class="font-semibold text-slate-950">Venue</p>
                   <p>{eventDetail.venue_name}</p>
@@ -340,7 +390,7 @@
                 </div>
               </div>
               <div class="flex items-start gap-3">
-                <Ticket class="mt-0.5 size-4 text-jeevatix-600" />
+                <Ticket class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
                   <p class="font-semibold text-slate-950">Max per Order</p>
                   <p>{eventDetail.max_tickets_per_order} tiket</p>
@@ -363,17 +413,23 @@
         >
           <div class="space-y-4">
             {#each eventDetail.tiers as tier (tier.id)}
-              {@const soldPercentage = tier.quota === 0 ? 0 : Math.min(100, (tier.sold_count / tier.quota) * 100)}
+              {@const soldPercentage =
+                tier.quota === 0 ? 0 : Math.min(100, (tier.sold_count / tier.quota) * 100)}
               <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
                 <div class="flex items-center justify-between gap-4">
                   <div>
                     <p class="font-semibold text-slate-950">{tier.name}</p>
-                    <p class="mt-1 text-sm text-slate-500">Rp {tier.price.toLocaleString('id-ID')} • {tier.status}</p>
+                    <p class="mt-1 text-sm text-slate-500">
+                      Rp {tier.price.toLocaleString('id-ID')} • {tier.status}
+                    </p>
                   </div>
                   <p class="text-sm font-medium text-slate-700">{tier.sold_count}/{tier.quota}</p>
                 </div>
                 <div class="mt-4 h-3 overflow-hidden rounded-full bg-slate-200">
-                  <div class="h-full rounded-full bg-jeevatix-600" style={`width: ${soldPercentage}%`}></div>
+                  <div
+                    class="bg-jeevatix-600 h-full rounded-full"
+                    style={`width: ${soldPercentage}%`}
+                  ></div>
                 </div>
               </div>
             {/each}
@@ -388,11 +444,17 @@
           {#if eventDetail.images.length > 0}
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {#each eventDetail.images as image (image.id)}
-                <img class="h-44 w-full rounded-[1.4rem] object-cover" src={image.image_url} alt="Galeri event" />
+                <img
+                  class="h-44 w-full rounded-[1.4rem] object-cover"
+                  src={image.image_url}
+                  alt="Galeri event"
+                />
               {/each}
             </div>
           {:else}
-            <div class="flex h-40 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500">
+            <div
+              class="flex h-40 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500"
+            >
               Belum ada galeri tambahan untuk event ini.
             </div>
           {/if}
@@ -415,7 +477,13 @@
               Kelola Tier Tiket
             </Button>
             {#if eventDetail.status === 'draft' || eventDetail.status === 'rejected'}
-              <Button class="w-full" variant="secondary" type="button" onclick={submitForReview} disabled={isSubmitting}>
+              <Button
+                class="w-full"
+                variant="secondary"
+                type="button"
+                onclick={submitForReview}
+                disabled={isSubmitting}
+              >
                 {#if isSubmitting}
                   <LoaderCircle class="mr-2 size-4 animate-spin" />
                   Mengirim...
@@ -433,8 +501,12 @@
           description="Panel ini disiapkan untuk integrasi penuh setelah Seller Order API di T-7.5 tersedia."
           class="rounded-[2rem] border border-slate-200/80 bg-white/95"
         >
-          <div class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/70 p-5 text-sm leading-6 text-slate-500">
-            Data pesanan masuk belum tersedia di kontrak API saat fase ini. Halaman detail tetap menampilkan statistik tier dan readiness event, lalu akan diperkaya order feed saat T-7.5 selesai.
+          <div
+            class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/70 p-5 text-sm leading-6 text-slate-500"
+          >
+            Data pesanan masuk belum tersedia di kontrak API saat fase ini. Halaman detail tetap
+            menampilkan statistik tier dan readiness event, lalu akan diperkaya order feed saat
+            T-7.5 selesai.
           </div>
         </Card>
 
@@ -444,8 +516,14 @@
           class="rounded-[2rem] border border-slate-200/80 bg-white/95"
         >
           <div class="space-y-3 text-sm text-slate-600">
-            <p><span class="font-semibold text-slate-950">Created:</span> {formatDateTime(eventDetail.created_at)}</p>
-            <p><span class="font-semibold text-slate-950">Updated:</span> {formatDateTime(eventDetail.updated_at)}</p>
+            <p>
+              <span class="font-semibold text-slate-950">Created:</span>
+              {formatDateTime(eventDetail.created_at)}
+            </p>
+            <p>
+              <span class="font-semibold text-slate-950">Updated:</span>
+              {formatDateTime(eventDetail.updated_at)}
+            </p>
             <p><span class="font-semibold text-slate-950">Slug:</span> {eventDetail.slug}</p>
           </div>
         </Card>

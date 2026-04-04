@@ -49,11 +49,14 @@ export const paymentWebhookSchema = z
     external_ref: z.string().min(1).openapi({ example: 'PAY-20260401-AB12CD34' }),
     status: z.enum(['success', 'failed']).openapi({ example: 'success' }),
     paid_at: z.string().datetime().optional().openapi({ example: '2026-04-01T03:20:00.000Z' }),
-    metadata: z.record(z.string(), z.unknown()).optional().openapi({
-      example: {
-        gateway: 'mock-gateway',
-      },
-    }),
+    metadata: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .openapi({
+        example: {
+          gateway: 'mock-gateway',
+        },
+      }),
   })
   .openapi('PaymentWebhookInput');
 

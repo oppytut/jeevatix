@@ -197,7 +197,10 @@
   }
 
   async function deleteEvent(event: SellerEventListItem) {
-    if (deletingEventId || !window.confirm(`Hapus event \"${event.title}\"? Hanya event draft yang bisa dihapus.`)) {
+    if (
+      deletingEventId ||
+      !window.confirm(`Hapus event \"${event.title}\"? Hanya event draft yang bisa dihapus.`)
+    ) {
       return;
     }
 
@@ -214,7 +217,8 @@
     } catch (error) {
       setToast({
         title: 'Gagal menghapus event',
-        description: error instanceof ApiError ? error.message : 'Event tidak dapat dihapus saat ini.',
+        description:
+          error instanceof ApiError ? error.message : 'Event tidak dapat dihapus saat ini.',
         variant: 'warning',
       });
     } finally {
@@ -240,7 +244,9 @@
 </svelte:head>
 
 <section class="space-y-8">
-  <div class="rounded-[2rem] border border-slate-200/80 bg-white/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10">
+  <div
+    class="rounded-[2rem] border border-slate-200/80 bg-white/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+  >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
         <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">S6</p>
@@ -248,12 +254,18 @@
           Workspace event seller
         </h1>
         <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-          Lihat seluruh event milik Anda, filter berdasarkan status publikasi, dan lanjutkan ke halaman detail, edit, atau manajemen tier tiket.
+          Lihat seluruh event milik Anda, filter berdasarkan status publikasi, dan lanjutkan ke
+          halaman detail, edit, atau manajemen tier tiket.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <Button variant="outline" type="button" onclick={() => loadEvents(true)} disabled={isRefreshing || isLoading}>
+        <Button
+          variant="outline"
+          type="button"
+          onclick={() => loadEvents(true)}
+          disabled={isRefreshing || isLoading}
+        >
           <RefreshCw class={`mr-2 size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
@@ -285,11 +297,21 @@
   </div>
 
   {#if toast}
-    <Toast title={toast.title} description={toast.description} variant={toast.variant} actionLabel={undefined} />
+    <Toast
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+      actionLabel={undefined}
+    />
   {/if}
 
   {#if pageError}
-    <Toast title="Gagal memuat data" description={pageError} variant="warning" actionLabel={undefined} />
+    <Toast
+      title="Gagal memuat data"
+      description={pageError}
+      variant="warning"
+      actionLabel={undefined}
+    />
   {/if}
 
   <Card
@@ -300,7 +322,7 @@
     <div class="mb-5 flex flex-wrap gap-2">
       {#each statusOptions as option (option.value)}
         <button
-          class={`rounded-full border px-4 py-2 text-sm font-medium transition ${selectedStatus === option.value ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-jeevatix-300 hover:bg-jeevatix-50 hover:text-slate-950'}`}
+          class={`rounded-full border px-4 py-2 text-sm font-medium transition ${selectedStatus === option.value ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-slate-200 bg-white text-slate-600 hover:text-slate-950'}`}
           onclick={() => changeStatusFilter(option.value)}
           type="button"
         >
@@ -312,7 +334,9 @@
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
-          <div class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"></div>
+          <div
+            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+          ></div>
         {/each}
       </div>
     {:else}
@@ -333,18 +357,24 @@
               <p class="text-xs text-slate-500">{event.venue_city}</p>
             </div>
           {:else if column.key === 'status'}
-            <Badge variant={getStatusBadgeVariant(event.status)}>{getStatusLabel(event.status)}</Badge>
+            <Badge variant={getStatusBadgeVariant(event.status)}
+              >{getStatusLabel(event.status)}</Badge
+            >
           {:else if column.key === 'schedule'}
             <div class="space-y-1 text-sm">
-              <p class="font-medium text-slate-800">{formatDateRange(event.start_at, event.end_at)}</p>
-              <p class="text-xs text-slate-500">Jual: {formatDateRange(event.sale_start_at, event.sale_end_at)}</p>
+              <p class="font-medium text-slate-800">
+                {formatDateRange(event.start_at, event.end_at)}
+              </p>
+              <p class="text-xs text-slate-500">
+                Jual: {formatDateRange(event.sale_start_at, event.sale_end_at)}
+              </p>
             </div>
           {:else if column.key === 'soldSummary'}
             <div class="space-y-2 text-right">
               <p class="font-semibold text-slate-950">{event.total_sold}/{event.total_quota}</p>
               <div class="ml-auto h-2 w-28 overflow-hidden rounded-full bg-slate-100">
                 <div
-                  class="h-full rounded-full bg-jeevatix-600"
+                  class="bg-jeevatix-600 h-full rounded-full"
                   style={`width: ${event.total_quota === 0 ? 0 : Math.min(100, (event.total_sold / event.total_quota) * 100)}%`}
                 ></div>
               </div>
@@ -357,24 +387,39 @@
         {#snippet rowActions(row)}
           {@const event = (row as TableRow).original}
           <div class="flex justify-end gap-2">
-            <Button size="sm" variant="outline" type="button" onclick={(clickEvent: MouseEvent) => {
-              clickEvent.stopPropagation();
-              goToEvent(event.id);
-            }}>
+            <Button
+              size="sm"
+              variant="outline"
+              type="button"
+              onclick={(clickEvent: MouseEvent) => {
+                clickEvent.stopPropagation();
+                goToEvent(event.id);
+              }}
+            >
               <Eye class="mr-2 size-3.5" />
               Detail
             </Button>
-            <Button size="sm" variant="outline" type="button" onclick={(clickEvent: MouseEvent) => {
-              clickEvent.stopPropagation();
-              goto(resolve(`/events/${event.id}/edit`));
-            }}>
+            <Button
+              size="sm"
+              variant="outline"
+              type="button"
+              onclick={(clickEvent: MouseEvent) => {
+                clickEvent.stopPropagation();
+                goto(resolve(`/events/${event.id}/edit`));
+              }}
+            >
               <Pencil class="mr-2 size-3.5" />
               Edit
             </Button>
-            <Button size="sm" variant="ghost" type="button" onclick={(clickEvent: MouseEvent) => {
-              clickEvent.stopPropagation();
-              goto(resolve(`/events/${event.id}/tiers`));
-            }}>
+            <Button
+              size="sm"
+              variant="ghost"
+              type="button"
+              onclick={(clickEvent: MouseEvent) => {
+                clickEvent.stopPropagation();
+                goto(resolve(`/events/${event.id}/tiers`));
+              }}
+            >
               <Ticket class="mr-2 size-3.5" />
               Tiers
             </Button>
@@ -406,19 +451,25 @@
     >
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
-          <CalendarDays class="size-5 text-jeevatix-600" />
+          <CalendarDays class="text-jeevatix-600 size-5" />
           <p class="mt-4 font-semibold text-slate-950">Lengkapi jadwal</p>
-          <p class="mt-2 text-sm leading-6 text-slate-600">Pastikan sale window dan waktu event sinkron sebelum submit review.</p>
+          <p class="mt-2 text-sm leading-6 text-slate-600">
+            Pastikan sale window dan waktu event sinkron sebelum submit review.
+          </p>
         </div>
         <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
-          <Ticket class="size-5 text-jeevatix-600" />
+          <Ticket class="text-jeevatix-600 size-5" />
           <p class="mt-4 font-semibold text-slate-950">Atur tier tiket</p>
-          <p class="mt-2 text-sm leading-6 text-slate-600">Kelola harga, quota, dan urutan tier dari halaman khusus per event.</p>
+          <p class="mt-2 text-sm leading-6 text-slate-600">
+            Kelola harga, quota, dan urutan tier dari halaman khusus per event.
+          </p>
         </div>
         <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
-          <Eye class="size-5 text-jeevatix-600" />
+          <Eye class="text-jeevatix-600 size-5" />
           <p class="mt-4 font-semibold text-slate-950">Review detail</p>
-          <p class="mt-2 text-sm leading-6 text-slate-600">Gunakan halaman detail untuk cek progress tier sebelum event masuk proses review.</p>
+          <p class="mt-2 text-sm leading-6 text-slate-600">
+            Gunakan halaman detail untuk cek progress tier sebelum event masuk proses review.
+          </p>
         </div>
       </div>
     </Card>
@@ -429,10 +480,21 @@
       class="rounded-[2rem] border border-slate-200/80 bg-white/95"
     >
       <div class="space-y-3 text-sm text-slate-600">
-        <p><span class="font-semibold text-slate-900">Draft</span> berarti event masih aman untuk dihapus.</p>
-        <p><span class="font-semibold text-slate-900">Pending Review</span> berarti event sedang menunggu keputusan admin.</p>
-        <p><span class="font-semibold text-slate-900">Rejected</span> berarti seller bisa revisi lalu submit ulang lewat edit/detail page.</p>
-        <p><span class="font-semibold text-slate-900">Published / Ongoing</span> berarti event sudah live dan tidak boleh melakukan perubahan destruktif pada tier yang punya penjualan.</p>
+        <p>
+          <span class="font-semibold text-slate-900">Draft</span> berarti event masih aman untuk dihapus.
+        </p>
+        <p>
+          <span class="font-semibold text-slate-900">Pending Review</span> berarti event sedang menunggu
+          keputusan admin.
+        </p>
+        <p>
+          <span class="font-semibold text-slate-900">Rejected</span> berarti seller bisa revisi lalu submit
+          ulang lewat edit/detail page.
+        </p>
+        <p>
+          <span class="font-semibold text-slate-900">Published / Ongoing</span> berarti event sudah live
+          dan tidak boleh melakukan perubahan destruktif pada tier yang punya penjualan.
+        </p>
       </div>
     </Card>
   </div>

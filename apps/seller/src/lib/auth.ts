@@ -191,7 +191,11 @@ async function parseResponse<T extends object>(response: Response): Promise<T> {
   if (!response.ok || ('success' in payload && payload.success === false)) {
     const errorPayload = payload as ErrorResponse;
 
-    throw new ApiError(errorPayload.error?.message ?? 'Request failed.', response.status, errorPayload.error?.code ?? 'API_ERROR');
+    throw new ApiError(
+      errorPayload.error?.message ?? 'Request failed.',
+      response.status,
+      errorPayload.error?.code ?? 'API_ERROR',
+    );
   }
 
   return payload as T;

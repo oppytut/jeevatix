@@ -7,10 +7,7 @@ import type {
   AdminOrderListQuery,
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
-import {
-  OrderReservationServiceError,
-  releaseReservation,
-} from './order-reservation.service';
+import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
 
 const { orderItems, orders, payments, ticketTiers, tickets, users } = schema;
 
@@ -42,7 +39,10 @@ function getDatabase(databaseUrl?: string) {
   const db = getDb(databaseUrl);
 
   if (!db) {
-    throw new AdminOrderServiceError('DATABASE_UNAVAILABLE', 'Database connection is not available.');
+    throw new AdminOrderServiceError(
+      'DATABASE_UNAVAILABLE',
+      'Database connection is not available.',
+    );
   }
 
   return db;
@@ -429,18 +429,12 @@ export const adminOrderService = {
 
     const now = new Date();
     await database.transaction(async (tx) => {
-      await tx
-        .update(orders)
-        .set({ status: 'refunded', updatedAt: now })
-        .where(eq(orders.id, id));
+      await tx.update(orders).set({ status: 'refunded', updatedAt: now }).where(eq(orders.id, id));
       await tx
         .update(payments)
         .set({ status: 'refunded', updatedAt: now })
         .where(eq(payments.orderId, id));
-      await tx
-        .update(tickets)
-        .set({ status: 'refunded' })
-        .where(eq(tickets.orderId, id));
+      await tx.update(tickets).set({ status: 'refunded' }).where(eq(tickets.orderId, id));
     });
 
     await notificationService.sendNotification(
@@ -516,18 +510,12 @@ export const adminOrderService = {
 
     const now = new Date();
     await database.transaction(async (tx) => {
-      await tx
-        .update(orders)
-        .set({ status: 'cancelled', updatedAt: now })
-        .where(eq(orders.id, id));
+      await tx.update(orders).set({ status: 'cancelled', updatedAt: now }).where(eq(orders.id, id));
       await tx
         .update(payments)
         .set({ status: 'failed', updatedAt: now })
         .where(eq(payments.orderId, id));
-      await tx
-        .update(tickets)
-        .set({ status: 'cancelled' })
-        .where(eq(tickets.orderId, id));
+      await tx.update(tickets).set({ status: 'cancelled' }).where(eq(tickets.orderId, id));
     });
 
     await notificationService.sendNotification(

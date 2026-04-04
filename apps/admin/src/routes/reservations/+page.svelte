@@ -116,9 +116,7 @@
     }
   }
 
-  function getTierVariant(
-    status: TicketTierStatus,
-  ): 'default' | 'success' | 'neutral' | 'warning' {
+  function getTierVariant(status: TicketTierStatus): 'default' | 'success' | 'neutral' | 'warning' {
     switch (status) {
       case 'available':
         return 'success';
@@ -227,12 +225,18 @@
       <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A15</p>
       <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Reservations</h1>
       <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
-        Monitor reservasi tiket lintas event untuk mendeteksi lock inventory yang masih aktif atau macet.
+        Monitor reservasi tiket lintas event untuk mendeteksi lock inventory yang masih aktif atau
+        macet.
       </p>
     </div>
 
     <div class="flex flex-wrap items-center gap-3">
-      <Button variant="outline" type="button" onclick={() => loadReservations(meta.page, true)} disabled={isRefreshing || isLoading}>
+      <Button
+        variant="outline"
+        type="button"
+        onclick={() => loadReservations(meta.page, true)}
+        disabled={isRefreshing || isLoading}
+      >
         <RefreshCw class={`mr-2 size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         Refresh
       </Button>
@@ -240,11 +244,20 @@
   </div>
 
   {#if toast}
-    <Toast actionLabel={undefined} title={toast.title} description={toast.description} variant={toast.variant} />
+    <Toast
+      actionLabel={undefined}
+      title={toast.title}
+      description={toast.description}
+      variant={toast.variant}
+    />
   {/if}
 
   <div class="grid gap-4 md:grid-cols-3">
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Total reservasi</p>
@@ -255,7 +268,11 @@
         </div>
       </div>
     </Card>
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Active di hasil</p>
@@ -266,7 +283,11 @@
         </div>
       </div>
     </Card>
-    <Card title={undefined} description={undefined} class="rounded-[1.75rem] border border-slate-200/80 bg-white/90">
+    <Card
+      title={undefined}
+      description={undefined}
+      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+    >
       <div class="flex items-center justify-between gap-4">
         <div>
           <p class="text-sm text-slate-500">Qty di hasil</p>
@@ -292,8 +313,14 @@
       }}
     >
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="reservation-search">Cari reservasi</label>
-        <Input id="reservation-search" bind:value={searchDraft} placeholder="Buyer, email, tier, atau event" />
+        <label class="text-sm font-medium text-slate-700" for="reservation-search"
+          >Cari reservasi</label
+        >
+        <Input
+          id="reservation-search"
+          bind:value={searchDraft}
+          placeholder="Buyer, email, tier, atau event"
+        />
       </div>
 
       <div class="space-y-2">
@@ -316,7 +343,12 @@
   </Card>
 
   {#if pageError}
-    <Toast title="Gagal memuat data" description={pageError} actionLabel={undefined} variant="warning" />
+    <Toast
+      title="Gagal memuat data"
+      description={pageError}
+      actionLabel={undefined}
+      variant="warning"
+    />
   {/if}
 
   <Card
@@ -327,11 +359,19 @@
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
-          <div class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"></div>
+          <div
+            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+          ></div>
         {/each}
       </div>
     {:else}
-      <DataTable title={undefined} description={undefined} {columns} rows={tableRows} emptyMessage="Tidak ada reservasi yang cocok dengan filter saat ini.">
+      <DataTable
+        title={undefined}
+        description={undefined}
+        {columns}
+        rows={tableRows}
+        emptyMessage="Tidak ada reservasi yang cocok dengan filter saat ini."
+      >
         {#snippet cell(row, column)}
           {@const reservation = row as AdminReservationItem}
           {#if column.key === 'tierLabel'}
@@ -357,11 +397,23 @@
           reservasi.
         </p>
         <div class="flex items-center gap-3">
-          <Button variant="outline" type="button" onclick={previousPage} disabled={meta.page <= 1 || isLoading}>
+          <Button
+            variant="outline"
+            type="button"
+            onclick={previousPage}
+            disabled={meta.page <= 1 || isLoading}
+          >
             Sebelumnya
           </Button>
-          <span class="text-sm font-medium text-slate-600">Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span>
-          <Button variant="outline" type="button" onclick={nextPage} disabled={meta.totalPages <= meta.page || isLoading}>
+          <span class="text-sm font-medium text-slate-600"
+            >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
+          >
+          <Button
+            variant="outline"
+            type="button"
+            onclick={nextPage}
+            disabled={meta.totalPages <= meta.page || isLoading}
+          >
             Berikutnya
           </Button>
         </div>

@@ -184,8 +184,12 @@ describe.sequential('Phase 6 Reservation API', () => {
   it('rejects a second active reservation for the same event even when another event is also reserved', async () => {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();
-    const firstEvent = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
-    const secondEvent = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
+    const firstEvent = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+    });
+    const secondEvent = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+    });
 
     const firstReservationResponse = await context.requestJson('/reservations', {
       method: 'POST',

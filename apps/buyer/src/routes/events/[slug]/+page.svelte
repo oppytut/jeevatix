@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { resolve } from '$app/paths';
   import { BadgeCheck, CalendarDays, Clock3, MapPinned, MoveRight, Ticket } from '@lucide/svelte';
 
   import { Button } from '@jeevatix/ui';
@@ -56,9 +57,9 @@
 
       <div class="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8 lg:p-10">
         <div class="flex flex-wrap gap-2">
-          {#each data.event.categories as category}
+          {#each data.event.categories as category (category.id)}
             <a
-              href={`/categories/${category.slug}`}
+              href={resolve('/categories/[slug]', { slug: category.slug })}
               class="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold tracking-[0.22em] uppercase backdrop-blur"
             >
               {category.name}
@@ -103,7 +104,7 @@
             </div>
           </div>
           <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {#each data.event.images as image}
+            {#each data.event.images as image (image.id)}
               <div class="overflow-hidden rounded-[1.5rem] bg-slate-100">
                 <img
                   src={image.image_url}
@@ -123,7 +124,7 @@
           Tentang Event
         </p>
         <div class="mt-4 space-y-4 text-base leading-8 text-slate-700">
-          {#each descriptionParagraphs(data.event.description) as paragraph}
+          {#each descriptionParagraphs(data.event.description) as paragraph (paragraph)}
             <p>{paragraph}</p>
           {/each}
         </div>
@@ -211,7 +212,7 @@
             }))}
           />
 
-          {#each data.event.tiers as tier}
+          {#each data.event.tiers as tier (tier.id)}
             <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
               <div class="flex items-start justify-between gap-4">
                 <div>
@@ -245,7 +246,7 @@
           {/each}
         </div>
 
-        <a href={`/checkout/${data.event.slug}`} class="mt-5 block">
+        <a href={resolve('/checkout/[slug]', { slug: data.event.slug })} class="mt-5 block">
           <Button class="w-full rounded-full px-5 py-3">
             Beli Tiket
             <MoveRight class="size-4" />

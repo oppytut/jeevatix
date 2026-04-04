@@ -10,7 +10,10 @@ import {
   sellerEventsQuerySchema,
   updateEventSchema,
 } from '../../schemas/event.schema';
-import { SellerProfileServiceError, sellerProfileService } from '../../services/seller-profile.service';
+import {
+  SellerProfileServiceError,
+  sellerProfileService,
+} from '../../services/seller-profile.service';
 import { EventServiceError, eventService } from '../../services/event.service';
 import { messageResponseSchema } from '../../schemas/auth.schema';
 
@@ -72,10 +75,7 @@ function handleError(
   return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
 }
 
-async function resolveSellerProfileId(
-  userId: string,
-  databaseUrl?: string,
-) {
+async function resolveSellerProfileId(userId: string, databaseUrl?: string) {
   const profile = await sellerProfileService.getProfile(userId, databaseUrl);
 
   return profile.id;
