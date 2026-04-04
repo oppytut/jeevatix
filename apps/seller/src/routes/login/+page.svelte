@@ -1,35 +1,9 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { Button, Card, Input } from '@jeevatix/ui';
   import { KeyRound, TriangleAlert } from '@lucide/svelte';
 
-  import { ApiError, login } from '$lib/auth';
-
-  let email = $state('');
-  let password = $state('');
-  let errorMessage = $state('');
-  let isSubmitting = $state(false);
-
-  async function handleSubmit(event: SubmitEvent) {
-    event.preventDefault();
-
-    if (isSubmitting) {
-      return;
-    }
-
-    errorMessage = '';
-    isSubmitting = true;
-
-    try {
-      await login(email.trim(), password);
-      await goto(resolve('/'));
-    } catch (error) {
-      errorMessage = error instanceof ApiError ? error.message : 'Login gagal. Silakan coba lagi.';
-    } finally {
-      isSubmitting = false;
-    }
-  }
+  let { form }: import('./$types').PageProps = $props();
 </script>
 
 <svelte:head>
@@ -109,7 +83,7 @@
           </div>
         </div>
 
-        <form class="mt-8 space-y-5" onsubmit={handleSubmit}>
+        <form class="mt-8 space-y-5" method="POST">
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700" for="email">Email</label>
             <Input
@@ -117,7 +91,7 @@
               name="email"
               type="email"
               placeholder="seller@jeevatix.id"
-              bind:value={email}
+              value={form?.values?.email ?? ''}
               autocomplete="email"
               required
             />
@@ -135,26 +109,19 @@
               name="password"
               type="password"
               placeholder="Masukkan password"
-              bind:value={password}
               autocomplete="current-password"
               required
             />
           </div>
 
-          {#if errorMessage}
+          {#if form?.error}
             <div class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
               <TriangleAlert class="mt-0.5 size-4 shrink-0" />
-              <p>{errorMessage}</p>
+              <p>{form.error}</p>
             </div>
           {/if}
 
-          <Button class="w-full" type="submit" disabled={isSubmitting}>
-            {#if isSubmitting}
-              Memverifikasi...
-            {:else}
-              Login
-            {/if}
-          </Button>
+          <Button class="w-full" type="submit">Login</Button>
         </form>
 
         {#snippet footer()}

@@ -53,8 +53,10 @@ export const actions = {
       });
     }
 
+    let payment: InitiatePaymentPayload;
+
     try {
-      const payment = await apiPost<InitiatePaymentPayload>(
+      payment = await apiPost<InitiatePaymentPayload>(
         `/payments/${params.orderId}/pay`,
         {
           method,
@@ -64,15 +66,6 @@ export const actions = {
           cookies,
         },
       );
-
-      if (payment.payment_url) {
-        throw redirect(303, payment.payment_url);
-      }
-
-      return {
-        paymentSuccess: 'Pembayaran berhasil diproses.',
-        selectedMethod: method,
-      };
     } catch (caughtError) {
       if (caughtError instanceof ApiError && caughtError.status === 401) {
         clearAuthSession(cookies);
@@ -85,5 +78,14 @@ export const actions = {
         selectedMethod: method,
       });
     }
+
+    if (payment.payment_url) {
+      throw redirect(303, payment.payment_url);
+    }
+
+    return {
+      paymentSuccess: 'Pembayaran berhasil diproses.',
+      selectedMethod: method,
+    };
   },
 } satisfies import('./$types').Actions;

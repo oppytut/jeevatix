@@ -2964,7 +2964,7 @@ Dependensi: Phase 1–9 sudah selesai, termasuk test tasks T-2.4, T-3.6, T-4.7, 
 4. Target: minimal 80% line coverage di apps/api.
 ```
 
-### Task 10.2 — E2E Tests (Playwright)
+### Task 10.2 — E2E Tests (Playwright) [DONE]
 
 | Key          | Value                                            |
 | ------------ | ------------------------------------------------ |
@@ -2981,6 +2981,9 @@ Dependensi: Phase 1–9 sudah selesai, termasuk test tasks T-2.4, T-3.6, T-4.7, 
    - **Seller:** Register → buat event + tier → lihat pesanan → scan check-in.
    - **Buyer:** Register → browse event → checkout → bayar → lihat tiket.
 2. Minimal 1 E2E test per halaman.
+3. Implementasi task ini menggunakan suite Playwright di `tests/e2e/admin-flow.spec.ts`, `tests/e2e/seller-flow.spec.ts`, dan `tests/e2e/buyer-flow.spec.ts`.
+4. Untuk environment lokal yang tidak bisa menjalankan `workerd`, suite dijalankan dengan mock API in-memory (`tests/e2e/mock-api-server.mjs`) dan portal SvelteKit memakai mode dev khusus E2E (`PLAYWRIGHT_E2E=1`).
+5. Verifikasi akhir: `pnpm run test:e2e` pass.
 
 **Prompt:**
 

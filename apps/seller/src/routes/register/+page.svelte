@@ -1,46 +1,9 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { Building2, TriangleAlert } from '@lucide/svelte';
   import { Button, Card, Input } from '@jeevatix/ui';
 
-  import { ApiError, registerSeller } from '$lib/auth';
-
-  let email = $state('');
-  let password = $state('');
-  let fullName = $state('');
-  let phone = $state('');
-  let orgName = $state('');
-  let orgDescription = $state('');
-  let errorMessage = $state('');
-  let isSubmitting = $state(false);
-
-  async function handleSubmit(event: SubmitEvent) {
-    event.preventDefault();
-
-    if (isSubmitting) {
-      return;
-    }
-
-    errorMessage = '';
-    isSubmitting = true;
-
-    try {
-      await registerSeller({
-        email: email.trim(),
-        password,
-        full_name: fullName.trim(),
-        phone: phone.trim() || undefined,
-        org_name: orgName.trim(),
-        org_description: orgDescription.trim() || undefined,
-      });
-      await goto(resolve('/'));
-    } catch (error) {
-      errorMessage = error instanceof ApiError ? error.message : 'Registrasi seller gagal.';
-    } finally {
-      isSubmitting = false;
-    }
-  }
+  let { form }: import('./$types').PageProps = $props();
 </script>
 
 <svelte:head>
@@ -74,43 +37,43 @@
         </div>
       </div>
 
-      <form class="space-y-5 px-8 py-10 sm:px-10" onsubmit={handleSubmit}>
+      <form class="space-y-5 px-8 py-10 sm:px-10" method="POST">
         <div class="grid gap-5 sm:grid-cols-2">
           <div class="space-y-2 sm:col-span-2">
             <label class="text-sm font-medium text-slate-700" for="email">Email</label>
-            <Input id="email" type="email" bind:value={email} placeholder="organizer@brand.id" required />
+            <Input id="email" name="email" type="email" value={form?.values?.email ?? ''} placeholder="organizer@brand.id" required />
           </div>
           <div class="space-y-2 sm:col-span-2">
             <label class="text-sm font-medium text-slate-700" for="password">Password</label>
-            <Input id="password" type="password" bind:value={password} placeholder="Minimal 8 karakter" required />
+            <Input id="password" name="password" type="password" placeholder="Minimal 8 karakter" required />
           </div>
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700" for="fullName">Nama Lengkap</label>
-            <Input id="fullName" bind:value={fullName} placeholder="Nama PIC seller" required />
+            <Input id="fullName" name="full_name" value={form?.values?.full_name ?? ''} placeholder="Nama PIC seller" required />
           </div>
           <div class="space-y-2">
             <label class="text-sm font-medium text-slate-700" for="phone">Nomor Telepon</label>
-            <Input id="phone" bind:value={phone} placeholder="081234567890" />
+            <Input id="phone" name="phone" value={form?.values?.phone ?? ''} placeholder="081234567890" />
           </div>
           <div class="space-y-2 sm:col-span-2">
             <label class="text-sm font-medium text-slate-700" for="orgName">Nama Organisasi</label>
-            <Input id="orgName" bind:value={orgName} placeholder="EventPro Indonesia" required />
+            <Input id="orgName" name="org_name" value={form?.values?.org_name ?? ''} placeholder="EventPro Indonesia" required />
           </div>
           <div class="space-y-2 sm:col-span-2">
             <label class="text-sm font-medium text-slate-700" for="orgDescription">Deskripsi Organisasi</label>
             <textarea
               id="orgDescription"
-              bind:value={orgDescription}
+              name="org_description"
               class="min-h-28 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Ceritakan jenis event yang Anda kelola."
-            ></textarea>
+            >{form?.values?.org_description ?? ''}</textarea>
           </div>
         </div>
 
-        {#if errorMessage}
+        {#if form?.error}
           <div class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             <TriangleAlert class="mt-0.5 size-4 shrink-0" />
-            <p>{errorMessage}</p>
+            <p>{form.error}</p>
           </div>
         {/if}
 
@@ -119,13 +82,7 @@
             Sudah punya akun?
             <a class="font-medium text-emerald-700 hover:text-emerald-800" href={resolve('/login')}>Masuk di sini</a>
           </p>
-          <Button type="submit" disabled={isSubmitting}>
-            {#if isSubmitting}
-              Mendaftarkan...
-            {:else}
-              Daftar Seller
-            {/if}
-          </Button>
+          <Button type="submit">Daftar Seller</Button>
         </div>
       </form>
     </div>

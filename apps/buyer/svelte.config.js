@@ -13,7 +13,9 @@ const config = {
       return isExternalLibrary ? undefined : true;
     },
   },
-  kit: { adapter: adapter() },
+  kit: {
+    adapter: process.env.PLAYWRIGHT_E2E ? undefined : adapter(),
+  },
 };
 
 export default config;

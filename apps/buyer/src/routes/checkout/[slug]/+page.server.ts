@@ -165,8 +165,10 @@ export const actions = {
       });
     }
 
+    let order: OrderDetail;
+
     try {
-      const order = await apiPost<OrderDetail>(
+      order = await apiPost<OrderDetail>(
         '/orders',
         {
           reservation_id: reservationId,
@@ -176,8 +178,6 @@ export const actions = {
           cookies,
         },
       );
-
-      throw redirect(303, `/payment/${order.id}`);
     } catch (caughtError) {
       if (caughtError instanceof ApiError && caughtError.status === 401) {
         clearAuthSession(cookies);
@@ -204,5 +204,7 @@ export const actions = {
         quantity,
       });
     }
+
+    throw redirect(303, `/payment/${order.id}`);
   },
 } satisfies import('./$types').Actions;

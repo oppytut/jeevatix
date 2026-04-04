@@ -5,7 +5,7 @@
   import { CalendarDays, Eye, Pencil, Plus, RefreshCw, Ticket, Trash2 } from '@lucide/svelte';
   import { Badge, Button, Card, DataTable, Toast } from '@jeevatix/ui';
 
-  import { ApiError, apiDelete, apiGet } from '$lib/api';
+  import { ApiError, apiDelete, apiGetResponse } from '$lib/api';
 
   type EventStatus =
     | 'draft'
@@ -179,7 +179,9 @@
         searchParams.set('status', selectedStatus);
       }
 
-      const response = await apiGet<EventListResponse>(`/seller/events?${searchParams.toString()}`);
+      const response = await apiGetResponse<SellerEventListItem[], EventListResponse['meta']>(
+        `/seller/events?${searchParams.toString()}`,
+      );
       events = response.data;
     } catch (error) {
       pageError = error instanceof ApiError ? error.message : 'Gagal memuat daftar event seller.';

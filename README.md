@@ -198,7 +198,10 @@ pnpm run format            # Prettier — auto-format
 
 # Testing
 pnpm run test              # Vitest — unit & integration tests
-pnpm run test:e2e          # Playwright — E2E tests (semua portal)
+pnpm run test:e2e          # Playwright — alias ke mode lokal mock-backed
+pnpm run test:e2e:local    # Playwright — E2E lokal dengan mock API + portal dev mode
+pnpm run test:e2e:headed   # Playwright — E2E lokal mode headed
+pnpm run test:e2e:report   # Buka report HTML Playwright terakhir
 pnpm run test:load         # K6 — load testing (war ticket simulation)
 ```
 
@@ -206,7 +209,30 @@ pnpm run test:load         # K6 — load testing (war ticket simulation)
 * **Formatting (Prettier):** Shared `.prettierrc` dengan `prettier-plugin-svelte` + `prettier-plugin-tailwindcss` (plugin order matters).
 * **Unit & Integration Test (Vitest):** Target minimal 80% coverage pada `apps/api`.
 * **E2E Testing (Playwright):** Test flows kritis di ketiga portal (Buyer :4301, Admin :4302, Seller :4303).
+    Suite lokal menjalankan mock API in-memory dari `tests/e2e/mock-api-server.mjs`, dan portal dijalankan dengan mode dev E2E (`PLAYWRIGHT_E2E=1`) agar tidak bergantung pada `workerd` saat development host tidak kompatibel.
+    `pnpm run test:e2e` saat ini memang ditujukan untuk mode lokal tersebut.
 * **Load Testing (K6):** Simulasi *war ticket* dengan 1000 virtual users untuk memastikan tidak ada *overselling*.
+
+### Menjalankan E2E Lokal
+
+Untuk host Linux baru, install browser dan dependency sistem Playwright sekali:
+
+```bash
+pnpm exec playwright install chromium
+pnpm exec playwright install-deps chromium
+```
+
+Lalu jalankan suite:
+
+```bash
+pnpm run test:e2e
+```
+
+Catatan:
+
+* Config Playwright akan menyalakan `tests/e2e/mock-api-server.mjs` otomatis.
+* Buyer, Admin, dan Seller portal dijalankan otomatis lewat `webServer` di `playwright.config.ts`.
+* Mode ini khusus untuk local E2E stability. Deployment target tetap Cloudflare adapter seperti biasa.
 
 ---
 
