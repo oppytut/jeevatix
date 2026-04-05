@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import type { AuthEnv } from '../middleware/auth';
+import { createRateLimitMiddleware, getClientIp } from '../middleware/rate-limit';
 import {
   authResponseSchema,
   errorResponseSchema,
@@ -18,6 +19,26 @@ import {
 import { AuthServiceError, authService } from '../services/auth.service';
 
 const app = new OpenAPIHono<AuthEnv>();
+
+const registerRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'auth-register',
+  limit: 3,
+  windowMs: 60_000,
+  methods: ['POST'],
+  keyGenerator: (c) => getClientIp(c.req.raw.headers),
+});
+
+const loginRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'auth-login',
+  limit: 5,
+  windowMs: 60_000,
+  methods: ['POST'],
+  keyGenerator: (c) => getClientIp(c.req.raw.headers),
+});
+
+app.use('/register', registerRateLimitMiddleware);
+app.use('/register/seller', registerRateLimitMiddleware);
+app.use('/login', loginRateLimitMiddleware);
 
 function getProcessEnv(key: string) {
   return (
@@ -108,6 +129,14 @@ const registerRoute = createRoute({
         },
       },
     },
+    429: {
+      description: 'Too many registration attempts',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -143,6 +172,14 @@ const registerSellerRoute = createRoute({
         },
       },
     },
+    429: {
+      description: 'Too many registration attempts',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -172,6 +209,14 @@ const loginRoute = createRoute({
     },
     401: {
       description: 'Invalid credentials',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    429: {
+      description: 'Too many login attempts',
       content: {
         'application/json': {
           schema: errorResponseSchema,

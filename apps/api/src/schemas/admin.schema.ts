@@ -460,10 +460,16 @@ export const adminReservationItemSchema = z
   })
   .openapi('AdminReservationItem');
 
+export const adminReservationsListPayloadSchema = z
+  .object({
+    reservations: z.array(adminReservationItemSchema),
+  })
+  .openapi('AdminReservationsListPayload');
+
 export const adminReservationsListResponseSchema = z
   .object({
     success: z.literal(true),
-    data: z.array(adminReservationItemSchema),
+    data: adminReservationsListPayloadSchema,
     meta: adminPaginationMetaSchema,
   })
   .openapi('AdminReservationsListResponse');

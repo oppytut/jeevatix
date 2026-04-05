@@ -3080,7 +3080,7 @@ Dependensi: T-10.1 sudah selesai.
 6. Jalankan dan analisis hasil.
 ```
 
-### Task 10.4 — Security Review
+### Task 10.4 — Security Review [DONE]
 
 | Key          | Value                        |
 | ------------ | ---------------------------- |
@@ -3088,21 +3088,28 @@ Dependensi: T-10.1 sudah selesai.
 | Dependensi   | `T-10.1`                     |
 | Deliverables | Security checklist completed |
 
+**Status (2026-04-05):**
+
+- Security review completed and documented in `SECURITY_REVIEW.md`.
+- Rate limiting added for `POST /auth/login`, `POST /auth/register`, `POST /auth/register/seller`, and `POST /reservations`.
+- Sensitive password output removed from the load-user seeder logs.
+- Residual production hardening items remain documented in `SECURITY_REVIEW.md` and are not blockers for closing T-10.4.
+
 **Checklist:**
 
-- [ ] Input validation di semua endpoint (zod).
-- [ ] SQL injection prevention (Drizzle ORM parameterized queries).
-- [ ] XSS prevention (sanitize HTML output di frontend).
-- [ ] CSRF protection.
-- [ ] Rate limiting di auth endpoints dan reservation endpoint.
-- [ ] Webhook signature verification di payment callback.
-- [ ] Authorization check: user hanya akses data miliknya.
-- [ ] Seller hanya kelola event miliknya.
-- [ ] Admin endpoint hanya bisa diakses role admin.
-- [ ] Password hash menggunakan bcrypt/argon2 (bukan MD5/SHA).
-- [ ] JWT expiry dan refresh strategy.
-- [ ] CORS configuration.
-- [ ] Sensitive data tidak masuk log.
+- [x] Input validation di semua endpoint (zod).
+- [x] SQL injection prevention (Drizzle ORM parameterized queries).
+- [x] XSS prevention (sanitize HTML output di frontend).
+- [x] CSRF protection.
+- [x] Rate limiting di auth endpoints dan reservation endpoint.
+- [x] Webhook signature verification di payment callback.
+- [x] Authorization check: user hanya akses data miliknya.
+- [x] Seller hanya kelola event miliknya.
+- [x] Admin endpoint hanya bisa diakses role admin.
+- [x] Password hash menggunakan bcrypt/argon2 (bukan MD5/SHA).
+- [x] JWT expiry dan refresh strategy.
+- [x] CORS configuration.
+- [x] Sensitive data tidak masuk log.
 
 **Prompt:**
 

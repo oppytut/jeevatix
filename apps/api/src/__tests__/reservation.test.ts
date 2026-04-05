@@ -1,5 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
+import { resetRateLimitState } from '../middleware/rate-limit';
 import { createTransactionTestContext } from './transaction-test-helpers';
 
 const context = createTransactionTestContext('vitest-p6-reservation');
@@ -10,10 +11,12 @@ describe.sequential('Phase 6 Reservation API', () => {
   });
 
   afterEach(async () => {
+    resetRateLimitState();
     await context.cleanupTestData();
   });
 
   afterAll(async () => {
+    resetRateLimitState();
     await context.cleanupTestData();
   });
 
@@ -255,5 +258,40 @@ describe.sequential('Phase 6 Reservation API', () => {
     expect(payload.success).toBe(false);
     expect(payload.error.code).toBe('INVALID_STATE');
     expect(payload.error.message).toContain('sale window');
+  });
+
+  it('rate limits reservation creation per buyer', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const { tier } = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+      quota: 20,
+    });
+
+    const attempts: Response[] = [];
+
+    for (let index = 0; index < 11; index += 1) {
+      attempts.push(
+        await context.requestJson('/reservations', {
+          method: 'POST',
+          token: buyer.token,
+          body: {
+            ticket_tier_id: tier.id,
+            quantity: 1,
+          },
+        }),
+      );
+    }
+
+    const payload = await context.readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(attempts[10]);
+
+    expect(attempts[0].status).toBe(201);
+    expect(attempts[9].status).toBe(409);
+    expect(attempts[10].status).toBe(429);
+    expect(payload.success).toBe(false);
+    expect(payload.error.code).toBe('RATE_LIMIT_EXCEEDED');
   });
 });

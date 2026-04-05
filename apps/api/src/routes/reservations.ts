@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
+import { createRateLimitMiddleware } from '../middleware/rate-limit';
 import { errorResponseSchema } from '../schemas/auth.schema';
 import {
   adminReservationListQuerySchema,
@@ -18,8 +19,17 @@ import { ReservationServiceError, reservationService } from '../services/reserva
 const app = new OpenAPIHono<AuthEnv>();
 const adminApp = new OpenAPIHono<AuthEnv>();
 
+const reservationRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'reservation-create',
+  limit: 10,
+  windowMs: 60_000,
+  methods: ['POST'],
+  keyGenerator: (c) => c.var.user?.id ?? null,
+});
+
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('buyer'));
+app.use('/', reservationRateLimitMiddleware);
 adminApp.use('*', authMiddleware, roleMiddleware('admin'));
 
 function jsonError(code: string, message: string) {
@@ -52,21 +62,12 @@ function getStatusFromError(error: ReservationServiceError) {
   }
 }
 
-function handleError<TContext extends { json: (body: unknown, status?: number) => unknown }>(
-  c: TContext,
-  error: unknown,
-): ReturnType<TContext['json']> {
+function handleError(c: { json: (body: unknown, status?: number) => unknown }, error: unknown) {
   if (error instanceof ReservationServiceError) {
-    return c.json(
-      jsonError(error.code, error.message),
-      getStatusFromError(error),
-    ) as ReturnType<TContext['json']>;
+    return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
 
-  return c.json(
-    jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'),
-    500,
-  ) as ReturnType<TContext['json']>;
+  return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
 }
 
 const createReservationRoute = createRoute({
@@ -103,6 +104,14 @@ const createReservationRoute = createRoute({
     },
     409: {
       description: 'Reservation cannot be created in the current state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    429: {
+      description: 'Too many reservation attempts',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -258,7 +267,7 @@ adminApp.openapi(listAdminReservationsRoute, async (c) => {
   try {
     const result = await reservationService.listAdmin(query, c.env.DATABASE_URL);
 
-    return c.json({ success: true, data: result.data, meta: result.meta }, 200);
+    return c.json({ success: true, data: { reservations: result.data }, meta: result.meta }, 200);
   } catch (error) {
     return handleError(c, error) as never;
   }

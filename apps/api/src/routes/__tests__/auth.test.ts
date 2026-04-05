@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import app from '../../index';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
+import { resetRateLimitState } from '../../middleware/rate-limit';
 
 const globalScope = globalThis as typeof globalThis & {
   process?: {
@@ -46,6 +47,7 @@ type JsonRequestOptions = {
   method?: string;
   token?: string;
   body?: Record<string, unknown>;
+  headers?: HeadersInit;
 };
 
 type RegisterResult = {
@@ -63,7 +65,7 @@ async function requestJson(
   path: string,
   options: JsonRequestOptions = {},
 ) {
-  const headers = new Headers();
+  const headers = new Headers(options.headers);
 
   if (options.body) {
     headers.set('Content-Type', 'application/json');
@@ -93,12 +95,14 @@ async function readJson<T>(response: Response) {
 
 async function registerBuyer(
   overrides: Partial<Record<'email' | 'password' | 'full_name' | 'phone', string>> = {},
+  headers?: HeadersInit,
 ): Promise<RegisterResult> {
   const email = overrides.email ?? createTestEmail();
   const password = overrides.password ?? 'BuyerPass123!';
 
   const response = await requestJson(app, '/auth/register', {
     method: 'POST',
+    headers,
     body: {
       email,
       password,
@@ -137,10 +141,12 @@ describe.sequential('Auth API', () => {
   });
 
   afterEach(async () => {
+    resetRateLimitState();
     await cleanupTestUsers();
   });
 
   afterAll(async () => {
+    resetRateLimitState();
     await cleanupTestUsers();
   });
 
@@ -202,6 +208,26 @@ describe.sequential('Auth API', () => {
     expect(payload.error.code).toBe('EMAIL_ALREADY_EXISTS');
   });
 
+  it('rate limits buyer registration attempts per IP address', async () => {
+    const ipAddress = '198.51.100.10';
+
+    const attemptOne = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
+    const attemptTwo = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
+    const attemptThree = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
+    const attemptFour = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
+    const payload = await readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(attemptFour.response);
+
+    expect(attemptOne.response.status).toBe(201);
+    expect(attemptTwo.response.status).toBe(201);
+    expect(attemptThree.response.status).toBe(201);
+    expect(attemptFour.response.status).toBe(429);
+    expect(payload.success).toBe(false);
+    expect(payload.error.code).toBe('RATE_LIMIT_EXCEEDED');
+  });
+
   it('logs in with valid credentials', async () => {
     const { email, password } = await registerBuyer();
 
@@ -238,6 +264,32 @@ describe.sequential('Auth API', () => {
     expect(response.status).toBe(401);
     expect(payload.success).toBe(false);
     expect(payload.error.code).toBe('INVALID_CREDENTIALS');
+  });
+
+  it('rate limits login attempts per IP address', async () => {
+    const { email } = await registerBuyer();
+    const ipAddress = '198.51.100.11';
+    const attempts: Response[] = [];
+
+    for (let index = 0; index < 6; index += 1) {
+      attempts.push(
+        await requestJson(app, '/auth/login', {
+          method: 'POST',
+          headers: { 'CF-Connecting-IP': ipAddress },
+          body: { email, password: 'WrongPassword123!' },
+        }),
+      );
+    }
+
+    const payload = await readJson<{
+      success: boolean;
+      error: { code: string };
+    }>(attempts[5]);
+
+    expect(attempts.slice(0, 5).every((response) => response.status === 401)).toBe(true);
+    expect(attempts[5].status).toBe(429);
+    expect(payload.success).toBe(false);
+    expect(payload.error.code).toBe('RATE_LIMIT_EXCEEDED');
   });
 
   it('returns the current user for a valid access token', async () => {

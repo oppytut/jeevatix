@@ -94,7 +94,7 @@ async function main() {
   }
 
   console.log('Load-test user seed completed.');
-  console.log(`Password: ${DEFAULT_PASSWORD}`);
+  console.log('Default credentials are configured in the seeder source, not emitted to logs.');
 
   for (const result of results) {
     console.log(
