@@ -532,25 +532,23 @@ export const paymentService = {
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
     const database = getDatabase(databaseUrl);
     const paymentLookupStartedAt = Date.now();
-    const payment = await database.query.payments.findFirst({
-      where: eq(payments.externalRef, body.external_ref),
-      columns: {
-        id: true,
-        orderId: true,
-        status: true,
-        externalRef: true,
-      },
-      with: {
+    const [payment] = await database
+      .select({
+        id: payments.id,
+        orderId: payments.orderId,
+        status: payments.status,
+        externalRef: payments.externalRef,
         order: {
-          columns: {
-            id: true,
-            reservationId: true,
-            status: true,
-            expiresAt: true,
-          },
+          id: orders.id,
+          reservationId: orders.reservationId,
+          status: orders.status,
+          expiresAt: orders.expiresAt,
         },
-      },
-    });
+      })
+      .from(payments)
+      .innerJoin(orders, eq(payments.orderId, orders.id))
+      .where(eq(payments.externalRef, body.external_ref))
+      .limit(1);
     steps.push({
       step: 'payment_lookup',
       durationMs: Date.now() - paymentLookupStartedAt,
