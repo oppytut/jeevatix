@@ -3174,12 +3174,12 @@ Buat file `SECURITY_REVIEW.md` berisi hasil review dan status setiap item.
 
 **Prompt:**
 
-````
+```
 Kerjakan Task T-10.5: CI/CD Pipeline.
 Dependensi: T-10.1 dan T-10.2 sudah selesai.
 
 1. Buat `.github/workflows/ci.yml`:
-   ```yaml
+   ~~~yaml
    name: CI
    on:
      pull_request:
@@ -3200,11 +3200,11 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
          - run: pnpm run typecheck
          - run: pnpm run test
          - run: pnpm run build
-````
+   ~~~
 
 2. Buat `.github/workflows/deploy.yml`:
 
-   ```yaml
+   ~~~yaml
    name: Deploy
    on:
      push:
@@ -3232,7 +3232,7 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
            run: |
              curl -f https://api.jeevatix.com/health || exit 1
              curl -f https://jeevatix.com || exit 1
-   ```
+   ~~~
 
 3. Tambahkan scripts di root package.json:
    - "format": "turbo run format"
