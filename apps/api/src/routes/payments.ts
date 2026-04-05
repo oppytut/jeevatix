@@ -56,6 +56,14 @@ function handleError(c: Context, error: unknown) {
   return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
 }
 
+function getExecutionContext(c: Context) {
+  try {
+    return c.executionCtx;
+  } catch {
+    return undefined;
+  }
+}
+
 const initiatePaymentRoute = createRoute({
   method: 'post',
   path: '/payments/:orderId/pay',
@@ -175,9 +183,16 @@ app.openapi(initiatePaymentRoute, async (c) => {
 app.openapi(paymentWebhookRoute, async (c) => {
   const body = c.req.valid('json');
   const rawBody = JSON.stringify(body);
+  const executionContext = getExecutionContext(c);
 
   try {
-    const result = await paymentService.handleWebhook(c.env, c.req.raw.headers, rawBody, body);
+    const result = await paymentService.handleWebhook(
+      c.env,
+      c.req.raw.headers,
+      rawBody,
+      body,
+      executionContext ? (task) => executionContext.waitUntil(task) : undefined,
+    );
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

@@ -12,7 +12,7 @@ import { OrderReservationServiceError, releaseReservation } from './order-reserv
 const ORDER_EXPIRY_MINUTES = 30;
 const DEFAULT_PAYMENT_METHOD = 'bank_transfer' as const;
 
-const { orderItems, orders, payments, reservations, tickets } = schema;
+const { events, orderItems, orders, payments, reservations, ticketTiers, tickets } = schema;
 
 type OrderServiceEnv = {
   DATABASE_URL?: string;
@@ -391,6 +391,48 @@ function toOrderDetail(row: {
   };
 }
 
+type OrderCreationReservationRecord = {
+  id: string;
+  userId: string;
+  ticketTierId: string;
+  quantity: number;
+  status: 'active' | 'converted' | 'expired' | 'cancelled';
+  expiresAt: Date;
+  tierName: string;
+  tierPrice: string;
+  eventId: string;
+  eventSlug: string;
+  eventTitle: string;
+};
+
+async function getReservationForOrderCreation(
+  reservationId: string,
+  databaseUrl?: string,
+): Promise<OrderCreationReservationRecord | null> {
+  const database = getDatabase(databaseUrl);
+  const [reservation] = await database
+    .select({
+      id: reservations.id,
+      userId: reservations.userId,
+      ticketTierId: reservations.ticketTierId,
+      quantity: reservations.quantity,
+      status: reservations.status,
+      expiresAt: reservations.expiresAt,
+      tierName: ticketTiers.name,
+      tierPrice: ticketTiers.price,
+      eventId: events.id,
+      eventSlug: events.slug,
+      eventTitle: events.title,
+    })
+    .from(reservations)
+    .innerJoin(ticketTiers, eq(reservations.ticketTierId, ticketTiers.id))
+    .innerJoin(events, eq(ticketTiers.eventId, events.id))
+    .where(eq(reservations.id, reservationId))
+    .limit(1);
+
+  return reservation ?? null;
+}
+
 export const orderService = {
   async createOrder(
     env: OrderServiceEnv,
@@ -402,41 +444,13 @@ export const orderService = {
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
     const database = getDatabase(databaseUrl);
     const reservationLookupStartedAt = Date.now();
-    const reservation = await database.query.reservations.findFirst({
-      where: eq(reservations.id, input.reservation_id),
-      columns: {
-        id: true,
-        userId: true,
-        ticketTierId: true,
-        quantity: true,
-        status: true,
-        expiresAt: true,
-      },
-      with: {
-        ticketTier: {
-          columns: {
-            id: true,
-            name: true,
-            price: true,
-          },
-          with: {
-            event: {
-              columns: {
-                id: true,
-                slug: true,
-                title: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const reservation = await getReservationForOrderCreation(input.reservation_id, databaseUrl);
     steps.push({
       step: 'reservation_lookup',
       durationMs: Date.now() - reservationLookupStartedAt,
     });
 
-    if (!reservation?.ticketTier.event) {
+    if (!reservation) {
       throw new OrderServiceError('RESERVATION_NOT_FOUND', 'Reservation not found.');
     }
 
@@ -452,7 +466,7 @@ export const orderService = {
       throw new OrderServiceError('INVALID_STATE', 'Reservation has expired.');
     }
 
-    const unitPrice = Number(reservation.ticketTier.price);
+    const unitPrice = Number(reservation.tierPrice);
     const subtotal = unitPrice * reservation.quantity;
     let createdOrder: {
       order: {
@@ -525,7 +539,7 @@ export const orderService = {
             .insert(orderItems)
             .values({
               orderId: order.id,
-              ticketTierId: reservation.ticketTier.id,
+              ticketTierId: reservation.ticketTierId,
               quantity: reservation.quantity,
               unitPrice: unitPrice.toString(),
               subtotal: subtotal.toString(),
@@ -635,8 +649,12 @@ export const orderService = {
       order: createdOrder.order,
       orderItem: createdOrder.orderItem,
       payment: createdOrder.payment,
-      event: reservation.ticketTier.event,
-      tierName: reservation.ticketTier.name,
+      event: {
+        id: reservation.eventId,
+        slug: reservation.eventSlug,
+        title: reservation.eventTitle,
+      },
+      tierName: reservation.tierName,
     });
   },
 

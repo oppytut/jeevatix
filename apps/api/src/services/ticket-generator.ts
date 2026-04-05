@@ -166,40 +166,40 @@ export async function generateTickets(orderId: string, databaseUrl?: string) {
       columns: {
         id: true,
       },
-      with: {
-        orderItems: {
-          columns: {
-            id: true,
-            ticketTierId: true,
-            quantity: true,
-          },
-        },
-        tickets: {
-          columns: {
-            id: true,
-            orderId: true,
-            ticketTierId: true,
-            ticketCode: true,
-            status: true,
-            issuedAt: true,
-          },
-        },
-      },
     });
 
     if (!order) {
       throw new TicketServiceError('ORDER_NOT_FOUND', 'Order not found.');
     }
 
-    const existingTicketsByTier = order.tickets.reduce<Map<string, number>>(
+    const [orderItemRows, existingTicketRows] = await Promise.all([
+      tx
+        .select({
+          id: orderItems.id,
+          ticketTierId: orderItems.ticketTierId,
+          quantity: orderItems.quantity,
+        })
+        .from(orderItems)
+        .where(eq(orderItems.orderId, orderId)),
+      tx
+        .select({
+          ticketTierId: tickets.ticketTierId,
+          issuedCount: sql<number>`count(*)::int`,
+        })
+        .from(tickets)
+        .where(eq(tickets.orderId, orderId))
+        .groupBy(tickets.ticketTierId),
+    ]);
+
+    const existingTicketsByTier = existingTicketRows.reduce<Map<string, number>>(
       (accumulator, ticket) => {
-        accumulator.set(ticket.ticketTierId, (accumulator.get(ticket.ticketTierId) ?? 0) + 1);
+        accumulator.set(ticket.ticketTierId, ticket.issuedCount);
         return accumulator;
       },
       new Map(),
     );
 
-    const newTickets = order.orderItems.flatMap((item) => {
+    const newTickets = orderItemRows.flatMap((item) => {
       const existingCount = existingTicketsByTier.get(item.ticketTierId) ?? 0;
       const remainingCount = Math.max(item.quantity - existingCount, 0);
 

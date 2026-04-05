@@ -35,7 +35,22 @@ type TimedStep = {
   durationMs: number;
 };
 
+type BackgroundTaskScheduler = (task: Promise<unknown>) => void;
+type BackgroundTaskFactory = () => Promise<unknown>;
+
 type PaymentNotificationType = 'info' | 'new_order' | 'order_confirmed';
+
+type SuccessfulPaymentFulfillmentPayload = {
+  orderId: string;
+  orderNumber: string;
+  buyerId: string;
+  buyerEmail: string;
+  buyerName: string;
+  sellerUserId?: string | null;
+  eventId: string;
+  eventTitle: string;
+  items: OrderConfirmationItem[];
+};
 
 export class PaymentServiceError extends Error {
   constructor(
@@ -70,6 +85,43 @@ function shouldProfileLoadTests() {
   return getProcessEnv('LOAD_TEST_PROFILE') === '1';
 }
 
+function getBackgroundTaskConcurrencyLimit() {
+  const rawValue = Number.parseInt(getProcessEnv('PAYMENT_BACKGROUND_TASK_CONCURRENCY') ?? '8', 10);
+
+  return Number.isFinite(rawValue) && rawValue > 0 ? rawValue : 8;
+}
+
+const backgroundTaskQueue: Array<() => void> = [];
+let activeBackgroundTaskCount = 0;
+
+function drainBackgroundTaskQueue() {
+  while (
+    activeBackgroundTaskCount < getBackgroundTaskConcurrencyLimit() &&
+    backgroundTaskQueue.length > 0
+  ) {
+    const nextTask = backgroundTaskQueue.shift();
+    nextTask?.();
+  }
+}
+
+function enqueueBackgroundTask<T>(taskFactory: () => Promise<T>) {
+  return new Promise<T>((resolve, reject) => {
+    const runTask = () => {
+      activeBackgroundTaskCount += 1;
+
+      taskFactory()
+        .then(resolve, reject)
+        .finally(() => {
+          activeBackgroundTaskCount = Math.max(0, activeBackgroundTaskCount - 1);
+          drainBackgroundTaskQueue();
+        });
+    };
+
+    backgroundTaskQueue.push(runTask);
+    drainBackgroundTaskQueue();
+  });
+}
+
 function logTimedSteps(scope: string, details: Record<string, unknown>, steps: TimedStep[]) {
   if (!shouldProfileLoadTests()) {
     return;
@@ -82,6 +134,24 @@ function logTimedSteps(scope: string, details: Record<string, unknown>, steps: T
       steps,
     }),
   );
+}
+
+function scheduleBackgroundTask(
+  scheduler: BackgroundTaskScheduler | undefined,
+  taskFactory: BackgroundTaskFactory,
+  label: string,
+) {
+  if (!scheduler) {
+    return false;
+  }
+
+  scheduler(
+    enqueueBackgroundTask(taskFactory).catch((error) => {
+      console.error(`[background-task] ${label} failed.`, error);
+    }),
+  );
+
+  return true;
 }
 
 function getDatabase(databaseUrl?: string) {
@@ -238,17 +308,7 @@ async function sendNotification(
 
 async function enqueuePostPaymentEffects(
   env: PaymentServiceEnv,
-  payload: {
-    orderId: string;
-    orderNumber: string;
-    buyerId: string;
-    buyerEmail: string;
-    buyerName: string;
-    sellerUserId?: string | null;
-    eventId: string;
-    eventTitle: string;
-    items: OrderConfirmationItem[];
-  },
+  payload: SuccessfulPaymentFulfillmentPayload,
 ) {
   const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
   const emailService = createEmailService({
@@ -288,6 +348,84 @@ async function enqueuePostPaymentEffects(
     ),
     emailService.sendEmail(payload.buyerEmail, orderEmail.subject, orderEmail.html),
   ]);
+}
+
+async function loadSuccessfulPaymentFulfillmentPayload(orderId: string, databaseUrl?: string) {
+  const database = getDatabase(databaseUrl);
+  const order = await database.query.orders.findFirst({
+    where: eq(orders.id, orderId),
+    columns: {
+      id: true,
+      orderNumber: true,
+    },
+    with: {
+      user: {
+        columns: {
+          id: true,
+          email: true,
+          fullName: true,
+        },
+      },
+      orderItems: {
+        columns: {
+          quantity: true,
+          unitPrice: true,
+        },
+        with: {
+          ticketTier: {
+            columns: {
+              name: true,
+            },
+            with: {
+              event: {
+                columns: {
+                  id: true,
+                  title: true,
+                },
+                with: {
+                  sellerProfile: {
+                    columns: {
+                      userId: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!order?.user) {
+    throw new PaymentServiceError('ORDER_NOT_FOUND', 'Order not found.');
+  }
+
+  const firstEvent = order.orderItems[0]?.ticketTier?.event;
+
+  return {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    buyerId: order.user.id,
+    buyerEmail: order.user.email,
+    buyerName: order.user.fullName,
+    sellerUserId: firstEvent?.sellerProfile?.userId,
+    eventId: firstEvent?.id ?? '',
+    eventTitle: firstEvent?.title ?? 'event',
+    items: order.orderItems
+      .filter((item) => item.ticketTier)
+      .map((item) => ({
+        name: item.ticketTier!.name,
+        quantity: item.quantity,
+        price: Number(item.unitPrice),
+      })),
+  } satisfies SuccessfulPaymentFulfillmentPayload;
+}
+
+async function fulfillSuccessfulPayment(env: PaymentServiceEnv, orderId: string, databaseUrl?: string) {
+  const fulfillmentPayload = await loadSuccessfulPaymentFulfillmentPayload(orderId, databaseUrl);
+  await generateTickets(orderId, databaseUrl);
+  await enqueuePostPaymentEffects(env, fulfillmentPayload);
 }
 
 
@@ -380,6 +518,7 @@ export const paymentService = {
     headers: Headers,
     rawBody: string,
     body: PaymentWebhookInput,
+    backgroundTaskScheduler?: BackgroundTaskScheduler,
   ): Promise<PaymentWebhookPayload> {
     const startedAt = Date.now();
     const steps: TimedStep[] = [];
@@ -405,56 +544,9 @@ export const paymentService = {
         order: {
           columns: {
             id: true,
-            userId: true,
             reservationId: true,
-            orderNumber: true,
             status: true,
             expiresAt: true,
-          },
-          with: {
-            user: {
-              columns: {
-                id: true,
-                email: true,
-                fullName: true,
-              },
-            },
-            orderItems: {
-              columns: {
-                id: true,
-                quantity: true,
-                unitPrice: true,
-              },
-              with: {
-                ticketTier: {
-                  columns: {
-                    id: true,
-                    name: true,
-                  },
-                  with: {
-                    event: {
-                      columns: {
-                        id: true,
-                        title: true,
-                      },
-                      with: {
-                        sellerProfile: {
-                          columns: {
-                            id: true,
-                            userId: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            tickets: {
-              columns: {
-                id: true,
-              },
-            },
           },
         },
       },
@@ -464,15 +556,13 @@ export const paymentService = {
       durationMs: Date.now() - paymentLookupStartedAt,
     });
 
-    if (!payment?.order?.user || !payment.externalRef) {
+    if (!payment?.order || !payment.externalRef) {
       throw new PaymentServiceError('PAYMENT_NOT_FOUND', 'Payment not found.');
     }
 
     if (payment.status === 'success') {
       const ticketsStartedAt = Date.now();
-      if (payment.order.tickets.length === 0) {
-        await generateTickets(payment.order.id, databaseUrl);
-      }
+      await generateTickets(payment.order.id, databaseUrl);
       steps.push({
         step: 'generate_tickets_for_ignored_success',
         durationMs: Date.now() - ticketsStartedAt,
@@ -635,12 +725,25 @@ export const paymentService = {
     steps.push(...transactionSteps);
 
     if (transitionResult.transitioned && payment.order.reservationId) {
-      const syncReservationStartedAt = Date.now();
-      await confirmReservation(env, payment.order.reservationId);
-      steps.push({
-        step: 'sync_reservation_state',
-        durationMs: Date.now() - syncReservationStartedAt,
-      });
+      if (
+        scheduleBackgroundTask(
+          backgroundTaskScheduler,
+          () => confirmReservation(env, payment.order.reservationId!),
+          'sync_reservation_state',
+        )
+      ) {
+        steps.push({
+          step: 'sync_reservation_state_deferred',
+          durationMs: 0,
+        });
+      } else {
+        const syncReservationStartedAt = Date.now();
+        await confirmReservation(env, payment.order.reservationId);
+        steps.push({
+          step: 'sync_reservation_state',
+          durationMs: Date.now() - syncReservationStartedAt,
+        });
+      }
     }
 
     if (!transitionResult.transitioned) {
@@ -658,9 +761,7 @@ export const paymentService = {
 
       if (latestPayment?.status === 'success') {
         const ticketsStartedAt = Date.now();
-        if (payment.order.tickets.length === 0) {
-          await generateTickets(payment.order.id, databaseUrl);
-        }
+        await generateTickets(payment.order.id, databaseUrl);
         steps.push({
           step: 'generate_tickets_after_race',
           durationMs: Date.now() - ticketsStartedAt,
@@ -687,38 +788,25 @@ export const paymentService = {
       throw new PaymentServiceError('INVALID_STATE', 'Payment is not awaiting confirmation.');
     }
 
-    const firstEvent = payment.order.orderItems[0]?.ticketTier?.event;
-    const sellerUserId = firstEvent?.sellerProfile?.userId;
-
-    const ticketGenerationStartedAt = Date.now();
-    await generateTickets(payment.order.id, databaseUrl);
-    steps.push({
-      step: 'generate_tickets',
-      durationMs: Date.now() - ticketGenerationStartedAt,
-    });
-
-    const postEffectsStartedAt = Date.now();
-    await enqueuePostPaymentEffects(env, {
-      orderId: payment.order.id,
-      orderNumber: payment.order.orderNumber,
-      buyerId: payment.order.user.id,
-      buyerEmail: payment.order.user.email,
-      buyerName: payment.order.user.fullName,
-      sellerUserId,
-      eventId: firstEvent?.id ?? '',
-      eventTitle: firstEvent?.title ?? 'event',
-      items: payment.order.orderItems
-        .filter((item) => item.ticketTier)
-        .map((item) => ({
-          name: item.ticketTier!.name,
-          quantity: item.quantity,
-          price: Number(item.unitPrice),
-        })),
-    });
-    steps.push({
-      step: 'post_payment_effects',
-      durationMs: Date.now() - postEffectsStartedAt,
-    });
+    if (
+      scheduleBackgroundTask(
+        backgroundTaskScheduler,
+        () => fulfillSuccessfulPayment(env, payment.order.id, databaseUrl),
+        'fulfill_successful_payment',
+      )
+    ) {
+      steps.push({
+        step: 'successful_payment_fulfillment_deferred',
+        durationMs: 0,
+      });
+    } else {
+      const fulfillmentStartedAt = Date.now();
+      await fulfillSuccessfulPayment(env, payment.order.id, databaseUrl);
+      steps.push({
+        step: 'successful_payment_fulfillment',
+        durationMs: Date.now() - fulfillmentStartedAt,
+      });
+    }
 
     logTimedSteps(
       'payment.handleWebhook',
