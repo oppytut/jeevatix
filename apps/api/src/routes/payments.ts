@@ -173,8 +173,8 @@ app.openapi(initiatePaymentRoute, async (c) => {
 });
 
 app.openapi(paymentWebhookRoute, async (c) => {
-  const rawBody = await c.req.raw.clone().text();
   const body = c.req.valid('json');
+  const rawBody = JSON.stringify(body);
 
   try {
     const result = await paymentService.handleWebhook(c.env, c.req.raw.headers, rawBody, body);

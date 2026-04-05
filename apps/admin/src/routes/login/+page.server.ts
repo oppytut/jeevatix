@@ -7,10 +7,9 @@ import {
   ACCESS_TOKEN_MAX_AGE,
   REFRESH_TOKEN_MAX_AGE,
   USER_COOKIE_MAX_AGE,
-  ApiError,
   type AdminAuthUser,
 } from '$lib/auth';
-import { API_BASE_URL } from '$lib/http';
+import { API_BASE_URL, ApiError } from '$lib/http';
 
 type AuthPayload = {
   access_token: string;
