@@ -333,6 +333,360 @@ function toOrderDetail(order) {
   };
 }
 
+function toAdminEventListItem(event) {
+  const sellerProfile = state.sellerProfiles.find((profile) => profile.id === event.seller_profile_id);
+  const sellerUser = state.users.find((candidate) => candidate.id === sellerProfile?.user_id);
+
+  return {
+    id: event.id,
+    title: event.title,
+    slug: event.slug,
+    status: event.status,
+    venueCity: event.venue_city,
+    startAt: event.start_at,
+    endAt: event.end_at,
+    bannerUrl: event.banner_url,
+    sellerProfileId: event.seller_profile_id,
+    sellerName: sellerProfile?.org_name ?? sellerUser?.full_name ?? 'Seller',
+    sellerUserId: sellerUser?.id ?? '',
+    sellerVerified: sellerProfile?.is_verified ?? false,
+    totalQuota: event.tiers.reduce((total, tier) => total + tier.quota, 0),
+    totalSold: event.tiers.reduce((total, tier) => total + tier.sold_count, 0),
+    createdAt: event.created_at,
+    updatedAt: event.updated_at,
+  };
+}
+
+function toAdminEventDetail(event) {
+  const sellerProfile = state.sellerProfiles.find((profile) => profile.id === event.seller_profile_id);
+  const sellerUser = state.users.find((candidate) => candidate.id === sellerProfile?.user_id);
+  const relatedOrders = state.orders.filter((order) => order.event_id === event.id);
+  const confirmedOrders = relatedOrders.filter((order) => order.status === 'confirmed');
+
+  return {
+    id: event.id,
+    sellerProfileId: event.seller_profile_id,
+    title: event.title,
+    slug: event.slug,
+    description: event.description,
+    venueName: event.venue_name,
+    venueAddress: event.venue_address,
+    venueCity: event.venue_city,
+    venueLatitude: event.venue_latitude,
+    venueLongitude: event.venue_longitude,
+    startAt: event.start_at,
+    endAt: event.end_at,
+    saleStartAt: event.sale_start_at,
+    saleEndAt: event.sale_end_at,
+    bannerUrl: event.banner_url,
+    status: event.status,
+    maxTicketsPerOrder: event.max_tickets_per_order,
+    isFeatured: event.is_featured,
+    createdAt: event.created_at,
+    updatedAt: event.updated_at,
+    seller: {
+      id: sellerProfile?.id ?? '',
+      userId: sellerUser?.id ?? '',
+      orgName: sellerProfile?.org_name ?? 'Seller',
+      orgDescription: sellerProfile?.org_description ?? null,
+      logoUrl: sellerProfile?.logo_url ?? null,
+      isVerified: sellerProfile?.is_verified ?? false,
+      fullName: sellerUser?.full_name ?? 'Seller',
+      email: sellerUser?.email ?? '',
+      phone: sellerUser?.phone ?? null,
+    },
+    categories: event.category_ids
+      .map((categoryId) => state.categories.find((category) => category.id === categoryId))
+      .filter(Boolean)
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        icon: category.icon ?? null,
+      })),
+    images: event.images.map((image) => ({
+      id: image.id,
+      imageUrl: image.image_url,
+      sortOrder: image.sort_order,
+      createdAt: image.created_at,
+    })),
+    tiers: event.tiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      description: tier.description,
+      price: tier.price,
+      quota: tier.quota,
+      soldCount: tier.sold_count,
+      sortOrder: tier.sort_order,
+      status: tier.status,
+      saleStartAt: tier.sale_start_at,
+      saleEndAt: tier.sale_end_at,
+      createdAt: tier.created_at,
+      updatedAt: tier.updated_at,
+    })),
+    stats: {
+      orderCount: relatedOrders.length,
+      confirmedOrderCount: confirmedOrders.length,
+      ticketsSold: state.tickets.filter((ticket) => ticket.event_id === event.id).length,
+      grossRevenue: confirmedOrders.reduce((total, order) => total + order.total_amount, 0),
+    },
+  };
+}
+
+function toAdminOrderListItem(order) {
+  const buyer = state.users.find((candidate) => candidate.id === order.user_id);
+  const payment = state.payments.find((candidate) => candidate.order_id === order.id);
+  const event = state.events.find((candidate) => candidate.id === order.event_id);
+
+  return {
+    id: order.id,
+    orderNumber: order.order_number,
+    status: order.status,
+    totalAmount: order.total_amount,
+    serviceFee: order.service_fee,
+    createdAt: order.created_at,
+    confirmedAt: order.confirmed_at,
+    expiresAt: order.expires_at,
+    paymentStatus: payment?.status ?? 'pending',
+    paymentMethod: payment?.method ?? 'bank_transfer',
+    buyer: {
+      id: buyer?.id ?? '',
+      fullName: buyer?.full_name ?? 'Buyer',
+      email: buyer?.email ?? '',
+      phone: buyer?.phone ?? null,
+    },
+    event: {
+      id: event?.id ?? '',
+      title: event?.title ?? order.event_title,
+      slug: event?.slug ?? order.event_slug,
+      venueCity: event?.venue_city ?? '',
+      startAt: event?.start_at ?? order.created_at,
+    },
+  };
+}
+
+function toAdminOrderDetail(order) {
+  const buyer = state.users.find((candidate) => candidate.id === order.user_id);
+  const payment = state.payments.find((candidate) => candidate.order_id === order.id);
+  const event = state.events.find((candidate) => candidate.id === order.event_id);
+  const tickets = state.tickets.filter((candidate) => candidate.order_id === order.id);
+
+  return {
+    id: order.id,
+    reservationId: order.reservation_id,
+    orderNumber: order.order_number,
+    status: order.status,
+    totalAmount: order.total_amount,
+    serviceFee: order.service_fee,
+    createdAt: order.created_at,
+    updatedAt: order.updated_at,
+    confirmedAt: order.confirmed_at,
+    expiresAt: order.expires_at,
+    buyer: {
+      id: buyer?.id ?? '',
+      fullName: buyer?.full_name ?? 'Buyer',
+      email: buyer?.email ?? '',
+      phone: buyer?.phone ?? null,
+    },
+    event: {
+      id: event?.id ?? '',
+      title: event?.title ?? order.event_title,
+      slug: event?.slug ?? order.event_slug,
+      venueCity: event?.venue_city ?? '',
+      startAt: event?.start_at ?? order.created_at,
+    },
+    payment: {
+      id: payment?.id ?? '',
+      method: payment?.method ?? 'bank_transfer',
+      status: payment?.status ?? 'pending',
+      amount: payment?.amount ?? order.total_amount,
+      externalRef: payment?.external_ref ?? null,
+      paidAt: payment?.paid_at ?? null,
+      createdAt: payment?.created_at ?? order.created_at,
+      updatedAt: payment?.updated_at ?? order.updated_at,
+    },
+    items: order.items.map((item) => ({
+      id: item.id,
+      ticketTierId: item.ticket_tier_id,
+      tierName: item.tier_name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      subtotal: item.subtotal,
+    })),
+    tickets: tickets.map((ticket) => ({
+      id: ticket.id,
+      ticketTierId: ticket.ticket_tier_id,
+      ticketTierName: ticket.tier_name,
+      ticketCode: ticket.ticket_code,
+      status: ticket.status,
+      issuedAt: ticket.issued_at,
+      checkedInAt: ticket.checked_in_at,
+    })),
+  };
+}
+
+function toAdminPaymentListItem(payment) {
+  const order = state.orders.find((candidate) => candidate.id === payment.order_id);
+  const buyer = state.users.find((candidate) => candidate.id === order?.user_id);
+  const event = state.events.find((candidate) => candidate.id === order?.event_id);
+
+  return {
+    id: payment.id,
+    orderId: order?.id ?? '',
+    orderNumber: order?.order_number ?? '',
+    status: payment.status,
+    method: payment.method,
+    amount: payment.amount,
+    externalRef: payment.external_ref,
+    paidAt: payment.paid_at,
+    createdAt: payment.created_at,
+    updatedAt: payment.updated_at,
+    orderStatus: order?.status ?? 'pending',
+    buyer: {
+      id: buyer?.id ?? '',
+      fullName: buyer?.full_name ?? 'Buyer',
+      email: buyer?.email ?? '',
+      phone: buyer?.phone ?? null,
+    },
+    event: {
+      id: event?.id ?? '',
+      title: event?.title ?? order?.event_title ?? '',
+      slug: event?.slug ?? order?.event_slug ?? '',
+      venueCity: event?.venue_city ?? '',
+      startAt: event?.start_at ?? payment.created_at,
+    },
+  };
+}
+
+function toAdminPaymentDetail(payment) {
+  const order = state.orders.find((candidate) => candidate.id === payment.order_id);
+  const buyer = state.users.find((candidate) => candidate.id === order?.user_id);
+  const event = state.events.find((candidate) => candidate.id === order?.event_id);
+  const tickets = state.tickets.filter((candidate) => candidate.order_id === order?.id);
+
+  return {
+    id: payment.id,
+    orderId: order?.id ?? '',
+    orderNumber: order?.order_number ?? '',
+    status: payment.status,
+    method: payment.method,
+    amount: payment.amount,
+    externalRef: payment.external_ref,
+    paidAt: payment.paid_at,
+    createdAt: payment.created_at,
+    updatedAt: payment.updated_at,
+    orderStatus: order?.status ?? 'pending',
+    buyer: {
+      id: buyer?.id ?? '',
+      fullName: buyer?.full_name ?? 'Buyer',
+      email: buyer?.email ?? '',
+      phone: buyer?.phone ?? null,
+    },
+    event: {
+      id: event?.id ?? '',
+      title: event?.title ?? order?.event_title ?? '',
+      slug: event?.slug ?? order?.event_slug ?? '',
+      venueCity: event?.venue_city ?? '',
+      startAt: event?.start_at ?? payment.created_at,
+    },
+    items: (order?.items ?? []).map((item) => ({
+      id: item.id,
+      ticketTierId: item.ticket_tier_id,
+      tierName: item.tier_name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      subtotal: item.subtotal,
+    })),
+    tickets: tickets.map((ticket) => ({
+      id: ticket.id,
+      ticketTierId: ticket.ticket_tier_id,
+      ticketTierName: ticket.tier_name,
+      ticketCode: ticket.ticket_code,
+      status: ticket.status,
+      issuedAt: ticket.issued_at,
+      checkedInAt: ticket.checked_in_at,
+    })),
+  };
+}
+
+function toAdminReservationItem(reservation) {
+  const buyer = state.users.find((candidate) => candidate.id === reservation.user_id);
+  const event = state.events.find((candidate) => candidate.id === reservation.event_id);
+  const tier = event?.tiers.find((candidate) => candidate.id === reservation.ticket_tier_id);
+
+  return {
+    id: reservation.id,
+    status: reservation.status,
+    quantity: reservation.quantity,
+    expiresAt: reservation.expires_at,
+    createdAt: reservation.created_at,
+    remainingSeconds: Math.max(
+      Math.floor((new Date(reservation.expires_at).getTime() - Date.now()) / 1000),
+      0,
+    ),
+    buyer: {
+      id: buyer?.id ?? '',
+      fullName: buyer?.full_name ?? 'Buyer',
+      email: buyer?.email ?? '',
+      phone: buyer?.phone ?? null,
+    },
+    event: {
+      id: event?.id ?? '',
+      title: event?.title ?? reservation.event_title,
+      slug: event?.slug ?? reservation.event_slug,
+      venueCity: event?.venue_city ?? '',
+      startAt: event?.start_at ?? reservation.created_at,
+    },
+    ticketTier: {
+      id: tier?.id ?? reservation.ticket_tier_id,
+      name: tier?.name ?? reservation.tier_name,
+      status: tier?.status ?? 'available',
+    },
+  };
+}
+
+function toSellerOrderDetail(order) {
+  const buyer = state.users.find((candidate) => candidate.id === order.user_id);
+  const event = state.events.find((candidate) => candidate.id === order.event_id);
+  const payment = state.payments.find((candidate) => candidate.order_id === order.id);
+
+  return {
+    id: order.id,
+    order_number: order.order_number,
+    status: order.status,
+    total_amount: order.total_amount,
+    service_fee: order.service_fee,
+    expires_at: order.expires_at,
+    confirmed_at: order.confirmed_at,
+    created_at: order.created_at,
+    updated_at: order.updated_at,
+    buyer: {
+      id: buyer?.id ?? '',
+      full_name: buyer?.full_name ?? 'Buyer',
+      email: buyer?.email ?? '',
+      phone: buyer?.phone ?? null,
+    },
+    event: {
+      id: event?.id ?? '',
+      title: event?.title ?? order.event_title,
+      slug: event?.slug ?? order.event_slug,
+      start_at: event?.start_at ?? order.created_at,
+      venue_city: event?.venue_city ?? '',
+    },
+    items: order.items,
+    payment: {
+      id: payment?.id ?? '',
+      method: payment?.method ?? 'bank_transfer',
+      status: payment?.status ?? 'pending',
+      amount: payment?.amount ?? order.total_amount,
+      external_ref: payment?.external_ref ?? null,
+      paid_at: payment?.paid_at ?? null,
+      created_at: payment?.created_at ?? order.created_at,
+      updated_at: payment?.updated_at ?? order.updated_at,
+    },
+  };
+}
+
 function ensureAuthorized(res, user, role) {
   if (user === 'forbidden') {
     sendError(res, 403, 'FORBIDDEN', 'Forbidden.');
@@ -496,6 +850,21 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === 'POST' && path === '/auth/forgot-password') {
+    sendSuccess(res, { message: 'Reset password email queued.', reset_token: 'mock-reset-token' });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/auth/reset-password') {
+    sendSuccess(res, { message: 'Password berhasil direset.' });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/auth/verify-email') {
+    sendSuccess(res, { message: 'Email berhasil diverifikasi.' });
+    return;
+  }
+
   if (req.method === 'GET' && path === '/events/featured') {
     sendSuccess(
       res,
@@ -635,6 +1004,173 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && path === '/admin/events') {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const events = state.events.map(toAdminEventListItem);
+    sendSuccess(res, events, buildMeta(events.length, 1, 20));
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/admin/events/') && !path.endsWith('/status')) {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const eventId = path.split('/')[3];
+    const event = state.events.find((candidate) => candidate.id === eventId);
+
+    if (!event) {
+      sendError(res, 404, 'EVENT_NOT_FOUND', 'Event not found.');
+      return;
+    }
+
+    sendSuccess(res, toAdminEventDetail(event));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/admin/orders') {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const orders = state.orders.map(toAdminOrderListItem);
+    sendSuccess(res, orders, buildMeta(orders.length, 1, 20));
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/admin/orders/')) {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const orderId = path.split('/')[3];
+    const order = state.orders.find((candidate) => candidate.id === orderId);
+
+    if (!order) {
+      sendError(res, 404, 'ORDER_NOT_FOUND', 'Order not found.');
+      return;
+    }
+
+    sendSuccess(res, toAdminOrderDetail(order));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/admin/payments') {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const payments = state.payments.map(toAdminPaymentListItem);
+    sendSuccess(res, payments, buildMeta(payments.length, 1, 20));
+    return;
+  }
+
+  if (req.method === 'GET' && path.startsWith('/admin/payments/')) {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const paymentId = path.split('/')[3];
+    const payment = state.payments.find((candidate) => candidate.id === paymentId);
+
+    if (!payment) {
+      sendError(res, 404, 'PAYMENT_NOT_FOUND', 'Payment not found.');
+      return;
+    }
+
+    sendSuccess(res, toAdminPaymentDetail(payment));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/admin/reservations') {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const reservations = state.reservations.map(toAdminReservationItem);
+    sendSuccess(res, reservations, buildMeta(reservations.length, 1, 20));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/admin/notifications') {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const notifications = state.notifications.map((notification) => ({
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      body: notification.body,
+      isRead: notification.is_read,
+      createdAt: notification.created_at,
+      metadata: notification.metadata ?? null,
+      user: {
+        id: notification.user.id,
+        fullName: notification.user.full_name,
+        email: notification.user.email,
+        role: notification.user.role,
+      },
+    }));
+
+    sendSuccess(res, { notifications }, buildMeta(notifications.length, 1, 20));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/admin/notifications/broadcast') {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const body = await readBody(req);
+    const targetRole = body.target_role ?? 'all';
+    const targetUsers = state.users.filter((candidate) =>
+      targetRole === 'all' ? true : candidate.role === targetRole,
+    );
+    const now = new Date().toISOString();
+
+    for (const targetUser of targetUsers) {
+      state.notifications.push({
+        id: randomUUID(),
+        type: 'info',
+        title: body.title,
+        body: body.body,
+        is_read: false,
+        created_at: now,
+        metadata: null,
+        user: targetUser,
+      });
+    }
+
+    sendSuccess(res, {
+      message: 'Broadcast terkirim.',
+      sent_count: targetUsers.length,
+      target_role: targetRole,
+    });
+    return;
+  }
+
   if (req.method === 'POST' && path === '/admin/categories') {
     const user = getAuthorizedUser(req, 'admin');
 
@@ -682,6 +1218,46 @@ const server = createServer(async (req, res) => {
     });
 
     sendSuccess(res, sellers, buildMeta(sellers.length, 1, 20));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/admin/users') {
+    const user = getAuthorizedUser(req, 'admin');
+
+    if (!ensureAuthorized(res, user, 'admin')) {
+      return;
+    }
+
+    const users = state.users.map((candidate) => ({
+      id: candidate.id,
+      email: candidate.email,
+      fullName: candidate.full_name,
+      phone: candidate.phone,
+      avatarUrl: candidate.avatar_url,
+      role: candidate.role,
+      status: candidate.status,
+      emailVerifiedAt: candidate.email_verified_at,
+      orderCount: state.orders.filter((order) => order.user_id === candidate.id).length,
+      ticketCount: state.tickets.filter((ticket) => ticket.user_id === candidate.id).length,
+      sellerProfile: (() => {
+        const sellerProfile = getSellerProfileByUserId(candidate.id);
+
+        if (!sellerProfile) {
+          return null;
+        }
+
+        return {
+          id: sellerProfile.id,
+          orgName: sellerProfile.org_name,
+          isVerified: sellerProfile.is_verified,
+          eventCount: state.events.filter((event) => event.seller_profile_id === sellerProfile.id).length,
+        };
+      })(),
+      createdAt: candidate.created_at,
+      updatedAt: candidate.updated_at,
+    }));
+
+    sendSuccess(res, users, buildMeta(users.length, 1, 20));
     return;
   }
 
@@ -845,6 +1421,75 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && path === '/seller/profile') {
+    const user = getAuthorizedUser(req, 'seller');
+
+    if (!ensureAuthorized(res, user, 'seller')) {
+      return;
+    }
+
+    const sellerProfile = getSellerProfileByUserId(user.id);
+
+    sendSuccess(res, {
+      id: sellerProfile?.id ?? '',
+      user_id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      phone: user.phone,
+      avatar_url: user.avatar_url,
+      org_name: sellerProfile?.org_name ?? '',
+      org_description: sellerProfile?.org_description ?? null,
+      logo_url: sellerProfile?.logo_url ?? null,
+      bank_name: sellerProfile?.bank_name ?? null,
+      bank_account_number: sellerProfile?.bank_account_number ?? null,
+      bank_account_holder: sellerProfile?.bank_account_holder ?? null,
+      is_verified: sellerProfile?.is_verified ?? false,
+      verified_at: sellerProfile?.verified_at ?? null,
+      created_at: sellerProfile?.created_at ?? user.created_at,
+      updated_at: sellerProfile?.updated_at ?? user.updated_at,
+    });
+    return;
+  }
+
+  if (req.method === 'PATCH' && path === '/seller/profile') {
+    const user = getAuthorizedUser(req, 'seller');
+
+    if (!ensureAuthorized(res, user, 'seller')) {
+      return;
+    }
+
+    const sellerProfile = getSellerProfileByUserId(user.id);
+    const body = await readBody(req);
+
+    sellerProfile.org_name = body.org_name ?? sellerProfile.org_name;
+    sellerProfile.org_description = body.org_description ?? sellerProfile.org_description;
+    sellerProfile.logo_url = body.logo_url ?? sellerProfile.logo_url;
+    sellerProfile.bank_name = body.bank_name ?? sellerProfile.bank_name;
+    sellerProfile.bank_account_number = body.bank_account_number ?? sellerProfile.bank_account_number;
+    sellerProfile.bank_account_holder = body.bank_account_holder ?? sellerProfile.bank_account_holder;
+    sellerProfile.updated_at = new Date().toISOString();
+
+    sendSuccess(res, {
+      id: sellerProfile.id,
+      user_id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      phone: user.phone,
+      avatar_url: user.avatar_url,
+      org_name: sellerProfile.org_name,
+      org_description: sellerProfile.org_description,
+      logo_url: sellerProfile.logo_url,
+      bank_name: sellerProfile.bank_name,
+      bank_account_number: sellerProfile.bank_account_number,
+      bank_account_holder: sellerProfile.bank_account_holder,
+      is_verified: sellerProfile.is_verified,
+      verified_at: sellerProfile.verified_at,
+      created_at: sellerProfile.created_at,
+      updated_at: sellerProfile.updated_at,
+    });
+    return;
+  }
+
   if (req.method === 'GET' && path === '/seller/events') {
     const user = getAuthorizedUser(req, 'seller');
 
@@ -987,6 +1632,25 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && path.startsWith('/seller/orders/')) {
+    const user = getAuthorizedUser(req, 'seller');
+
+    if (!ensureAuthorized(res, user, 'seller')) {
+      return;
+    }
+
+    const orderId = path.split('/')[3];
+    const order = state.orders.find((candidate) => candidate.id === orderId && candidate.seller_user_id === user.id);
+
+    if (!order) {
+      sendError(res, 404, 'ORDER_NOT_FOUND', 'Order not found.');
+      return;
+    }
+
+    sendSuccess(res, toSellerOrderDetail(order));
+    return;
+  }
+
   if (req.method === 'GET' && path.endsWith('/checkin/stats')) {
     const user = getAuthorizedUser(req, 'seller');
 
@@ -1105,6 +1769,67 @@ const server = createServer(async (req, res) => {
     }
 
     sendSuccess(res, { notifications: [], unread_count: 0 }, buildMeta(0, 1, 20));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/users/me') {
+    const user = getAuthorizedUser(req);
+
+    if (!ensureAuthorized(res, user)) {
+      return;
+    }
+
+    sendSuccess(res, {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      phone: user.phone,
+      avatar_url: user.avatar_url,
+      role: user.role,
+      status: user.status,
+      email_verified_at: user.email_verified_at,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+    });
+    return;
+  }
+
+  if (req.method === 'PATCH' && path === '/users/me') {
+    const user = getAuthorizedUser(req);
+
+    if (!ensureAuthorized(res, user)) {
+      return;
+    }
+
+    const body = await readBody(req);
+    user.full_name = body.full_name ?? user.full_name;
+    user.phone = body.phone ?? user.phone;
+    user.avatar_url = body.avatar_url ?? user.avatar_url;
+    user.updated_at = new Date().toISOString();
+
+    sendSuccess(res, {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      phone: user.phone,
+      avatar_url: user.avatar_url,
+      role: user.role,
+      status: user.status,
+      email_verified_at: user.email_verified_at,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+    });
+    return;
+  }
+
+  if (req.method === 'PATCH' && path === '/users/me/password') {
+    const user = getAuthorizedUser(req);
+
+    if (!ensureAuthorized(res, user)) {
+      return;
+    }
+
+    sendSuccess(res, { message: 'Password berhasil diperbarui.' });
     return;
   }
 

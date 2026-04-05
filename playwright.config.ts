@@ -17,7 +17,7 @@ export default defineConfig({
 				...devices['Desktop Chrome'],
 				baseURL: 'http://localhost:4301'
 			},
-			testMatch: /buyer-flow\.spec\.ts/
+			testMatch: /buyer-(flow|pages)\.spec\.ts/
 		},
 		{
 			name: 'admin',
@@ -25,7 +25,7 @@ export default defineConfig({
 				...devices['Desktop Chrome'],
 				baseURL: 'http://localhost:4302'
 			},
-			testMatch: /admin-flow\.spec\.ts/
+			testMatch: /admin-(flow|pages)\.spec\.ts/
 		},
 		{
 			name: 'seller',
@@ -33,7 +33,7 @@ export default defineConfig({
 				...devices['Desktop Chrome'],
 				baseURL: 'http://localhost:4303'
 			},
-			testMatch: /seller-flow\.spec\.ts/
+			testMatch: /seller-(flow|pages)\.spec\.ts/
 		}
 	],
 	webServer: [

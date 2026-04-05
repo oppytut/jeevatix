@@ -52,6 +52,12 @@ type InitiatedPayment = {
   payment_url: string | null;
 };
 
+type CategoryRecord = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
 type BuyerTicketListItem = {
   id: string;
   ticket_code: string;
@@ -67,6 +73,13 @@ type ReservationPayload = {
 type OrderPayload = {
   id: string;
   order_number: string;
+};
+
+type PendingOrderFixture = {
+  buyer: CreatedBuyer;
+  buyerSession: AuthPayload;
+  reservation: ReservationPayload;
+  order: OrderPayload;
 };
 
 type CreatedSeller = {
@@ -190,8 +203,13 @@ export async function loginApi(
 }
 
 export async function getCategoryIds(request: APIRequestContext) {
-  const result = await apiRequest<Array<{ id: number }>>(request, 'GET', '/categories');
+  const result = await apiRequest<CategoryRecord[]>(request, 'GET', '/categories');
   return result.data.map((category) => category.id);
+}
+
+export async function listCategories(request: APIRequestContext) {
+  const result = await apiRequest<CategoryRecord[]>(request, 'GET', '/categories');
+  return result.data;
 }
 
 export async function createSellerViaApi(request: APIRequestContext): Promise<CreatedSeller> {
@@ -317,6 +335,57 @@ export async function createConfirmedOrderFixture(
   sellerAccessToken: string,
   buyer?: CreatedBuyer,
 ) {
+  const pendingOrder = await createPendingOrderFixture(request, eventId, sellerAccessToken, buyer);
+  const payment = await apiRequest<InitiatedPayment>(
+    request,
+    'POST',
+    `/payments/${pendingOrder.order.id}/pay`,
+    {
+    token: pendingOrder.buyerSession.access_token,
+    data: {
+      method: 'bank_transfer',
+    },
+    },
+  );
+
+  await apiRequest(request, 'POST', '/webhooks/payment', {
+    data: {
+      external_ref: payment.data.external_ref,
+      status: 'success',
+      paid_at: new Date().toISOString(),
+      metadata: {
+        gateway: 'playwright-mock',
+      },
+    },
+    headers: {
+      'x-payment-signature': 'mock-signature',
+    },
+  });
+
+  const tickets = await apiRequest<BuyerTicketListItem[]>(request, 'GET', '/tickets?page=1&limit=20', {
+    token: pendingOrder.buyerSession.access_token,
+  });
+  const issuedTicket = tickets.data.find((ticket) => ticket.event_id === eventId) ?? tickets.data[0];
+
+  if (!issuedTicket) {
+    throw new Error(`No ticket was generated for event ${eventId}.`);
+  }
+
+  return {
+    buyer: pendingOrder.buyer,
+    buyerSession: pendingOrder.buyerSession,
+    order: pendingOrder.order,
+    payment: payment.data,
+    ticket: issuedTicket,
+  };
+}
+
+export async function createPendingOrderFixture(
+  request: APIRequestContext,
+  eventId: string,
+  sellerAccessToken: string,
+  buyer?: CreatedBuyer,
+): Promise<PendingOrderFixture> {
   const activeBuyer = buyer ?? (await createBuyerViaApi(request));
   const buyerSession = await loginApi(request, activeBuyer.email, activeBuyer.password);
   const sellerEvent = await apiRequest<SellerEventDetail>(request, 'GET', `/seller/events/${eventId}`, {
@@ -335,42 +404,83 @@ export async function createConfirmedOrderFixture(
       reservation_id: reservation.data.reservation_id,
     },
   });
-  const payment = await apiRequest<InitiatedPayment>(request, 'POST', `/payments/${order.data.id}/pay`, {
-    token: buyerSession.access_token,
-    data: {
-      method: 'bank_transfer',
-    },
-  });
-
-  await apiRequest(request, 'POST', '/webhooks/payment', {
-    data: {
-      external_ref: payment.data.external_ref,
-      status: 'success',
-      paid_at: new Date().toISOString(),
-      metadata: {
-        gateway: 'playwright-mock',
-      },
-    },
-    headers: {
-      'x-payment-signature': 'mock-signature',
-    },
-  });
-
-  const tickets = await apiRequest<BuyerTicketListItem[]>(request, 'GET', '/tickets?page=1&limit=20', {
-    token: buyerSession.access_token,
-  });
-  const issuedTicket = tickets.data.find((ticket) => ticket.event_id === eventId) ?? tickets.data[0];
-
-  if (!issuedTicket) {
-    throw new Error(`No ticket was generated for event ${eventId}.`);
-  }
 
   return {
     buyer: activeBuyer,
     buyerSession,
+    reservation: reservation.data,
     order: order.data,
-    ticket: issuedTicket,
   };
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getPathPattern(path: string) {
+  if (path === '/') {
+    return /\/$/;
+  }
+
+  return new RegExp(`${escapeRegExp(path)}(?:\\?.*)?$`);
+}
+
+export async function gotoAndExpectDocument(
+  page: Page,
+  path: string,
+  options: {
+    finalPath?: string | RegExp;
+    expectedText?: string | RegExp | Array<string | RegExp>;
+  } = {},
+) {
+  const response = await page.goto(path);
+  expect(response, `No document response when navigating to ${path}`).not.toBeNull();
+  expect(response?.ok(), `Document response was not OK for ${path}`).toBeTruthy();
+
+  await page.waitForLoadState('networkidle');
+  await expect(page).toHaveURL(
+    typeof options.finalPath === 'string'
+      ? getPathPattern(options.finalPath)
+      : options.finalPath ?? getPathPattern(path),
+  );
+  await expect(page.locator('body')).toBeVisible();
+
+  const expectedTexts = Array.isArray(options.expectedText)
+    ? options.expectedText
+    : options.expectedText
+      ? [options.expectedText]
+      : [];
+
+  for (const expectedText of expectedTexts) {
+    await expect(page.locator('body')).toContainText(expectedText);
+  }
+}
+
+export async function loginAdminUi(page: Page) {
+  await page.context().clearCookies();
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(ADMIN_EMAIL);
+  await page.getByLabel('Password').fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: 'Login' }).click();
+  await expect(page).toHaveURL(/localhost:4302\/$/);
+}
+
+export async function loginBuyerUi(page: Page, email: string, password: string) {
+  await clearBuyerSession(page.context());
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill(password);
+  await page.getByRole('button', { name: 'Login' }).click();
+  await expect(page).toHaveURL(/localhost:4301\/$/);
+}
+
+export async function loginSellerUi(page: Page, email: string, password: string) {
+  await page.context().clearCookies();
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill(password);
+  await page.getByRole('button', { name: 'Login' }).click();
+  await expect(page).toHaveURL(/localhost:4303\/$/);
 }
 
 export async function clearBuyerSession(context: BrowserContext) {
