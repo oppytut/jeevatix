@@ -2,6 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 
 import {
   ACCESS_TOKEN_MAX_AGE,
+  API_BASE_URL,
   REFRESH_TOKEN_MAX_AGE,
   SELLER_ACCESS_TOKEN_COOKIE,
   SELLER_REFRESH_TOKEN_COOKIE,
@@ -79,7 +80,7 @@ export const actions = {
     }
 
     try {
-      const response = await fetch('http://localhost:8787/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

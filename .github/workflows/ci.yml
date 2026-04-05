@@ -12,7 +12,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run format:check
@@ -20,3 +20,9 @@ jobs:
       - run: pnpm run typecheck
       - run: pnpm run test
       - run: pnpm run build
+      - name: Validate frontend bundles do not target localhost API
+        run: |
+          if rg -n "http://localhost:8787" apps/admin/.svelte-kit apps/buyer/.svelte-kit apps/seller/.svelte-kit; then
+            echo "Frontend build artifacts still point to localhost API"
+            exit 1
+          fi
