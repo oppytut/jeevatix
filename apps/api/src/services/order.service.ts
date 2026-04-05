@@ -10,7 +10,7 @@ import type {
 import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
 
 const ORDER_EXPIRY_MINUTES = 30;
-const DEFAULT_PAYMENT_METHOD = 'bank_transfer';
+const DEFAULT_PAYMENT_METHOD = 'bank_transfer' as const;
 
 const { orderItems, orders, payments, reservations, tickets } = schema;
 
@@ -19,17 +19,10 @@ type OrderServiceEnv = {
   TICKET_RESERVER?: DurableObjectNamespace;
 };
 
-type TicketReserverConfirmResponse =
-  | {
-      ok: true;
-      reservation_id: string;
-      status: 'cancelled' | 'converted' | 'expired';
-    }
-  | {
-      ok: false;
-      error: 'BAD_REQUEST' | 'DATABASE_UNAVAILABLE' | 'NOT_FOUND' | 'INVALID_STATE';
-      message?: string;
-    };
+type TimedStep = {
+  step: string;
+  durationMs: number;
+};
 
 export class OrderServiceError extends Error {
   constructor(
@@ -58,6 +51,24 @@ function getProcessEnv(key: string) {
   ).process?.env?.[key];
 }
 
+function shouldProfileLoadTests() {
+  return getProcessEnv('LOAD_TEST_PROFILE') === '1';
+}
+
+function logTimedSteps(scope: string, details: Record<string, unknown>, steps: TimedStep[]) {
+  if (!shouldProfileLoadTests()) {
+    return;
+  }
+
+  console.log(
+    `[load-profile] ${scope}`,
+    JSON.stringify({
+      ...details,
+      steps,
+    }),
+  );
+}
+
 function getDatabase(databaseUrl?: string) {
   const db = getDb(databaseUrl ?? getProcessEnv('DATABASE_URL'));
 
@@ -66,17 +77,6 @@ function getDatabase(databaseUrl?: string) {
   }
 
   return db;
-}
-
-function getTicketReserverNamespace(env: OrderServiceEnv) {
-  if (!env.TICKET_RESERVER) {
-    throw new OrderServiceError(
-      'TICKET_RESERVER_UNAVAILABLE',
-      'Ticket reserver durable object binding is not available.',
-    );
-  }
-
-  return env.TICKET_RESERVER;
 }
 
 function getRandomFiveDigitNumber() {
@@ -94,63 +94,144 @@ export function formatOrderNumber(date: Date, randomPart = getRandomFiveDigitNum
   return `JVX-${year}${month}${day}-${randomPart}`;
 }
 
-async function generateUniqueOrderNumber(databaseUrl?: string) {
-  const database = getDatabase(databaseUrl);
+async function generateUniqueOrderNumber() {
+  return formatOrderNumber(new Date());
+}
 
-  for (let attempt = 0; attempt < 10; attempt += 1) {
-    const orderNumber = formatOrderNumber(new Date());
-    const existingOrder = await database.query.orders.findFirst({
-      where: eq(orders.orderNumber, orderNumber),
-      columns: {
-        id: true,
-      },
-    });
+function getDatabaseErrorDetails(error: unknown) {
+  if (typeof error !== 'object' || error === null) {
+    return null;
+  }
 
-    if (!existingOrder) {
-      return orderNumber;
+  const candidate = error as {
+    code?: string;
+    constraint_name?: string;
+    constraint?: string;
+    cause?: unknown;
+  };
+
+  if (candidate.code) {
+    return candidate;
+  }
+
+  if (candidate.cause && typeof candidate.cause === 'object' && candidate.cause !== null) {
+    const cause = candidate.cause as {
+      code?: string;
+      constraint_name?: string;
+      constraint?: string;
+    };
+
+    if (cause.code) {
+      return cause;
     }
   }
 
-  throw new OrderServiceError(
-    'ORDER_NUMBER_GENERATION_FAILED',
-    'Unable to generate a unique order number.',
+  return null;
+}
+
+function isUniqueViolation(error: unknown, constraint?: string) {
+  const pgError = getDatabaseErrorDetails(error);
+
+  if (!pgError) {
+    return false;
+  }
+
+  if (pgError.code !== '23505') {
+    return false;
+  }
+
+  if (!constraint) {
+    return true;
+  }
+
+  return pgError.constraint === constraint || pgError.constraint_name === constraint;
+}
+
+function isRetryableDatabaseError(error: unknown) {
+  const pgError = getDatabaseErrorDetails(error);
+
+  if (!pgError?.code) {
+    return false;
+  }
+
+  return ['40001', '40P01', '55P03', '08000', '08003', '08006', '08001'].includes(
+    pgError.code,
   );
 }
 
-async function invokeTicketReserverConfirm(
-  env: OrderServiceEnv,
-  tierId: string,
-  reservationId: string,
-) {
-  const namespace = getTicketReserverNamespace(env);
-  const objectId = namespace.idFromName(tierId);
-  const stub = namespace.get(objectId);
-  const response = await stub.fetch('https://ticket-reserver', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
+function buildCreatedOrderDetail(input: {
+  order: {
+    id: string;
+    reservationId: string | null;
+    orderNumber: string;
+    status: 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'refunded';
+    totalAmount: string;
+    serviceFee: string;
+    expiresAt: Date;
+    confirmedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  payment: {
+    id: string;
+    method: 'bank_transfer' | 'e_wallet' | 'credit_card' | 'virtual_account';
+    status: 'pending' | 'success' | 'failed' | 'refunded';
+    amount: string;
+    externalRef: string | null;
+    paidAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+  orderItem: {
+    id: string;
+    ticketTierId: string;
+    quantity: number;
+    unitPrice: string;
+    subtotal: string;
+  };
+  event: {
+    id: string;
+    slug: string;
+    title: string;
+  };
+  tierName: string;
+}): OrderDetail {
+  return {
+    id: input.order.id,
+    reservation_id: input.order.reservationId,
+    order_number: input.order.orderNumber,
+    status: input.order.status,
+    total_amount: Number(input.order.totalAmount),
+    service_fee: Number(input.order.serviceFee),
+    expires_at: input.order.expiresAt.toISOString(),
+    confirmed_at: input.order.confirmedAt?.toISOString() ?? null,
+    created_at: input.order.createdAt.toISOString(),
+    updated_at: input.order.updatedAt.toISOString(),
+    event_id: input.event.id,
+    event_slug: input.event.slug,
+    event_title: input.event.title,
+    items: [
+      {
+        id: input.orderItem.id,
+        ticket_tier_id: input.orderItem.ticketTierId,
+        tier_name: input.tierName,
+        quantity: input.orderItem.quantity,
+        unit_price: Number(input.orderItem.unitPrice),
+        subtotal: Number(input.orderItem.subtotal),
+      },
+    ],
+    payment: {
+      id: input.payment.id,
+      method: input.payment.method,
+      status: input.payment.status,
+      amount: Number(input.payment.amount),
+      external_ref: input.payment.externalRef,
+      paid_at: input.payment.paidAt?.toISOString() ?? null,
+      created_at: input.payment.createdAt.toISOString(),
+      updated_at: input.payment.updatedAt.toISOString(),
     },
-    body: JSON.stringify({
-      action: 'confirm',
-      reservationId,
-    }),
-  });
-
-  const body = (await response.json()) as TicketReserverConfirmResponse;
-
-  if (!body.ok) {
-    if (body.error === 'DATABASE_UNAVAILABLE') {
-      throw new OrderServiceError('DATABASE_UNAVAILABLE', 'Database connection is not available.');
-    }
-
-    if (body.error === 'NOT_FOUND') {
-      throw new OrderServiceError('RESERVATION_NOT_FOUND', 'Reservation not found.');
-    }
-
-    throw new OrderServiceError('INVALID_STATE', body.message ?? 'Unable to confirm reservation.');
-  }
-
-  return body;
+    tickets: [],
+  };
 }
 
 async function expirePendingOrder(env: OrderServiceEnv, orderId: string) {
@@ -188,16 +269,6 @@ async function expirePendingOrder(env: OrderServiceEnv, orderId: string) {
       updatedAt: new Date(),
     })
     .where(and(eq(orders.id, orderId), eq(orders.status, 'pending')));
-}
-
-async function cleanupFailedOrder(orderId: string, databaseUrl?: string) {
-  const database = getDatabase(databaseUrl);
-
-  await database.transaction(async (tx) => {
-    await tx.delete(payments).where(eq(payments.orderId, orderId));
-    await tx.delete(orderItems).where(eq(orderItems.orderId, orderId));
-    await tx.delete(orders).where(eq(orders.id, orderId));
-  });
 }
 
 function toOrderListItem(row: {
@@ -326,8 +397,11 @@ export const orderService = {
     userId: string,
     input: CreateOrderInput,
   ): Promise<OrderDetail> {
+    const startedAt = Date.now();
+    const steps: TimedStep[] = [];
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
     const database = getDatabase(databaseUrl);
+    const reservationLookupStartedAt = Date.now();
     const reservation = await database.query.reservations.findFirst({
       where: eq(reservations.id, input.reservation_id),
       columns: {
@@ -357,6 +431,10 @@ export const orderService = {
         },
       },
     });
+    steps.push({
+      step: 'reservation_lookup',
+      durationMs: Date.now() - reservationLookupStartedAt,
+    });
 
     if (!reservation?.ticketTier.event) {
       throw new OrderServiceError('RESERVATION_NOT_FOUND', 'Reservation not found.');
@@ -374,87 +452,192 @@ export const orderService = {
       throw new OrderServiceError('INVALID_STATE', 'Reservation has expired.');
     }
 
-    const existingOrder = await database.query.orders.findFirst({
-      where: eq(orders.reservationId, reservation.id),
-      columns: {
-        id: true,
-      },
-    });
-
-    if (existingOrder) {
-      throw new OrderServiceError('INVALID_STATE', 'An order already exists for this reservation.');
-    }
-
     const unitPrice = Number(reservation.ticketTier.price);
     const subtotal = unitPrice * reservation.quantity;
-    const orderNumber = await generateUniqueOrderNumber(databaseUrl);
-    const orderExpiresAt = new Date(Date.now() + ORDER_EXPIRY_MINUTES * 60 * 1000);
+    let createdOrder: {
+      order: {
+        id: string;
+        reservationId: string | null;
+        orderNumber: string;
+        status: 'pending' | 'confirmed' | 'expired' | 'cancelled' | 'refunded';
+        totalAmount: string;
+        serviceFee: string;
+        expiresAt: Date;
+        confirmedAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+      orderItem: {
+        id: string;
+        ticketTierId: string;
+        quantity: number;
+        unitPrice: string;
+        subtotal: string;
+      };
+      payment: {
+        id: string;
+        method: 'bank_transfer' | 'e_wallet' | 'credit_card' | 'virtual_account';
+        status: 'pending' | 'success' | 'failed' | 'refunded';
+        amount: string;
+        externalRef: string | null;
+        paidAt: Date | null;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+    } | null = null;
+    let lastRetryableError: unknown = null;
 
-    const createdOrder = await database.transaction(async (tx) => {
-      const [order] = await tx
-        .insert(orders)
-        .values({
-          userId,
-          reservationId: reservation.id,
-          orderNumber,
-          totalAmount: subtotal.toString(),
-          serviceFee: '0',
-          status: 'pending',
-          expiresAt: orderExpiresAt,
-          updatedAt: new Date(),
-        })
-        .returning({
-          id: orders.id,
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const orderNumber = await generateUniqueOrderNumber();
+      const now = new Date();
+      const orderExpiresAt = new Date(now.getTime() + ORDER_EXPIRY_MINUTES * 60 * 1000);
+      const transactionStartedAt = Date.now();
+
+      try {
+        createdOrder = await database.transaction(async (tx) => {
+          const [order] = await tx
+            .insert(orders)
+            .values({
+              userId,
+              reservationId: reservation.id,
+              orderNumber,
+              totalAmount: subtotal.toString(),
+              serviceFee: '0',
+              status: 'pending',
+              expiresAt: orderExpiresAt,
+              createdAt: now,
+              updatedAt: now,
+            })
+            .returning({
+              id: orders.id,
+              reservationId: orders.reservationId,
+              orderNumber: orders.orderNumber,
+              status: orders.status,
+              totalAmount: orders.totalAmount,
+              serviceFee: orders.serviceFee,
+              expiresAt: orders.expiresAt,
+              confirmedAt: orders.confirmedAt,
+              createdAt: orders.createdAt,
+              updatedAt: orders.updatedAt,
+            });
+
+          const [createdOrderItem] = await tx
+            .insert(orderItems)
+            .values({
+              orderId: order.id,
+              ticketTierId: reservation.ticketTier.id,
+              quantity: reservation.quantity,
+              unitPrice: unitPrice.toString(),
+              subtotal: subtotal.toString(),
+            })
+            .returning({
+              id: orderItems.id,
+              ticketTierId: orderItems.ticketTierId,
+              quantity: orderItems.quantity,
+              unitPrice: orderItems.unitPrice,
+              subtotal: orderItems.subtotal,
+            });
+
+          const [payment] = await tx
+            .insert(payments)
+            .values({
+              orderId: order.id,
+              method: DEFAULT_PAYMENT_METHOD,
+              status: 'pending',
+              amount: subtotal.toString(),
+              createdAt: now,
+              updatedAt: now,
+            })
+            .returning({
+              id: payments.id,
+              method: payments.method,
+              status: payments.status,
+              amount: payments.amount,
+              externalRef: payments.externalRef,
+              paidAt: payments.paidAt,
+              createdAt: payments.createdAt,
+              updatedAt: payments.updatedAt,
+            });
+
+          return {
+            order,
+            orderItem: createdOrderItem,
+            payment,
+          };
         });
+        steps.push({
+          step: 'create_order_transaction',
+          durationMs: Date.now() - transactionStartedAt,
+        });
+        break;
+      } catch (error) {
+        if (isUniqueViolation(error, 'idx_orders_reservation_id')) {
+          throw new OrderServiceError(
+            'INVALID_STATE',
+            'An order already exists for this reservation.',
+          );
+        }
 
-      await tx.insert(orderItems).values({
-        orderId: order.id,
-        ticketTierId: reservation.ticketTier.id,
-        quantity: reservation.quantity,
-        unitPrice: unitPrice.toString(),
-        subtotal: subtotal.toString(),
-      });
+        if (isUniqueViolation(error, 'idx_orders_order_number')) {
+          continue;
+        }
 
-      await tx.insert(payments).values({
-        orderId: order.id,
-        method: DEFAULT_PAYMENT_METHOD,
-        status: 'pending',
-        amount: subtotal.toString(),
-        updatedAt: new Date(),
-      });
+        if (isRetryableDatabaseError(error)) {
+          lastRetryableError = error;
+          continue;
+        }
 
-      return order;
-    });
+        if (error instanceof OrderServiceError) {
+          throw error;
+        }
 
-    let confirmResult: Awaited<ReturnType<typeof invokeTicketReserverConfirm>>;
+        console.error('Unexpected order creation transaction failure.', error);
 
-    try {
-      confirmResult = await invokeTicketReserverConfirm(
-        env,
-        reservation.ticketTier.id,
-        reservation.id,
-      );
-    } catch (error) {
-      const refreshedReservation = await database.query.reservations.findFirst({
-        where: eq(reservations.id, reservation.id),
-        columns: {
-          status: true,
+        throw error;
+      }
+    }
+
+    if (!createdOrder) {
+      logTimedSteps(
+        'order.createOrder',
+        {
+          reservationId: input.reservation_id,
+          outcome: 'failed',
+          totalDurationMs: Date.now() - startedAt,
         },
-      });
+        steps,
+      );
 
-      if (refreshedReservation?.status !== 'converted') {
-        await cleanupFailedOrder(createdOrder.id, databaseUrl);
+      if (lastRetryableError) {
+        throw new OrderServiceError(
+          'DATABASE_UNAVAILABLE',
+          'Temporary database issue prevented order creation. Please retry.',
+        );
       }
 
-      throw error;
+      throw new OrderServiceError(
+        'ORDER_NUMBER_GENERATION_FAILED',
+        'Unable to generate a unique order number.',
+      );
     }
 
-    if (confirmResult.status !== 'converted') {
-      await cleanupFailedOrder(createdOrder.id, databaseUrl);
-      throw new OrderServiceError('INVALID_STATE', 'Reservation could not be confirmed.');
-    }
+    logTimedSteps(
+      'order.createOrder',
+      {
+        reservationId: input.reservation_id,
+        outcome: 'success',
+        totalDurationMs: Date.now() - startedAt,
+      },
+      steps,
+    );
 
-    return this.getOrderDetail(env, userId, createdOrder.id);
+    return buildCreatedOrderDetail({
+      order: createdOrder.order,
+      orderItem: createdOrder.orderItem,
+      payment: createdOrder.payment,
+      event: reservation.ticketTier.event,
+      tierName: reservation.ticketTier.name,
+    });
   },
 
   async listOrders(

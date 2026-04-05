@@ -6,6 +6,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:api:local": "pnpm --filter @jeevatix/core exec tsx /home/ubuntu/bench/jeevatix/scripts/run-api-local.ts",
     "dev:partykit": "cd apps/partykit && npx partykit dev",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
@@ -16,7 +17,10 @@
     "test:e2e": "pnpm run test:e2e:local",
     "test:e2e:local": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "seed:load-users": "pnpm --filter @jeevatix/core exec tsx src/db/seed-load-users.ts",
+    "test:load": "k6 run tests/load/war-ticket.js",
+    "test:load:checkout": "k6 run tests/load/checkout-flow.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

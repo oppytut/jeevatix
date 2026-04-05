@@ -82,7 +82,7 @@ describe.sequential('TicketReserver durable object', () => {
     });
     expect(reservation).toMatchObject({ ok: true });
     expect(availability).toEqual({ ok: true, tier_id: tier.id, remaining: 3 });
-    expect(tierRecord?.soldCount).toBe(2);
+    expect(tierRecord?.soldCount).toBe(0);
   });
 
   it('serializes overlapping reservation requests and returns sold out when quota is exhausted', async () => {
@@ -121,7 +121,7 @@ describe.sequential('TicketReserver durable object', () => {
     expect(successes).toHaveLength(3);
     expect(soldOuts).toHaveLength(1);
     expect(availability).toEqual({ ok: true, tier_id: tier.id, remaining: 0 });
-    expect(tierRecord?.soldCount).toBe(3);
+    expect(tierRecord?.soldCount).toBe(0);
   });
 
   it('cancels an active reservation and restores sold count', async () => {

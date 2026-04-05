@@ -11,6 +11,7 @@ type TicketReserverEnv = {
 
 type DurableObjectStateLike = {
   blockConcurrencyWhile<T>(closure: () => Promise<T>): Promise<T>;
+  waitUntil?(promise: Promise<unknown>): void;
 };
 
 type TierState = {
@@ -81,6 +82,7 @@ type ReservationStateResponse = {
 type InitializeResponse = {
   ok: true;
   tier_id: string;
+  event_id: string;
   quota: number;
   sold_count: number;
   pending_reservations: number;
@@ -90,6 +92,11 @@ type ErrorResponse = {
   ok: false;
   error: 'BAD_REQUEST' | 'DATABASE_UNAVAILABLE' | 'NOT_FOUND' | 'INVALID_STATE';
   message: string;
+};
+
+type TimedStep = {
+  step: string;
+  durationMs: number;
 };
 
 const { reservations, ticketTiers } = schema;
@@ -138,6 +145,24 @@ function getPartyKitHost(envPartyKitHost?: string) {
 
 function getPartySecret(envPartySecret?: string) {
   return envPartySecret ?? getProcessEnv('PARTY_SECRET');
+}
+
+function shouldProfileLoadTests() {
+  return getProcessEnv('LOAD_TEST_PROFILE') === '1';
+}
+
+function logTimedSteps(scope: string, details: Record<string, unknown>, steps: TimedStep[]) {
+  if (!shouldProfileLoadTests()) {
+    return;
+  }
+
+  console.log(
+    `[load-profile] ${scope}`,
+    JSON.stringify({
+      ...details,
+      steps,
+    }),
+  );
 }
 
 function badRequest(message: string): Response {
@@ -220,8 +245,15 @@ export class TicketReserver extends DurableObjectBase {
       .from(reservations)
       .where(and(eq(reservations.ticketTierId, tierId), eq(reservations.status, 'active')));
 
+    const [convertedReservationAggregate] = await database
+      .select({
+        quantity: sql<number>`coalesce(sum(${reservations.quantity}), 0)::int`,
+      })
+      .from(reservations)
+      .where(and(eq(reservations.ticketTierId, tierId), eq(reservations.status, 'converted')));
+
     const pendingReservations = Math.max(0, pendingReservationAggregate?.quantity ?? 0);
-    const soldCount = Math.max(0, tier.soldCount - pendingReservations);
+    const soldCount = Math.max(0, convertedReservationAggregate?.quantity ?? 0);
 
     return {
       eventId: tier.eventId,
@@ -303,6 +335,17 @@ export class TicketReserver extends DurableObjectBase {
     }
   }
 
+  private scheduleAvailabilityBroadcast(tierId: string, tierState: TierState) {
+    const broadcastPromise = this.broadcastAvailability(tierId, tierState);
+
+    if (this.ctx.waitUntil) {
+      this.ctx.waitUntil(broadcastPromise);
+      return;
+    }
+
+    void broadcastPromise;
+  }
+
   async reserve(userId: string, tierId: string, quantity: number) {
     if (!userId) {
       throw new Error('USER_ID_REQUIRED');
@@ -312,10 +355,27 @@ export class TicketReserver extends DurableObjectBase {
       throw new Error('INVALID_QUANTITY');
     }
 
+    const startedAt = Date.now();
+    const steps: TimedStep[] = [];
+    const ensureTierStartedAt = Date.now();
     const tierState = await this.ensureTierState(tierId);
+    steps.push({
+      step: 'ensure_tier_state',
+      durationMs: Date.now() - ensureTierStartedAt,
+    });
     const remaining = tierState.quota - tierState.soldCount - tierState.pendingReservations;
 
     if (remaining < quantity) {
+      logTimedSteps(
+        'ticketReserver.reserve',
+        {
+          tierId,
+          outcome: 'sold_out',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
+
       return {
         ok: false,
         error: 'SOLD_OUT',
@@ -325,45 +385,89 @@ export class TicketReserver extends DurableObjectBase {
     tierState.pendingReservations += quantity;
 
     try {
+      const reservationId = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + RESERVATION_TTL_MINUTES * 60 * 1000);
       const database = this.getDatabase();
-      const reservation = await database.transaction(async (tx) => {
-        const [createdReservation] = await tx
-          .insert(reservations)
-          .values({
-            userId,
-            ticketTierId: tierId,
-            quantity,
-            status: 'active',
-            expiresAt,
-          })
-          .returning({
-            id: reservations.id,
-            expiresAt: reservations.expiresAt,
-          });
-
-        await tx
-          .update(ticketTiers)
-          .set({
-            soldCount: sql`${ticketTiers.soldCount} + ${quantity}`,
-            updatedAt: new Date(),
-          })
-          .where(eq(ticketTiers.id, tierId));
-
-        return createdReservation;
+      const insertReservationStartedAt = Date.now();
+      await database.insert(reservations).values({
+        id: reservationId,
+        userId,
+        ticketTierId: tierId,
+        quantity,
+        status: 'active',
+        expiresAt,
       });
+      steps.push({
+        step: 'insert_reservation',
+        durationMs: Date.now() - insertReservationStartedAt,
+      });
+
+      logTimedSteps(
+        'ticketReserver.reserve',
+        {
+          tierId,
+          outcome: 'success',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
 
       return {
         ok: true,
-        reservation_id: reservation.id,
-        expires_at: reservation.expiresAt.toISOString(),
+        reservation_id: reservationId,
+        expires_at: expiresAt.toISOString(),
       } satisfies SuccessfulReserveResponse;
     } catch (error) {
       tierState.pendingReservations = Math.max(0, tierState.pendingReservations - quantity);
       throw error;
     } finally {
-      await this.broadcastAvailability(tierId, tierState);
+      this.scheduleAvailabilityBroadcast(tierId, tierState);
     }
+  }
+
+  private applyConvertedReservation(tierId: string, quantity: number) {
+    const tierState = this.tierStates.get(tierId);
+
+    if (!tierState) {
+      return null;
+    }
+
+    tierState.pendingReservations = Math.max(0, tierState.pendingReservations - quantity);
+    tierState.soldCount += quantity;
+
+    return tierState;
+  }
+
+  private async confirmActiveReservation(reservationId: string) {
+    const database = this.getDatabase();
+    const [confirmedReservation] = await database
+      .update(reservations)
+      .set({ status: 'converted' })
+      .where(and(eq(reservations.id, reservationId), eq(reservations.status, 'active')))
+      .returning({
+        id: reservations.id,
+        ticketTierId: reservations.ticketTierId,
+        quantity: reservations.quantity,
+      });
+
+    if (!confirmedReservation) {
+      return null;
+    }
+
+    const cachedTierState = this.applyConvertedReservation(
+      confirmedReservation.ticketTierId,
+      confirmedReservation.quantity,
+    );
+
+    if (!cachedTierState) {
+      await this.ensureTierState(confirmedReservation.ticketTierId);
+    }
+
+    return {
+      ok: true,
+      reservation_id: confirmedReservation.id,
+      status: 'converted',
+    } satisfies ReservationStateResponse;
   }
 
   private async updateReservationState(
@@ -375,6 +479,15 @@ export class TicketReserver extends DurableObjectBase {
     }
 
     const database = this.getDatabase();
+
+    if (nextStatus === 'converted') {
+      const confirmedReservation = await this.confirmActiveReservation(reservationId);
+
+      if (confirmedReservation) {
+        return confirmedReservation;
+      }
+    }
+
     const reservation = await database.query.reservations.findFirst({
       where: eq(reservations.id, reservationId),
       columns: {
@@ -403,10 +516,34 @@ export class TicketReserver extends DurableObjectBase {
       } satisfies ReservationStateResponse;
     }
 
-    const tierState = await this.ensureTierState(reservation.ticketTierId);
+    let tierState = await this.ensureTierState(reservation.ticketTierId);
 
     if (nextStatus === 'converted') {
       if (reservation.status !== 'active') {
+        const cachedTierState = this.tierStates.get(reservation.ticketTierId);
+
+        if (cachedTierState && cachedTierState.pendingReservations >= reservation.quantity) {
+          cachedTierState.pendingReservations = Math.max(
+            0,
+            cachedTierState.pendingReservations - reservation.quantity,
+          );
+          cachedTierState.soldCount += reservation.quantity;
+          this.scheduleAvailabilityBroadcast(reservation.ticketTierId, cachedTierState);
+
+          return {
+            ok: true,
+            reservation_id: reservation.id,
+            status: reservation.status,
+          } satisfies ReservationStateResponse;
+        }
+
+        const refreshedTierState = await this.loadTierState(reservation.ticketTierId);
+
+        if (refreshedTierState) {
+          this.tierStates.set(reservation.ticketTierId, refreshedTierState);
+          this.scheduleAvailabilityBroadcast(reservation.ticketTierId, refreshedTierState);
+        }
+
         return {
           ok: true,
           reservation_id: reservation.id,
@@ -414,11 +551,7 @@ export class TicketReserver extends DurableObjectBase {
         } satisfies ReservationStateResponse;
       }
 
-      tierState.pendingReservations = Math.max(
-        0,
-        tierState.pendingReservations - reservation.quantity,
-      );
-      tierState.soldCount += reservation.quantity;
+      this.applyConvertedReservation(reservation.ticketTierId, reservation.quantity);
 
       await database
         .update(reservations)
@@ -430,26 +563,27 @@ export class TicketReserver extends DurableObjectBase {
           0,
           tierState.pendingReservations - reservation.quantity,
         );
-      } else {
-        tierState.soldCount = Math.max(0, tierState.soldCount - reservation.quantity);
-      }
-
-      await database.transaction(async (tx) => {
-        await tx
+        await database
           .update(reservations)
           .set({ status: nextStatus })
           .where(eq(reservations.id, reservation.id));
+      } else {
+        const refreshedTierState = await this.loadTierState(reservation.ticketTierId);
 
-        await tx
-          .update(ticketTiers)
-          .set({
-            soldCount: sql`${ticketTiers.soldCount} - ${reservation.quantity}`,
-            updatedAt: new Date(),
-          })
-          .where(eq(ticketTiers.id, reservation.ticketTierId));
-      });
+        if (refreshedTierState) {
+          this.tierStates.set(reservation.ticketTierId, refreshedTierState);
+          tierState = refreshedTierState;
+        }
 
-      await this.broadcastAvailability(reservation.ticketTierId, tierState);
+        tierState.soldCount = Math.max(0, tierState.soldCount - reservation.quantity);
+
+        await database
+          .update(reservations)
+          .set({ status: nextStatus })
+          .where(eq(reservations.id, reservation.id));
+      }
+
+      this.scheduleAvailabilityBroadcast(reservation.ticketTierId, tierState);
     }
 
     return {

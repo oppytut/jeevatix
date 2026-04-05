@@ -9,8 +9,9 @@ import type {
   PublicEventListItem,
   PublicEventsPaginationMeta,
 } from '../schemas/public-event.schema';
+import { getActiveReservationCounts, getConvertedReservationCounts } from './reservation-counts';
 
-const { categories, eventCategories, eventImages, events, sellerProfiles, ticketTiers } = schema;
+const { categories, eventCategories, events, reservations, ticketTiers } = schema;
 
 const PUBLIC_EVENT_STATUSES = ['published', 'ongoing'] as const;
 
@@ -276,6 +277,11 @@ export const publicEventService = {
 
   async getBySlug(slug: string, databaseUrl?: string): Promise<PublicEventDetail> {
     const event = await getPublicEventBySlug(slug, databaseUrl);
+    const tierIds = event.ticketTiers.map((tier) => tier.id);
+    const [activeReservationCounts, convertedReservationCounts] = await Promise.all([
+      getActiveReservationCounts(tierIds, databaseUrl),
+      getConvertedReservationCounts(tierIds, databaseUrl),
+    ]);
     const minPrice = event.ticketTiers.reduce<number | null>((currentMin, tier) => {
       const price = Number(tier.price);
 
@@ -324,13 +330,19 @@ export const publicEventService = {
           created_at: image.createdAt.toISOString(),
         })),
       tiers: event.ticketTiers.map((tier) => ({
+        sold_count:
+          (convertedReservationCounts.get(tier.id) ?? 0) +
+          (activeReservationCounts.get(tier.id) ?? 0),
         id: tier.id,
         name: tier.name,
         description: tier.description ?? null,
         price: Number(tier.price),
         quota: tier.quota,
-        sold_count: tier.soldCount,
-        remaining: Math.max(tier.quota - tier.soldCount, 0),
+        remaining: Math.max(
+          tier.quota - (convertedReservationCounts.get(tier.id) ?? 0) -
+            (activeReservationCounts.get(tier.id) ?? 0),
+          0,
+        ),
         sort_order: tier.sortOrder,
         status: tier.status,
         sale_start_at: tier.saleStartAt?.toISOString() ?? null,

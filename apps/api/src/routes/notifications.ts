@@ -4,6 +4,8 @@ import { authMiddleware, type AuthEnv, roleMiddleware } from '../middleware/auth
 import {
   adminNotificationListQuerySchema,
   adminNotificationsListResponseSchema,
+} from '../schemas/admin.schema';
+import {
   broadcastNotificationResponseSchema,
   broadcastSchema,
   notificationErrorResponseSchema,
@@ -56,10 +58,7 @@ function getStatusFromError(error: NotificationServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: { json: (body: unknown, status?: number) => unknown }, error: unknown) {
   if (error instanceof NotificationServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -231,7 +230,7 @@ app.openapi(listNotificationsRoute, async (c) => {
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -244,7 +243,7 @@ app.openapi(markAllReadRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -260,7 +259,7 @@ app.openapi(markReadRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -272,7 +271,7 @@ adminApp.openapi(broadcastNotificationsRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -284,7 +283,7 @@ adminApp.openapi(adminListNotificationsRoute, async (c) => {
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

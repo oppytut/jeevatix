@@ -5,6 +5,8 @@ import { errorResponseSchema } from '../schemas/auth.schema';
 import {
   adminReservationListQuerySchema,
   adminReservationsListResponseSchema,
+} from '../schemas/admin.schema';
+import {
   createReservationSchema,
   reservationCreateResponseSchema,
   reservationIdParamSchema,
@@ -50,15 +52,21 @@ function getStatusFromError(error: ReservationServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
+function handleError<TContext extends { json: (body: unknown, status?: number) => unknown }>(
+  c: TContext,
   error: unknown,
-) {
+): ReturnType<TContext['json']> {
   if (error instanceof ReservationServiceError) {
-    return c.json(jsonError(error.code, error.message), getStatusFromError(error));
+    return c.json(
+      jsonError(error.code, error.message),
+      getStatusFromError(error),
+    ) as ReturnType<TContext['json']>;
   }
 
-  return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
+  return c.json(
+    jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'),
+    500,
+  ) as ReturnType<TContext['json']>;
 }
 
 const createReservationRoute = createRoute({
@@ -212,7 +220,7 @@ app.openapi(createReservationRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -228,7 +236,7 @@ app.openapi(getReservationRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -240,7 +248,7 @@ app.openapi(cancelReservationRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -252,7 +260,7 @@ adminApp.openapi(listAdminReservationsRoute, async (c) => {
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

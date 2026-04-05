@@ -2,6 +2,7 @@ import { getDb, schema } from '@jeevatix/core';
 import { and, asc, eq } from 'drizzle-orm';
 
 import type { CreateTierInput, SellerTier, UpdateTierInput } from '../schemas/tier.schema';
+import { getActiveReservationCounts, getConvertedReservationCounts } from './reservation-counts';
 
 const { events, ticketTiers } = schema;
 
@@ -35,7 +36,7 @@ function getDatabase(databaseUrl?: string) {
   return db;
 }
 
-function toSellerTier(tier: TicketTierRow): SellerTier {
+function toSellerTier(tier: TicketTierRow, soldCount = tier.soldCount): SellerTier {
   return {
     id: tier.id,
     event_id: tier.eventId,
@@ -43,7 +44,7 @@ function toSellerTier(tier: TicketTierRow): SellerTier {
     description: tier.description ?? null,
     price: Number(tier.price),
     quota: tier.quota,
-    sold_count: tier.soldCount,
+    sold_count: soldCount,
     sort_order: tier.sortOrder,
     status: tier.status,
     sale_start_at: tier.saleStartAt?.toISOString() ?? null,
@@ -109,7 +110,17 @@ export const tierService = {
       orderBy: [asc(ticketTiers.sortOrder), asc(ticketTiers.createdAt)],
     });
 
-    return rows.map(toSellerTier);
+    const tierIds = rows.map((row) => row.id);
+    const [convertedReservationCounts, activeReservationCounts] = await Promise.all([
+      getConvertedReservationCounts(tierIds, databaseUrl),
+      getActiveReservationCounts(tierIds, databaseUrl),
+    ]);
+
+    return rows.map((row) => ({
+      ...toSellerTier(row, convertedReservationCounts.get(row.id) ?? 0),
+      sold_count:
+        (convertedReservationCounts.get(row.id) ?? 0) + (activeReservationCounts.get(row.id) ?? 0),
+    }));
   },
 
   async createTier(
@@ -149,8 +160,14 @@ export const tierService = {
   ): Promise<SellerTier> {
     const database = getDatabase(databaseUrl);
     const existingTier = await getOwnedTierRecord(sellerProfileId, eventId, tierId, databaseUrl);
+    const [convertedReservationCounts, activeReservationCounts] = await Promise.all([
+      getConvertedReservationCounts([tierId], databaseUrl),
+      getActiveReservationCounts([tierId], databaseUrl),
+    ]);
+    const lockedQuantity =
+      (convertedReservationCounts.get(tierId) ?? 0) + (activeReservationCounts.get(tierId) ?? 0);
 
-    if (input.quota !== undefined && input.quota < existingTier.soldCount) {
+    if (input.quota !== undefined && input.quota < lockedQuantity) {
       throw new TierServiceError(
         'QUOTA_BELOW_SOLD_COUNT',
         'Quota cannot be lower than sold_count.',
@@ -158,7 +175,7 @@ export const tierService = {
     }
 
     if (
-      existingTier.soldCount > 0 &&
+      lockedQuantity > 0 &&
       input.price !== undefined &&
       Number(existingTier.price) !== input.price
     ) {
@@ -168,9 +185,9 @@ export const tierService = {
       );
     }
 
-    const values: Partial<typeof ticketTiers.$inferInsert> = {
-      updatedAt: new Date(),
-    };
+            const values: Partial<typeof ticketTiers.$inferInsert> = {
+          updatedAt: new Date(),
+            };
 
     if (input.name !== undefined) {
       values.name = input.name.trim();
@@ -219,9 +236,10 @@ export const tierService = {
 
   async deleteTier(sellerProfileId: string, eventId: string, tierId: string, databaseUrl?: string) {
     const database = getDatabase(databaseUrl);
-    const existingTier = await getOwnedTierRecord(sellerProfileId, eventId, tierId, databaseUrl);
+    await getOwnedTierRecord(sellerProfileId, eventId, tierId, databaseUrl);
+    const convertedReservationCounts = await getConvertedReservationCounts([tierId], databaseUrl);
 
-    if (existingTier.soldCount > 0) {
+    if ((convertedReservationCounts.get(tierId) ?? 0) > 0) {
       throw new TierServiceError(
         'TIER_HAS_SALES',
         'Ticket tier cannot be deleted after tickets have been sold.',

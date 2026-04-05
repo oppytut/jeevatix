@@ -8,6 +8,10 @@ import type {
   UpdateAdminEventStatusInput,
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
+import {
+  getConvertedReservationCounts,
+  getConvertedReservationCountsByEvent,
+} from './reservation-counts';
 
 const { eventImages, events, orderItems, orders, payments, sellerProfiles, ticketTiers, users } =
   schema;
@@ -143,7 +147,6 @@ export const adminEventService = {
         sellerUserId: sellerProfiles.userId,
         sellerVerified: sellerProfiles.isVerified,
         totalQuota: sql<number>`coalesce(sum(${ticketTiers.quota}), 0)::int`,
-        totalSold: sql<number>`coalesce(sum(${ticketTiers.soldCount}), 0)::int`,
         createdAt: events.createdAt,
         updatedAt: events.updatedAt,
       })
@@ -172,8 +175,18 @@ export const adminEventService = {
       .limit(limit)
       .offset(offset);
 
+    const convertedReservationCountsByEvent = await getConvertedReservationCountsByEvent(
+      rows.map((row) => row.id),
+      databaseUrl,
+    );
+
     return {
-      data: rows.map(toEventListItem),
+      data: rows.map((row) =>
+        toEventListItem({
+          ...row,
+          totalSold: convertedReservationCountsByEvent.get(row.id) ?? 0,
+        }),
+      ),
       meta: toPaginationMeta(totalRow?.total ?? 0, page, limit),
     };
   },
@@ -234,6 +247,11 @@ export const adminEventService = {
       .innerJoin(payments, eq(payments.orderId, orders.id))
       .where(eq(ticketTiers.eventId, id));
 
+    const convertedReservationCounts = await getConvertedReservationCounts(
+      eventRecord.ticketTiers.map((tier) => tier.id),
+      databaseUrl,
+    );
+
     return {
       id: eventRecord.id,
       sellerProfileId: eventRecord.sellerProfileId,
@@ -285,7 +303,7 @@ export const adminEventService = {
         description: tier.description ?? null,
         price: Number(tier.price),
         quota: tier.quota,
-        soldCount: tier.soldCount,
+        soldCount: convertedReservationCounts.get(tier.id) ?? 0,
         sortOrder: tier.sortOrder,
         status: tier.status,
         saleStartAt: tier.saleStartAt?.toISOString() ?? null,

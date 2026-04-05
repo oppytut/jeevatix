@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, desc, eq, gt, ilike, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, or, sql } from 'drizzle-orm';
 
 import type {
   CreateReservationInput,
@@ -9,11 +9,16 @@ import type {
 } from '../schemas/reservation.schema';
 import type { AdminReservationItem, AdminReservationListQuery } from '../schemas/admin.schema';
 
-const { orderItems, orders, reservations, ticketTiers, users } = schema;
+const { events, orderItems, orders, reservations, ticketTiers } = schema;
 
 type ReservationServiceEnv = {
   DATABASE_URL?: string;
   TICKET_RESERVER?: DurableObjectNamespace;
+};
+
+type TimedStep = {
+  step: string;
+  durationMs: number;
 };
 
 type TicketReserverReserveResponse =
@@ -62,6 +67,11 @@ type TicketTierAvailabilityRecord = {
   eventSaleEndAt: Date;
 };
 
+type ReservationEligibilityRecord = TicketTierAvailabilityRecord & {
+  hasActiveReservation: boolean;
+  ownedTickets: number;
+};
+
 export class ReservationServiceError extends Error {
   constructor(
     public readonly code:
@@ -91,6 +101,24 @@ function getProcessEnv(key: string) {
   ).process?.env?.[key];
 }
 
+function shouldProfileLoadTests() {
+  return getProcessEnv('LOAD_TEST_PROFILE') === '1';
+}
+
+function logTimedSteps(scope: string, details: Record<string, unknown>, steps: TimedStep[]) {
+  if (!shouldProfileLoadTests()) {
+    return;
+  }
+
+  console.log(
+    `[load-profile] ${scope}`,
+    JSON.stringify({
+      ...details,
+      steps,
+    }),
+  );
+}
+
 function getDatabase(databaseUrl?: string) {
   const db = getDb(databaseUrl ?? getProcessEnv('DATABASE_URL'));
 
@@ -115,40 +143,58 @@ function getReservationNamespace(env: ReservationServiceEnv) {
   return env.TICKET_RESERVER;
 }
 
-async function getTierAvailabilityRecord(
+async function getReservationEligibilityRecord(
+  userId: string,
   ticketTierId: string,
   databaseUrl?: string,
-): Promise<TicketTierAvailabilityRecord> {
+): Promise<ReservationEligibilityRecord> {
   const database = getDatabase(databaseUrl);
-  const tier = await database.query.ticketTiers.findFirst({
-    where: eq(ticketTiers.id, ticketTierId),
-    columns: {
-      id: true,
-      name: true,
-      status: true,
-      saleStartAt: true,
-      saleEndAt: true,
-    },
-    with: {
-      event: {
-        columns: {
-          id: true,
-          slug: true,
-          title: true,
-          status: true,
-          maxTicketsPerOrder: true,
-          saleStartAt: true,
-          saleEndAt: true,
-        },
-      },
-    },
-  });
+  const [tier] = await database
+    .select({
+      id: ticketTiers.id,
+      name: ticketTiers.name,
+      status: ticketTiers.status,
+      saleStartAt: ticketTiers.saleStartAt,
+      saleEndAt: ticketTiers.saleEndAt,
+      eventId: events.id,
+      eventTitle: events.title,
+      eventSlug: events.slug,
+      eventStatus: events.status,
+      maxTicketsPerOrder: events.maxTicketsPerOrder,
+      eventSaleStartAt: events.saleStartAt,
+      eventSaleEndAt: events.saleEndAt,
+      hasActiveReservation: sql<boolean>`exists(
+        select 1
+        from ${reservations} as reservation
+        inner join ${ticketTiers} as tier
+          on reservation.ticket_tier_id = tier.id
+        where reservation.user_id = ${userId}
+          and reservation.status = 'active'
+          and tier.event_id = ${events.id}
+          and reservation.expires_at > now()
+      )`,
+      ownedTickets: sql<number>`coalesce((
+        select sum(order_item.quantity)::int
+        from ${orderItems} as order_item
+        inner join ${orders} as buyer_order
+          on order_item.order_id = buyer_order.id
+        inner join ${ticketTiers} as owned_tier
+          on order_item.ticket_tier_id = owned_tier.id
+        where buyer_order.user_id = ${userId}
+          and buyer_order.status = 'confirmed'
+          and owned_tier.event_id = ${events.id}
+      ), 0)::int`,
+    })
+    .from(ticketTiers)
+    .innerJoin(events, eq(ticketTiers.eventId, events.id))
+    .where(eq(ticketTiers.id, ticketTierId))
+    .limit(1);
 
-  if (!tier?.event) {
+  if (!tier) {
     throw new ReservationServiceError('TIER_NOT_FOUND', 'Ticket tier not found.');
   }
 
-  if (tier.status === 'hidden' || !['published', 'ongoing'].includes(tier.event.status)) {
+  if (tier.status === 'hidden' || !['published', 'ongoing'].includes(tier.eventStatus)) {
     throw new ReservationServiceError(
       'INVALID_STATE',
       'Ticket tier is not available for reservation.',
@@ -157,13 +203,13 @@ async function getTierAvailabilityRecord(
 
   const now = new Date();
   const effectiveSaleStartAt =
-    tier.saleStartAt && tier.saleStartAt.getTime() > tier.event.saleStartAt.getTime()
+    tier.saleStartAt && tier.saleStartAt.getTime() > tier.eventSaleStartAt.getTime()
       ? tier.saleStartAt
-      : tier.event.saleStartAt;
+      : tier.eventSaleStartAt;
   const effectiveSaleEndAt =
-    tier.saleEndAt && tier.saleEndAt.getTime() < tier.event.saleEndAt.getTime()
+    tier.saleEndAt && tier.saleEndAt.getTime() < tier.eventSaleEndAt.getTime()
       ? tier.saleEndAt
-      : tier.event.saleEndAt;
+      : tier.eventSaleEndAt;
 
   if (
     effectiveSaleStartAt.getTime() > now.getTime() ||
@@ -181,78 +227,16 @@ async function getTierAvailabilityRecord(
     status: tier.status,
     saleStartAt: tier.saleStartAt,
     saleEndAt: tier.saleEndAt,
-    eventId: tier.event.id,
-    eventTitle: tier.event.title,
-    eventSlug: tier.event.slug,
-    eventStatus: tier.event.status,
-    maxTicketsPerOrder: tier.event.maxTicketsPerOrder,
-    eventSaleStartAt: tier.event.saleStartAt,
-    eventSaleEndAt: tier.event.saleEndAt,
+    eventId: tier.eventId,
+    eventTitle: tier.eventTitle,
+    eventSlug: tier.eventSlug,
+    eventStatus: tier.eventStatus,
+    maxTicketsPerOrder: tier.maxTicketsPerOrder,
+    eventSaleStartAt: tier.eventSaleStartAt,
+    eventSaleEndAt: tier.eventSaleEndAt,
+    hasActiveReservation: tier.hasActiveReservation,
+    ownedTickets: tier.ownedTickets,
   };
-}
-
-async function ensureNoActiveReservationForEvent(
-  userId: string,
-  eventId: string,
-  databaseUrl?: string,
-) {
-  const database = getDatabase(databaseUrl);
-  const activeReservation = await database
-    .select({
-      id: reservations.id,
-      expiresAt: reservations.expiresAt,
-    })
-    .from(reservations)
-    .innerJoin(ticketTiers, eq(reservations.ticketTierId, ticketTiers.id))
-    .where(
-      and(
-        eq(reservations.userId, userId),
-        eq(reservations.status, 'active'),
-        eq(ticketTiers.eventId, eventId),
-        gt(reservations.expiresAt, new Date()),
-      ),
-    )
-    .limit(1);
-
-  if (activeReservation[0]) {
-    throw new ReservationServiceError(
-      'ACTIVE_RESERVATION_EXISTS',
-      'You already have an active reservation for this event.',
-    );
-  }
-}
-
-async function ensureWithinTicketLimit(
-  userId: string,
-  eventId: string,
-  quantity: number,
-  maxTicketsPerOrder: number,
-  databaseUrl?: string,
-) {
-  const database = getDatabase(databaseUrl);
-  const [aggregate] = await database
-    .select({
-      quantity: sql<number>`coalesce(sum(${orderItems.quantity}), 0)::int`,
-    })
-    .from(orderItems)
-    .innerJoin(orders, eq(orderItems.orderId, orders.id))
-    .innerJoin(ticketTiers, eq(orderItems.ticketTierId, ticketTiers.id))
-    .where(
-      and(
-        eq(orders.userId, userId),
-        eq(orders.status, 'confirmed'),
-        eq(ticketTiers.eventId, eventId),
-      ),
-    );
-
-  const ownedTickets = aggregate?.quantity ?? 0;
-
-  if (ownedTickets + quantity > maxTicketsPerOrder) {
-    throw new ReservationServiceError(
-      'MAX_TICKETS_EXCEEDED',
-      'Requested quantity exceeds the maximum tickets allowed for this event.',
-    );
-  }
 }
 
 async function invokeTicketReserver<TResponse>(
@@ -286,26 +270,53 @@ export const reservationService = {
     userId: string,
     input: CreateReservationInput,
   ): Promise<ReservationCreatePayload> {
+    const startedAt = Date.now();
+    const steps: TimedStep[] = [];
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
-    const tier = await getTierAvailabilityRecord(input.ticket_tier_id, databaseUrl);
+    const eligibilityStartedAt = Date.now();
+    const tier = await getReservationEligibilityRecord(userId, input.ticket_tier_id, databaseUrl);
+    steps.push({
+      step: 'eligibility_query',
+      durationMs: Date.now() - eligibilityStartedAt,
+    });
 
-    await ensureNoActiveReservationForEvent(userId, tier.eventId, databaseUrl);
-    await ensureWithinTicketLimit(
-      userId,
-      tier.eventId,
-      input.quantity,
-      tier.maxTicketsPerOrder,
-      databaseUrl,
-    );
+    if (tier.hasActiveReservation) {
+      throw new ReservationServiceError(
+        'ACTIVE_RESERVATION_EXISTS',
+        'You already have an active reservation for this event.',
+      );
+    }
 
+    if (tier.ownedTickets + input.quantity > tier.maxTicketsPerOrder) {
+      throw new ReservationServiceError(
+        'MAX_TICKETS_EXCEEDED',
+        'Requested quantity exceeds the maximum tickets allowed for this event.',
+      );
+    }
+
+    const durableObjectStartedAt = Date.now();
     const result = await invokeTicketReserver<TicketReserverReserveResponse>(env, tier.id, {
       action: 'reserve',
       userId,
       tierId: tier.id,
       quantity: input.quantity,
     });
+    steps.push({
+      step: 'durable_object_reserve',
+      durationMs: Date.now() - durableObjectStartedAt,
+    });
 
     if (!result.ok) {
+      logTimedSteps(
+        'reservation.reserve',
+        {
+          ticketTierId: input.ticket_tier_id,
+          outcome: result.error,
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
+
       if (result.error === 'SOLD_OUT') {
         throw new ReservationServiceError('SOLD_OUT', 'Ticket tier is sold out.');
       }
@@ -326,6 +337,16 @@ export const reservationService = {
         result.message ?? 'Unable to create reservation.',
       );
     }
+
+    logTimedSteps(
+      'reservation.reserve',
+      {
+        ticketTierId: input.ticket_tier_id,
+        outcome: 'success',
+        totalDurationMs: Date.now() - startedAt,
+      },
+      steps,
+    );
 
     return {
       reservation_id: result.reservation_id,

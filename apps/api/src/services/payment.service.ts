@@ -7,7 +7,11 @@ import {
   type OrderConfirmationItem,
 } from './email';
 import { notificationService } from './notification.service';
-import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
+import {
+  OrderReservationServiceError,
+  confirmReservation,
+  releaseReservation,
+} from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
 import type {
   InitiatePaymentInput,
@@ -16,7 +20,7 @@ import type {
   PaymentWebhookPayload,
 } from '../schemas/payment.schema';
 
-const { orders, payments } = schema;
+const { orders, payments, reservations } = schema;
 
 type PaymentServiceEnv = {
   DATABASE_URL?: string;
@@ -24,6 +28,11 @@ type PaymentServiceEnv = {
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
   TICKET_RESERVER?: DurableObjectNamespace;
+};
+
+type TimedStep = {
+  step: string;
+  durationMs: number;
 };
 
 type PaymentNotificationType = 'info' | 'new_order' | 'order_confirmed';
@@ -55,6 +64,24 @@ function getProcessEnv(key: string) {
       };
     }
   ).process?.env?.[key];
+}
+
+function shouldProfileLoadTests() {
+  return getProcessEnv('LOAD_TEST_PROFILE') === '1';
+}
+
+function logTimedSteps(scope: string, details: Record<string, unknown>, steps: TimedStep[]) {
+  if (!shouldProfileLoadTests()) {
+    return;
+  }
+
+  console.log(
+    `[load-profile] ${scope}`,
+    JSON.stringify({
+      ...details,
+      steps,
+    }),
+  );
 }
 
 function getDatabase(databaseUrl?: string) {
@@ -224,7 +251,6 @@ async function enqueuePostPaymentEffects(
   },
 ) {
   const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
-  const ticketResult = await generateTickets(payload.orderId, databaseUrl);
   const emailService = createEmailService({
     EMAIL_API_KEY: env.EMAIL_API_KEY,
     EMAIL_FROM: env.EMAIL_FROM,
@@ -261,9 +287,9 @@ async function enqueuePostPaymentEffects(
       databaseUrl,
     ),
     emailService.sendEmail(payload.buyerEmail, orderEmail.subject, orderEmail.html),
-    Promise.resolve(ticketResult),
   ]);
 }
+
 
 export const paymentService = {
   async initiatePayment(
@@ -355,10 +381,18 @@ export const paymentService = {
     rawBody: string,
     body: PaymentWebhookInput,
   ): Promise<PaymentWebhookPayload> {
+    const startedAt = Date.now();
+    const steps: TimedStep[] = [];
+    const signatureStartedAt = Date.now();
     await verifyWebhookSignature(headers, rawBody, env);
+    steps.push({
+      step: 'verify_signature',
+      durationMs: Date.now() - signatureStartedAt,
+    });
 
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
     const database = getDatabase(databaseUrl);
+    const paymentLookupStartedAt = Date.now();
     const payment = await database.query.payments.findFirst({
       where: eq(payments.externalRef, body.external_ref),
       columns: {
@@ -416,9 +450,18 @@ export const paymentService = {
                 },
               },
             },
+            tickets: {
+              columns: {
+                id: true,
+              },
+            },
           },
         },
       },
+    });
+    steps.push({
+      step: 'payment_lookup',
+      durationMs: Date.now() - paymentLookupStartedAt,
     });
 
     if (!payment?.order?.user || !payment.externalRef) {
@@ -426,7 +469,24 @@ export const paymentService = {
     }
 
     if (payment.status === 'success') {
-      await generateTickets(payment.order.id, databaseUrl);
+      const ticketsStartedAt = Date.now();
+      if (payment.order.tickets.length === 0) {
+        await generateTickets(payment.order.id, databaseUrl);
+      }
+      steps.push({
+        step: 'generate_tickets_for_ignored_success',
+        durationMs: Date.now() - ticketsStartedAt,
+      });
+
+      logTimedSteps(
+        'payment.handleWebhook',
+        {
+          externalRef: body.external_ref,
+          outcome: 'ignored',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
 
       return {
         order_id: payment.order.id,
@@ -449,6 +509,7 @@ export const paymentService = {
     const paidAt = body.paid_at ? new Date(body.paid_at) : new Date();
 
     if (body.status === 'failed') {
+      const failedUpdateStartedAt = Date.now();
       await database
         .update(payments)
         .set({
@@ -456,6 +517,20 @@ export const paymentService = {
           updatedAt: new Date(),
         })
         .where(eq(payments.id, payment.id));
+      steps.push({
+        step: 'mark_payment_failed',
+        durationMs: Date.now() - failedUpdateStartedAt,
+      });
+
+      logTimedSteps(
+        'payment.handleWebhook',
+        {
+          externalRef: body.external_ref,
+          outcome: 'failed',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
 
       return {
         order_id: payment.order.id,
@@ -465,7 +540,10 @@ export const paymentService = {
       };
     }
 
+    const transitionStartedAt = Date.now();
+    const transactionSteps: TimedStep[] = [];
     const transitionResult = await database.transaction(async (tx) => {
+      const updatePaymentStartedAt = Date.now();
       const [updatedPayment] = await tx
         .update(payments)
         .set({
@@ -477,6 +555,10 @@ export const paymentService = {
         .returning({
           id: payments.id,
         });
+      transactionSteps.push({
+        step: 'tx_update_payment',
+        durationMs: Date.now() - updatePaymentStartedAt,
+      });
 
       if (!updatedPayment) {
         return {
@@ -484,6 +566,7 @@ export const paymentService = {
         } as const;
       }
 
+      const updateOrderStartedAt = Date.now();
       const [updatedOrder] = await tx
         .update(orders)
         .set({
@@ -495,6 +578,10 @@ export const paymentService = {
         .returning({
           id: orders.id,
         });
+      transactionSteps.push({
+        step: 'tx_update_order',
+        durationMs: Date.now() - updateOrderStartedAt,
+      });
 
       if (!updatedOrder) {
         throw new PaymentServiceError(
@@ -503,21 +590,91 @@ export const paymentService = {
         );
       }
 
+      if (payment.order.reservationId) {
+        const updateReservationStartedAt = Date.now();
+        const [updatedReservation] = await tx
+          .update(reservations)
+          .set({
+            status: 'converted',
+          })
+          .where(
+            and(
+              eq(reservations.id, payment.order.reservationId),
+              eq(reservations.status, 'active'),
+            ),
+          )
+          .returning({
+            id: reservations.id,
+          });
+        transactionSteps.push({
+          step: 'tx_update_reservation',
+          durationMs: Date.now() - updateReservationStartedAt,
+        });
+
+        if (!updatedReservation) {
+          throw new PaymentServiceError(
+            'INVALID_STATE',
+            'Reservation is not active for payment confirmation.',
+          );
+        }
+
+        transactionSteps.push({
+          step: 'tx_update_ticket_tier',
+          durationMs: 0,
+        });
+      }
+
       return {
         transitioned: true,
       } as const;
     });
+    steps.push({
+      step: 'confirm_payment_transaction',
+      durationMs: Date.now() - transitionStartedAt,
+    });
+    steps.push(...transactionSteps);
+
+    if (transitionResult.transitioned && payment.order.reservationId) {
+      const syncReservationStartedAt = Date.now();
+      await confirmReservation(env, payment.order.reservationId);
+      steps.push({
+        step: 'sync_reservation_state',
+        durationMs: Date.now() - syncReservationStartedAt,
+      });
+    }
 
     if (!transitionResult.transitioned) {
+      const latestPaymentLookupStartedAt = Date.now();
       const latestPayment = await database.query.payments.findFirst({
         where: eq(payments.id, payment.id),
         columns: {
           status: true,
         },
       });
+      steps.push({
+        step: 'latest_payment_lookup',
+        durationMs: Date.now() - latestPaymentLookupStartedAt,
+      });
 
       if (latestPayment?.status === 'success') {
-        await generateTickets(payment.order.id, databaseUrl);
+        const ticketsStartedAt = Date.now();
+        if (payment.order.tickets.length === 0) {
+          await generateTickets(payment.order.id, databaseUrl);
+        }
+        steps.push({
+          step: 'generate_tickets_after_race',
+          durationMs: Date.now() - ticketsStartedAt,
+        });
+
+        logTimedSteps(
+          'payment.handleWebhook',
+          {
+            externalRef: body.external_ref,
+            outcome: 'ignored_after_race',
+            totalDurationMs: Date.now() - startedAt,
+          },
+          steps,
+        );
 
         return {
           order_id: payment.order.id,
@@ -533,6 +690,14 @@ export const paymentService = {
     const firstEvent = payment.order.orderItems[0]?.ticketTier?.event;
     const sellerUserId = firstEvent?.sellerProfile?.userId;
 
+    const ticketGenerationStartedAt = Date.now();
+    await generateTickets(payment.order.id, databaseUrl);
+    steps.push({
+      step: 'generate_tickets',
+      durationMs: Date.now() - ticketGenerationStartedAt,
+    });
+
+    const postEffectsStartedAt = Date.now();
     await enqueuePostPaymentEffects(env, {
       orderId: payment.order.id,
       orderNumber: payment.order.orderNumber,
@@ -550,6 +715,20 @@ export const paymentService = {
           price: Number(item.unitPrice),
         })),
     });
+    steps.push({
+      step: 'post_payment_effects',
+      durationMs: Date.now() - postEffectsStartedAt,
+    });
+
+    logTimedSteps(
+      'payment.handleWebhook',
+      {
+        externalRef: body.external_ref,
+        outcome: 'success',
+        totalDurationMs: Date.now() - startedAt,
+      },
+      steps,
+    );
 
     return {
       order_id: payment.order.id,

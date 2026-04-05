@@ -11,8 +11,9 @@ const globalScope = globalThis as typeof globalThis & {
 };
 
 export function createDb(databaseUrl: string) {
+  const maxConnections = getMaxConnections();
   const client = postgres(databaseUrl, {
-    max: 1,
+    max: maxConnections,
     prepare: false,
   });
 
@@ -31,6 +32,17 @@ function getDbCache() {
 
 function getLocalDatabaseUrl() {
   return globalScope.process?.env?.DATABASE_URL;
+}
+
+function getMaxConnections() {
+  const rawValue = globalScope.process?.env?.DB_MAX_CONNECTIONS;
+  const parsedValue = Number.parseInt(rawValue ?? '', 10);
+
+  if (Number.isFinite(parsedValue) && parsedValue > 0) {
+    return parsedValue;
+  }
+
+  return 20;
 }
 
 export function getDb(databaseUrl?: string) {

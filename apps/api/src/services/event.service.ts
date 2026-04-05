@@ -9,6 +9,10 @@ import type {
   SellerEventsQuery,
   UpdateEventInput,
 } from '../schemas/event.schema';
+import {
+  getConvertedReservationCounts,
+  getConvertedReservationCountsByEvent,
+} from './reservation-counts';
 
 const { categories, eventCategories, eventImages, events, ticketTiers } = schema;
 
@@ -106,10 +110,14 @@ function toEventDetail(
     }>;
     imageRows: EventImageRow[];
     tierRows: TicketTierRow[];
+    convertedReservationCounts: Map<string, number>;
   },
 ): SellerEventDetail {
   const totalQuota = data.tierRows.reduce((sum, tier) => sum + tier.quota, 0);
-  const totalSold = data.tierRows.reduce((sum, tier) => sum + tier.soldCount, 0);
+  const totalSold = data.tierRows.reduce(
+    (sum, tier) => sum + (data.convertedReservationCounts.get(tier.id) ?? 0),
+    0,
+  );
 
   return {
     id: event.id,
@@ -153,7 +161,7 @@ function toEventDetail(
         description: tier.description ?? null,
         price: Number(tier.price),
         quota: tier.quota,
-        sold_count: tier.soldCount,
+        sold_count: data.convertedReservationCounts.get(tier.id) ?? 0,
         sort_order: tier.sortOrder,
         status: tier.status,
         sale_start_at: tier.saleStartAt?.toISOString() ?? null,
@@ -250,7 +258,12 @@ async function getEventDetailPayload(
     }),
   ]);
 
-  return toEventDetail(event, { categoryRows, imageRows, tierRows });
+  const convertedReservationCounts = await getConvertedReservationCounts(
+    tierRows.map((tier) => tier.id),
+    databaseUrl,
+  );
+
+  return toEventDetail(event, { categoryRows, imageRows, tierRows, convertedReservationCounts });
 }
 
 function toCreateEventValues(
@@ -302,7 +315,6 @@ export const eventService = {
       .select({
         event: events,
         totalQuota: sql<number>`coalesce(sum(${ticketTiers.quota}), 0)::int`,
-        totalSold: sql<number>`coalesce(sum(${ticketTiers.soldCount}), 0)::int`,
       })
       .from(events)
       .leftJoin(ticketTiers, eq(ticketTiers.eventId, events.id))
@@ -312,11 +324,16 @@ export const eventService = {
       .limit(limit)
       .offset(offset);
 
+    const convertedReservationCountsByEvent = await getConvertedReservationCountsByEvent(
+      rows.map((row) => row.event.id),
+      databaseUrl,
+    );
+
     return {
       data: rows.map((row) =>
         toEventListItem(row.event, {
           totalQuota: row.totalQuota,
-          totalSold: row.totalSold,
+          totalSold: convertedReservationCountsByEvent.get(row.event.id) ?? 0,
         }),
       ),
       meta: toPaginationMeta(totalRow?.total ?? 0, page, limit),
@@ -406,8 +423,15 @@ export const eventService = {
     const existingTiers = await database.query.ticketTiers.findMany({
       where: eq(ticketTiers.eventId, existingEvent.id),
     });
+    const convertedReservationCounts = await getConvertedReservationCounts(
+      existingTiers.map((tier) => tier.id),
+      databaseUrl,
+    );
 
-    if (input.tiers !== undefined && existingTiers.some((tier) => tier.soldCount > 0)) {
+    if (
+      input.tiers !== undefined &&
+      existingTiers.some((tier) => (convertedReservationCounts.get(tier.id) ?? 0) > 0)
+    ) {
       throw new EventServiceError(
         'INVALID_EVENT_STATE',
         'Ticket tiers cannot be replaced after tickets have been sold.',

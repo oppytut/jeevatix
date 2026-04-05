@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, countDistinct, desc, eq, ilike, or } from 'drizzle-orm';
+import { and, countDistinct, desc, eq, ilike, or, sql } from 'drizzle-orm';
 
 import type {
   AdminPaymentDetail,
@@ -8,10 +8,14 @@ import type {
   UpdateAdminPaymentStatusInput,
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
-import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
+import {
+  confirmReservation,
+  OrderReservationServiceError,
+  releaseReservation,
+} from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
 
-const { orderItems, orders, payments, ticketTiers, tickets, users } = schema;
+const { orderItems, orders, payments, reservations, ticketTiers, tickets, users } = schema;
 
 type AdminPaymentServiceEnv = {
   DATABASE_URL?: string;
@@ -460,7 +464,31 @@ export const adminPaymentService = {
           .update(orders)
           .set({ status: 'confirmed', confirmedAt: now, updatedAt: now })
           .where(eq(orders.id, payment.orderId));
+
+        if (payment.order.reservationId) {
+          const [updatedReservation] = await tx
+            .update(reservations)
+            .set({ status: 'converted' })
+            .where(
+              and(
+                eq(reservations.id, payment.order.reservationId),
+                eq(reservations.status, 'active'),
+              ),
+            )
+            .returning({ id: reservations.id });
+
+          if (!updatedReservation) {
+            throw new AdminPaymentServiceError(
+              'INVALID_STATE',
+              'Reservation is not active for payment confirmation.',
+            );
+          }
+        }
       });
+
+      if (payment.order.reservationId) {
+        await confirmReservation(env, payment.order.reservationId);
+      }
 
       if (payment.order.tickets.length === 0) {
         await generateTickets(payment.orderId, env.DATABASE_URL);

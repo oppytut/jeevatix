@@ -71,7 +71,7 @@ describe.sequential('Phase 6 Reservation API', () => {
     expect(reservationPayload.data.quantity).toBe(2);
     expect(reservationPayload.data.event_title).toBe(event.title);
     expect(reservationPayload.data.remaining_seconds).toBeGreaterThan(0);
-    expect(tierRecord?.soldCount).toBe(2);
+    expect(tierRecord?.soldCount).toBe(0);
   });
 
   it('rejects reservation when requested quantity exceeds remaining stock', async () => {

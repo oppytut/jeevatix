@@ -158,67 +158,74 @@ function toTicketDetail(row: {
 
 export async function generateTickets(orderId: string, databaseUrl?: string) {
   const database = getDatabase(databaseUrl);
-  const order = await database.query.orders.findFirst({
-    where: eq(orders.id, orderId),
-    columns: {
-      id: true,
-    },
-    with: {
-      orderItems: {
-        columns: {
-          id: true,
-          ticketTierId: true,
-          quantity: true,
+  const issuedTickets = await database.transaction(async (tx) => {
+    await tx.execute(sql`select ${orders.id} from ${orders} where ${orders.id} = ${orderId} for update`);
+
+    const order = await tx.query.orders.findFirst({
+      where: eq(orders.id, orderId),
+      columns: {
+        id: true,
+      },
+      with: {
+        orderItems: {
+          columns: {
+            id: true,
+            ticketTierId: true,
+            quantity: true,
+          },
+        },
+        tickets: {
+          columns: {
+            id: true,
+            orderId: true,
+            ticketTierId: true,
+            ticketCode: true,
+            status: true,
+            issuedAt: true,
+          },
         },
       },
-      tickets: {
-        columns: {
-          id: true,
-          orderId: true,
-          ticketTierId: true,
-          ticketCode: true,
-          status: true,
-          issuedAt: true,
-        },
+    });
+
+    if (!order) {
+      throw new TicketServiceError('ORDER_NOT_FOUND', 'Order not found.');
+    }
+
+    const existingTicketsByTier = order.tickets.reduce<Map<string, number>>(
+      (accumulator, ticket) => {
+        accumulator.set(ticket.ticketTierId, (accumulator.get(ticket.ticketTierId) ?? 0) + 1);
+        return accumulator;
       },
-    },
-  });
+      new Map(),
+    );
 
-  if (!order) {
-    throw new TicketServiceError('ORDER_NOT_FOUND', 'Order not found.');
-  }
+    const newTickets = order.orderItems.flatMap((item) => {
+      const existingCount = existingTicketsByTier.get(item.ticketTierId) ?? 0;
+      const remainingCount = Math.max(item.quantity - existingCount, 0);
 
-  const existingTicketsByTier = order.tickets.reduce<Map<string, number>>((accumulator, ticket) => {
-    accumulator.set(ticket.ticketTierId, (accumulator.get(ticket.ticketTierId) ?? 0) + 1);
-    return accumulator;
-  }, new Map());
+      return Array.from({ length: remainingCount }, () => ({
+        orderId,
+        ticketTierId: item.ticketTierId,
+        ticketCode: buildTicketCode(),
+      }));
+    });
 
-  const newTickets = order.orderItems.flatMap((item) => {
-    const existingCount = existingTicketsByTier.get(item.ticketTierId) ?? 0;
-    const remainingCount = Math.max(item.quantity - existingCount, 0);
+    if (newTickets.length > 0) {
+      await tx.insert(tickets).values(newTickets);
+    }
 
-    return Array.from({ length: remainingCount }, () => ({
-      orderId,
-      ticketTierId: item.ticketTierId,
-      ticketCode: buildTicketCode(),
-    }));
-  });
-
-  if (newTickets.length > 0) {
-    await database.insert(tickets).values(newTickets);
-  }
-
-  const issuedTickets = await database.query.tickets.findMany({
-    where: eq(tickets.orderId, orderId),
-    columns: {
-      id: true,
-      orderId: true,
-      ticketTierId: true,
-      ticketCode: true,
-      status: true,
-      issuedAt: true,
-    },
-    orderBy: [tickets.issuedAt, tickets.createdAt],
+    return tx.query.tickets.findMany({
+      where: eq(tickets.orderId, orderId),
+      columns: {
+        id: true,
+        orderId: true,
+        ticketTierId: true,
+        ticketCode: true,
+        status: true,
+        issuedAt: true,
+      },
+      orderBy: [tickets.issuedAt, tickets.createdAt],
+    });
   });
 
   return issuedTickets.map(toIssuedTicket);

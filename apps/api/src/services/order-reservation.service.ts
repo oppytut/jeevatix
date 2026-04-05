@@ -133,3 +133,64 @@ export async function releaseReservation(
     status: body.status,
   };
 }
+
+export async function confirmReservation(env: OrderReservationEnv, reservationId: string) {
+  const database = getDatabase(env.DATABASE_URL);
+  const reservation = await database.query.reservations.findFirst({
+    where: eq(reservations.id, reservationId),
+    columns: {
+      id: true,
+      ticketTierId: true,
+      status: true,
+    },
+  });
+
+  if (!reservation) {
+    throw new OrderReservationServiceError('RESERVATION_NOT_FOUND', 'Reservation not found.');
+  }
+
+  if (reservation.status !== 'active' && reservation.status !== 'converted') {
+    throw new OrderReservationServiceError(
+      'INVALID_STATE',
+      'Reservation is not active and cannot be converted.',
+    );
+  }
+
+  const namespace = getTicketReserverNamespace(env);
+  const objectId = namespace.idFromName(reservation.ticketTierId);
+  const stub = namespace.get(objectId);
+  const response = await stub.fetch('https://ticket-reserver', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      action: 'confirm',
+      reservationId: reservation.id,
+    }),
+  });
+
+  const body = (await response.json()) as TicketReserverStateResponse;
+
+  if (!body.ok) {
+    switch (body.error) {
+      case 'DATABASE_UNAVAILABLE':
+        throw new OrderReservationServiceError(
+          'DATABASE_UNAVAILABLE',
+          'Database connection is not available.',
+        );
+      case 'NOT_FOUND':
+        throw new OrderReservationServiceError('RESERVATION_NOT_FOUND', 'Reservation not found.');
+      default:
+        throw new OrderReservationServiceError(
+          'INVALID_STATE',
+          body.message ?? 'Reservation could not be converted.',
+        );
+    }
+  }
+
+  return {
+    reservationId: body.reservation_id,
+    status: body.status,
+  };
+}

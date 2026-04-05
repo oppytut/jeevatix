@@ -96,7 +96,7 @@ describe.sequential('Phase 6 Order API', () => {
     expect(orderPayload.data.payment.method).toBe('bank_transfer');
     expect(orderRecord?.orderItems).toHaveLength(1);
     expect(orderRecord?.payment?.status).toBe('pending');
-    expect(reservationRecord?.status).toBe('converted');
+    expect(reservationRecord?.status).toBe('active');
   });
 
   it('rejects order creation when the reservation is no longer active', async () => {
@@ -308,7 +308,7 @@ describe.sequential('Phase 6 Order API', () => {
     expect(forbiddenPayload.error.code).toBe('FORBIDDEN');
   });
 
-  it('rolls back transient order records when reservation confirmation fails', async () => {
+  it('creates a pending order without confirming the reservation up front', async () => {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();
     const { tier } = await context.createEventFixture({ sellerProfileId: seller.sellerProfile.id });
@@ -337,7 +337,7 @@ describe.sequential('Phase 6 Order API', () => {
     });
     const orderPayload = await context.readJson<{
       success: boolean;
-      error: { code: string };
+      data: { id: string; status: string };
     }>(orderResponse);
 
     const reservationRecord = await context.getReservation(reservationPayload.data.reservation_id);
@@ -345,11 +345,11 @@ describe.sequential('Phase 6 Order API', () => {
       reservationPayload.data.reservation_id,
     );
 
-    expect(orderResponse.status).toBe(409);
-    expect(orderPayload.success).toBe(false);
-    expect(orderPayload.error.code).toBe('INVALID_STATE');
+    expect(orderResponse.status).toBe(201);
+    expect(orderPayload.success).toBe(true);
+    expect(orderPayload.data.status).toBe('pending');
     expect(reservationRecord?.status).toBe('active');
-    expect(orderRecord).toBeUndefined();
+    expect(orderRecord?.id).toBe(orderPayload.data.id);
   });
 
   it('marks a pending order as expired when it is read after the payment window closes', async () => {
