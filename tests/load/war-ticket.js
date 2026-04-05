@@ -10,9 +10,7 @@ const TOTAL_USERS = parseInt(__ENV.TOTAL_USERS || '1000', 10);
 const USER_PREFIX = __ENV.LOAD_TEST_PREFIX || 'loadtest';
 const PASSWORD = __ENV.LOAD_TEST_PASSWORD || 'LoadTest123!';
 const LOGIN_BATCH_SIZE = parseInt(__ENV.LOGIN_BATCH_SIZE || '100', 10);
-const STAGE_DURATION = __ENV.STAGE_DURATION || '10s';
-const STAGE_TARGET = parseInt(__ENV.STAGE_TARGET || '1000', 10);
-const ITERATION_SLEEP_SECONDS = parseFloat(__ENV.ITERATION_SLEEP_SECONDS || '0.1');
+const MAX_DURATION = __ENV.MAX_DURATION || '2m';
 const reservationResponseCallback = http.expectedStatuses(201, 409);
 
 const reservationSuccess = new Counter('reservation_success');
@@ -21,7 +19,14 @@ const reservationError = new Counter('reservation_error');
 const reservationDuration = new Trend('reservation_duration', true);
 
 export const options = {
-  stages: [{ duration: STAGE_DURATION, target: STAGE_TARGET }],
+  scenarios: {
+    reserve_once: {
+      executor: 'per-vu-iterations',
+      vus: TOTAL_USERS,
+      iterations: 1,
+      maxDuration: MAX_DURATION,
+    },
+  },
   setupTimeout: '5m',
   thresholds: {
     http_req_duration: ['p(95)<2000'],
@@ -143,7 +148,7 @@ export default function (data) {
     }
   }
 
-  sleep(ITERATION_SLEEP_SECONDS);
+  sleep(0);
 }
 
 export function teardown(data) {
@@ -191,10 +196,6 @@ export function teardown(data) {
   }
 
   console.log(`[teardown] Target Tier: ${data.targetTier}`);
-  console.log('');
-  console.log('DB verification query:');
-  console.log(`  SELECT sold_count, quota FROM ticket_tiers WHERE id = '${data.targetTier}';`);
-  console.log('');
-  console.log('  Assert: sold_count <= quota');
+  console.log('[teardown] Root script now runs automated DB validation after k6 exits.');
   console.log('='.repeat(60));
 }

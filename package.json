@@ -21,8 +21,8 @@
     "test:e2e:report": "playwright show-report",
     "typecheck": "turbo run typecheck",
     "seed:load-users": "pnpm --filter @jeevatix/core exec tsx src/db/seed-load-users.ts",
-    "test:load": "k6 run tests/load/war-ticket.js",
-    "test:load:checkout": "k6 run tests/load/checkout-flow.js"
+    "test:load": "pnpm --filter @jeevatix/core exec tsx scripts/run-load-scenario.ts war-ticket",
+    "test:load:checkout": "pnpm --filter @jeevatix/core exec tsx scripts/run-load-scenario.ts checkout-flow"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

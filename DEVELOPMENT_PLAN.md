@@ -3037,10 +3037,12 @@ Jalankan: pnpm run test:e2e. Semua tests harus pass.
 
 - Deliverables implemented: `tests/load/war-ticket.js`, `tests/load/checkout-flow.js`, load-user seed script, and root scripts to run local API + K6 scenarios.
 - Correctness verified repeatedly: no overselling on war-ticket, confirmed checkout remains correct (`500` converted reservations, `500` tickets) on retained baseline.
-- Best retained local results in the single-process runner still miss the target thresholds:
-   - War-ticket: `http_req_duration p95 ~3.44s`
-   - Confirmed checkout: `full_flow_duration p95 ~8.65s`, `step_webhook_duration p95 ~3.37s`
-- Conclusion: task deliverables and analysis are complete, but the local benchmark target likely needs deeper architectural changes or validation in a more production-like environment.
+- Corrected war-ticket benchmark now matches the intended scenario (1000 users attempt one reservation each, rather than looping into the reservation rate limiter).
+- Best retained local results in the single-process runner are now split by scenario:
+   - War-ticket: with corrected script semantics and local `DB_MAX_CONNECTIONS=52`, `http_req_duration p95 ~1.31s`, `reservation_duration p95 ~1.68s`, `http_req_failed 0.00%`, `700` successful reservations, `300` sold out, and DB validation still green.
+   - Confirmed checkout: with `PAYMENT_BACKGROUND_TASK_CONCURRENCY=8` and local `DB_MAX_CONNECTIONS=50`, fresh 500-user runs improved to `full_flow_duration p95 ~5.82s` on the best run and `~6.35s` on a reproducibility rerun, with `http_req_duration p95 ~2.51s` to `~3.07s` and `step_webhook_duration p95 ~1.36s` to `~1.38s`.
+- Additional tuning note: `DB_MAX_CONNECTIONS=40` regressed materially, `DB_MAX_CONNECTIONS=55` pushed war-ticket back up to `http_req_duration p95 ~2.13s` and triggered `too many clients already` during validation, while `DB_MAX_CONNECTIONS=60` overloaded PostgreSQL earlier and broke correctness. Current local sweet spots are `52` for war-ticket and `50` for checkout.
+- Conclusion: task deliverables and analysis are complete, and the local benchmark is materially better than the earlier retained baseline. War-ticket now meets the target locally with the corrected scenario, while checkout still misses its threshold and likely needs either deeper architectural changes or validation in a more production-like environment.
 
 **Instruksi:**
 

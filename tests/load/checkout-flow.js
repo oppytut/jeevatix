@@ -15,6 +15,7 @@ const PAYMENT_WEBHOOK_SECRET = __ENV.PAYMENT_WEBHOOK_SECRET || 'local-load-test-
 
 const flowSuccess = new Counter('checkout_flow_success');
 const flowFailed = new Counter('checkout_flow_failed');
+const reservationSoldOut = new Counter('checkout_flow_reservation_sold_out');
 const reservationStep = new Trend('step_reservation_duration', true);
 const orderStep = new Trend('step_order_duration', true);
 const paymentStep = new Trend('step_payment_duration', true);
@@ -26,10 +27,13 @@ function signWebhookPayload(payload) {
 }
 
 export const options = {
-  vus: 500,
-  iterations: 500,
+  vus: TOTAL_USERS,
+  iterations: TOTAL_USERS,
   setupTimeout: '5m',
   thresholds: {
+    checkout_flow_success: [`count==${TOTAL_USERS}`],
+    checkout_flow_failed: ['count==0'],
+    checkout_flow_reservation_sold_out: ['count==0'],
     full_flow_duration: ['p(95)<3000'],
     http_req_duration: ['p(95)<2000'],
     http_req_failed: ['rate<0.5'],
@@ -126,6 +130,8 @@ export default function (data) {
   let reservationId = null;
   let orderId = null;
   let externalRef = null;
+  let reservationStatus = null;
+  let reservationBody = null;
 
   group('Step 1 — Reserve Ticket', function () {
     const start = Date.now();
@@ -137,13 +143,15 @@ export default function (data) {
       }),
       {
         headers,
-        responseCallback: http.expectedStatuses(201, 409),
+        responseCallback: http.expectedStatuses(201),
       },
     );
     reservationStep.add(Date.now() - start);
+    reservationStatus = res.status;
+    reservationBody = res.body;
 
     const reservationOk = check(res, {
-      'reservation: status 201 or 409': (response) => [201, 409].includes(response.status),
+      'reservation: status 201': (response) => response.status === 201,
     });
 
     if (res.status === 201) {
@@ -157,14 +165,24 @@ export default function (data) {
       }
     }
 
-    if (!reservationOk || (res.status === 201 && !reservationId)) {
-      if (res.status !== 409) {
-        flowFailed.add(1);
+    if (res.status === 409) {
+      reservationSoldOut.add(1);
+      flowFailed.add(1);
+      if (__VU <= 5) {
+        console.warn(`[VU ${__VU}] Reservation sold out: ${res.status} - ${res.body}`);
+      }
+    } else if (!reservationOk || !reservationId) {
+      flowFailed.add(1);
+      if (__VU <= 5) {
+        console.warn(`[VU ${__VU}] Reservation failed: ${res.status} - ${res.body}`);
       }
     }
   });
 
   if (!reservationId) {
+    if (__VU <= 5 && reservationStatus && reservationStatus !== 409) {
+      console.warn(`[VU ${__VU}] Aborting flow after reservation step: ${reservationStatus} - ${reservationBody}`);
+    }
     sleep(0.5);
     return;
   }
@@ -274,6 +292,7 @@ export default function (data) {
 
     if (webhookOk) {
       flowSuccess.add(1);
+      fullFlowDuration.add(Date.now() - flowStart);
     } else {
       flowFailed.add(1);
       if (__VU <= 5) {
@@ -281,8 +300,6 @@ export default function (data) {
       }
     }
   });
-
-  fullFlowDuration.add(Date.now() - flowStart);
   sleep(0.5);
 }
 
@@ -297,6 +314,8 @@ export function teardown(data) {
   console.log('  - full_flow_duration p(95) should be < 3000ms');
   console.log('  - checkout_flow_success count');
   console.log('  - checkout_flow_failed count');
+  console.log('  - checkout_flow_reservation_sold_out count');
   console.log('  - step_webhook_duration for payment confirmation');
+  console.log('  - automated DB validation from the root load-test runner');
   console.log('='.repeat(60));
 }
