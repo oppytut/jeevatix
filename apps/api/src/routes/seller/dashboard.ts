@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
@@ -52,10 +53,7 @@ function getStatusFromError(error: SellerDashboardServiceError | SellerProfileSe
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof SellerDashboardServiceError || error instanceof SellerProfileServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -83,6 +81,14 @@ const getSellerDashboardRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid seller dashboard request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Authentication required',
       content: {
@@ -101,6 +107,14 @@ const getSellerDashboardRoute = createRoute({
     },
     404: {
       description: 'Seller profile not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: errorResponseSchema,

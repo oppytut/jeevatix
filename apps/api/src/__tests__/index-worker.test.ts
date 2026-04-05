@@ -6,13 +6,20 @@ import { createTransactionTestContext } from './transaction-test-helpers';
 
 const context = createTransactionTestContext('vitest-p10-index-worker');
 
+function createQueueMock(send: ReturnType<typeof vi.fn>) {
+  return {
+    send,
+    sendBatch: vi.fn(async () => undefined),
+  } as unknown as Queue<ReservationCleanupMessage>;
+}
+
 describe('api worker wrappers', () => {
   it('forwards queue batches to the reservation cleanup handler', async () => {
     const ackAll = vi.fn();
 
     await worker.queue?.(
       {
-        messages: [{ body: { action: 'other-action' } as ReservationCleanupMessage }],
+        messages: [{ body: { action: 'other-action' } as unknown as ReservationCleanupMessage }],
         ackAll,
       } as unknown as MessageBatch<ReservationCleanupMessage>,
       context.env(),
@@ -32,7 +39,7 @@ describe('api worker wrappers', () => {
       } as ScheduledController,
       {
         ...context.env(),
-        RESERVATION_CLEANUP_QUEUE: { send } as Queue<ReservationCleanupMessage>,
+        RESERVATION_CLEANUP_QUEUE: createQueueMock(send),
       },
       {
         waitUntil,

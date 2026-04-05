@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
 import {
@@ -64,10 +65,7 @@ function getStatusFromError(error: EventServiceError | SellerProfileServiceError
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof EventServiceError || error instanceof SellerProfileServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -314,7 +312,7 @@ app.openapi(listSellerEventsRoute, async (c) => {
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -328,7 +326,7 @@ app.openapi(createSellerEventRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -342,7 +340,7 @@ app.openapi(getSellerEventRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -357,7 +355,7 @@ app.openapi(updateSellerEventRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -371,7 +369,7 @@ app.openapi(submitSellerEventRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -385,7 +383,7 @@ app.openapi(deleteSellerEventRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

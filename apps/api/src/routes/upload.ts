@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv } from '../middleware/auth';
 import {
@@ -36,10 +37,7 @@ function getStatusFromError(error: UploadServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof UploadServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -103,7 +101,7 @@ app.openapi(uploadRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
@@ -40,10 +41,7 @@ function jsonError(code: string, message: string) {
   };
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof AdminEventServiceError) {
     return c.json(
       jsonError(error.code, error.message),
@@ -68,6 +66,22 @@ const listEventsRoute = createRoute({
       content: {
         'application/json': {
           schema: adminEventsListResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Related resource not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
         },
       },
     },
@@ -99,6 +113,14 @@ const getEventDetailRoute = createRoute({
         },
       },
     },
+    500: {
+      description: 'Database unavailable',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -124,6 +146,22 @@ const updateEventStatusRoute = createRoute({
       content: {
         'application/json': {
           schema: adminEventStatusResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Event not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Event status update failed',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
         },
       },
     },

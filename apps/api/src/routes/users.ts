@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv } from '../middleware/auth';
 import {
@@ -51,10 +52,7 @@ function getStatusFromError(error: UserServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof UserServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -187,7 +185,7 @@ app.openapi(getMeRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -203,7 +201,7 @@ app.openapi(updateProfileRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -219,7 +217,7 @@ app.openapi(changePasswordRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

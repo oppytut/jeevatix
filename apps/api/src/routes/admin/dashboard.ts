@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
@@ -36,10 +37,7 @@ function jsonError(code: string, message: string) {
   };
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof AdminDashboardServiceError) {
     return c.json(jsonError(error.code, error.message), 500);
   }

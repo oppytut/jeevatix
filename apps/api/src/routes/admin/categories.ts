@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import {
@@ -55,10 +56,7 @@ function getStatusFromError(error: CategoryServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof CategoryServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -80,6 +78,14 @@ const listCategoriesRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid category list request',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Authentication required',
       content: {
@@ -90,6 +96,30 @@ const listCategoriesRoute = createRoute({
     },
     403: {
       description: 'Admin access required',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Related resource not found',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Category state conflict',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: categoryErrorResponseSchema,
@@ -123,8 +153,32 @@ const createCategoryRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid category creation request',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Related resource not found',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
     409: {
       description: 'Category name or slug already exists',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: categoryErrorResponseSchema,
@@ -159,6 +213,14 @@ const updateCategoryRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid category update request',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
     404: {
       description: 'Category not found',
       content: {
@@ -169,6 +231,14 @@ const updateCategoryRoute = createRoute({
     },
     409: {
       description: 'Category name or slug already exists',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: categoryErrorResponseSchema,
@@ -195,6 +265,14 @@ const deleteCategoryRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid category delete request',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
     404: {
       description: 'Category not found',
       content: {
@@ -205,6 +283,14 @@ const deleteCategoryRoute = createRoute({
     },
     409: {
       description: 'Category still has attached events',
+      content: {
+        'application/json': {
+          schema: categoryErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: categoryErrorResponseSchema,

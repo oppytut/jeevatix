@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
 import { errorResponseSchema } from '../schemas/auth.schema';
@@ -44,10 +45,7 @@ function getStatusFromError(error: OrderServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof OrderServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -79,6 +77,22 @@ const createOrderRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid order creation request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Reservation does not belong to the current buyer',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     404: {
       description: 'Reservation not found',
       content: {
@@ -89,6 +103,14 @@ const createOrderRoute = createRoute({
     },
     409: {
       description: 'Reservation cannot be converted to an order',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server or order generation error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -115,6 +137,22 @@ const listOrdersRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid order list request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -135,6 +173,14 @@ const getOrderDetailRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid order detail request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     403: {
       description: 'Order does not belong to the current buyer',
       content: {
@@ -145,6 +191,22 @@ const getOrderDetailRoute = createRoute({
     },
     404: {
       description: 'Order not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Order is in an invalid state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -162,7 +224,7 @@ app.openapi(createOrderRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -174,7 +236,7 @@ app.openapi(listOrdersRoute, async (c) => {
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -186,7 +248,7 @@ app.openapi(getOrderDetailRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

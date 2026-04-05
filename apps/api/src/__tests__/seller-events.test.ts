@@ -28,11 +28,13 @@ if (!jwtSecret) {
   throw new Error('JWT_SECRET is required for seller event tests.');
 }
 
-const database = getDb(databaseUrl);
+const databaseInstance = getDb(databaseUrl);
 
-if (!database) {
+if (!databaseInstance) {
   throw new Error('Failed to create database connection for seller event tests.');
 }
+
+const database = databaseInstance;
 
 const {
   categories,

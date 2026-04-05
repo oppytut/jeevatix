@@ -28,11 +28,13 @@ if (!jwtSecret) {
   throw new Error('JWT_SECRET is required for admin user tests.');
 }
 
-const database = getDb(databaseUrl);
+const databaseInstance = getDb(databaseUrl);
 
-if (!database) {
+if (!databaseInstance) {
   throw new Error('Failed to create database connection for admin user tests.');
 }
+
+const database = databaseInstance;
 
 const { events, notifications, sellerProfiles, users } = schema;
 

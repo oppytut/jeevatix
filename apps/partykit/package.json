@@ -7,10 +7,14 @@
     "dev": "partykit dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "partykit": "^0.0.115",
     "partysocket": "^1.1.16"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

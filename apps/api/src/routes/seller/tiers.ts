@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { messageResponseSchema } from '../../schemas/auth.schema';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
@@ -65,10 +66,7 @@ function getStatusFromError(error: TierServiceError | SellerProfileServiceError)
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof TierServiceError || error instanceof SellerProfileServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -236,7 +234,7 @@ app.openapi(listTiersRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -251,7 +249,7 @@ app.openapi(createTierRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -272,7 +270,7 @@ app.openapi(updateTierRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -291,7 +289,7 @@ app.openapi(deleteTierRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

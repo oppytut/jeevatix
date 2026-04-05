@@ -12,6 +12,13 @@ import { database, createTransactionTestContext } from './transaction-test-helpe
 const context = createTransactionTestContext('vitest-p10-queue-cleanup');
 const { reservations } = schema;
 
+function createQueueMock(send: ReturnType<typeof vi.fn>) {
+  return {
+    send,
+    sendBatch: vi.fn(async () => undefined),
+  } as unknown as Queue<ReservationCleanupMessage>;
+}
+
 describe.sequential('reservation cleanup queue', () => {
   beforeAll(async () => {
     await context.cleanupTestData();
@@ -31,7 +38,7 @@ describe.sequential('reservation cleanup queue', () => {
     const result = await enqueueReservationCleanup(
       {
         ...context.env(),
-        RESERVATION_CLEANUP_QUEUE: { send } as Queue<ReservationCleanupMessage>,
+        RESERVATION_CLEANUP_QUEUE: createQueueMock(send),
       },
       1_775_560_000_000,
     );
@@ -59,7 +66,7 @@ describe.sequential('reservation cleanup queue', () => {
 
     await reservationCleanupQueueHandler(
       {
-        messages: [{ body: { action: 'other-action' } as ReservationCleanupMessage }],
+        messages: [{ body: { action: 'other-action' } as unknown as ReservationCleanupMessage }],
         ackAll,
       } as unknown as MessageBatch<ReservationCleanupMessage>,
       context.env(),

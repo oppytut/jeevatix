@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
 import { errorResponseSchema } from '../schemas/auth.schema';
@@ -39,10 +40,7 @@ function getStatusFromError(error: TicketServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof TicketServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -114,7 +112,7 @@ app.openapi(listTicketsRoute, async (c) => {
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -130,7 +128,7 @@ app.openapi(getTicketDetailRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

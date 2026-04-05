@@ -111,9 +111,9 @@ describe.sequential('order reservation service', () => {
         reservationPayload.data.reservation_id,
         'cancelled',
       ),
-    ).rejects.toMatchObject<OrderReservationServiceError>({
+    ).rejects.toMatchObject({
       code: 'TICKET_RESERVER_UNAVAILABLE',
-    });
+    } satisfies Partial<OrderReservationServiceError>);
   });
 
   it('maps durable object not-found responses to reservation errors', async () => {
@@ -146,13 +146,13 @@ describe.sequential('order reservation service', () => {
             },
           };
         },
-      } as DurableObjectNamespace,
+      } as unknown as DurableObjectNamespace,
     };
 
     await expect(
       releaseReservation(env, reservationPayload.data.reservation_id, 'cancelled'),
-    ).rejects.toMatchObject<OrderReservationServiceError>({
+    ).rejects.toMatchObject({
       code: 'RESERVATION_NOT_FOUND',
-    });
+    } satisfies Partial<OrderReservationServiceError>);
   });
 });

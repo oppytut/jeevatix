@@ -9,7 +9,7 @@ import type {
 } from '../schemas/reservation.schema';
 import type { AdminReservationItem, AdminReservationListQuery } from '../schemas/admin.schema';
 
-const { events, orderItems, orders, reservations, ticketTiers } = schema;
+const { events, orderItems, orders, reservations, ticketTiers, users } = schema;
 
 type ReservationServiceEnv = {
   DATABASE_URL?: string;

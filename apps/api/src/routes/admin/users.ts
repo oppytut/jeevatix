@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import {
@@ -59,10 +60,7 @@ function getStatusFromError(error: AdminUserServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof AdminUserServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -87,6 +85,14 @@ const listUsersRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid user list request',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Authentication required',
       content: {
@@ -97,6 +103,22 @@ const listUsersRoute = createRoute({
     },
     403: {
       description: 'Admin access required',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Related resource not found',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: adminUserErrorResponseSchema,
@@ -123,8 +145,32 @@ const getUserDetailRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid user detail request',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Admin access required',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
     404: {
       description: 'User not found',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: adminUserErrorResponseSchema,
@@ -159,8 +205,32 @@ const updateUserStatusRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid user status update request',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Cannot update your own admin account',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
     404: {
       description: 'User not found',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: adminUserErrorResponseSchema,
@@ -187,6 +257,14 @@ const listSellersRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid seller list request',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Authentication required',
       content: {
@@ -197,6 +275,22 @@ const listSellersRoute = createRoute({
     },
     403: {
       description: 'Admin access required',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Related resource not found',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: adminUserErrorResponseSchema,
@@ -231,8 +325,32 @@ const verifySellerRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid seller verification request',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Admin access required',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
     404: {
       description: 'Seller profile not found',
+      content: {
+        'application/json': {
+          schema: adminUserErrorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
       content: {
         'application/json': {
           schema: adminUserErrorResponseSchema,

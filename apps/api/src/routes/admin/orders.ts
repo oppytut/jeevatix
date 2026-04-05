@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
@@ -51,10 +52,7 @@ function getStatusFromError(error: AdminOrderServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof AdminOrderServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -76,6 +74,30 @@ const listOrdersRoute = createRoute({
       content: {
         'application/json': {
           schema: adminOrdersListResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Related resource not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Order is in an invalid state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
         },
       },
     },
@@ -107,6 +129,22 @@ const getOrderDetailRoute = createRoute({
         },
       },
     },
+    409: {
+      description: 'Order is in an invalid state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -127,6 +165,30 @@ const refundOrderRoute = createRoute({
         },
       },
     },
+    404: {
+      description: 'Order not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Order cannot be refunded in its current state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Refund processing failed',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -144,6 +206,30 @@ const cancelOrderRoute = createRoute({
       content: {
         'application/json': {
           schema: adminOrderActionResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Order not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Order cannot be cancelled in its current state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Cancellation failed',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
         },
       },
     },

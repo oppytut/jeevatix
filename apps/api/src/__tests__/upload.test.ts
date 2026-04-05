@@ -7,7 +7,7 @@ describe('upload service', () => {
     const put = vi.fn(async () => undefined);
     const response = await uploadService.uploadFile(
       {
-        BUCKET: { put } as R2Bucket,
+        BUCKET: { put } as unknown as R2Bucket,
         UPLOAD_PUBLIC_URL: 'https://cdn.example.com/assets',
       } as never,
       new File([new Uint8Array([1, 2, 3])], 'poster.png', { type: 'image/png' }),
@@ -25,9 +25,9 @@ describe('upload service', () => {
         } as never,
         new File([new Uint8Array([1])], 'poster.png', { type: 'image/png' }),
       ),
-    ).rejects.toMatchObject<UploadServiceError>({
+    ).rejects.toMatchObject({
       code: 'BUCKET_NOT_CONFIGURED',
-    });
+    } satisfies Partial<UploadServiceError>);
   });
 
   it('rejects unsupported file types', async () => {
@@ -39,9 +39,9 @@ describe('upload service', () => {
         } as never,
         new File([new Uint8Array([1])], 'poster.gif', { type: 'image/gif' }),
       ),
-    ).rejects.toMatchObject<UploadServiceError>({
+    ).rejects.toMatchObject({
       code: 'INVALID_FILE_TYPE',
-    });
+    } satisfies Partial<UploadServiceError>);
   });
 
   it('rejects oversized files', async () => {
@@ -53,9 +53,9 @@ describe('upload service', () => {
         } as never,
         new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'poster.png', { type: 'image/png' }),
       ),
-    ).rejects.toMatchObject<UploadServiceError>({
+    ).rejects.toMatchObject({
       code: 'FILE_TOO_LARGE',
-    });
+    } satisfies Partial<UploadServiceError>);
   });
 
   it('rejects uploads when the public URL is missing', async () => {
@@ -66,8 +66,8 @@ describe('upload service', () => {
         } as never,
         new File([new Uint8Array([1])], 'poster.png', { type: 'image/png' }),
       ),
-    ).rejects.toMatchObject<UploadServiceError>({
+    ).rejects.toMatchObject({
       code: 'UPLOAD_PUBLIC_URL_MISSING',
-    });
+    } satisfies Partial<UploadServiceError>);
   });
 });

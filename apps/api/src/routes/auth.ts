@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import type { AuthEnv } from '../middleware/auth';
 import { createRateLimitMiddleware, getClientIp } from '../middleware/rate-limit';
@@ -86,10 +87,7 @@ function getStatusFromError(error: AuthServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof AuthServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -121,8 +119,40 @@ const registerRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid registration request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Account cannot be registered in its current state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     409: {
       description: 'Email already exists',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -164,8 +194,40 @@ const registerSellerRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid seller registration request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Account cannot be registered in its current state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     409: {
       description: 'Email already exists',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -207,8 +269,32 @@ const loginRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid login request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Invalid credentials',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Account is not active',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -250,8 +336,32 @@ const refreshRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid refresh request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Invalid refresh token',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    403: {
+      description: 'Account is not active',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -285,6 +395,22 @@ const forgotPasswordRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid forgot password request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -312,8 +438,24 @@ const resetPasswordRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid reset password request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Invalid reset token',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -347,8 +489,24 @@ const verifyEmailRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid email verification request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Invalid verification token',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -382,8 +540,24 @@ const logoutRoute = createRoute({
         },
       },
     },
+    400: {
+      description: 'Invalid logout request',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
     401: {
       description: 'Invalid refresh token',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Server configuration or database error',
       content: {
         'application/json': {
           schema: errorResponseSchema,
@@ -405,7 +579,7 @@ app.openapi(registerRoute, async (c) => {
     const result = await authService.register(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -425,7 +599,7 @@ app.openapi(registerSellerRoute, async (c) => {
     );
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -439,9 +613,9 @@ app.openapi(loginRoute, async (c) => {
 
     const body = c.req.valid('json');
     const result = await authService.login(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
-    return c.json({ success: true, data: result });
+    return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -455,9 +629,9 @@ app.openapi(refreshRoute, async (c) => {
 
     const body = c.req.valid('json');
     const result = await authService.refresh(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
-    return c.json({ success: true, data: result });
+    return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -475,9 +649,9 @@ app.openapi(forgotPasswordRoute, async (c) => {
       secret,
       getDatabaseUrl(c.env.DATABASE_URL),
     );
-    return c.json({ success: true, data: result });
+    return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -495,9 +669,9 @@ app.openapi(resetPasswordRoute, async (c) => {
       secret,
       getDatabaseUrl(c.env.DATABASE_URL),
     );
-    return c.json({ success: true, data: result });
+    return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -515,9 +689,9 @@ app.openapi(verifyEmailRoute, async (c) => {
       secret,
       getDatabaseUrl(c.env.DATABASE_URL),
     );
-    return c.json({ success: true, data: result });
+    return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -535,9 +709,9 @@ app.openapi(logoutRoute, async (c) => {
       secret,
       getDatabaseUrl(c.env.DATABASE_URL),
     );
-    return c.json({ success: true, data: result });
+    return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

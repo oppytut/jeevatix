@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import {
   listEventsQuerySchema,
@@ -50,10 +51,7 @@ function getStatusFromError(error: PublicEventServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof PublicEventServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -204,7 +202,7 @@ app.openapi(listEventsRoute, async (c) => {
     const result = await publicEventService.listEvents(query, databaseUrl);
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -227,7 +225,7 @@ app.openapi(listFeaturedEventsRoute, async (c) => {
       200,
     );
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -239,7 +237,7 @@ app.openapi(getEventBySlugRoute, async (c) => {
     const result = await publicEventService.getBySlug(params.slug, databaseUrl);
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -250,7 +248,7 @@ app.openapi(listCategoriesRoute, async (c) => {
     const result = await publicEventService.listCategories(databaseUrl);
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
@@ -263,7 +261,7 @@ app.openapi(listCategoryEventsRoute, async (c) => {
     const result = await publicEventService.listByCategory(params.slug, query, databaseUrl);
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

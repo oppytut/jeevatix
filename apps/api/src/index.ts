@@ -47,7 +47,7 @@ app.doc('/doc', {
   },
 });
 
-app.get('/reference', apiReference({ spec: { url: '/doc' } }));
+app.get('/reference', apiReference({ url: '/doc' }));
 
 app.route('/admin/categories', adminCategoryRoutes);
 app.route('/admin', adminDashboardRoutes);

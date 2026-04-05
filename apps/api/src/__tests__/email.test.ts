@@ -16,9 +16,9 @@ describe('email service', () => {
 
     await expect(
       service.sendEmail('buyer@example.com', 'Test', '<p>Hello</p>'),
-    ).rejects.toMatchObject<EmailServiceError>({
+    ).rejects.toMatchObject({
       code: 'EMAIL_API_KEY_MISSING',
-    });
+    } satisfies Partial<EmailServiceError>);
   });
 
   it('throws when the sender address is missing', async () => {
@@ -26,9 +26,9 @@ describe('email service', () => {
 
     await expect(
       service.sendEmail('buyer@example.com', 'Test', '<p>Hello</p>'),
-    ).rejects.toMatchObject<EmailServiceError>({
+    ).rejects.toMatchObject({
       code: 'EMAIL_FROM_MISSING',
-    });
+    } satisfies Partial<EmailServiceError>);
   });
 
   it('sends email payloads through Resend', async () => {
@@ -71,10 +71,10 @@ describe('email service', () => {
 
     await expect(
       service.sendEmail('buyer@example.com', 'Hello', '<p>World</p>'),
-    ).rejects.toMatchObject<EmailServiceError>({
+    ).rejects.toMatchObject({
       code: 'EMAIL_SEND_FAILED',
       message: 'Failed to send email via Resend: quota exceeded',
-    });
+    } satisfies Partial<EmailServiceError>);
   });
 
   it('builds escaped verification, reset, order, and e-ticket templates', () => {

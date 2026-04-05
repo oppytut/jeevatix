@@ -34,11 +34,13 @@ if (!paymentWebhookSecret) {
   throw new Error('PAYMENT_WEBHOOK_SECRET is required for phase 6 tests.');
 }
 
-export const database = getDb(databaseUrl);
+const databaseInstance = getDb(databaseUrl);
 
-if (!database) {
+if (!databaseInstance) {
   throw new Error('Failed to create database connection for phase 6 tests.');
 }
+
+export const database = databaseInstance;
 
 const {
   notifications,

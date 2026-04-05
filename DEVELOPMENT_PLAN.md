@@ -3150,7 +3150,7 @@ Lakukan security review menyeluruh pada seluruh codebase. Gunakan checklist beri
 Buat file `SECURITY_REVIEW.md` berisi hasil review dan status setiap item.
 ```
 
-### Task 10.5 — CI/CD Pipeline
+### Task 10.5 — CI/CD Pipeline [DONE]
 
 | Key          | Value                                                      |
 | ------------ | ---------------------------------------------------------- |
@@ -3245,6 +3245,12 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
    - "build": "turbo run build"
    - "deploy": "sst deploy"
 
+
+**Status (2026-04-05):**
+
+- GitHub Actions workflow `CI` dibuat di `.github/workflows/ci.yml` untuk PR ke `main`.
+- GitHub Actions workflow `Deploy` dibuat di `.github/workflows/deploy.yml` untuk push ke `main`, termasuk smoke test pascadeploy.
+- Root scripts untuk `deploy` dan `typecheck` ditambahkan, dan workspace scripts diselaraskan agar `turbo run typecheck` bisa dieksekusi.
 ```
 
 ### Task 10.6 — Production Deploy

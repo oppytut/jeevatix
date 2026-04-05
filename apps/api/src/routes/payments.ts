@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
 import { errorResponseSchema } from '../schemas/auth.schema';
@@ -15,10 +16,6 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('/payments/*', authMiddleware);
 app.use('/payments/*', roleMiddleware('buyer'));
-app.use('/webhooks/payment', async (c, next) => {
-  c.set('paymentWebhookRawBody', await c.req.raw.clone().text());
-  await next();
-});
 
 function jsonError(code: string, message: string) {
   return {
@@ -51,10 +48,7 @@ function getStatusFromError(error: PaymentServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof PaymentServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -174,12 +168,12 @@ app.openapi(initiatePaymentRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 
 app.openapi(paymentWebhookRoute, async (c) => {
-  const rawBody = (c.get('paymentWebhookRawBody') as string | undefined) ?? '';
+  const rawBody = await c.req.raw.clone().text();
   const body = c.req.valid('json');
 
   try {
@@ -187,7 +181,7 @@ app.openapi(paymentWebhookRoute, async (c) => {
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
-    return handleError(c, error);
+    return handleError(c, error) as never;
   }
 });
 

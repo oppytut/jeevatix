@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
+import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
@@ -55,10 +56,7 @@ function getStatusFromError(error: AdminPaymentServiceError) {
   }
 }
 
-function handleError(
-  c: Parameters<typeof app.openapi>[1] extends (arg: infer T) => unknown ? T : never,
-  error: unknown,
-) {
+function handleError(c: Context, error: unknown) {
   if (error instanceof AdminPaymentServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
@@ -80,6 +78,30 @@ const listPaymentsRoute = createRoute({
       content: {
         'application/json': {
           schema: adminPaymentsListResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Related resource not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Payment is in an invalid state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
         },
       },
     },
@@ -111,6 +133,22 @@ const getPaymentDetailRoute = createRoute({
         },
       },
     },
+    409: {
+      description: 'Payment is in an invalid state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Database unavailable',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
   },
 });
 
@@ -136,6 +174,30 @@ const updatePaymentStatusRoute = createRoute({
       content: {
         'application/json': {
           schema: adminPaymentStatusResponseSchema,
+        },
+      },
+    },
+    404: {
+      description: 'Payment not found',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    409: {
+      description: 'Payment cannot be updated in its current state',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
+        },
+      },
+    },
+    500: {
+      description: 'Payment update failed',
+      content: {
+        'application/json': {
+          schema: errorResponseSchema,
         },
       },
     },

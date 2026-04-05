@@ -13,6 +13,7 @@ import type { AdminNotificationItem, AdminNotificationListQuery } from '../schem
 const { notifications, users } = schema;
 
 type NotificationRow = typeof notifications.$inferSelect;
+type NotificationInsert = typeof notifications.$inferInsert;
 
 export class NotificationServiceError extends Error {
   constructor(
@@ -280,8 +281,7 @@ export const notificationService = {
       };
     }
 
-    await database.insert(notifications).values(
-      recipients.map((recipient) => ({
+    const notificationValues: NotificationInsert[] = recipients.map((recipient) => ({
         userId: recipient.id,
         type: 'info',
         title: input.title,
@@ -290,8 +290,9 @@ export const notificationService = {
           target_role: targetRole,
           broadcast: true,
         },
-      })),
-    );
+      }));
+
+    await database.insert(notifications).values(notificationValues);
 
     return {
       message: 'Broadcast notification sent successfully.',

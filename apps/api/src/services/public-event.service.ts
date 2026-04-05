@@ -105,7 +105,11 @@ function buildListConditions(query: ListEventsQuery) {
 
   if (query.search) {
     const searchTerm = `%${query.search.trim()}%`;
-    conditions.push(or(ilike(events.title, searchTerm), ilike(events.description, searchTerm)));
+    const searchCondition = or(ilike(events.title, searchTerm), ilike(events.description, searchTerm));
+
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
   }
 
   if (locationQuery) {
@@ -308,7 +312,7 @@ export const publicEventService = {
       sale_start_at: event.saleStartAt.toISOString(),
       sale_end_at: event.saleEndAt.toISOString(),
       banner_url: event.bannerUrl ?? null,
-      status: event.status,
+      status: event.status as 'published' | 'ongoing',
       is_featured: event.isFeatured,
       max_tickets_per_order: event.maxTicketsPerOrder,
       min_price: minPrice,
