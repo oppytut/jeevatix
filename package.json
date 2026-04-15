@@ -7,6 +7,9 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "dev:api:local": "pnpm --filter @jeevatix/core exec tsx /home/ubuntu/bench/jeevatix/scripts/run-api-local.ts",
+    "dev:api:local:load:baseline": "pnpm --filter @jeevatix/core exec tsx /home/ubuntu/bench/jeevatix/scripts/run-api-local.ts --preset load-baseline",
+    "dev:api:local:load:balanced": "pnpm --filter @jeevatix/core exec tsx /home/ubuntu/bench/jeevatix/scripts/run-api-local.ts --preset load-balanced",
+    "dev:api:local:load:fullflow": "pnpm --filter @jeevatix/core exec tsx /home/ubuntu/bench/jeevatix/scripts/run-api-local.ts --preset load-fullflow",
     "deploy": "sst deploy",
     "dev:partykit": "cd apps/partykit && npx partykit dev",
     "lint": "turbo run lint",
@@ -22,10 +25,16 @@
     "typecheck": "turbo run typecheck",
     "seed:load-users": "pnpm --filter @jeevatix/core exec tsx src/db/seed-load-users.ts",
     "test:load": "pnpm --filter @jeevatix/core exec tsx scripts/run-load-scenario.ts war-ticket",
+    "test:load:checkout:target": "pnpm --filter @jeevatix/core exec tsx scripts/create-checkout-benchmark-target.ts",
+    "test:load:checkout:local": "pnpm --filter @jeevatix/core exec tsx scripts/run-local-checkout-benchmark.ts --preset load-balanced",
+    "test:load:checkout:local:baseline": "pnpm --filter @jeevatix/core exec tsx scripts/run-local-checkout-benchmark.ts --preset load-baseline",
+    "test:load:checkout:local:balanced": "pnpm --filter @jeevatix/core exec tsx scripts/run-local-checkout-benchmark.ts --preset load-balanced",
+    "test:load:checkout:local:fullflow": "pnpm --filter @jeevatix/core exec tsx scripts/run-local-checkout-benchmark.ts --preset load-fullflow",
     "test:load:checkout": "pnpm --filter @jeevatix/core exec tsx scripts/run-load-scenario.ts checkout-flow"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@types/node": "^25.6.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
     "@vitest/coverage-v8": "^4.1.2",
@@ -47,5 +56,8 @@
       "esbuild",
       "@tailwindcss/oxide"
     ]
+  },
+  "dependencies": {
+    "tsx": "^4.21.0"
   }
 }

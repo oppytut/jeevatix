@@ -213,10 +213,22 @@ describe.sequential('Auth API', () => {
   it('rate limits buyer registration attempts per IP address', async () => {
     const ipAddress = '198.51.100.10';
 
-    const attemptOne = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
-    const attemptTwo = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
-    const attemptThree = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
-    const attemptFour = await registerBuyer({ email: createTestEmail() }, { 'CF-Connecting-IP': ipAddress });
+    const attemptOne = await registerBuyer(
+      { email: createTestEmail() },
+      { 'CF-Connecting-IP': ipAddress },
+    );
+    const attemptTwo = await registerBuyer(
+      { email: createTestEmail() },
+      { 'CF-Connecting-IP': ipAddress },
+    );
+    const attemptThree = await registerBuyer(
+      { email: createTestEmail() },
+      { 'CF-Connecting-IP': ipAddress },
+    );
+    const attemptFour = await registerBuyer(
+      { email: createTestEmail() },
+      { 'CF-Connecting-IP': ipAddress },
+    );
     const payload = await readJson<{
       success: boolean;
       error: { code: string };

@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { getDb, schema } from './index';
+import { closeDb, getDb, schema } from './index';
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
@@ -15,6 +15,8 @@ const database = getDb();
 if (!database) {
   throw new Error('DATABASE_URL is required to run the load-user seed script.');
 }
+
+const db = database;
 
 const DEFAULT_PASSWORD = process.env.LOAD_TEST_PASSWORD ?? 'LoadTest123!';
 const DEFAULT_BATCH_SIZE = Number.parseInt(process.env.LOAD_TEST_BATCH_SIZE ?? '200', 10);
@@ -58,7 +60,7 @@ async function seedGroup(group: SeedGroup, passwordHash: string) {
       });
     }
 
-    const inserted = await database
+    const inserted = await db
       .insert(users)
       .values(values)
       .onConflictDoNothing({ target: users.email })
@@ -103,4 +105,8 @@ async function main() {
   }
 }
 
-await main();
+try {
+  await main();
+} finally {
+  await closeDb(db, { timeout: 5 });
+}

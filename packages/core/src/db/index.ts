@@ -3,6 +3,11 @@ import postgres from 'postgres';
 
 import * as schema from './schema';
 
+type DatabaseClient = ReturnType<typeof postgres>;
+type CloseDbOptions = {
+  timeout?: number;
+};
+
 const globalScope = globalThis as typeof globalThis & {
   process?: {
     env?: Record<string, string | undefined>;
@@ -20,7 +25,20 @@ export function createDb(databaseUrl: string) {
   return drizzle(client, { schema });
 }
 
+export function createDbWithConfig(databaseUrl: string, maxConnections: number) {
+  const client = postgres(databaseUrl, {
+    max: maxConnections,
+    prepare: false,
+  });
+
+  return drizzle(client, { schema });
+}
+
 export type Database = ReturnType<typeof createDb>;
+
+function getDbClient(database: Database) {
+  return (database as Database & { $client: DatabaseClient }).$client;
+}
 
 function getDbCache() {
   if (!globalScope.__jeevatixDbCache) {
@@ -45,24 +63,76 @@ function getMaxConnections() {
   return 20;
 }
 
-export function getDb(databaseUrl?: string) {
+function resolveMaxConnections(maxConnections?: number) {
+  if (typeof maxConnections === 'number' && Number.isFinite(maxConnections) && maxConnections > 0) {
+    return Math.trunc(maxConnections);
+  }
+
+  return getMaxConnections();
+}
+
+function buildCloseOptions(options?: CloseDbOptions) {
+  if (
+    typeof options?.timeout === 'number' &&
+    Number.isFinite(options.timeout) &&
+    options.timeout >= 0
+  ) {
+    return { timeout: options.timeout };
+  }
+
+  return undefined;
+}
+
+function removeDbFromCache(database: Database) {
+  const cache = getDbCache();
+
+  for (const [cacheKey, cachedDb] of cache.entries()) {
+    if (cachedDb === database) {
+      cache.delete(cacheKey);
+    }
+  }
+}
+
+export function getDb(databaseUrl?: string, maxConnections?: number) {
   const resolvedDatabaseUrl = databaseUrl ?? getLocalDatabaseUrl();
 
   if (!resolvedDatabaseUrl) {
     return null;
   }
 
+  const resolvedMaxConnections = resolveMaxConnections(maxConnections);
   const cache = getDbCache();
-  const cachedDb = cache.get(resolvedDatabaseUrl);
+  const cacheKey = `${resolvedDatabaseUrl}::max=${resolvedMaxConnections}`;
+  const cachedDb = cache.get(cacheKey);
 
   if (cachedDb) {
     return cachedDb;
   }
 
-  const db = createDb(resolvedDatabaseUrl);
-  cache.set(resolvedDatabaseUrl, db);
+  const db = createDbWithConfig(resolvedDatabaseUrl, resolvedMaxConnections);
+  cache.set(cacheKey, db);
 
   return db;
+}
+
+export async function closeDb(database?: Database | null, options?: CloseDbOptions) {
+  if (!database) {
+    return;
+  }
+
+  removeDbFromCache(database);
+  await getDbClient(database).end(buildCloseOptions(options));
+}
+
+export async function closeAllDbs(options?: CloseDbOptions) {
+  const cache = getDbCache();
+  const databases = Array.from(new Set(cache.values()));
+
+  cache.clear();
+
+  await Promise.all(
+    databases.map(async (database) => getDbClient(database).end(buildCloseOptions(options))),
+  );
 }
 
 export const db = getDb();

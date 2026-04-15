@@ -49,12 +49,7 @@ export async function getConvertedReservationCounts(tierIds: string[], databaseU
       quantity: sql<number>`coalesce(sum(${reservations.quantity}), 0)::int`,
     })
     .from(reservations)
-    .where(
-      and(
-        inArray(reservations.ticketTierId, tierIds),
-        eq(reservations.status, 'converted'),
-      ),
-    )
+    .where(and(inArray(reservations.ticketTierId, tierIds), eq(reservations.status, 'converted')))
     .groupBy(reservations.ticketTierId);
 
   return new Map(rows.map((row) => [row.ticketTierId, row.quantity]));
@@ -76,9 +71,7 @@ export async function getConvertedReservationCountsByEvent(
     })
     .from(reservations)
     .innerJoin(ticketTiers, eq(ticketTiers.id, reservations.ticketTierId))
-    .where(
-      and(inArray(ticketTiers.eventId, eventIds), eq(reservations.status, 'converted')),
-    )
+    .where(and(inArray(ticketTiers.eventId, eventIds), eq(reservations.status, 'converted')))
     .groupBy(ticketTiers.eventId);
 
   return new Map(rows.map((row) => [row.eventId, row.quantity]));

@@ -1,6 +1,11 @@
 import { createMiddleware } from 'hono/factory';
 import type { Context } from 'hono';
 
+import {
+  getReservationLoadTestProfile,
+  logTimedSteps,
+  type TimedStep,
+} from '../lib/load-test-profile';
 import type { AuthEnv } from './auth';
 
 type RateLimitRecord = {
@@ -68,7 +73,21 @@ export function createRateLimitMiddleware({
       return;
     }
 
+    const requestUrl = c.req.raw.url;
+    const profile =
+      c.var.loadTestProfile ?? getReservationLoadTestProfile(requestUrl, c.req.raw.headers);
+    const startedAt = profile.enabled ? Date.now() : 0;
+    const steps: TimedStep[] = [];
+
+    const keyStartedAt = profile.enabled ? Date.now() : 0;
     const key = await keyGenerator(c);
+
+    if (profile.enabled) {
+      steps.push({
+        step: 'key_generator',
+        durationMs: Date.now() - keyStartedAt,
+      });
+    }
 
     if (!key) {
       await next();
@@ -77,7 +96,15 @@ export function createRateLimitMiddleware({
 
     const now = Date.now();
 
+    const cleanupStartedAt = profile.enabled ? Date.now() : 0;
     cleanupExpiredRecords(now);
+
+    if (profile.enabled) {
+      steps.push({
+        step: 'cleanup_expired_records',
+        durationMs: Date.now() - cleanupStartedAt,
+      });
+    }
 
     const bucketKey = `${name}:${key}`;
     const existing = rateLimitStore.get(bucketKey);
@@ -88,6 +115,20 @@ export function createRateLimitMiddleware({
         resetAt: now + windowMs,
       });
       await next();
+
+      if (profile.enabled) {
+        logTimedSteps(
+          profile,
+          'rateLimit.middleware',
+          {
+            name,
+            path: new URL(requestUrl).pathname,
+            outcome: 'new_bucket',
+            totalDurationMs: Date.now() - startedAt,
+          },
+          steps,
+        );
+      }
       return;
     }
 
@@ -103,6 +144,20 @@ export function createRateLimitMiddleware({
     existing.count += 1;
     rateLimitStore.set(bucketKey, existing);
     await next();
+
+    if (profile.enabled) {
+      logTimedSteps(
+        profile,
+        'rateLimit.middleware',
+        {
+          name,
+          path: new URL(requestUrl).pathname,
+          outcome: 'incremented',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
+    }
   });
 }
 

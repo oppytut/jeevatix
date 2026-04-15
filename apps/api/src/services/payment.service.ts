@@ -422,12 +422,15 @@ async function loadSuccessfulPaymentFulfillmentPayload(orderId: string, database
   } satisfies SuccessfulPaymentFulfillmentPayload;
 }
 
-async function fulfillSuccessfulPayment(env: PaymentServiceEnv, orderId: string, databaseUrl?: string) {
+async function fulfillSuccessfulPayment(
+  env: PaymentServiceEnv,
+  orderId: string,
+  databaseUrl?: string,
+) {
   const fulfillmentPayload = await loadSuccessfulPaymentFulfillmentPayload(orderId, databaseUrl);
   await generateTickets(orderId, databaseUrl);
   await enqueuePostPaymentEffects(env, fulfillmentPayload);
 }
-
 
 export const paymentService = {
   async initiatePayment(
@@ -531,106 +534,91 @@ export const paymentService = {
 
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
     const database = getDatabase(databaseUrl);
-    const paymentLookupStartedAt = Date.now();
-    const [payment] = await database
-      .select({
-        id: payments.id,
-        orderId: payments.orderId,
-        status: payments.status,
-        externalRef: payments.externalRef,
-        order: {
-          id: orders.id,
-          reservationId: orders.reservationId,
-          status: orders.status,
-          expiresAt: orders.expiresAt,
-        },
-      })
-      .from(payments)
-      .innerJoin(orders, eq(payments.orderId, orders.id))
-      .where(eq(payments.externalRef, body.external_ref))
-      .limit(1);
-    steps.push({
-      step: 'payment_lookup',
-      durationMs: Date.now() - paymentLookupStartedAt,
-    });
-
-    if (!payment?.order || !payment.externalRef) {
-      throw new PaymentServiceError('PAYMENT_NOT_FOUND', 'Payment not found.');
-    }
-
-    if (payment.status === 'success') {
-      const ticketsStartedAt = Date.now();
-      await generateTickets(payment.order.id, databaseUrl);
-      steps.push({
-        step: 'generate_tickets_for_ignored_success',
-        durationMs: Date.now() - ticketsStartedAt,
-      });
-
-      logTimedSteps(
-        'payment.handleWebhook',
-        {
-          externalRef: body.external_ref,
-          outcome: 'ignored',
-          totalDurationMs: Date.now() - startedAt,
-        },
-        steps,
-      );
-
-      return {
-        order_id: payment.order.id,
-        payment_id: payment.id,
-        external_ref: payment.externalRef,
-        status: 'ignored',
-      };
-    }
-
-    if (payment.order.status !== 'pending') {
-      throw new PaymentServiceError('INVALID_STATE', 'Order is not awaiting payment confirmation.');
-    }
-
-    await markOrderExpiredIfNeeded(env, payment.order);
-
-    if (payment.order.expiresAt.getTime() <= Date.now()) {
-      throw new PaymentServiceError('INVALID_STATE', 'Order payment window has expired.');
-    }
-
     const paidAt = body.paid_at ? new Date(body.paid_at) : new Date();
 
-    if (body.status === 'failed') {
-      const failedUpdateStartedAt = Date.now();
-      await database
-        .update(payments)
-        .set({
-          status: 'failed',
-          updatedAt: new Date(),
-        })
-        .where(eq(payments.id, payment.id));
-      steps.push({
-        step: 'mark_payment_failed',
-        durationMs: Date.now() - failedUpdateStartedAt,
-      });
-
-      logTimedSteps(
-        'payment.handleWebhook',
-        {
-          externalRef: body.external_ref,
-          outcome: 'failed',
-          totalDurationMs: Date.now() - startedAt,
-        },
-        steps,
-      );
-
-      return {
-        order_id: payment.order.id,
-        payment_id: payment.id,
-        external_ref: payment.externalRef,
-        status: 'failed',
-      };
-    }
-
     const transitionStartedAt = Date.now();
+    const transitionQueuedAt = Date.now();
     const transactionSteps: TimedStep[] = [];
     const transitionResult = await database.transaction(async (tx) => {
+      transactionSteps.push({
+        step: 'transaction_queue_wait',
+        durationMs: Date.now() - transitionQueuedAt,
+      });
+
+      const paymentLookupStartedAt = Date.now();
+      const [payment] = await tx
+        .select({
+          id: payments.id,
+          orderId: payments.orderId,
+          status: payments.status,
+          externalRef: payments.externalRef,
+          order: {
+            id: orders.id,
+            reservationId: orders.reservationId,
+            status: orders.status,
+            expiresAt: orders.expiresAt,
+          },
+        })
+        .from(payments)
+        .innerJoin(orders, eq(payments.orderId, orders.id))
+        .where(eq(payments.externalRef, body.external_ref))
+        .limit(1);
+      transactionSteps.push({
+        step: 'payment_lookup',
+        durationMs: Date.now() - paymentLookupStartedAt,
+      });
+
+      if (!payment?.order || !payment.externalRef) {
+        throw new PaymentServiceError('PAYMENT_NOT_FOUND', 'Payment not found.');
+      }
+
+      if (payment.status === 'success') {
+        return {
+          outcome: 'ignored_existing_success',
+          orderId: payment.order.id,
+          paymentId: payment.id,
+          externalRef: payment.externalRef,
+        } as const;
+      }
+
+      if (payment.order.status !== 'pending') {
+        throw new PaymentServiceError(
+          'INVALID_STATE',
+          'Order is not awaiting payment confirmation.',
+        );
+      }
+
+      if (payment.order.expiresAt.getTime() <= Date.now()) {
+        return {
+          outcome: 'expired',
+          paymentId: payment.id,
+          externalRef: payment.externalRef,
+          order: payment.order,
+        } as const;
+      }
+
+      if (body.status === 'failed') {
+        const failedUpdateStartedAt = Date.now();
+        await tx
+          .update(payments)
+          .set({
+            status: 'failed',
+            updatedAt: new Date(),
+          })
+          .where(eq(payments.id, payment.id));
+        transactionSteps.push({
+          step: 'mark_payment_failed',
+          durationMs: Date.now() - failedUpdateStartedAt,
+        });
+
+        return {
+          outcome: 'failed',
+          orderId: payment.order.id,
+          paymentId: payment.id,
+          externalRef: payment.externalRef,
+        } as const;
+      }
+
       const updatePaymentStartedAt = Date.now();
       const [updatedPayment] = await tx
         .update(payments)
@@ -650,7 +638,10 @@ export const paymentService = {
 
       if (!updatedPayment) {
         return {
-          transitioned: false,
+          outcome: 'lost_race',
+          orderId: payment.order.id,
+          paymentId: payment.id,
+          externalRef: payment.externalRef,
         } as const;
       }
 
@@ -713,7 +704,11 @@ export const paymentService = {
       }
 
       return {
-        transitioned: true,
+        outcome: 'success',
+        orderId: payment.order.id,
+        paymentId: payment.id,
+        externalRef: payment.externalRef,
+        reservationId: payment.order.reservationId,
       } as const;
     });
     steps.push({
@@ -722,11 +717,63 @@ export const paymentService = {
     });
     steps.push(...transactionSteps);
 
-    if (transitionResult.transitioned && payment.order.reservationId) {
+    if (transitionResult.outcome === 'ignored_existing_success') {
+      const ticketsStartedAt = Date.now();
+      await generateTickets(transitionResult.orderId, databaseUrl);
+      steps.push({
+        step: 'generate_tickets_for_ignored_success',
+        durationMs: Date.now() - ticketsStartedAt,
+      });
+
+      logTimedSteps(
+        'payment.handleWebhook',
+        {
+          externalRef: body.external_ref,
+          outcome: 'ignored',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
+
+      return {
+        order_id: transitionResult.orderId,
+        payment_id: transitionResult.paymentId,
+        external_ref: transitionResult.externalRef,
+        status: 'ignored',
+      };
+    }
+
+    if (transitionResult.outcome === 'expired') {
+      await markOrderExpiredIfNeeded(env, transitionResult.order);
+      throw new PaymentServiceError('INVALID_STATE', 'Order payment window has expired.');
+    }
+
+    if (transitionResult.outcome === 'failed') {
+      logTimedSteps(
+        'payment.handleWebhook',
+        {
+          externalRef: body.external_ref,
+          outcome: 'failed',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
+
+      return {
+        order_id: transitionResult.orderId,
+        payment_id: transitionResult.paymentId,
+        external_ref: transitionResult.externalRef,
+        status: 'failed',
+      };
+    }
+
+    if (transitionResult.outcome === 'success' && transitionResult.reservationId) {
+      const reservationId = transitionResult.reservationId;
+
       if (
         scheduleBackgroundTask(
           backgroundTaskScheduler,
-          () => confirmReservation(env, payment.order.reservationId!),
+          () => confirmReservation(env, reservationId),
           'sync_reservation_state',
         )
       ) {
@@ -736,7 +783,7 @@ export const paymentService = {
         });
       } else {
         const syncReservationStartedAt = Date.now();
-        await confirmReservation(env, payment.order.reservationId);
+        await confirmReservation(env, reservationId);
         steps.push({
           step: 'sync_reservation_state',
           durationMs: Date.now() - syncReservationStartedAt,
@@ -744,10 +791,10 @@ export const paymentService = {
       }
     }
 
-    if (!transitionResult.transitioned) {
+    if (transitionResult.outcome === 'lost_race') {
       const latestPaymentLookupStartedAt = Date.now();
       const latestPayment = await database.query.payments.findFirst({
-        where: eq(payments.id, payment.id),
+        where: eq(payments.id, transitionResult.paymentId),
         columns: {
           status: true,
         },
@@ -759,7 +806,7 @@ export const paymentService = {
 
       if (latestPayment?.status === 'success') {
         const ticketsStartedAt = Date.now();
-        await generateTickets(payment.order.id, databaseUrl);
+        await generateTickets(transitionResult.orderId, databaseUrl);
         steps.push({
           step: 'generate_tickets_after_race',
           durationMs: Date.now() - ticketsStartedAt,
@@ -776,9 +823,9 @@ export const paymentService = {
         );
 
         return {
-          order_id: payment.order.id,
-          payment_id: payment.id,
-          external_ref: payment.externalRef,
+          order_id: transitionResult.orderId,
+          payment_id: transitionResult.paymentId,
+          external_ref: transitionResult.externalRef,
           status: 'ignored',
         };
       }
@@ -789,7 +836,7 @@ export const paymentService = {
     if (
       scheduleBackgroundTask(
         backgroundTaskScheduler,
-        () => fulfillSuccessfulPayment(env, payment.order.id, databaseUrl),
+        () => fulfillSuccessfulPayment(env, transitionResult.orderId, databaseUrl),
         'fulfill_successful_payment',
       )
     ) {
@@ -799,7 +846,7 @@ export const paymentService = {
       });
     } else {
       const fulfillmentStartedAt = Date.now();
-      await fulfillSuccessfulPayment(env, payment.order.id, databaseUrl);
+      await fulfillSuccessfulPayment(env, transitionResult.orderId, databaseUrl);
       steps.push({
         step: 'successful_payment_fulfillment',
         durationMs: Date.now() - fulfillmentStartedAt,
@@ -817,9 +864,9 @@ export const paymentService = {
     );
 
     return {
-      order_id: payment.order.id,
-      payment_id: payment.id,
-      external_ref: payment.externalRef,
+      order_id: transitionResult.orderId,
+      payment_id: transitionResult.paymentId,
+      external_ref: transitionResult.externalRef,
       status: 'success',
     };
   },

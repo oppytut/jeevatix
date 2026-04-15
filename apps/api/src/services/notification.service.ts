@@ -282,15 +282,15 @@ export const notificationService = {
     }
 
     const notificationValues: NotificationInsert[] = recipients.map((recipient) => ({
-        userId: recipient.id,
-        type: 'info',
-        title: input.title,
-        body: input.body,
-        metadata: {
-          target_role: targetRole,
-          broadcast: true,
-        },
-      }));
+      userId: recipient.id,
+      type: 'info',
+      title: input.title,
+      body: input.body,
+      metadata: {
+        target_role: targetRole,
+        broadcast: true,
+      },
+    }));
 
     await database.insert(notifications).values(notificationValues);
 

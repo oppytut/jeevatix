@@ -4,6 +4,11 @@ import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth
 import { createRateLimitMiddleware } from '../middleware/rate-limit';
 import { errorResponseSchema } from '../schemas/auth.schema';
 import {
+  getReservationLoadTestProfile,
+  logTimedSteps,
+  type TimedStep,
+} from '../lib/load-test-profile';
+import {
   adminReservationListQuerySchema,
   adminReservationsListResponseSchema,
 } from '../schemas/admin.schema';
@@ -222,13 +227,55 @@ const listAdminReservationsRoute = createRoute({
 });
 
 app.openapi(createReservationRoute, async (c) => {
+  const profile =
+    c.var.loadTestProfile ?? getReservationLoadTestProfile(c.req.raw.url, c.req.raw.headers);
+  const startedAt = profile.enabled ? Date.now() : 0;
+  const steps: TimedStep[] = [];
+  const parseBodyStartedAt = profile.enabled ? Date.now() : 0;
   const body = c.req.valid('json');
 
+  if (profile.enabled) {
+    steps.push({
+      step: 'validate_body',
+      durationMs: Date.now() - parseBodyStartedAt,
+    });
+  }
+
   try {
-    const result = await reservationService.reserve(c.env, c.var.user.id, body);
+    const serviceStartedAt = profile.enabled ? Date.now() : 0;
+    const result = await reservationService.reserve(c.env, c.var.user.id, body, profile);
+
+    if (profile.enabled) {
+      steps.push({
+        step: 'service_reserve',
+        durationMs: Date.now() - serviceStartedAt,
+      });
+    }
+
+    logTimedSteps(
+      profile,
+      'reservation.route.create',
+      {
+        ticketTierId: body.ticket_tier_id,
+        outcome: 'success',
+        totalDurationMs: Date.now() - startedAt,
+      },
+      steps,
+    );
 
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
+    logTimedSteps(
+      profile,
+      'reservation.route.create',
+      {
+        ticketTierId: body.ticket_tier_id,
+        outcome: error instanceof ReservationServiceError ? error.code : 'INTERNAL_SERVER_ERROR',
+        totalDurationMs: Date.now() - startedAt,
+      },
+      steps,
+    );
+
     return handleError(c, error) as never;
   }
 });

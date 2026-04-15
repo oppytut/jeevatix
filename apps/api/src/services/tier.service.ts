@@ -185,9 +185,9 @@ export const tierService = {
       );
     }
 
-            const values: Partial<typeof ticketTiers.$inferInsert> = {
-          updatedAt: new Date(),
-            };
+    const values: Partial<typeof ticketTiers.$inferInsert> = {
+      updatedAt: new Date(),
+    };
 
     if (input.name !== undefined) {
       values.name = input.name.trim();

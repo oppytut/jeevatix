@@ -11,7 +11,7 @@ import type {
 } from '../schemas/public-event.schema';
 import { getActiveReservationCounts, getConvertedReservationCounts } from './reservation-counts';
 
-const { categories, eventCategories, events, reservations, ticketTiers } = schema;
+const { categories, eventCategories, events, ticketTiers } = schema;
 
 const PUBLIC_EVENT_STATUSES = ['published', 'ongoing'] as const;
 
@@ -105,7 +105,10 @@ function buildListConditions(query: ListEventsQuery) {
 
   if (query.search) {
     const searchTerm = `%${query.search.trim()}%`;
-    const searchCondition = or(ilike(events.title, searchTerm), ilike(events.description, searchTerm));
+    const searchCondition = or(
+      ilike(events.title, searchTerm),
+      ilike(events.description, searchTerm),
+    );
 
     if (searchCondition) {
       conditions.push(searchCondition);
@@ -343,7 +346,8 @@ export const publicEventService = {
         price: Number(tier.price),
         quota: tier.quota,
         remaining: Math.max(
-          tier.quota - (convertedReservationCounts.get(tier.id) ?? 0) -
+          tier.quota -
+            (convertedReservationCounts.get(tier.id) ?? 0) -
             (activeReservationCounts.get(tier.id) ?? 0),
           0,
         ),

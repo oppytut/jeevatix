@@ -18,11 +18,13 @@ import {
   users,
 } from './schema';
 
-const { db } = await import('./index');
+const { closeDb, db: importedDb } = await import('./index');
 
-if (!db) {
+if (!importedDb) {
   throw new Error('DATABASE_URL is required to run the seed script.');
 }
+
+const db = importedDb;
 
 const categorySeeds = [
   { name: 'Musik', slug: 'musik', icon: 'music-4' },
@@ -344,4 +346,8 @@ async function main() {
   console.log('Seed completed successfully.');
 }
 
-await main();
+try {
+  await main();
+} finally {
+  await closeDb(db, { timeout: 5 });
+}

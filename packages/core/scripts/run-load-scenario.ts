@@ -1,8 +1,11 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import postgres from 'postgres';
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
 
 type Scenario = 'war-ticket' | 'checkout-flow';
 
@@ -17,7 +20,7 @@ function getScenario(): Scenario {
 }
 
 function getRepoRoot() {
-  return resolve(import.meta.dirname, '../../..');
+  return resolve(currentDir, '../../..');
 }
 
 function loadDotEnv(envFilePath: string) {
@@ -48,12 +51,58 @@ function loadDotEnv(envFilePath: string) {
   }
 }
 
+function shouldAutoSeedFreshCheckoutUsers(scenario: Scenario) {
+  return (
+    scenario === 'checkout-flow' &&
+    process.env.CHECKOUT_LOAD_TEST_FRESH_USERS === '1' &&
+    !process.env.CHECKOUT_LOAD_TEST_PREFIX
+  );
+}
+
+function buildFreshCheckoutPrefix() {
+  return `checkoutfresh${Date.now()}`;
+}
+
+function seedFreshCheckoutUsers(repoRoot: string, prefix: string) {
+  const checkoutUserCount = process.env.CHECKOUT_LOAD_TEST_USER_COUNT ?? '500';
+
+  console.log('='.repeat(60));
+  console.log(`[seed] Seeding fresh checkout users with prefix=${prefix}`);
+  console.log(`[seed] checkout user count=${checkoutUserCount}`);
+  console.log('='.repeat(60));
+
+  const seedResult = spawnSync(
+    'pnpm',
+    ['--filter', '@jeevatix/core', 'exec', 'tsx', 'src/db/seed-load-users.ts'],
+    {
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        CHECKOUT_LOAD_TEST_PREFIX: prefix,
+        CHECKOUT_LOAD_TEST_USER_COUNT: checkoutUserCount,
+        LOAD_TEST_USER_COUNT: '0',
+      },
+      stdio: 'inherit',
+    },
+  );
+
+  if ((seedResult.status ?? 1) !== 0) {
+    throw new Error('Failed to seed fresh checkout users before running the load test.');
+  }
+
+  process.env.CHECKOUT_LOAD_TEST_PREFIX = prefix;
+  process.env.CHECKOUT_LOAD_TEST_USER_COUNT = checkoutUserCount;
+  process.env.LOAD_TEST_USER_COUNT = '0';
+}
+
 async function validateTierState(sql: postgres.Sql, targetTier: string) {
-  const rows = await sql<{
-    id: string;
-    quota: number;
-    sold_count: number;
-  }[]>`
+  const rows = await sql<
+    {
+      id: string;
+      quota: number;
+      sold_count: number;
+    }[]
+  >`
     select id, quota, sold_count
     from ticket_tiers
     where id = ${targetTier}
@@ -77,12 +126,14 @@ async function validateTierState(sql: postgres.Sql, targetTier: string) {
 
 async function validateCheckoutState(sql: postgres.Sql, targetEventSlug: string) {
   const loadCheckoutState = async () => {
-    const rows = await sql<{
-      slug: string;
-      confirmed_orders: number;
-      confirmed_tickets: number;
-      issued_tickets: number;
-    }[]>`
+    const rows = await sql<
+      {
+        slug: string;
+        confirmed_orders: number;
+        confirmed_tickets: number;
+        issued_tickets: number;
+      }[]
+    >`
       with confirmed_totals as (
         select
           tt.event_id,
@@ -145,6 +196,11 @@ async function main() {
   const scenario = getScenario();
   const repoRoot = getRepoRoot();
   loadDotEnv(resolve(repoRoot, '.env'));
+
+  if (shouldAutoSeedFreshCheckoutUsers(scenario)) {
+    seedFreshCheckoutUsers(repoRoot, buildFreshCheckoutPrefix());
+  }
+
   const scriptPath =
     scenario === 'war-ticket'
       ? resolve(repoRoot, 'tests/load/war-ticket.js')

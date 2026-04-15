@@ -12,12 +12,24 @@ const PASSWORD = __ENV.LOAD_TEST_PASSWORD || 'LoadTest123!';
 const LOGIN_BATCH_SIZE = parseInt(__ENV.LOGIN_BATCH_SIZE || '100', 10);
 const PAYMENT_METHOD = __ENV.PAYMENT_METHOD || 'bank_transfer';
 const PAYMENT_WEBHOOK_SECRET = __ENV.PAYMENT_WEBHOOK_SECRET || 'local-load-test-webhook-secret';
+const RESERVATION_CONNECTION_CLOSE = __ENV.RESERVATION_CONNECTION_CLOSE === '1';
+const LOAD_TEST_CLIENT_START_HEADER = 'x-load-test-client-start-ms';
 
 const flowSuccess = new Counter('checkout_flow_success');
 const flowFailed = new Counter('checkout_flow_failed');
 const reservationSoldOut = new Counter('checkout_flow_reservation_sold_out');
 const reservationStep = new Trend('step_reservation_duration', true);
+const reservationHttpDuration = new Trend('reservation_http_duration', true);
+const reservationHttpBlocked = new Trend('reservation_http_blocked', true);
+const reservationHttpConnecting = new Trend('reservation_http_connecting', true);
+const reservationHttpWaiting = new Trend('reservation_http_waiting', true);
+const reservationClientOverhead = new Trend('reservation_client_overhead', true);
 const orderStep = new Trend('step_order_duration', true);
+const orderHttpDuration = new Trend('order_http_duration', true);
+const orderHttpBlocked = new Trend('order_http_blocked', true);
+const orderHttpConnecting = new Trend('order_http_connecting', true);
+const orderHttpWaiting = new Trend('order_http_waiting', true);
+const orderClientOverhead = new Trend('order_client_overhead', true);
 const paymentStep = new Trend('step_payment_duration', true);
 const webhookStep = new Trend('step_webhook_duration', true);
 const fullFlowDuration = new Trend('full_flow_duration', true);
@@ -135,6 +147,16 @@ export default function (data) {
 
   group('Step 1 — Reserve Ticket', function () {
     const start = Date.now();
+    const reservationHeaders = RESERVATION_CONNECTION_CLOSE
+      ? {
+          ...headers,
+          Connection: 'close',
+          [LOAD_TEST_CLIENT_START_HEADER]: String(start),
+        }
+      : {
+          ...headers,
+          [LOAD_TEST_CLIENT_START_HEADER]: String(start),
+        };
     const res = http.post(
       `${BASE_URL}/reservations`,
       JSON.stringify({
@@ -142,11 +164,17 @@ export default function (data) {
         quantity: 1,
       }),
       {
-        headers,
+        headers: reservationHeaders,
         responseCallback: http.expectedStatuses(201),
       },
     );
-    reservationStep.add(Date.now() - start);
+    const reservationElapsed = Date.now() - start;
+    reservationStep.add(reservationElapsed);
+    reservationHttpDuration.add(res.timings.duration);
+    reservationHttpBlocked.add(res.timings.blocked);
+    reservationHttpConnecting.add(res.timings.connecting);
+    reservationHttpWaiting.add(res.timings.waiting);
+    reservationClientOverhead.add(Math.max(0, reservationElapsed - res.timings.duration));
     reservationStatus = res.status;
     reservationBody = res.body;
 
@@ -199,7 +227,13 @@ export default function (data) {
         responseCallback: http.expectedStatuses(201),
       },
     );
-    orderStep.add(Date.now() - start);
+    const orderElapsed = Date.now() - start;
+    orderStep.add(orderElapsed);
+    orderHttpDuration.add(res.timings.duration);
+    orderHttpBlocked.add(res.timings.blocked);
+    orderHttpConnecting.add(res.timings.connecting);
+    orderHttpWaiting.add(res.timings.waiting);
+    orderClientOverhead.add(Math.max(0, orderElapsed - res.timings.duration));
 
     const orderOk = check(res, {
       'order: status 201': (response) => response.status === 201,

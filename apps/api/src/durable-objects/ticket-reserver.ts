@@ -1,10 +1,14 @@
-import { getDb, schema } from '@jeevatix/core';
+import { getDb, schema, type Database } from '@jeevatix/core';
 import { and, eq, sql } from 'drizzle-orm';
+
+import { logTimedSteps, type LoadTestProfile, type TimedStep } from '../lib/load-test-profile';
 
 const RESERVATION_TTL_MINUTES = 10;
 
 type TicketReserverEnv = {
   DATABASE_URL?: string;
+  TICKET_RESERVER_DATABASE_URL?: string;
+  TICKET_RESERVER_DB_MAX_CONNECTIONS?: string;
   PARTYKIT_HOST?: string;
   PARTY_SECRET?: string;
 };
@@ -31,6 +35,7 @@ type ReserveRequest = {
   userId: string;
   tierId: string;
   quantity: number;
+  profile?: LoadTestProfile;
 };
 
 type CancelRequest = {
@@ -94,10 +99,30 @@ type ErrorResponse = {
   message: string;
 };
 
-type TimedStep = {
-  step: string;
-  durationMs: number;
+type DatabaseClientDebugFn = (
+  connectionId: number,
+  queryText: string,
+  parameters: unknown[],
+  parameterTypes: unknown[],
+) => void;
+
+type DatabaseClient = Database extends { $client: infer Client } ? Client : never;
+
+type InstrumentedDatabaseClient = DatabaseClient & {
+  options: {
+    debug?: boolean | DatabaseClientDebugFn;
+  };
 };
+
+type DebugProbeState = {
+  pending: Map<string, Array<() => void>>;
+};
+
+const databaseDebugProbes = new WeakMap<InstrumentedDatabaseClient, DebugProbeState>();
+const preparedInsertReservationQueries = new WeakMap<
+  Database,
+  ReturnType<typeof buildPreparedInsertReservationQuery>
+>();
 
 const { reservations, ticketTiers } = schema;
 
@@ -139,30 +164,22 @@ function getDatabaseUrl(envDatabaseUrl?: string) {
   return envDatabaseUrl ?? getProcessEnv('DATABASE_URL');
 }
 
+function getMaxConnections(rawValue?: string) {
+  const parsedValue = Number.parseInt(rawValue ?? '', 10);
+
+  if (Number.isFinite(parsedValue) && parsedValue > 0) {
+    return parsedValue;
+  }
+
+  return undefined;
+}
+
 function getPartyKitHost(envPartyKitHost?: string) {
   return envPartyKitHost ?? getProcessEnv('PARTYKIT_HOST');
 }
 
 function getPartySecret(envPartySecret?: string) {
   return envPartySecret ?? getProcessEnv('PARTY_SECRET');
-}
-
-function shouldProfileLoadTests() {
-  return getProcessEnv('LOAD_TEST_PROFILE') === '1';
-}
-
-function logTimedSteps(scope: string, details: Record<string, unknown>, steps: TimedStep[]) {
-  if (!shouldProfileLoadTests()) {
-    return;
-  }
-
-  console.log(
-    `[load-profile] ${scope}`,
-    JSON.stringify({
-      ...details,
-      steps,
-    }),
-  );
 }
 
 function badRequest(message: string): Response {
@@ -209,11 +226,117 @@ function databaseUnavailable(): Response {
   );
 }
 
+function getDatabaseClient(database: Database) {
+  return (database as Database & { $client: InstrumentedDatabaseClient }).$client;
+}
+
+function buildQueryProbeKey(queryText: string, parameters: unknown[]) {
+  return `${queryText}\n${JSON.stringify(parameters)}`;
+}
+
+function getDebugProbeState(client: InstrumentedDatabaseClient) {
+  const existingState = databaseDebugProbes.get(client);
+
+  if (existingState) {
+    return existingState;
+  }
+
+  const pending = new Map<string, Array<() => void>>();
+  const originalDebug = client.options.debug;
+
+  client.options.debug = (
+    connectionId: number,
+    queryText: string,
+    parameters: unknown[],
+    parameterTypes: unknown[],
+  ) => {
+    const probeKey = buildQueryProbeKey(queryText, parameters);
+    const listeners = pending.get(probeKey);
+
+    if (listeners?.length) {
+      const listener = listeners.shift();
+      listener?.();
+
+      if (listeners.length === 0) {
+        pending.delete(probeKey);
+      }
+    }
+
+    if (typeof originalDebug === 'function') {
+      originalDebug(connectionId, queryText, parameters, parameterTypes);
+    }
+  };
+
+  const state = { pending } satisfies DebugProbeState;
+  databaseDebugProbes.set(client, state);
+  return state;
+}
+
+function registerQueryDebugProbe(
+  client: InstrumentedDatabaseClient,
+  queryText: string,
+  parameters: unknown[],
+  listener: () => void,
+) {
+  const state = getDebugProbeState(client);
+  const probeKey = buildQueryProbeKey(queryText, parameters);
+  const listeners = state.pending.get(probeKey) ?? [];
+  listeners.push(listener);
+  state.pending.set(probeKey, listeners);
+
+  return () => {
+    const activeListeners = state.pending.get(probeKey);
+
+    if (!activeListeners) {
+      return;
+    }
+
+    const listenerIndex = activeListeners.indexOf(listener);
+
+    if (listenerIndex >= 0) {
+      activeListeners.splice(listenerIndex, 1);
+    }
+
+    if (activeListeners.length === 0) {
+      state.pending.delete(probeKey);
+    }
+  };
+}
+
+function buildPreparedInsertReservationQuery(database: Database) {
+  return database
+    .insert(reservations)
+    .values({
+      id: sql.placeholder('reservationId'),
+      userId: sql.placeholder('userId'),
+      ticketTierId: sql.placeholder('tierId'),
+      quantity: sql.placeholder('quantity'),
+      status: 'active',
+      expiresAt: sql.placeholder('expiresAt'),
+    })
+    .prepare('ticket_reserver_insert_reservation_hot_path');
+}
+
+function getPreparedInsertReservationQuery(database: Database) {
+  const existingQuery = preparedInsertReservationQueries.get(database);
+
+  if (existingQuery) {
+    return existingQuery;
+  }
+
+  const preparedQuery = buildPreparedInsertReservationQuery(database);
+  preparedInsertReservationQueries.set(database, preparedQuery);
+  return preparedQuery;
+}
+
 export class TicketReserver extends DurableObjectBase {
   private readonly tierStates = new Map<string, TierState>();
 
   private getDatabase() {
-    const database = getDb(getDatabaseUrl(this.env.DATABASE_URL));
+    const database = getDb(
+      getDatabaseUrl(this.env.TICKET_RESERVER_DATABASE_URL ?? this.env.DATABASE_URL),
+      getMaxConnections(this.env.TICKET_RESERVER_DB_MAX_CONNECTIONS),
+    );
 
     if (!database) {
       throw new Error('DATABASE_UNAVAILABLE');
@@ -346,7 +469,7 @@ export class TicketReserver extends DurableObjectBase {
     void broadcastPromise;
   }
 
-  async reserve(userId: string, tierId: string, quantity: number) {
+  async reserve(userId: string, tierId: string, quantity: number, profile?: LoadTestProfile) {
     if (!userId) {
       throw new Error('USER_ID_REQUIRED');
     }
@@ -355,18 +478,23 @@ export class TicketReserver extends DurableObjectBase {
       throw new Error('INVALID_QUANTITY');
     }
 
-    const startedAt = Date.now();
+    const startedAt = profile?.enabled ? Date.now() : 0;
     const steps: TimedStep[] = [];
-    const ensureTierStartedAt = Date.now();
+    const ensureTierStartedAt = profile?.enabled ? Date.now() : 0;
     const tierState = await this.ensureTierState(tierId);
-    steps.push({
-      step: 'ensure_tier_state',
-      durationMs: Date.now() - ensureTierStartedAt,
-    });
+
+    if (profile?.enabled) {
+      steps.push({
+        step: 'ensure_tier_state',
+        durationMs: Date.now() - ensureTierStartedAt,
+      });
+    }
+
     const remaining = tierState.quota - tierState.soldCount - tierState.pendingReservations;
 
     if (remaining < quantity) {
       logTimedSteps(
+        profile,
         'ticketReserver.reserve',
         {
           tierId,
@@ -388,8 +516,8 @@ export class TicketReserver extends DurableObjectBase {
       const reservationId = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + RESERVATION_TTL_MINUTES * 60 * 1000);
       const database = this.getDatabase();
-      const insertReservationStartedAt = Date.now();
-      await database.insert(reservations).values({
+      const insertReservationStartedAt = profile?.enabled ? Date.now() : 0;
+      const insertReservationQuery = database.insert(reservations).values({
         id: reservationId,
         userId,
         ticketTierId: tierId,
@@ -397,12 +525,49 @@ export class TicketReserver extends DurableObjectBase {
         status: 'active',
         expiresAt,
       });
-      steps.push({
-        step: 'insert_reservation',
-        durationMs: Date.now() - insertReservationStartedAt,
-      });
+
+      if (profile?.enabled) {
+        const client = getDatabaseClient(database);
+        const { sql: queryText, params } = insertReservationQuery.toSQL();
+        const queuedAt = Date.now();
+        let executeStartedAt = queuedAt;
+        const unregisterDebugProbe = registerQueryDebugProbe(client, queryText, params, () => {
+          executeStartedAt = Date.now();
+          steps.push({
+            step: 'insert_reservation_pool_wait',
+            durationMs: executeStartedAt - queuedAt,
+          });
+        });
+
+        try {
+          await insertReservationQuery;
+          steps.push({
+            step: 'insert_reservation_execute',
+            durationMs: Math.max(0, Date.now() - executeStartedAt),
+          });
+        } finally {
+          unregisterDebugProbe();
+        }
+      } else {
+        const preparedQuery = getPreparedInsertReservationQuery(database);
+        await preparedQuery.execute({
+          reservationId,
+          userId,
+          tierId,
+          quantity,
+          expiresAt,
+        });
+      }
+
+      if (profile?.enabled) {
+        steps.push({
+          step: 'insert_reservation',
+          durationMs: Date.now() - insertReservationStartedAt,
+        });
+      }
 
       logTimedSteps(
+        profile,
         'ticketReserver.reserve',
         {
           tierId,
@@ -625,7 +790,12 @@ export class TicketReserver extends DurableObjectBase {
         case 'initialize':
           return Response.json(await this.initialize(payload.tierId));
         case 'reserve': {
-          const result = await this.reserve(payload.userId, payload.tierId, payload.quantity);
+          const result = await this.reserve(
+            payload.userId,
+            payload.tierId,
+            payload.quantity,
+            payload.profile,
+          );
 
           if (!result.ok) {
             return Response.json(result, { status: 409 });

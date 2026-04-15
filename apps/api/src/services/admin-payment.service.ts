@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, countDistinct, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, countDistinct, desc, eq, ilike, or } from 'drizzle-orm';
 
 import type {
   AdminPaymentDetail,

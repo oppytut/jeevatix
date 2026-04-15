@@ -1,5 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { customAlphabet } from 'nanoid';
 
 import type { ListTicketsQuery, TicketDetail, TicketListItem } from '../schemas/ticket.schema';
@@ -159,7 +159,9 @@ function toTicketDetail(row: {
 export async function generateTickets(orderId: string, databaseUrl?: string) {
   const database = getDatabase(databaseUrl);
   const issuedTickets = await database.transaction(async (tx) => {
-    await tx.execute(sql`select ${orders.id} from ${orders} where ${orders.id} = ${orderId} for update`);
+    await tx.execute(
+      sql`select ${orders.id} from ${orders} where ${orders.id} = ${orderId} for update`,
+    );
 
     const order = await tx.query.orders.findFirst({
       where: eq(orders.id, orderId),

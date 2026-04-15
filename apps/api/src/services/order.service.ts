@@ -154,9 +154,7 @@ function isRetryableDatabaseError(error: unknown) {
     return false;
   }
 
-  return ['40001', '40P01', '55P03', '08000', '08003', '08006', '08001'].includes(
-    pgError.code,
-  );
+  return ['40001', '40P01', '55P03', '08000', '08003', '08006', '08001'].includes(pgError.code);
 }
 
 function buildCreatedOrderDetail(input: {
@@ -405,34 +403,6 @@ type OrderCreationReservationRecord = {
   eventTitle: string;
 };
 
-async function getReservationForOrderCreation(
-  reservationId: string,
-  databaseUrl?: string,
-): Promise<OrderCreationReservationRecord | null> {
-  const database = getDatabase(databaseUrl);
-  const [reservation] = await database
-    .select({
-      id: reservations.id,
-      userId: reservations.userId,
-      ticketTierId: reservations.ticketTierId,
-      quantity: reservations.quantity,
-      status: reservations.status,
-      expiresAt: reservations.expiresAt,
-      tierName: ticketTiers.name,
-      tierPrice: ticketTiers.price,
-      eventId: events.id,
-      eventSlug: events.slug,
-      eventTitle: events.title,
-    })
-    .from(reservations)
-    .innerJoin(ticketTiers, eq(reservations.ticketTierId, ticketTiers.id))
-    .innerJoin(events, eq(ticketTiers.eventId, events.id))
-    .where(eq(reservations.id, reservationId))
-    .limit(1);
-
-  return reservation ?? null;
-}
-
 export const orderService = {
   async createOrder(
     env: OrderServiceEnv,
@@ -443,32 +413,8 @@ export const orderService = {
     const steps: TimedStep[] = [];
     const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
     const database = getDatabase(databaseUrl);
-    const reservationLookupStartedAt = Date.now();
-    const reservation = await getReservationForOrderCreation(input.reservation_id, databaseUrl);
-    steps.push({
-      step: 'reservation_lookup',
-      durationMs: Date.now() - reservationLookupStartedAt,
-    });
-
-    if (!reservation) {
-      throw new OrderServiceError('RESERVATION_NOT_FOUND', 'Reservation not found.');
-    }
-
-    if (reservation.userId !== userId) {
-      throw new OrderServiceError('FORBIDDEN', 'You do not have access to this reservation.');
-    }
-
-    if (reservation.status !== 'active') {
-      throw new OrderServiceError('INVALID_STATE', 'Reservation is no longer active.');
-    }
-
-    if (reservation.expiresAt.getTime() <= Date.now()) {
-      throw new OrderServiceError('INVALID_STATE', 'Reservation has expired.');
-    }
-
-    const unitPrice = Number(reservation.tierPrice);
-    const subtotal = unitPrice * reservation.quantity;
     let createdOrder: {
+      reservation: OrderCreationReservationRecord;
       order: {
         id: string;
         reservationId: string | null;
@@ -503,12 +449,64 @@ export const orderService = {
 
     for (let attempt = 0; attempt < 10; attempt += 1) {
       const orderNumber = await generateUniqueOrderNumber();
-      const now = new Date();
-      const orderExpiresAt = new Date(now.getTime() + ORDER_EXPIRY_MINUTES * 60 * 1000);
       const transactionStartedAt = Date.now();
+      const transactionQueuedAt = Date.now();
+      const attemptSteps: TimedStep[] = [];
 
       try {
         createdOrder = await database.transaction(async (tx) => {
+          attemptSteps.push({
+            step: 'transaction_queue_wait',
+            durationMs: Date.now() - transactionQueuedAt,
+          });
+
+          const now = new Date();
+          const orderExpiresAt = new Date(now.getTime() + ORDER_EXPIRY_MINUTES * 60 * 1000);
+
+          const reservationLookupStartedAt = Date.now();
+          const [reservation] = await tx
+            .select({
+              id: reservations.id,
+              userId: reservations.userId,
+              ticketTierId: reservations.ticketTierId,
+              quantity: reservations.quantity,
+              status: reservations.status,
+              expiresAt: reservations.expiresAt,
+              tierName: ticketTiers.name,
+              tierPrice: ticketTiers.price,
+              eventId: events.id,
+              eventSlug: events.slug,
+              eventTitle: events.title,
+            })
+            .from(reservations)
+            .innerJoin(ticketTiers, eq(reservations.ticketTierId, ticketTiers.id))
+            .innerJoin(events, eq(ticketTiers.eventId, events.id))
+            .where(eq(reservations.id, input.reservation_id))
+            .limit(1);
+          attemptSteps.push({
+            step: 'reservation_lookup',
+            durationMs: Date.now() - reservationLookupStartedAt,
+          });
+
+          if (!reservation) {
+            throw new OrderServiceError('RESERVATION_NOT_FOUND', 'Reservation not found.');
+          }
+
+          if (reservation.userId !== userId) {
+            throw new OrderServiceError('FORBIDDEN', 'You do not have access to this reservation.');
+          }
+
+          if (reservation.status !== 'active') {
+            throw new OrderServiceError('INVALID_STATE', 'Reservation is no longer active.');
+          }
+
+          if (reservation.expiresAt.getTime() <= now.getTime()) {
+            throw new OrderServiceError('INVALID_STATE', 'Reservation has expired.');
+          }
+
+          const unitPrice = Number(reservation.tierPrice);
+          const subtotal = unitPrice * reservation.quantity;
+          const insertOrderStartedAt = Date.now();
           const [order] = await tx
             .insert(orders)
             .values({
@@ -534,7 +532,12 @@ export const orderService = {
               createdAt: orders.createdAt,
               updatedAt: orders.updatedAt,
             });
+          attemptSteps.push({
+            step: 'tx_insert_order',
+            durationMs: Date.now() - insertOrderStartedAt,
+          });
 
+          const insertOrderItemStartedAt = Date.now();
           const [createdOrderItem] = await tx
             .insert(orderItems)
             .values({
@@ -551,7 +554,12 @@ export const orderService = {
               unitPrice: orderItems.unitPrice,
               subtotal: orderItems.subtotal,
             });
+          attemptSteps.push({
+            step: 'tx_insert_order_item',
+            durationMs: Date.now() - insertOrderItemStartedAt,
+          });
 
+          const insertPaymentStartedAt = Date.now();
           const [payment] = await tx
             .insert(payments)
             .values({
@@ -572,13 +580,19 @@ export const orderService = {
               createdAt: payments.createdAt,
               updatedAt: payments.updatedAt,
             });
+          attemptSteps.push({
+            step: 'tx_insert_payment',
+            durationMs: Date.now() - insertPaymentStartedAt,
+          });
 
           return {
+            reservation,
             order,
             orderItem: createdOrderItem,
             payment,
           };
         });
+        steps.push(...attemptSteps);
         steps.push({
           step: 'create_order_transaction',
           durationMs: Date.now() - transactionStartedAt,
@@ -650,11 +664,11 @@ export const orderService = {
       orderItem: createdOrder.orderItem,
       payment: createdOrder.payment,
       event: {
-        id: reservation.eventId,
-        slug: reservation.eventSlug,
-        title: reservation.eventTitle,
+        id: createdOrder.reservation.eventId,
+        slug: createdOrder.reservation.eventSlug,
+        title: createdOrder.reservation.eventTitle,
       },
-      tierName: reservation.tierName,
+      tierName: createdOrder.reservation.tierName,
     });
   },
 

@@ -213,6 +213,41 @@ pnpm run test:load         # K6 — load testing (war ticket simulation)
     `pnpm run test:e2e` saat ini memang ditujukan untuk mode lokal tersebut.
 * **Load Testing (K6):** Simulasi *war ticket* dengan 1000 virtual users untuk memastikan tidak ada *overselling*.
 
+Untuk investigasi performa checkout lokal dengan runner Node tunggal di `scripts/run-api-local.ts`, tersedia preset runner eksplisit agar benchmark tetap reproducible tanpa mengubah default local dev:
+
+```bash
+pnpm run dev:api:local:load:baseline   # app=50, DO=25, background tasks=8
+pnpm run dev:api:local:load:balanced   # app=52, DO=25, background tasks=8
+pnpm run dev:api:local:load:fullflow   # app=55, DO=25, background tasks=8
+```
+
+Ketiga preset itu hanya berlaku saat dipilih eksplisit. `pnpm run dev:api:local` tetap memakai env biasa tanpa override preset.
+
+Untuk membuat target event/tier benchmark checkout baru tanpa inline script manual:
+
+```bash
+pnpm run test:load:checkout:target
+```
+
+Perintah itu akan mencetak JSON berisi `targetEventSlug` dan `targetTier`, yang lalu bisa dipakai untuk `pnpm run test:load:checkout`.
+
+Untuk menjalankan benchmark checkout lokal end-to-end dalam satu command, gunakan preset berikut. Helper ini akan memilih port lokal yang kosong, start runner preset, membuat target event/tier benchmark baru, menjalankan `checkout-flow`, lalu menghentikan runner saat selesai:
+
+```bash
+pnpm run test:load:checkout:local
+pnpm run test:load:checkout:local:baseline
+pnpm run test:load:checkout:local:balanced
+pnpm run test:load:checkout:local:fullflow
+```
+
+Alias `pnpm run test:load:checkout:local` saat ini sengaja menunjuk ke preset `load-balanced`, karena itu adalah kompromi default terbaik yang sudah tervalidasi sejauh ini antara `full_flow_duration` dan regresi reservation/http tail pada runner Node lokal.
+
+Helper benchmark lokal di atas juga otomatis men-seed batch fresh checkout users jika caller belum memberi `CHECKOUT_LOAD_TEST_PREFIX`, sehingga hasil run lebih reproducible. Runner generik `pnpm run test:load:checkout` tidak melakukan fresh-user seeding kecuali Anda mengaktifkannya eksplisit dengan `CHECKOUT_LOAD_TEST_FRESH_USERS=1`.
+
+Jika perlu smoke test yang lebih cepat, override jumlah user saat memanggil command, misalnya `TOTAL_USERS=10 CHECKOUT_LOAD_TEST_USER_COUNT=10 pnpm run test:load:checkout:local:balanced`.
+
+Di akhir run, helper akan mencetak satu baris JSON berawalan `local-checkout-summary` yang merangkum preset, target, dan metrik utama p95 agar hasil lebih mudah dibandingkan antar run.
+
 ### Menjalankan E2E Lokal
 
 Untuk host Linux baru, install browser dan dependency sistem Playwright sekali:

@@ -1,5 +1,11 @@
 import { createMiddleware } from 'hono/factory';
 
+import {
+  getReservationLoadTestProfile,
+  logTimedSteps,
+  type LoadTestProfile,
+  type TimedStep,
+} from '../lib/load-test-profile';
 import { verifyToken, type TokenPayload, type UserRole } from '../lib/jwt';
 
 type AuthBindings = {
@@ -21,6 +27,7 @@ export type AuthEnv = {
   Bindings: AuthBindings;
   Variables: {
     user: AuthUser;
+    loadTestProfile?: LoadTestProfile;
   };
 };
 
@@ -63,6 +70,11 @@ function extractBearerToken(authorizationHeader?: string): string | null {
 }
 
 export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
+  const requestUrl = c.req.raw.url;
+  const profile = getReservationLoadTestProfile(requestUrl, c.req.raw.headers);
+  c.set('loadTestProfile', profile);
+  const startedAt = profile.enabled ? Date.now() : 0;
+  const steps: TimedStep[] = [];
   const token = extractBearerToken(c.req.header('Authorization'));
 
   if (!token) {
@@ -76,7 +88,15 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
   }
 
   try {
+    const verifyTokenStartedAt = profile.enabled ? Date.now() : 0;
     const payload = await verifyToken(token, secret);
+
+    if (profile.enabled) {
+      steps.push({
+        step: 'verify_token',
+        durationMs: Date.now() - verifyTokenStartedAt,
+      });
+    }
 
     if (payload.type !== 'access') {
       return c.json(jsonError('INVALID_TOKEN_TYPE', 'Access token is required.'), 401);
@@ -89,6 +109,19 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
     });
 
     await next();
+
+    if (profile.enabled) {
+      logTimedSteps(
+        profile,
+        'auth.middleware',
+        {
+          path: new URL(requestUrl).pathname,
+          outcome: 'success',
+          totalDurationMs: Date.now() - startedAt,
+        },
+        steps,
+      );
+    }
   } catch {
     return c.json(jsonError('UNAUTHORIZED', 'Invalid or expired token.'), 401);
   }
