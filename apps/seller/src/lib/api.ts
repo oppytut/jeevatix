@@ -3,9 +3,9 @@ import { browser } from '$app/environment';
 import {
   ApiError,
   API_BASE_URL,
-  clearAuthSession,
+  clearClientSessionState,
   ensureFreshAccessToken,
-  refreshSession,
+  refreshBrowserSession,
 } from '$lib/auth';
 
 type ApiErrorPayload = {
@@ -91,13 +91,13 @@ async function request<T>(method: string, path: string, options: RequestOptions 
   });
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && browser) {
-    const refreshedAccessToken = await refreshSession();
+    const refreshedAccessToken = await refreshBrowserSession();
 
     if (refreshedAccessToken) {
       return request<T>(method, path, { ...options, retryOnUnauthorized: false });
     }
 
-    clearAuthSession();
+    clearClientSessionState();
   }
 
   const payload = await parseJsonSafe<ApiResponse<T>>(response);
@@ -144,13 +144,13 @@ async function requestResponse<T, TMeta = unknown>(
   });
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && browser) {
-    const refreshedAccessToken = await refreshSession();
+    const refreshedAccessToken = await refreshBrowserSession();
 
     if (refreshedAccessToken) {
       return requestResponse<T, TMeta>(method, path, { ...options, retryOnUnauthorized: false });
     }
 
-    clearAuthSession();
+    clearClientSessionState();
   }
 
   const payload = await parseJsonSafe<ApiResponse<T>>(response);

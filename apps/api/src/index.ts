@@ -1,6 +1,7 @@
 import { apiReference } from '@scalar/hono-api-reference';
 import { OpenAPIHono } from '@hono/zod-openapi';
 
+import { RateLimiter } from './durable-objects/rate-limiter';
 import { TicketReserver } from './durable-objects/ticket-reserver';
 import authRoutes from './routes/auth';
 import type { AuthEnv } from './middleware/auth';
@@ -93,4 +94,4 @@ const worker = Object.assign(app, {
 
 export default worker;
 export { app };
-export { TicketReserver };
+export { RateLimiter, TicketReserver };

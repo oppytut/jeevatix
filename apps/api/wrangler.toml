@@ -5,11 +5,18 @@ compatibility_date = "2026-03-30"
 compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]
 
 [durable_objects]
-bindings = [{ name = "TICKET_RESERVER", class_name = "TicketReserver" }]
+bindings = [
+	{ name = "TICKET_RESERVER", class_name = "TicketReserver" },
+	{ name = "RATE_LIMITER", class_name = "RateLimiter" },
+]
 
 [[migrations]]
 tag = "v1"
 new_classes = ["TicketReserver"]
+
+[[migrations]]
+tag = "v2"
+new_classes = ["RateLimiter"]
 
 [[r2_buckets]]
 binding = "BUCKET"

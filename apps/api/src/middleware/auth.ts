@@ -14,6 +14,7 @@ type AuthBindings = {
   PARTYKIT_HOST?: string;
   PARTY_SECRET?: string;
   TICKET_RESERVER: DurableObjectNamespace;
+  RATE_LIMITER?: DurableObjectNamespace;
   BUCKET: R2Bucket;
   UPLOAD_PUBLIC_URL?: string;
   PAYMENT_WEBHOOK_SECRET?: string;
@@ -21,6 +22,7 @@ type AuthBindings = {
   EMAIL_FROM?: string;
   BUYER_APP_URL?: string;
   SELLER_APP_URL?: string;
+  CORS_ALLOWED_ORIGINS?: string;
   AUTH_EXPOSE_DEBUG_TOKENS?: string;
 };
 

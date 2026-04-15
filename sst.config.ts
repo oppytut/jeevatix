@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="./.sst/platform/config.d.ts" />
 
 const configuredStage =
@@ -35,6 +36,42 @@ const buyerScriptName = process.env.BUYER_WORKER_NAME ?? `jeevatix-${stage}-buye
 const adminScriptName = process.env.ADMIN_WORKER_NAME ?? `jeevatix-${stage}-admin`;
 const sellerScriptName = process.env.SELLER_WORKER_NAME ?? `jeevatix-${stage}-seller`;
 
+const localPortalOrigins = [
+  'http://localhost:4301',
+  'http://localhost:4302',
+  'http://localhost:4303',
+];
+
+type WorkerBinding = {
+  name: string;
+  type: string;
+  className?: string;
+  bucketName?: string;
+  queueName?: string;
+  scriptName?: string;
+};
+
+type WorkerTransformArgs = Record<string, unknown> & {
+  bindings?: WorkerBinding[];
+  scriptName?: string;
+  compatibilityDate?: string;
+  compatibilityFlags?: string[];
+  observability?: {
+    enabled: boolean;
+    logs: {
+      enabled: boolean;
+      invocationLogs: boolean;
+      destinations: string[];
+      persist: boolean;
+    };
+  };
+  migrations?: {
+    oldTag?: string;
+    newTag?: string;
+    newClasses?: string[];
+  };
+};
+
 function requireEnv(name: string) {
   const value = process.env[name];
 
@@ -47,6 +84,18 @@ function requireEnv(name: string) {
 
 function maybeEnv(name: string) {
   return process.env[name];
+}
+
+function buildCorsAllowedOrigins() {
+  const origins = isProduction
+    ? [
+        `https://${productionDomains.buyer}`,
+        `https://${productionDomains.admin}`,
+        `https://${productionDomains.seller}`,
+      ]
+    : localPortalOrigins;
+
+  return origins.join(',');
 }
 
 function createApiEnvironment() {
@@ -63,6 +112,7 @@ function createApiEnvironment() {
     SELLER_APP_URL:
       maybeEnv('SELLER_APP_URL') ??
       (isProduction ? `https://${productionDomains.seller}` : undefined),
+    CORS_ALLOWED_ORIGINS: maybeEnv('CORS_ALLOWED_ORIGINS') ?? buildCorsAllowedOrigins(),
     AUTH_EXPOSE_DEBUG_TOKENS: maybeEnv('AUTH_EXPOSE_DEBUG_TOKENS'),
     PARTY_SECRET: maybeEnv('PARTY_SECRET'),
     PARTYKIT_HOST: maybeEnv('PARTYKIT_HOST'),
@@ -72,7 +122,7 @@ function createApiEnvironment() {
 }
 
 function applyApiWorkerTransform(
-  args: Record<string, any>,
+  args: WorkerTransformArgs,
   options: {
     scriptName: string;
     includeBucket?: boolean;
@@ -119,17 +169,25 @@ function applyApiWorkerTransform(
     ...(options.durableObjectScriptName ? { scriptName: options.durableObjectScriptName } : {}),
   });
 
+  bindings.push({
+    name: 'RATE_LIMITER',
+    type: 'durableobjectnamespace',
+    className: 'RateLimiter',
+    ...(options.durableObjectScriptName ? { scriptName: options.durableObjectScriptName } : {}),
+  });
+
   args.bindings = bindings;
 
   if (options.configureMigrations) {
     args.migrations = {
-      newTag: 'v1',
-      newClasses: ['TicketReserver'],
+      oldTag: 'v1',
+      newTag: 'v2',
+      newClasses: ['RateLimiter'],
     };
   }
 }
 
-function applyPortalWorkerTransform(args: Record<string, any>, scriptName: string) {
+function applyPortalWorkerTransform(args: WorkerTransformArgs, scriptName: string) {
   args.scriptName = scriptName;
   args.compatibilityDate = portalCompatibilityDate;
   args.compatibilityFlags = portalCompatibilityFlags;

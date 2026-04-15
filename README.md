@@ -193,6 +193,7 @@ Beberapa detail implementasi auth di `apps/api` perlu dipahami karena perilakuny
 - Response publik `register`, `register-seller`, dan `forgot-password` tidak lagi mengembalikan `verify_email_token` atau `reset_token` secara default. Jalur utama sekarang adalah email verifikasi dan email reset password.
 - Link verifikasi email dikirim ke route browser-safe `GET /auth/verify-email?token=...` di API. Link reset password tetap diarahkan ke portal buyer atau seller melalui `BUYER_APP_URL` dan `SELLER_APP_URL` jika perlu override explicit.
 - Jika local debugging masih perlu melihat token sensitif di response, aktifkan `AUTH_EXPOSE_DEBUG_TOKENS=1` secara eksplisit. Flag ini hanya untuk local/test dan tidak boleh dipakai di deployment public.
+- Portal admin dan seller sekarang menyimpan access token, refresh token, dan user session hanya di cookie `httpOnly`. Kode browser mengambil access token segar lewat endpoint same-origin internal `/session/access-token`, sehingga token tidak lagi dipersist di cookie yang bisa dibaca JavaScript.
 
 Smoke test terakhir yang sudah diverifikasi: `login -> refresh -> logout -> refresh token lama` harus berakhir dengan `401 Unauthorized` pada langkah terakhir.
 
@@ -345,6 +346,7 @@ TICKET_RESERVER_DATABASE_URL
 TICKET_RESERVER_DB_MAX_CONNECTIONS
 BUYER_APP_URL
 SELLER_APP_URL
+CORS_ALLOWED_ORIGINS
 AUTH_EXPOSE_DEBUG_TOKENS
 R2_BUCKET_NAME
 PRODUCTION_API_DOMAIN
@@ -359,6 +361,7 @@ Catatan kompatibilitas:
 - Nama canonical project untuk account Cloudflare adalah `CLOUDFLARE_ACCOUNT_ID`.
 - `sst.config.ts` masih menerima `CLOUDFLARE_DEFAULT_ACCOUNT_ID` sebagai fallback kompatibilitas dengan dokumentasi SST, tetapi nama itu bukan nama utama yang dipakai project ini.
 - Nama canonical secret email di repo ini adalah `EMAIL_API_KEY`, bukan `RESEND_API_KEY`, walau provider email saat ini memang Resend.
+- `CORS_ALLOWED_ORIGINS` menerima daftar origin dipisahkan koma. Bila tidak diisi, stack SST mengisi otomatis dengan domain portal production pada stage `production`, sedangkan local fallback tetap terbatas ke origin `localhost` portal.
 
 ### Catatan Manual Yang Masih Perlu Diperhatikan
 

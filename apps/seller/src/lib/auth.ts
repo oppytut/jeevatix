@@ -1,5 +1,6 @@
-import { browser } from '$app/environment';
-import { dev } from '$app/environment';
+import type { Cookies } from '@sveltejs/kit';
+
+import { browser, dev } from '$app/environment';
 
 export const API_BASE_URL =
   import.meta.env.PUBLIC_API_BASE_URL ||
@@ -20,6 +21,8 @@ export const SELLER_ACCESS_TOKEN_COOKIE = 'jeevatix_seller_access_token';
 export const SELLER_REFRESH_TOKEN_COOKIE = 'jeevatix_seller_refresh_token';
 export const SELLER_USER_COOKIE = 'jeevatix_seller_user';
 
+const SESSION_ACCESS_TOKEN_ENDPOINT = '/session/access-token';
+const SESSION_LOGOUT_ENDPOINT = '/session/logout';
 const ACCESS_TOKEN_REFRESH_BUFFER_MS = 30_000;
 export const ACCESS_TOKEN_MAX_AGE = 60 * 15;
 export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7;
@@ -47,6 +50,13 @@ type AuthPayload = {
 type AuthResponse = {
   success: true;
   data: AuthPayload;
+};
+
+type SessionAccessTokenResponse = {
+  success: true;
+  data: {
+    access_token: string;
+  };
 };
 
 type ForgotPasswordPayload = {
@@ -79,7 +89,7 @@ type JwtPayload = {
   exp?: number;
 };
 
-type RegisterSellerInput = {
+export type RegisterSellerInput = {
   email: string;
   password: string;
   full_name: string;
@@ -88,31 +98,22 @@ type RegisterSellerInput = {
   org_description?: string;
 };
 
-function readCookie(name: string) {
-  if (!browser) {
-    return null;
-  }
+let accessTokenCache: string | null = null;
+let accessTokenExpiresAt = 0;
 
-  const prefix = `${name}=`;
-  const cookie = document.cookie.split('; ').find((entry) => entry.startsWith(prefix));
-
-  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
+function getCookieOptions(maxAge: number) {
+  return {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: !dev,
+    maxAge,
+  };
 }
 
-function writeCookie(name: string, value: string, maxAge: number) {
-  if (!browser) {
-    return;
-  }
-
-  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; SameSite=Lax`;
-}
-
-function removeCookie(name: string) {
-  if (!browser) {
-    return;
-  }
-
-  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+function setAccessTokenCache(token: string | null) {
+  accessTokenCache = token;
+  accessTokenExpiresAt = token ? (decodeJwtPayload(token)?.exp ?? 0) : 0;
 }
 
 function decodeJwtPayload(token: string): JwtPayload | null {
@@ -144,47 +145,22 @@ function isTokenExpired(token: string) {
   return payload.exp * 1000 <= Date.now() + ACCESS_TOKEN_REFRESH_BUFFER_MS;
 }
 
+function hasFreshAccessTokenCache() {
+  if (!accessTokenCache) {
+    return false;
+  }
+
+  if (!accessTokenExpiresAt) {
+    return true;
+  }
+
+  return accessTokenExpiresAt * 1000 > Date.now() + ACCESS_TOKEN_REFRESH_BUFFER_MS;
+}
+
 function ensureSellerRole(user: SellerAuthUser) {
   if (user.role !== 'seller') {
-    clearAuthSession();
     throw new ApiError('Akun ini tidak memiliki akses seller.', 403, 'FORBIDDEN');
   }
-}
-
-export function parseStoredUserCookie(value?: string | null): SellerAuthUser | null {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(value) as SellerAuthUser;
-  } catch {
-    return null;
-  }
-}
-
-export function getUser() {
-  return parseStoredUserCookie(readCookie(SELLER_USER_COOKIE));
-}
-
-export function getAccessToken() {
-  return readCookie(SELLER_ACCESS_TOKEN_COOKIE);
-}
-
-export function getRefreshToken() {
-  return readCookie(SELLER_REFRESH_TOKEN_COOKIE);
-}
-
-function persistAuthSession(payload: AuthPayload) {
-  writeCookie(SELLER_ACCESS_TOKEN_COOKIE, payload.access_token, ACCESS_TOKEN_MAX_AGE);
-  writeCookie(SELLER_REFRESH_TOKEN_COOKIE, payload.refresh_token, REFRESH_TOKEN_MAX_AGE);
-  writeCookie(SELLER_USER_COOKIE, JSON.stringify(payload.user), USER_COOKIE_MAX_AGE);
-}
-
-export function clearAuthSession() {
-  removeCookie(SELLER_ACCESS_TOKEN_COOKIE);
-  removeCookie(SELLER_REFRESH_TOKEN_COOKIE);
-  removeCookie(SELLER_USER_COOKIE);
 }
 
 async function parseResponse<T extends object>(response: Response): Promise<T> {
@@ -203,14 +179,145 @@ async function parseResponse<T extends object>(response: Response): Promise<T> {
   return payload as T;
 }
 
-export async function refreshSession() {
-  const refreshToken = getRefreshToken();
+async function requestSessionAccessToken(forceRefresh = false) {
+  if (!browser) {
+    return null;
+  }
+
+  if (!forceRefresh && hasFreshAccessTokenCache()) {
+    return accessTokenCache;
+  }
+
+  const response = await fetch(SESSION_ACCESS_TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ forceRefresh }),
+  });
+
+  try {
+    const payload = await parseResponse<SessionAccessTokenResponse>(response);
+    setAccessTokenCache(payload.data.access_token);
+    return payload.data.access_token;
+  } catch (error) {
+    setAccessTokenCache(null);
+
+    if (error instanceof ApiError) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+export function parseStoredUserCookie(value?: string | null): SellerAuthUser | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(value) as SellerAuthUser;
+  } catch {
+    return null;
+  }
+}
+
+export function getUser(cookies: Cookies) {
+  return parseStoredUserCookie(cookies.get(SELLER_USER_COOKIE));
+}
+
+export function isAuthenticated(cookies: Cookies) {
+  const refreshToken = cookies.get(SELLER_REFRESH_TOKEN_COOKIE);
+  const user = getUser(cookies);
+
+  return Boolean(refreshToken && user?.role === 'seller');
+}
+
+export function shouldRefreshAccessToken(token?: string | null) {
+  return !token || isTokenExpired(token);
+}
+
+export function persistStoredUser(cookies: Cookies, user: SellerAuthUser) {
+  cookies.set(SELLER_USER_COOKIE, JSON.stringify(user), getCookieOptions(USER_COOKIE_MAX_AGE));
+}
+
+export function persistAuthSession(cookies: Cookies, payload: AuthPayload) {
+  cookies.set(
+    SELLER_ACCESS_TOKEN_COOKIE,
+    payload.access_token,
+    getCookieOptions(ACCESS_TOKEN_MAX_AGE),
+  );
+  cookies.set(
+    SELLER_REFRESH_TOKEN_COOKIE,
+    payload.refresh_token,
+    getCookieOptions(REFRESH_TOKEN_MAX_AGE),
+  );
+  persistStoredUser(cookies, payload.user);
+}
+
+export function clearAuthSession(cookies: Cookies) {
+  cookies.delete(SELLER_ACCESS_TOKEN_COOKIE, { path: '/' });
+  cookies.delete(SELLER_REFRESH_TOKEN_COOKIE, { path: '/' });
+  cookies.delete(SELLER_USER_COOKIE, { path: '/' });
+}
+
+export function clearClientSessionState() {
+  setAccessTokenCache(null);
+}
+
+export async function login(
+  fetchFn: typeof fetch,
+  cookies: Cookies,
+  email: string,
+  password: string,
+) {
+  const response = await fetchFn(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const payload = await parseResponse<AuthResponse>(response);
+  ensureSellerRole(payload.data.user);
+  persistAuthSession(cookies, payload.data);
+
+  return payload.data;
+}
+
+export async function registerSeller(
+  fetchFn: typeof fetch,
+  cookies: Cookies,
+  input: RegisterSellerInput,
+) {
+  const response = await fetchFn(`${API_BASE_URL}/auth/register/seller`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+
+  const payload = await parseResponse<AuthResponse>(response);
+  ensureSellerRole(payload.data.user);
+  persistAuthSession(cookies, payload.data);
+
+  return payload.data;
+}
+
+export async function refreshSession(fetchFn: typeof fetch, cookies: Cookies) {
+  const refreshToken = cookies.get(SELLER_REFRESH_TOKEN_COOKIE);
 
   if (!refreshToken) {
     return null;
   }
 
-  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+  const response = await fetchFn(`${API_BASE_URL}/auth/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -222,11 +329,11 @@ export async function refreshSession() {
   try {
     const payload = await parseResponse<AuthResponse>(response);
     ensureSellerRole(payload.data.user);
-    persistAuthSession(payload.data);
+    persistAuthSession(cookies, payload.data);
 
     return payload.data.access_token;
   } catch (error) {
-    clearAuthSession();
+    clearAuthSession(cookies);
 
     if (error instanceof ApiError) {
       return null;
@@ -234,54 +341,6 @@ export async function refreshSession() {
 
     throw error;
   }
-}
-
-export async function ensureFreshAccessToken() {
-  const accessToken = getAccessToken();
-
-  if (!accessToken) {
-    return refreshSession();
-  }
-
-  if (!isTokenExpired(accessToken)) {
-    return accessToken;
-  }
-
-  return refreshSession();
-}
-
-export async function login(email: string, password: string) {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ email, password }),
-  });
-
-  const payload = await parseResponse<AuthResponse>(response);
-  ensureSellerRole(payload.data.user);
-  persistAuthSession(payload.data);
-
-  return payload.data.user;
-}
-
-export async function registerSeller(input: RegisterSellerInput) {
-  const response = await fetch(`${API_BASE_URL}/auth/register/seller`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-
-  const payload = await parseResponse<AuthResponse>(response);
-  ensureSellerRole(payload.data.user);
-  persistAuthSession(payload.data);
-
-  return payload.data.user;
 }
 
 export async function forgotPassword(email: string) {
@@ -314,12 +373,12 @@ export async function resetPassword(token: string, password: string) {
   return payload.data;
 }
 
-export async function logout() {
-  const refreshToken = getRefreshToken();
+export async function logoutSession(fetchFn: typeof fetch, cookies: Cookies) {
+  const refreshToken = cookies.get(SELLER_REFRESH_TOKEN_COOKIE);
 
   try {
     if (refreshToken) {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
+      await fetchFn(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -329,12 +388,29 @@ export async function logout() {
       });
     }
   } finally {
-    clearAuthSession();
+    clearAuthSession(cookies);
   }
 }
 
-export function isAuthenticated() {
-  const user = getUser();
+export async function ensureFreshAccessToken() {
+  return requestSessionAccessToken(false);
+}
 
-  return Boolean(user && user.role === 'seller' && getRefreshToken());
+export async function refreshBrowserSession() {
+  return requestSessionAccessToken(true);
+}
+
+export async function logout() {
+  try {
+    if (browser) {
+      await fetch(SESSION_LOGOUT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+    }
+  } finally {
+    clearClientSessionState();
+  }
 }

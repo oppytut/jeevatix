@@ -18,19 +18,19 @@ This review verified the T-10.4 checklist across the current codebase.
 
 ## Checklist Status
 
-| Item | Status | Notes |
-| --- | --- | --- |
-| Input validation on all endpoints | PASS | API routes use `createRoute()` and `c.req.valid('json'|'query'|'param')`. Multipart upload uses OpenAPI multipart schema plus service-side file validation. |
-| SQL injection prevention | PASS | No raw SQL string concatenation found. Tagged `sql` usage is limited to parameterized Drizzle expressions such as `date_trunc(...)`, `for update`, and check constraints. |
-| XSS prevention | PASS | No `{@html ...}` usage found in frontend apps. User-generated content is rendered as plain text/components. |
-| CSRF protection | PASS WITH NOTE | API authentication relies on bearer tokens, and refresh uses an explicit JSON body token instead of implicit cookie auth, so CSRF token is not required for current flows. Buyer auth cookies are `httpOnly`; admin and seller currently store tokens in JS-readable cookies, which is an XSS hardening concern rather than a CSRF bypass. |
-| Rate limiting | FIXED | Added middleware-based rate limiting for `POST /auth/login` (5/min/IP), `POST /auth/register` and `POST /auth/register/seller` (3/min/IP), and `POST /reservations` (10/min/user). |
-| Webhook signature verification | PASS | `POST /webhooks/payment` validates `x-payment-signature` against HMAC-SHA256 of the raw body and rejects invalid signatures. |
-| Authorization checks | PASS | Buyer ownership checks, seller event ownership checks, and admin-only route guards are present. |
-| Password hashing | PASS | Passwords use `bcryptjs`. No MD5/SHA password hashing found. |
-| JWT expiry and refresh strategy | PASS | Access token TTL is 15 minutes, refresh token TTL is 7 days, refresh rotation is implemented, and payloads contain only `id`, `email`, `role`, `jti`, `type`, `iat`, `exp`. |
-| CORS configuration | PASS WITH NOTE | Allowed origins are restricted to local portal domains only. This is safe for local/dev, but production origins still need explicit configuration before deploy. |
-| Sensitive data in logs | FIXED | API runtime logs do not emit passwords or JWTs. A plaintext password log in the load-user seed utility was removed during this review. |
+| Item                              | Status | Notes                                                                                                                                                                                                                                                    |
+| --------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Input validation on all endpoints | PASS   | API routes use `createRoute()` and validated request parsing. Multipart upload uses OpenAPI multipart schema plus service-side file validation.                                                                                                          |
+| SQL injection prevention          | PASS   | No raw SQL string concatenation found. Tagged `sql` usage is limited to parameterized Drizzle expressions such as `date_trunc(...)`, `for update`, and check constraints.                                                                                |
+| XSS prevention                    | PASS   | No `{@html ...}` usage found in frontend apps. User-generated content is rendered as plain text/components.                                                                                                                                              |
+| CSRF protection                   | PASS   | API authentication relies on bearer tokens, and refresh uses an explicit JSON body token instead of implicit cookie auth. Buyer, admin, and seller portals now keep their auth cookies `httpOnly`, so token theft risk from a future XSS bug is reduced. |
+| Rate limiting                     | FIXED  | Auth and reservation throttling now use a shared Durable Object-backed limiter in production, with in-memory fallback only for local/test contexts where the binding is unavailable.                                                                     |
+| Webhook signature verification    | PASS   | `POST /webhooks/payment` validates `x-payment-signature` against HMAC-SHA256 of the raw body and rejects invalid signatures.                                                                                                                             |
+| Authorization checks              | PASS   | Buyer ownership checks, seller event ownership checks, and admin-only route guards are present.                                                                                                                                                          |
+| Password hashing                  | PASS   | Passwords use `bcryptjs`. No MD5/SHA password hashing found.                                                                                                                                                                                             |
+| JWT expiry and refresh strategy   | PASS   | Access token TTL is 15 minutes, refresh token TTL is 7 days, refresh rotation is implemented, and payloads contain only `id`, `email`, `role`, `jti`, `type`, `iat`, `exp`.                                                                              |
+| CORS configuration                | FIXED  | Allowed origins are now read from deployment environment (`CORS_ALLOWED_ORIGINS`), with localhost-only fallback for local development.                                                                                                                   |
+| Sensitive data in logs            | FIXED  | API runtime logs do not emit passwords or JWTs. A plaintext password log in the load-user seed utility was removed during this review.                                                                                                                   |
 
 ## Changes Made During Review
 
@@ -38,10 +38,11 @@ This review verified the T-10.4 checklist across the current codebase.
 
 Added `apps/api/src/middleware/rate-limit.ts`.
 
-Implemented a lightweight edge-compatible in-memory window counter with:
+Implemented a lightweight edge-compatible window counter with:
 
 - client IP extraction from `CF-Connecting-IP` or `X-Forwarded-For`
-- per-key counters with reset windows
+- shared Durable Object-backed counters in production
+- in-memory fallback for local/test runs without the DO binding
 - `429 RATE_LIMIT_EXCEEDED` responses
 - `Retry-After` response header
 
@@ -97,7 +98,7 @@ Conclusion: no direct unsanitized HTML rendering issue found.
 
 Residual note:
 
-- `apps/admin/src/lib/auth.ts` and `apps/seller/src/lib/auth.ts` use JS-readable cookies for token persistence. This does not create a direct XSS bug by itself, but it increases impact if an XSS bug is introduced later.
+- admin and seller now match buyer in storing session cookies as `httpOnly`, which reduces exposure if an XSS bug is introduced later.
 
 ### 4. CSRF Protection
 
@@ -110,8 +111,7 @@ Current API authorization pattern is bearer-token based, not cookie-session base
 Conclusion:
 
 - CSRF token is not required for current API behavior.
-- Buyer portal is stronger here because it uses `httpOnly` cookies.
-- Admin and seller portals should eventually move toward server-managed `httpOnly` session handling for stronger token theft resistance.
+- Buyer, admin, and seller portals now all use server-managed `httpOnly` cookies.
 
 ### 5. Rate Limiting
 
@@ -131,8 +131,8 @@ Test coverage added:
 
 Important production note:
 
-- the new limiter is in-memory and therefore best-effort per worker instance
-- for globally consistent production enforcement across horizontal scale, Cloudflare native Rate Limiting or a shared counter mechanism should still be preferred
+- production now uses the shared Durable Object binding, so rate-limit counters are no longer isolated per worker instance
+- the in-memory path remains only as a fallback for local/test contexts where the Durable Object binding is not available
 
 ### 6. Webhook Security
 
@@ -198,8 +198,8 @@ Observed:
 
 Conclusion:
 
-- current config is restrictive and safe for local development
-- production still needs an explicit allowlist sourced from deployment configuration before release
+- local development remains restricted to localhost portal origins by default
+- deployed environments can now control production allowlists explicitly through `CORS_ALLOWED_ORIGINS`
 
 ### 11. Logging and Sensitive Data Exposure
 
@@ -226,11 +226,11 @@ Result:
 
 ## Residual Hardening Backlog
 
-These are not blockers for closing T-10.4 review, but they are still worth tracking:
+Post-review hardening update on 2026-04-15 closed the three production backlog items that were still open at review time:
 
-1. Replace the in-memory rate limiter with Cloudflare native Rate Limiting or another shared/global counter for production-scale enforcement.
-2. Move admin and seller token persistence away from JS-readable cookies to `httpOnly` server-managed session storage or equivalent hardened flow.
-3. Make CORS allowed origins environment-driven for production deployment, rather than keeping only the hardcoded local allowlist.
+1. Auth and reservation rate limits now use a shared Durable Object-backed limiter in production.
+2. Admin and seller token persistence now uses `httpOnly` server-managed cookies instead of JS-readable cookies.
+3. CORS allowed origins are now environment-driven through `CORS_ALLOWED_ORIGINS`.
 
 ## Final Assessment
 

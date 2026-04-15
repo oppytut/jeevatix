@@ -1,13 +1,16 @@
 import { redirect } from '@sveltejs/kit';
 
-import { ADMIN_REFRESH_TOKEN_COOKIE, ADMIN_USER_COOKIE, parseStoredUserCookie } from '$lib/auth';
+import { clearAuthSession } from '$lib/auth';
 
-export const load = (({ cookies, url }) => {
+export const load = (({ cookies, locals, url }) => {
   const pathname = url.pathname;
   const isLoginRoute = pathname === '/login';
-  const refreshToken = cookies.get(ADMIN_REFRESH_TOKEN_COOKIE);
-  const currentUser = parseStoredUserCookie(cookies.get(ADMIN_USER_COOKIE));
-  const isAdminSession = Boolean(refreshToken && currentUser?.role === 'admin');
+  const currentUser = locals.currentUser;
+  const isAdminSession = Boolean(locals.adminRefreshToken && currentUser?.role === 'admin');
+
+  if (locals.adminRefreshToken && currentUser?.role !== 'admin') {
+    clearAuthSession(cookies);
+  }
 
   if (!isLoginRoute && !isAdminSession) {
     redirect(307, '/login');

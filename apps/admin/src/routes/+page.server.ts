@@ -1,14 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 
-import {
-  ACCESS_TOKEN_MAX_AGE,
-  ADMIN_ACCESS_TOKEN_COOKIE,
-  ADMIN_REFRESH_TOKEN_COOKIE,
-  ADMIN_USER_COOKIE,
-  REFRESH_TOKEN_MAX_AGE,
-  USER_COOKIE_MAX_AGE,
-  type AdminAuthUser,
-} from '$lib/auth';
+import { clearAuthSession, refreshSession, shouldRefreshAccessToken } from '$lib/auth';
 import { API_BASE_URL } from '$lib/http';
 
 type AdminDashboard = {
@@ -52,30 +44,12 @@ type DashboardSuccessResponse = {
   data: AdminDashboard;
 };
 
-type AuthSuccessResponse = {
-  success: true;
-  data: {
-    access_token: string;
-    refresh_token: string;
-    user: AdminAuthUser;
-  };
-};
-
 type ErrorResponse = {
   success: false;
   error?: {
     message?: string;
   };
 };
-
-function getCookieOptions(maxAge: number) {
-  return {
-    path: '/',
-    sameSite: 'lax' as const,
-    httpOnly: false,
-    maxAge,
-  };
-}
 
 async function parseJsonSafe<T>(response: Response) {
   const contentType = response.headers.get('content-type');
@@ -85,49 +59,6 @@ async function parseJsonSafe<T>(response: Response) {
   }
 
   return (await response.json()) as T;
-}
-
-async function refreshAdminSession(
-  fetch: typeof globalThis.fetch,
-  refreshToken: string,
-  cookies: Parameters<import('./$types').PageServerLoad>[0]['cookies'],
-): Promise<string | undefined> {
-  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
-
-  const payload = await parseJsonSafe<AuthSuccessResponse | ErrorResponse>(response);
-
-  if (!response.ok || !payload || payload.success === false || payload.data.user.role !== 'admin') {
-    cookies.delete(ADMIN_ACCESS_TOKEN_COOKIE, { path: '/' });
-    cookies.delete(ADMIN_REFRESH_TOKEN_COOKIE, { path: '/' });
-    cookies.delete(ADMIN_USER_COOKIE, { path: '/' });
-
-    return undefined;
-  }
-
-  cookies.set(
-    ADMIN_ACCESS_TOKEN_COOKIE,
-    payload.data.access_token,
-    getCookieOptions(ACCESS_TOKEN_MAX_AGE),
-  );
-  cookies.set(
-    ADMIN_REFRESH_TOKEN_COOKIE,
-    payload.data.refresh_token,
-    getCookieOptions(REFRESH_TOKEN_MAX_AGE),
-  );
-  cookies.set(
-    ADMIN_USER_COOKIE,
-    JSON.stringify(payload.data.user),
-    getCookieOptions(USER_COOKIE_MAX_AGE),
-  );
-
-  return payload.data.access_token;
 }
 
 async function fetchDashboard(fetch: typeof globalThis.fetch, accessToken: string) {
@@ -151,18 +82,15 @@ function getErrorMessage(payload: DashboardSuccessResponse | ErrorResponse | nul
   return payload.error?.message ?? 'Gagal memuat dashboard admin.';
 }
 
-export const load = (async ({ cookies, fetch }) => {
-  const refreshToken = cookies.get(ADMIN_REFRESH_TOKEN_COOKIE);
-
-  if (!refreshToken) {
+export const load = (async ({ cookies, fetch, locals }) => {
+  if (!locals.adminRefreshToken || locals.currentUser?.role !== 'admin') {
+    clearAuthSession(cookies);
     throw redirect(307, '/login');
   }
 
-  let accessToken = cookies.get(ADMIN_ACCESS_TOKEN_COOKIE) ?? undefined;
-
-  if (!accessToken) {
-    accessToken = await refreshAdminSession(fetch, refreshToken, cookies);
-  }
+  let accessToken = shouldRefreshAccessToken(locals.adminAccessToken)
+    ? await refreshSession(fetch, cookies)
+    : locals.adminAccessToken;
 
   if (!accessToken) {
     throw redirect(307, '/login');
@@ -171,7 +99,7 @@ export const load = (async ({ cookies, fetch }) => {
   let dashboardResult = await fetchDashboard(fetch, accessToken);
 
   if (dashboardResult.response.status === 401) {
-    const rotatedAccessToken = await refreshAdminSession(fetch, refreshToken, cookies);
+    const rotatedAccessToken = await refreshSession(fetch, cookies);
 
     if (!rotatedAccessToken) {
       throw redirect(307, '/login');
