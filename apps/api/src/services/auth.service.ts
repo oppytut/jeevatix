@@ -9,6 +9,7 @@ import {
   verifyToken,
   type TokenPayloadInput,
 } from '../lib/jwt';
+import { logErrorWithContext } from '../lib/observability';
 import { hashPassword, verifyPassword } from '../lib/password';
 import type {
   AuthPayload,
@@ -283,7 +284,9 @@ function scheduleBackgroundTask(
   taskFactory: () => Promise<void>,
 ) {
   const task = taskFactory().catch((error) => {
-    console.error(`[auth-email] ${label} failed.`, error);
+    logErrorWithContext('auth.email_delivery_failed', error, {
+      operation: label,
+    });
   });
 
   if (options?.scheduleTask) {

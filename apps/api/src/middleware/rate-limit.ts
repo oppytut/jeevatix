@@ -6,6 +6,7 @@ import {
   logTimedSteps,
   type TimedStep,
 } from '../lib/load-test-profile';
+import { logErrorWithContext } from '../lib/observability';
 import type { AuthEnv } from './auth';
 
 type RateLimitRecord = {
@@ -239,7 +240,9 @@ export function createRateLimitMiddleware({
         }
       }
     } catch (error) {
-      console.error('rate-limit: falling back to in-memory limiter', error);
+      logErrorWithContext('rate_limit.fallback_to_in_memory', error, {
+        limiter: name,
+      });
 
       const consumeStartedAt = profile.enabled ? Date.now() : 0;
       decision = consumeInMemoryRateLimit(bucketKey, limit, windowMs);

@@ -347,6 +347,8 @@ TICKET_RESERVER_DB_MAX_CONNECTIONS
 BUYER_APP_URL
 SELLER_APP_URL
 CORS_ALLOWED_ORIGINS
+APP_ENVIRONMENT
+APP_VERSION
 AUTH_EXPOSE_DEBUG_TOKENS
 R2_BUCKET_NAME
 PRODUCTION_API_DOMAIN
@@ -362,6 +364,7 @@ Catatan kompatibilitas:
 - `sst.config.ts` masih menerima `CLOUDFLARE_DEFAULT_ACCOUNT_ID` sebagai fallback kompatibilitas dengan dokumentasi SST, tetapi nama itu bukan nama utama yang dipakai project ini.
 - Nama canonical secret email di repo ini adalah `EMAIL_API_KEY`, bukan `RESEND_API_KEY`, walau provider email saat ini memang Resend.
 - `CORS_ALLOWED_ORIGINS` menerima daftar origin dipisahkan koma. Bila tidak diisi, stack SST mengisi otomatis dengan domain portal production pada stage `production`, sedangkan local fallback tetap terbatas ke origin `localhost` portal.
+- CI deploy production sekarang mengekspor `APP_VERSION` dari `github.sha`. Untuk deploy manual, sebaiknya ekspor `APP_VERSION="$(git rev-parse HEAD)"` agar `/health` melaporkan release yang benar.
 
 ### Catatan Manual Yang Masih Perlu Diperhatikan
 
@@ -369,6 +372,27 @@ Catatan kompatibilitas:
 - Runtime API saat ini masih membaca `DATABASE_URL` langsung. Jika ingin memakai Hyperdrive sebagai binding runtime penuh, kontrak koneksi aplikasi perlu disejajarkan dulu dengan implementasi binding tersebut.
 - Portal workers mengasumsikan `pnpm run build` sudah menghasilkan artefak `.svelte-kit/cloudflare/_worker.js` sebelum `sst deploy` dijalankan.
 - Workflow GitHub Actions sekarang juga perlu menyediakan env build-time public (`PUBLIC_API_BASE_URL`, opsional `PUBLIC_PARTYKIT_HOST`) selain secret runtime API saat langkah deploy dijalankan.
+
+### Monitoring Baseline
+
+Baseline observability production saat ini sengaja sederhana dan fokus pada kebutuhan operasi minimum:
+
+- `GET /health` mengembalikan `status`, `timestamp`, `version`, `environment`, dan `service`, serta selalu mengirim header `Cache-Control: no-store`.
+- API worker mengirim structured error events ke Cloudflare Workers Logs dengan event utama `http.server_error` dan `http.unhandled_exception`.
+- Setiap response API sekarang menyertakan header `X-Request-Id` untuk korelasi antara report user, smoke test, dan log di Cloudflare.
+- Structured logs tidak mengirim request body, `Authorization`, `Cookie`, token, password, atau alamat email mentah ke Workers Logs.
+
+Verifikasi pascadeploy minimum:
+
+1. Jalankan `curl -fsS https://api.jeevatix.com/health` dan pastikan field `status`, `timestamp`, dan `version` ada.
+2. Tail log worker production dengan `pnpm --filter @jeevatix/api exec wrangler tail jeevatix-production-api --format pretty --status error` lalu pastikan event error yang muncul memakai `requestId` dan tidak memuat token/password.
+3. Simpan `X-Request-Id` dari request yang diuji agar bisa dicocokkan dengan log Cloudflare jika ada insiden.
+
+Alerting minimum yang direkomendasikan:
+
+1. Pasang external uptime monitor seperti Better Stack, UptimeRobot, atau Pingdom ke `https://api.jeevatix.com/health` dengan interval `1 minute`.
+2. Anggap incident setelah `2` kegagalan beruntun atau timeout melebihi `10` detik.
+3. Kirim notifikasi minimal ke email operasional; Slack/PagerDuty boleh ditambahkan bila sudah tersedia.
 
 ---
 

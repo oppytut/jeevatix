@@ -9,6 +9,8 @@ import {
 import { verifyToken, type TokenPayload, type UserRole } from '../lib/jwt';
 
 type AuthBindings = {
+  APP_ENVIRONMENT?: string;
+  APP_VERSION?: string;
   JWT_SECRET: string;
   DATABASE_URL?: string;
   PARTYKIT_HOST?: string;
@@ -31,6 +33,8 @@ export type AuthUser = Pick<TokenPayload, 'id' | 'email' | 'role'>;
 export type AuthEnv = {
   Bindings: AuthBindings;
   Variables: {
+    errorLogged?: boolean;
+    requestId: string;
     user: AuthUser;
     loadTestProfile?: LoadTestProfile;
   };

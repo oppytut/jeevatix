@@ -2,6 +2,7 @@ import { getDb, schema, type Database } from '@jeevatix/core';
 import { and, eq, sql } from 'drizzle-orm';
 
 import { logTimedSteps, type LoadTestProfile, type TimedStep } from '../lib/load-test-profile';
+import { logErrorWithContext } from '../lib/observability';
 
 const RESERVATION_TTL_MINUTES = 10;
 
@@ -454,7 +455,9 @@ export class TicketReserver extends DurableObjectBase {
         }),
       });
     } catch (error) {
-      console.error('Failed to broadcast PartyKit availability update.', error);
+      logErrorWithContext('tickets.availability_broadcast_failed', error, {
+        operation: 'broadcastAvailability',
+      });
     }
   }
 

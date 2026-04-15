@@ -31,6 +31,8 @@ jobs:
           fi
       - run: pnpm run deploy --stage production
         env:
+          APP_ENVIRONMENT: production
+          APP_VERSION: ${{ github.sha }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -51,7 +53,15 @@ jobs:
           PRODUCTION_SELLER_DOMAIN: ${{ vars.PRODUCTION_SELLER_DOMAIN }}
       - name: Smoke Test
         run: |
-          curl -f https://api.jeevatix.com/health || exit 1
+          health_payload="$(curl -fsS https://api.jeevatix.com/health)"
+          HEALTH_PAYLOAD="$health_payload" node - <<'EOF'
+          const payload = JSON.parse(process.env.HEALTH_PAYLOAD ?? '{}');
+
+          if (payload.status !== 'ok' || !payload.timestamp || !payload.version) {
+            console.error('Unexpected health payload:', payload);
+            process.exit(1);
+          }
+          EOF
           curl -f https://jeevatix.com || exit 1
           curl -f https://admin.jeevatix.com/login || exit 1
           curl -f https://seller.jeevatix.com/login || exit 1

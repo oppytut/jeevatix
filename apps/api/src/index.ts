@@ -1,6 +1,11 @@
 import { apiReference } from '@scalar/hono-api-reference';
 import { OpenAPIHono } from '@hono/zod-openapi';
 
+import {
+  buildHealthPayload,
+  logUnhandledRequestError,
+  observabilityMiddleware,
+} from './lib/observability';
 import { RateLimiter } from './durable-objects/rate-limiter';
 import { TicketReserver } from './durable-objects/ticket-reserver';
 import authRoutes from './routes/auth';
@@ -35,9 +40,29 @@ import usersRoutes from './routes/users';
 
 const app = new OpenAPIHono<AuthEnv>();
 
+function jsonError(code: string, message: string) {
+  return {
+    success: false as const,
+    error: {
+      code,
+      message,
+    },
+  };
+}
+
+app.use('*', observabilityMiddleware);
 app.use('*', corsMiddleware);
 
-app.get('/health', (c) => c.json({ status: 'ok' }));
+app.onError((error, c) => {
+  logUnhandledRequestError(c, error);
+
+  return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
+});
+
+app.get('/health', (c) => {
+  c.header('Cache-Control', 'no-store');
+  return c.json(buildHealthPayload(c.env));
+});
 
 app.doc('/doc', {
   openapi: '3.1.0',

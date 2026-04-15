@@ -30,7 +30,7 @@ This review verified the T-10.4 checklist across the current codebase.
 | Password hashing                  | PASS   | Passwords use `bcryptjs`. No MD5/SHA password hashing found.                                                                                                                                                                                             |
 | JWT expiry and refresh strategy   | PASS   | Access token TTL is 15 minutes, refresh token TTL is 7 days, refresh rotation is implemented, and payloads contain only `id`, `email`, `role`, `jti`, `type`, `iat`, `exp`.                                                                              |
 | CORS configuration                | FIXED  | Allowed origins are now read from deployment environment (`CORS_ALLOWED_ORIGINS`), with localhost-only fallback for local development.                                                                                                                   |
-| Sensitive data in logs            | FIXED  | API runtime logs do not emit passwords or JWTs. A plaintext password log in the load-user seed utility was removed during this review.                                                                                                                   |
+| Sensitive data in logs            | FIXED  | API runtime logs do not emit passwords or JWTs. Structured Workers Logs events now also redact auth headers, cookies, token-like strings, and email addresses before error details are emitted.                                                          |
 
 ## Changes Made During Review
 
@@ -204,6 +204,8 @@ Conclusion:
 ### 11. Logging and Sensitive Data Exposure
 
 Observed runtime logs in API services and durable objects are generic performance/error logs and do not print JWTs, refresh tokens, or passwords.
+
+Current production baseline also adds structured API error events with request correlation IDs. Those events redact auth headers, cookies, token-like strings, and email addresses before they reach Workers Logs.
 
 One issue was found and fixed:
 

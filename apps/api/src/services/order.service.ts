@@ -7,6 +7,7 @@ import type {
   OrderDetail,
   OrderListItem,
 } from '../schemas/order.schema';
+import { logErrorWithContext } from '../lib/observability';
 import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
 
 const ORDER_EXPIRY_MINUTES = 30;
@@ -619,7 +620,9 @@ export const orderService = {
           throw error;
         }
 
-        console.error('Unexpected order creation transaction failure.', error);
+        logErrorWithContext('orders.transaction_failure', error, {
+          operation: 'createOrder',
+        });
 
         throw error;
       }

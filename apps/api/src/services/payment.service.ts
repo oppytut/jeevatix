@@ -6,6 +6,7 @@ import {
   createEmailService,
   type OrderConfirmationItem,
 } from './email';
+import { logErrorWithContext } from '../lib/observability';
 import { notificationService } from './notification.service';
 import {
   OrderReservationServiceError,
@@ -147,7 +148,9 @@ function scheduleBackgroundTask(
 
   scheduler(
     enqueueBackgroundTask(taskFactory).catch((error) => {
-      console.error(`[background-task] ${label} failed.`, error);
+      logErrorWithContext('payment.background_task_failed', error, {
+        operation: label,
+      });
     }),
   );
 

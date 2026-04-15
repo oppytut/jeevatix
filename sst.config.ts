@@ -98,8 +98,14 @@ function buildCorsAllowedOrigins() {
   return origins.join(',');
 }
 
+function buildAppVersion() {
+  return maybeEnv('APP_VERSION') ?? `local-${stage}`;
+}
+
 function createApiEnvironment() {
   return {
+    APP_ENVIRONMENT: stage,
+    APP_VERSION: buildAppVersion(),
     DATABASE_URL: requireEnv('DATABASE_URL'),
     JWT_SECRET: requireEnv('JWT_SECRET'),
     PAYMENT_WEBHOOK_SECRET: requireEnv('PAYMENT_WEBHOOK_SECRET'),
