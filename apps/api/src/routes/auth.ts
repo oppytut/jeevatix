@@ -41,6 +41,31 @@ app.use('/register', registerRateLimitMiddleware);
 app.use('/register/seller', registerRateLimitMiddleware);
 app.use('/login', loginRateLimitMiddleware);
 
+app.get('/verify-email', async (c) => {
+  const secret = getJwtSecret(c.env.JWT_SECRET);
+
+  if (!secret) {
+    return c.html(renderVerifyEmailPage('JWT secret is not configured.', false), 500);
+  }
+
+  const token = new URL(c.req.raw.url).searchParams.get('token') ?? '';
+
+  if (!token) {
+    return c.html(renderVerifyEmailPage('Token verifikasi email tidak ditemukan.', false), 400);
+  }
+
+  try {
+    const result = await authService.verifyEmail(token, secret, getDatabaseUrl(c.env.DATABASE_URL));
+    return c.html(renderVerifyEmailPage(result.message, true), 200);
+  } catch (error) {
+    if (error instanceof AuthServiceError) {
+      return c.html(renderVerifyEmailPage(error.message, false), getStatusFromError(error));
+    }
+
+    return c.html(renderVerifyEmailPage('Unexpected error occurred.', false), 500);
+  }
+});
+
 function getProcessEnv(key: string) {
   return (
     globalThis as typeof globalThis & {
@@ -57,6 +82,74 @@ function getJwtSecret(envSecret?: string) {
 
 function getDatabaseUrl(envDatabaseUrl?: string) {
   return envDatabaseUrl || getProcessEnv('DATABASE_URL');
+}
+
+function getBooleanFlag(value?: string) {
+  return value === '1' || value === 'true';
+}
+
+function getExecutionContext(c: Context) {
+  try {
+    return c.executionCtx;
+  } catch {
+    return undefined;
+  }
+}
+
+function getAuthFlowOptions(c: Context<AuthEnv>) {
+  const executionContext = getExecutionContext(c);
+
+  return {
+    apiBaseUrl: new URL(c.req.raw.url).origin,
+    buyerAppUrl: c.env.BUYER_APP_URL || getProcessEnv('BUYER_APP_URL'),
+    sellerAppUrl: c.env.SELLER_APP_URL || getProcessEnv('SELLER_APP_URL'),
+    EMAIL_API_KEY: c.env.EMAIL_API_KEY || getProcessEnv('EMAIL_API_KEY'),
+    EMAIL_FROM: c.env.EMAIL_FROM || getProcessEnv('EMAIL_FROM'),
+    exposeDebugTokens: getBooleanFlag(
+      c.env.AUTH_EXPOSE_DEBUG_TOKENS || getProcessEnv('AUTH_EXPOSE_DEBUG_TOKENS'),
+    ),
+    scheduleTask: executionContext
+      ? (task: Promise<unknown>) => executionContext.waitUntil(task)
+      : undefined,
+  };
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function renderVerifyEmailPage(message: string, success: boolean) {
+  const safeMessage = escapeHtml(message);
+  const title = success ? 'Email verified' : 'Verification failed';
+  const heading = success ? 'Email berhasil diverifikasi' : 'Verifikasi email gagal';
+  const accent = success ? '#ea580c' : '#be123c';
+  const accentSoft = success ? '#ffedd5' : '#ffe4e6';
+
+  return `<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${title}</title>
+  </head>
+  <body style="margin:0;background:#fff7ed;color:#431407;font-family:Arial,sans-serif;">
+    <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <section style="max-width:560px;width:100%;background:#ffffff;border:1px solid #fed7aa;border-radius:28px;padding:32px;box-shadow:0 24px 80px rgba(154,52,18,0.12);">
+        <div style="display:inline-flex;padding:12px 16px;border-radius:999px;background:${accentSoft};color:${accent};font-size:12px;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;">
+          Jeevatix Auth
+        </div>
+        <h1 style="margin:20px 0 12px;font-size:32px;line-height:1.2;color:#431407;">${heading}</h1>
+        <p style="margin:0;font-size:16px;line-height:1.7;color:#7c2d12;">${safeMessage}</p>
+        <p style="margin:24px 0 0;font-size:14px;line-height:1.7;color:#9a3412;">Anda bisa menutup halaman ini dan kembali ke aplikasi Jeevatix.</p>
+      </section>
+    </main>
+  </body>
+</html>`;
 }
 
 function jsonError(code: string, message: string) {
@@ -375,7 +468,7 @@ const forgotPasswordRoute = createRoute({
   method: 'post',
   path: '/forgot-password',
   tags: ['Auth'],
-  summary: 'Generate a password reset token and queue email delivery',
+  summary: 'Generate password reset instructions and trigger email delivery',
   request: {
     body: {
       required: true,
@@ -576,7 +669,12 @@ app.openapi(registerRoute, async (c) => {
     }
 
     const body = c.req.valid('json');
-    const result = await authService.register(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await authService.register(
+      body,
+      secret,
+      getDatabaseUrl(c.env.DATABASE_URL),
+      getAuthFlowOptions(c),
+    );
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
     return handleError(c, error) as never;
@@ -596,6 +694,7 @@ app.openapi(registerSellerRoute, async (c) => {
       body,
       secret,
       getDatabaseUrl(c.env.DATABASE_URL),
+      getAuthFlowOptions(c),
     );
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
@@ -648,6 +747,7 @@ app.openapi(forgotPasswordRoute, async (c) => {
       body,
       secret,
       getDatabaseUrl(c.env.DATABASE_URL),
+      getAuthFlowOptions(c),
     );
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

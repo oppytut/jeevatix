@@ -2,27 +2,28 @@
 
 > **Menghidupkan Setiap Momenmu.** > **Akses Cepat, Nyalakan Energimu.**
 
-Jeevatix adalah platform jual beli tiket *event* berkinerja tinggi yang dirancang untuk menangani lonjakan *traffic* ekstrem (*war ticket*). Dibangun sepenuhnya di atas arsitektur *edge-computing* dan *serverless* untuk menjamin kecepatan, skalabilitas, dan keandalan transaksi secara *real-time*.
+Jeevatix adalah platform jual beli tiket _event_ berkinerja tinggi yang dirancang untuk menangani lonjakan _traffic_ ekstrem (_war ticket_). Dibangun sepenuhnya di atas arsitektur _edge-computing_ dan _serverless_ untuk menjamin kecepatan, skalabilitas, dan keandalan transaksi secara _real-time_.
 
 ---
 
 ## 🚀 Tech Stack
 
-Platform ini menggunakan pendekatan *monorepo* dengan perpaduan teknologi berikut:
-* **Infrastructure as Code (IaC):** [SST (Serverless Stack)](https://sst.dev/)
-* **Build System:** [Turborepo](https://turbo.build/) (Manajemen eksekusi *task* monorepo yang sangat cepat & *incremental*)
-* **Edge Compute:** Cloudflare Workers
-* **Backend / API:** [Hono](https://hono.dev/) (Super-fast, lightweight web framework)
-* **API Contract & Documentation:** [`@hono/zod-openapi`](https://github.com/honojs/middleware/tree/main/packages/zod-openapi) (OpenAPI spec dari Zod schemas) + [Scalar](https://scalar.com/) (Interactive API Reference UI di `/reference`)
-* **Frontend:** [SvelteKit](https://svelte.dev/) (Portal Pembeli, Admin & Seller) + [shadcn-svelte](https://shadcn-svelte.com/)
-* **Database & Connection Pooling:** PostgreSQL (Self-Hosted) + Cloudflare Hyperdrive
-* **ORM & Database Client:** [Drizzle ORM](https://orm.drizzle.team/) (Edge-ready, Type-safe SQL builder)
-* **State Management & Concurrency:** [Cloudflare Durable Objects](https://developers.cloudflare.com/workers/runtime-apis/durable-objects/) (Mencegah *overselling* dan memastikan konsistensi transaksi)
-* **Background Processing:** [Cloudflare Queues](https://developers.cloudflare.com/queues/) (Menangani tugas asinkron seperti antrean pengiriman email e-ticket dan pembaruan laporan analitik)
-* **Real-time WebSocket:** [PartyKit](https://www.partykit.io/) (Menyiarkan status ketersediaan tiket secara *live* dan mengelola ruang antrean tanpa membebani database)
-* **File Storage:** [Cloudflare R2](https://developers.cloudflare.com/r2/) (Object storage untuk gambar event, avatar, dan aset lainnya)
-* **Code Quality:** [ESLint](https://eslint.org/) (Flat Config) + [Prettier](https://prettier.io/) (`prettier-plugin-svelte`, `prettier-plugin-tailwindcss`)
-* **Testing:** [Vitest](https://vitest.dev/) (Unit & Integration) + [Playwright](https://playwright.dev/) (E2E) + [K6](https://k6.io/) (Load Testing)
+Platform ini menggunakan pendekatan _monorepo_ dengan perpaduan teknologi berikut:
+
+- **Infrastructure as Code (IaC):** [SST (Serverless Stack)](https://sst.dev/)
+- **Build System:** [Turborepo](https://turbo.build/) (Manajemen eksekusi _task_ monorepo yang sangat cepat & _incremental_)
+- **Edge Compute:** Cloudflare Workers
+- **Backend / API:** [Hono](https://hono.dev/) (Super-fast, lightweight web framework)
+- **API Contract & Documentation:** [`@hono/zod-openapi`](https://github.com/honojs/middleware/tree/main/packages/zod-openapi) (OpenAPI spec dari Zod schemas) + [Scalar](https://scalar.com/) (Interactive API Reference UI di `/reference`)
+- **Frontend:** [SvelteKit](https://svelte.dev/) (Portal Pembeli, Admin & Seller) + [shadcn-svelte](https://shadcn-svelte.com/)
+- **Database & Connection Pooling:** PostgreSQL (Self-Hosted) + Cloudflare Hyperdrive
+- **ORM & Database Client:** [Drizzle ORM](https://orm.drizzle.team/) (Edge-ready, Type-safe SQL builder)
+- **State Management & Concurrency:** [Cloudflare Durable Objects](https://developers.cloudflare.com/workers/runtime-apis/durable-objects/) (Mencegah _overselling_ dan memastikan konsistensi transaksi)
+- **Background Processing:** [Cloudflare Queues](https://developers.cloudflare.com/queues/) (Menangani tugas asinkron seperti antrean pengiriman email e-ticket dan pembaruan laporan analitik)
+- **Real-time WebSocket:** [PartyKit](https://www.partykit.io/) (Menyiarkan status ketersediaan tiket secara _live_ dan mengelola ruang antrean tanpa membebani database)
+- **File Storage:** [Cloudflare R2](https://developers.cloudflare.com/r2/) (Object storage untuk gambar event, avatar, dan aset lainnya)
+- **Code Quality:** [ESLint](https://eslint.org/) (Flat Config) + [Prettier](https://prettier.io/) (`prettier-plugin-svelte`, `prettier-plugin-tailwindcss`)
+- **Testing:** [Vitest](https://vitest.dev/) (Unit & Integration) + [Playwright](https://playwright.dev/) (E2E) + [K6](https://k6.io/) (Load Testing)
 
 ---
 
@@ -32,7 +33,7 @@ Platform ini menggunakan pendekatan *monorepo* dengan perpaduan teknologi beriku
 graph TD
     User([User / Browser])
     CF_Edge[Cloudflare Edge Network]
-    
+
     subgraph Frontend & API
         Buyer[SvelteKit Buyer]
         Admin[SvelteKit Admin]
@@ -40,12 +41,12 @@ graph TD
         PartyKit[PartyKit WebSocket]
         API[Hono API + Drizzle ORM]
     end
-    
+
     subgraph Edge State & Workers
         DO[Durable Objects <br> Concurrency/Lock]
         Queue[Cloudflare Queues <br> Background Jobs]
     end
-    
+
     subgraph Data Layer
         Hyperdrive[Cloudflare Hyperdrive]
         DB[(PostgreSQL)]
@@ -62,13 +63,13 @@ graph TD
     Admin -->|Fetch/Mutate| API
     Seller -->|Fetch/Mutate| API
     Buyer -.->|Listen to Status| PartyKit
-    
+
     API -->|Reserve Ticket| DO
     API -->|Async Tasks| Queue
     API -->|Query via Drizzle| Hyperdrive
     DO -->|Sync State| Hyperdrive
     Queue -.->|Process| API
-    
+
     Hyperdrive -->|Execute SQL| DB
 ```
 
@@ -76,7 +77,7 @@ graph TD
 
 ## 📂 Monorepo Structure
 
-Repositori ini diatur ke dalam beberapa *workspace* untuk memisahkan logika bisnis, antarmuka pengguna, namun tetap berbagi gaya (UI) dan tipe data:
+Repositori ini diatur ke dalam beberapa _workspace_ untuk memisahkan logika bisnis, antarmuka pengguna, namun tetap berbagi gaya (UI) dan tipe data:
 
 ```
 jeevatix/
@@ -119,11 +120,12 @@ jeevatix/
 
 ## 🛠️ Prerequisites
 
-Sebelum memulai *development* di *environment* lokal Anda, pastikan Anda telah menginstal:
-* **Node.js** (v22 atau lebih baru, lihat `.nvmrc`)
-* **pnpm** (Direkomendasikan untuk manajemen *monorepo* yang efisien)
-* **Docker & Docker Compose** (Untuk menjalankan PostgreSQL lokal)
-* Akun **Cloudflare** (untuk konfigurasi *deployment* dan Hyperdrive)
+Sebelum memulai _development_ di _environment_ lokal Anda, pastikan Anda telah menginstal:
+
+- **Node.js** (v22 atau lebih baru, lihat `.nvmrc`)
+- **pnpm** (Direkomendasikan untuk manajemen _monorepo_ yang efisien)
+- **Docker & Docker Compose** (Untuk menjalankan PostgreSQL lokal)
+- Akun **Cloudflare** (untuk konfigurasi _deployment_ dan Hyperdrive)
 
 ---
 
@@ -140,46 +142,57 @@ pnpm install
 ```
 
 ### 2. Setup Environment Variables
-Duplikat file `.env.example` menjadi `.env` di *root directory* dan isi variabel yang dibutuhkan:
+
+Duplikat file `.env.example` menjadi `.env` di _root directory_ dan isi variabel yang dibutuhkan:
+
 ```bash
 cp .env.example .env
 ```
 
 ### 3. Jalankan PostgreSQL (Docker Compose)
+
 Jalankan PostgreSQL menggunakan Docker Compose. Database akan otomatis terbuat sesuai konfigurasi di `docker-compose.yml`:
+
 ```bash
 docker compose up -d
 ```
+
 Default connection string: `postgresql://jeevatix:jeevatix@localhost:5432/jeevatix` (sudah tercantum di `.env.example`).
 
 Untuk menghentikan database:
+
 ```bash
 docker compose down        # stop container (data tetap ada di volume)
 docker compose down -v     # stop & hapus volume (reset data)
 ```
 
 ### 4. Jalankan Local Development (Turborepo)
-Perintah ini akan memicu **Turborepo** untuk menjalankan *local environment* bagi seluruh aplikasi (Portal Pembeli, Admin, Seller & API) secara paralel sekaligus menyambungkannya ke *resource* cloud melalui SST:
+
+Perintah ini akan memicu **Turborepo** untuk menjalankan _local environment_ bagi seluruh aplikasi (Portal Pembeli, Admin, Seller & API) secara paralel sekaligus menyambungkannya ke _resource_ cloud melalui SST:
+
 ```bash
 pnpm run dev
 ```
 
 Anda bisa mengakses aplikasi di port berikut:
-* **Portal Pembeli (SvelteKit):** [http://localhost:4301](http://localhost:4301)
-* **Portal Admin (SvelteKit):** [http://localhost:4302](http://localhost:4302)
-* **Portal Penjual/Seller (SvelteKit):** [http://localhost:4303](http://localhost:4303)
-* **Backend API (Hono):** `http://localhost:8787` (atau port dinamis wrangler)
+
+- **Portal Pembeli (SvelteKit):** [http://localhost:4301](http://localhost:4301)
+- **Portal Admin (SvelteKit):** [http://localhost:4302](http://localhost:4302)
+- **Portal Penjual/Seller (SvelteKit):** [http://localhost:4303](http://localhost:4303)
+- **Backend API (Hono):** `http://localhost:8787` (atau port dinamis wrangler)
 
 ### 5. Catatan Runtime Auth Lokal
 
 Beberapa detail implementasi auth di `apps/api` perlu dipahami karena perilakunya spesifik ke Cloudflare Workers + local smoke test:
 
-* Script `pnpm --filter @jeevatix/api dev` memuat `.env` root melalui `dotenv-cli`, jadi `DATABASE_URL` dan `JWT_SECRET` harus tersedia di root project sebelum menjalankan Wrangler lokal.
-* `apps/api/wrangler.toml` memakai `compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]` untuk menghindari error I/O lintas request saat memakai postgres-js di runtime Worker lokal.
-* JWT auth memakai algoritma `HS256` secara eksplisit. Saat ini access token, refresh token, verify-email token, dan reset-password token semuanya memakai `JWT_SECRET`; tidak ada `JWT_REFRESH_SECRET` terpisah di runtime. Access token berlaku 15 menit, refresh token 7 hari, dan setiap token membawa `jti` agar rotasi token tidak bentrok walau dibuat pada detik yang sama.
-* Refresh token disimpan di tabel `refresh_tokens` sebagai hash SHA-256 deterministik, bukan bcrypt. Ini disengaja supaya lookup, rotation, dan revocation tetap akurat untuk string JWT yang panjang.
-* Koneksi DB untuk Worker tidak di-cache sebagai singleton lintas request. Gunakan `getDb(databaseUrl?)` dari `packages/core/src/db/index.ts` bila butuh akses DB dari runtime API.
-* Selama task email queue belum selesai, flow `register`, `register-seller`, dan `forgot-password` masih mengembalikan `verify_email_token` atau `reset_token` di response agar frontend dan smoke test bisa melanjutkan flow end-to-end.
+- Script `pnpm --filter @jeevatix/api dev` memuat `.env` root melalui `dotenv-cli`, jadi `DATABASE_URL` dan `JWT_SECRET` harus tersedia di root project sebelum menjalankan Wrangler lokal.
+- `apps/api/wrangler.toml` memakai `compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]` untuk menghindari error I/O lintas request saat memakai postgres-js di runtime Worker lokal.
+- JWT auth memakai algoritma `HS256` secara eksplisit. Saat ini access token, refresh token, verify-email token, dan reset-password token semuanya memakai `JWT_SECRET`; tidak ada `JWT_REFRESH_SECRET` terpisah di runtime. Access token berlaku 15 menit, refresh token 7 hari, dan setiap token membawa `jti` agar rotasi token tidak bentrok walau dibuat pada detik yang sama.
+- Refresh token disimpan di tabel `refresh_tokens` sebagai hash SHA-256 deterministik, bukan bcrypt. Ini disengaja supaya lookup, rotation, dan revocation tetap akurat untuk string JWT yang panjang.
+- Koneksi DB untuk Worker tidak di-cache sebagai singleton lintas request. Gunakan `getDb(databaseUrl?)` dari `packages/core/src/db/index.ts` bila butuh akses DB dari runtime API.
+- Response publik `register`, `register-seller`, dan `forgot-password` tidak lagi mengembalikan `verify_email_token` atau `reset_token` secara default. Jalur utama sekarang adalah email verifikasi dan email reset password.
+- Link verifikasi email dikirim ke route browser-safe `GET /auth/verify-email?token=...` di API. Link reset password tetap diarahkan ke portal buyer atau seller melalui `BUYER_APP_URL` dan `SELLER_APP_URL` jika perlu override explicit.
+- Jika local debugging masih perlu melihat token sensitif di response, aktifkan `AUTH_EXPOSE_DEBUG_TOKENS=1` secara eksplisit. Flag ini hanya untuk local/test dan tidak boleh dipakai di deployment public.
 
 Smoke test terakhir yang sudah diverifikasi: `login -> refresh -> logout -> refresh token lama` harus berakhir dengan `401 Unauthorized` pada langkah terakhir.
 
@@ -205,13 +218,13 @@ pnpm run test:e2e:report   # Buka report HTML Playwright terakhir
 pnpm run test:load         # K6 — load testing (war ticket simulation)
 ```
 
-* **Linting (ESLint):** Flat config (`eslint.config.js`) dengan `@typescript-eslint` + `eslint-plugin-svelte`. Semua apps & packages di-lint via Turborepo.
-* **Formatting (Prettier):** Shared `.prettierrc` dengan `prettier-plugin-svelte` + `prettier-plugin-tailwindcss` (plugin order matters).
-* **Unit & Integration Test (Vitest):** Target minimal 80% coverage pada `apps/api`.
-* **E2E Testing (Playwright):** Test flows kritis di ketiga portal (Buyer :4301, Admin :4302, Seller :4303).
-    Suite lokal menjalankan mock API in-memory dari `tests/e2e/mock-api-server.mjs`, dan portal dijalankan dengan mode dev E2E (`PLAYWRIGHT_E2E=1`) agar tidak bergantung pada `workerd` saat development host tidak kompatibel.
-    `pnpm run test:e2e` saat ini memang ditujukan untuk mode lokal tersebut.
-* **Load Testing (K6):** Simulasi *war ticket* dengan 1000 virtual users untuk memastikan tidak ada *overselling*.
+- **Linting (ESLint):** Flat config (`eslint.config.js`) dengan `@typescript-eslint` + `eslint-plugin-svelte`. Semua apps & packages di-lint via Turborepo.
+- **Formatting (Prettier):** Shared `.prettierrc` dengan `prettier-plugin-svelte` + `prettier-plugin-tailwindcss` (plugin order matters).
+- **Unit & Integration Test (Vitest):** Target minimal 80% coverage pada `apps/api`.
+- **E2E Testing (Playwright):** Test flows kritis di ketiga portal (Buyer :4301, Admin :4302, Seller :4303).
+  Suite lokal menjalankan mock API in-memory dari `tests/e2e/mock-api-server.mjs`, dan portal dijalankan dengan mode dev E2E (`PLAYWRIGHT_E2E=1`) agar tidak bergantung pada `workerd` saat development host tidak kompatibel.
+  `pnpm run test:e2e` saat ini memang ditujukan untuk mode lokal tersebut.
+- **Load Testing (K6):** Simulasi _war ticket_ dengan 1000 virtual users untuk memastikan tidak ada _overselling_.
 
 Untuk investigasi performa checkout lokal dengan runner Node tunggal di `scripts/run-api-local.ts`, tersedia preset runner eksplisit agar benchmark tetap reproducible tanpa mengubah default local dev:
 
@@ -265,16 +278,17 @@ pnpm run test:e2e
 
 Catatan:
 
-* Config Playwright akan menyalakan `tests/e2e/mock-api-server.mjs` otomatis.
-* Buyer, Admin, dan Seller portal dijalankan otomatis lewat `webServer` di `playwright.config.ts`.
-* Mode ini khusus untuk local E2E stability. Deployment target tetap Cloudflare adapter seperti biasa.
+- Config Playwright akan menyalakan `tests/e2e/mock-api-server.mjs` otomatis.
+- Buyer, Admin, dan Seller portal dijalankan otomatis lewat `webServer` di `playwright.config.ts`.
+- Mode ini khusus untuk local E2E stability. Deployment target tetap Cloudflare adapter seperti biasa.
 
 ---
 
 ## 🌐 Deployment & CI/CD
 
-Proses *deployment* ke *production* sepenuhnya diotomatisasi menggunakan **GitHub Actions**. Setiap PR atau *merge* ke *branch* `main` akan memicu *pipeline* CI/CD untuk memastikan semua *test* berlalu sebelum melakukan *build* dan *deploy* ke Cloudflare.
-Namun, jika Anda perlu melakukan *deploy* manual dari mesin lokal, Anda dapat menjalankan:
+Proses _deployment_ ke _production_ sepenuhnya diotomatisasi menggunakan **GitHub Actions**. Setiap PR atau _merge_ ke _branch_ `main` akan memicu _pipeline_ CI/CD untuk memastikan semua _test_ berlalu sebelum melakukan _build_ dan _deploy_ ke Cloudflare.
+Namun, jika Anda perlu melakukan _deploy_ manual dari mesin lokal, Anda dapat menjalankan:
+
 ```bash
 pnpm run build
 pnpm run deploy --stage production
@@ -284,12 +298,12 @@ pnpm run deploy --stage production
 
 Stack SST production sekarang mencakup resource inti berikut:
 
-* API worker Cloudflare dari `apps/api/src/index.ts`
-* Durable Object binding + migration untuk `TicketReserver`
-* Queue `reservation-cleanup` beserta consumer worker-nya
-* Cron worker untuk enqueue cleanup setiap menit
-* Bucket R2 untuk upload gambar
-* Tiga portal Cloudflare Workers untuk Buyer, Admin, dan Seller dari artefak build SvelteKit Cloudflare adapter
+- API worker Cloudflare dari `apps/api/src/index.ts`
+- Durable Object binding + migration untuk `TicketReserver`
+- Queue `reservation-cleanup` beserta consumer worker-nya
+- Cron worker untuk enqueue cleanup setiap menit
+- Bucket R2 untuk upload gambar
+- Tiga portal Cloudflare Workers untuk Buyer, Admin, dan Seller dari artefak build SvelteKit Cloudflare adapter
 
 ### Environment Variables Yang Harus Ada Saat Deploy
 
@@ -329,6 +343,9 @@ PARTY_SECRET
 PARTYKIT_HOST
 TICKET_RESERVER_DATABASE_URL
 TICKET_RESERVER_DB_MAX_CONNECTIONS
+BUYER_APP_URL
+SELLER_APP_URL
+AUTH_EXPOSE_DEBUG_TOKENS
 R2_BUCKET_NAME
 PRODUCTION_API_DOMAIN
 PRODUCTION_BUYER_DOMAIN
@@ -339,16 +356,16 @@ RESERVATION_CLEANUP_QUEUE_NAME
 
 Catatan kompatibilitas:
 
-* Nama canonical project untuk account Cloudflare adalah `CLOUDFLARE_ACCOUNT_ID`.
-* `sst.config.ts` masih menerima `CLOUDFLARE_DEFAULT_ACCOUNT_ID` sebagai fallback kompatibilitas dengan dokumentasi SST, tetapi nama itu bukan nama utama yang dipakai project ini.
-* Nama canonical secret email di repo ini adalah `EMAIL_API_KEY`, bukan `RESEND_API_KEY`, walau provider email saat ini memang Resend.
+- Nama canonical project untuk account Cloudflare adalah `CLOUDFLARE_ACCOUNT_ID`.
+- `sst.config.ts` masih menerima `CLOUDFLARE_DEFAULT_ACCOUNT_ID` sebagai fallback kompatibilitas dengan dokumentasi SST, tetapi nama itu bukan nama utama yang dipakai project ini.
+- Nama canonical secret email di repo ini adalah `EMAIL_API_KEY`, bukan `RESEND_API_KEY`, walau provider email saat ini memang Resend.
 
 ### Catatan Manual Yang Masih Perlu Diperhatikan
 
-* `PARTYKIT_HOST` masih mengarah ke deployment PartyKit terpisah; stack SST ini belum membuat atau mendeploy PartyKit server.
-* Runtime API saat ini masih membaca `DATABASE_URL` langsung. Jika ingin memakai Hyperdrive sebagai binding runtime penuh, kontrak koneksi aplikasi perlu disejajarkan dulu dengan implementasi binding tersebut.
-* Portal workers mengasumsikan `pnpm run build` sudah menghasilkan artefak `.svelte-kit/cloudflare/_worker.js` sebelum `sst deploy` dijalankan.
-* Workflow GitHub Actions sekarang juga perlu menyediakan env build-time public (`PUBLIC_API_BASE_URL`, opsional `PUBLIC_PARTYKIT_HOST`) selain secret runtime API saat langkah deploy dijalankan.
+- `PARTYKIT_HOST` masih mengarah ke deployment PartyKit terpisah; stack SST ini belum membuat atau mendeploy PartyKit server.
+- Runtime API saat ini masih membaca `DATABASE_URL` langsung. Jika ingin memakai Hyperdrive sebagai binding runtime penuh, kontrak koneksi aplikasi perlu disejajarkan dulu dengan implementasi binding tersebut.
+- Portal workers mengasumsikan `pnpm run build` sudah menghasilkan artefak `.svelte-kit/cloudflare/_worker.js` sebelum `sst deploy` dijalankan.
+- Workflow GitHub Actions sekarang juga perlu menyediakan env build-time public (`PUBLIC_API_BASE_URL`, opsional `PUBLIC_PARTYKIT_HOST`) selain secret runtime API saat langkah deploy dijalankan.
 
 ---
 
@@ -366,36 +383,38 @@ Project ini dikonfigurasi dengan **AI agent customization** dan **MCP servers** 
 
 AI agent secara otomatis memuat rules dan instructions dari folder `.github/`:
 
-| File | Fungsi | Trigger |
-| ---- | ------ | ------- |
-| `copilot-instructions.md` | Workspace-wide rules (tech stack, arsitektur 3-layer, OpenAPI, code quality) | Selalu aktif di setiap chat |
-| `instructions/api-routes.instructions.md` | Pattern OpenAPIHono untuk route handlers | Auto-attach saat edit `apps/api/src/routes/**` |
-| `instructions/api-services.instructions.md` | Convention untuk business logic services | Auto-attach saat edit `apps/api/src/services/**` |
-| `instructions/api-schemas.instructions.md` | Zod + OpenAPI schema patterns | Auto-attach saat edit `apps/api/src/schemas/**` |
-| `instructions/svelte-pages.instructions.md` | SvelteKit + shadcn-svelte page patterns | Auto-attach saat edit `apps/**/src/routes/**/*.svelte` |
-| `instructions/drizzle-schema.instructions.md` | Drizzle ORM schema conventions | Auto-attach saat edit `packages/core/src/db/**` |
-| `prompts/new-api-endpoint.prompt.md` | Generate endpoint baru (3 file: route + service + schema) | Slash command `/new-api-endpoint` |
-| `prompts/new-svelte-page.prompt.md` | Generate halaman SvelteKit baru | Slash command `/new-svelte-page` |
-| `prompts/phase-checkpoint.prompt.md` | Jalankan validasi checkpoint fase | Slash command `/phase-checkpoint` |
-| `agents/reviewer.agent.md` | Code review agent (read-only, no edit) | Pilih di agent selector |
+| File                                          | Fungsi                                                                       | Trigger                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `copilot-instructions.md`                     | Workspace-wide rules (tech stack, arsitektur 3-layer, OpenAPI, code quality) | Selalu aktif di setiap chat                            |
+| `instructions/api-routes.instructions.md`     | Pattern OpenAPIHono untuk route handlers                                     | Auto-attach saat edit `apps/api/src/routes/**`         |
+| `instructions/api-services.instructions.md`   | Convention untuk business logic services                                     | Auto-attach saat edit `apps/api/src/services/**`       |
+| `instructions/api-schemas.instructions.md`    | Zod + OpenAPI schema patterns                                                | Auto-attach saat edit `apps/api/src/schemas/**`        |
+| `instructions/svelte-pages.instructions.md`   | SvelteKit + shadcn-svelte page patterns                                      | Auto-attach saat edit `apps/**/src/routes/**/*.svelte` |
+| `instructions/drizzle-schema.instructions.md` | Drizzle ORM schema conventions                                               | Auto-attach saat edit `packages/core/src/db/**`        |
+| `prompts/new-api-endpoint.prompt.md`          | Generate endpoint baru (3 file: route + service + schema)                    | Slash command `/new-api-endpoint`                      |
+| `prompts/new-svelte-page.prompt.md`           | Generate halaman SvelteKit baru                                              | Slash command `/new-svelte-page`                       |
+| `prompts/phase-checkpoint.prompt.md`          | Jalankan validasi checkpoint fase                                            | Slash command `/phase-checkpoint`                      |
+| `agents/reviewer.agent.md`                    | Code review agent (read-only, no edit)                                       | Pilih di agent selector                                |
 
 ### MCP Servers (`.vscode/mcp.json`)
 
 Konfigurasi tersimpan di `.vscode/mcp.json`.
 
-| MCP Server | Fungsi | Penggunaan |
-| ---------- | ------ | ---------- |
+| MCP Server               | Fungsi                                        | Penggunaan                                                                                                     |
+| ------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | **shadcn-ui-mcp-server** | Referensi komponen, block, dan tema shadcn/ui | Mendapatkan source code komponen, contoh demo, block template (dashboard, login, sidebar), dan menerapkan tema |
-| **context7** | Lookup dokumentasi library terbaru | Referensi API docs Hono, Drizzle, SvelteKit, SST, Zod, dll secara real-time |
+| **context7**             | Lookup dokumentasi library terbaru            | Referensi API docs Hono, Drizzle, SvelteKit, SST, Zod, dll secara real-time                                    |
 
 ### Kapabilitas MCP yang tersedia:
 
 **shadcn-ui-mcp:**
+
 - `list_components` — Daftar semua komponen shadcn/ui yang tersedia
 - `get_component` / `get_component_demo` — Source code dan contoh penggunaan komponen
 - `list_blocks` / `get_block` — Template block siap pakai (dashboard, login, sidebar, calendar, products)
 - `list_themes` / `apply_theme` — Tema visual yang bisa diterapkan ke project
 
 **context7:**
+
 - `resolve-library-id` — Resolve nama library ke ID Context7
 - `get-library-docs` — Ambil dokumentasi terbaru berdasarkan topik/query

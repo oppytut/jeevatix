@@ -20,7 +20,6 @@ export const actions = {
       return {
         success: true,
         message: result.message,
-        resetToken: result.reset_token ?? null,
         values: { email },
       };
     } catch (error) {

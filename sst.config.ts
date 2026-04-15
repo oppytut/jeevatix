@@ -21,7 +21,8 @@ const productionDomains = {
   seller: process.env.PRODUCTION_SELLER_DOMAIN ?? 'seller.jeevatix.com',
 };
 
-const queueName = process.env.RESERVATION_CLEANUP_QUEUE_NAME ?? `jeevatix-${stage}-reservation-cleanup`;
+const queueName =
+  process.env.RESERVATION_CLEANUP_QUEUE_NAME ?? `jeevatix-${stage}-reservation-cleanup`;
 const bucketName =
   process.env.R2_BUCKET_NAME ?? (isProduction ? 'jeevatix-uploads' : `jeevatix-${stage}-uploads`);
 const apiScriptName = process.env.API_WORKER_NAME ?? `jeevatix-${stage}-api`;
@@ -29,8 +30,7 @@ const reservationCleanupConsumerScriptName =
   process.env.RESERVATION_CLEANUP_CONSUMER_WORKER_NAME ??
   `jeevatix-${stage}-reservation-cleanup-consumer`;
 const reservationCleanupCronScriptName =
-  process.env.RESERVATION_CLEANUP_CRON_WORKER_NAME ??
-  `jeevatix-${stage}-reservation-cleanup-cron`;
+  process.env.RESERVATION_CLEANUP_CRON_WORKER_NAME ?? `jeevatix-${stage}-reservation-cleanup-cron`;
 const buyerScriptName = process.env.BUYER_WORKER_NAME ?? `jeevatix-${stage}-buyer`;
 const adminScriptName = process.env.ADMIN_WORKER_NAME ?? `jeevatix-${stage}-admin`;
 const sellerScriptName = process.env.SELLER_WORKER_NAME ?? `jeevatix-${stage}-seller`;
@@ -57,6 +57,13 @@ function createApiEnvironment() {
     EMAIL_API_KEY: requireEnv('EMAIL_API_KEY'),
     EMAIL_FROM: requireEnv('EMAIL_FROM'),
     UPLOAD_PUBLIC_URL: requireEnv('UPLOAD_PUBLIC_URL'),
+    BUYER_APP_URL:
+      maybeEnv('BUYER_APP_URL') ??
+      (isProduction ? `https://${productionDomains.buyer}` : undefined),
+    SELLER_APP_URL:
+      maybeEnv('SELLER_APP_URL') ??
+      (isProduction ? `https://${productionDomains.seller}` : undefined),
+    AUTH_EXPOSE_DEBUG_TOKENS: maybeEnv('AUTH_EXPOSE_DEBUG_TOKENS'),
     PARTY_SECRET: maybeEnv('PARTY_SECRET'),
     PARTYKIT_HOST: maybeEnv('PARTYKIT_HOST'),
     TICKET_RESERVER_DATABASE_URL: maybeEnv('TICKET_RESERVER_DATABASE_URL'),
@@ -109,9 +116,7 @@ function applyApiWorkerTransform(
     name: 'TICKET_RESERVER',
     type: 'durableobjectnamespace',
     className: 'TicketReserver',
-    ...(options.durableObjectScriptName
-      ? { scriptName: options.durableObjectScriptName }
-      : {}),
+    ...(options.durableObjectScriptName ? { scriptName: options.durableObjectScriptName } : {}),
   });
 
   args.bindings = bindings;

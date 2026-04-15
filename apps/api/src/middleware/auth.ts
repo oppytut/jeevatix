@@ -19,6 +19,9 @@ type AuthBindings = {
   PAYMENT_WEBHOOK_SECRET?: string;
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
+  BUYER_APP_URL?: string;
+  SELLER_APP_URL?: string;
+  AUTH_EXPOSE_DEBUG_TOKENS?: string;
 };
 
 export type AuthUser = Pick<TokenPayload, 'id' | 'email' | 'role'>;

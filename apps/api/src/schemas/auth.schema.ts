@@ -90,10 +90,6 @@ export const authPayloadSchema = z
     access_token: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     refresh_token: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     user: authUserSchema,
-    verify_email_token: z
-      .string()
-      .optional()
-      .openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
   })
   .openapi('AuthPayload');
 
@@ -120,10 +116,6 @@ export const messageResponseSchema = z
 export const forgotPasswordPayloadSchema = z
   .object({
     message: z.string().openapi({ example: 'Reset instructions have been generated.' }),
-    reset_token: z
-      .string()
-      .optional()
-      .openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
   })
   .openapi('ForgotPasswordPayload');
 

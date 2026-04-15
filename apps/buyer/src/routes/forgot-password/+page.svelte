@@ -8,7 +8,7 @@
 
 <svelte:head>
   <title>Forgot Password | Jeevatix</title>
-  <meta name="description" content="Minta token reset password untuk akun buyer Jeevatix Anda." />
+  <meta name="description" content="Minta link reset password untuk akun buyer Jeevatix Anda." />
 </svelte:head>
 
 <section class="mx-auto flex min-h-[calc(100vh-10rem)] max-w-3xl items-center py-6 lg:py-10">
@@ -24,7 +24,7 @@
           Lupa password akun buyer?
         </h1>
         <p class="text-sm leading-6 text-slate-600">
-          Masukkan email akun Anda. Jeevatix akan mengirim token reset untuk membuat password baru.
+          Masukkan email akun Anda. Jeevatix akan mengirim link reset untuk membuat password baru.
         </p>
       </div>
       <div class="flex size-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
@@ -60,11 +60,6 @@
           class="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800"
         >
           <p>{form.message}</p>
-          {#if form.resetToken}
-            <div class="rounded-xl bg-white/80 p-3 font-mono text-xs break-all text-emerald-900">
-              {form.resetToken}
-            </div>
-          {/if}
         </div>
       {/if}
 

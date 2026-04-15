@@ -8,7 +8,6 @@
   let email = $state('');
   let errorMessage = $state('');
   let successMessage = $state('');
-  let resetToken = $state('');
   let isSubmitting = $state(false);
 
   async function handleSubmit(event: SubmitEvent) {
@@ -20,13 +19,11 @@
 
     errorMessage = '';
     successMessage = '';
-    resetToken = '';
     isSubmitting = true;
 
     try {
       const result = await forgotPassword(email.trim());
       successMessage = result.message;
-      resetToken = result.reset_token ?? '';
     } catch (error) {
       errorMessage =
         error instanceof ApiError ? error.message : 'Gagal mengirim instruksi reset password.';
@@ -98,9 +95,6 @@
           class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
         >
           <p>{successMessage}</p>
-          {#if resetToken}
-            <p class="mt-2 font-medium break-all">Dev reset token: {resetToken}</p>
-          {/if}
         </div>
       {/if}
 

@@ -1,7 +1,7 @@
 import { getDb, schema } from '@jeevatix/core';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { inArray, like } from 'drizzle-orm';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import app from '../../index';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
@@ -50,6 +50,7 @@ type JsonRequestOptions = {
   token?: string;
   body?: Record<string, unknown>;
   headers?: HeadersInit;
+  env?: Record<string, string | undefined>;
 };
 
 type RegisterResult = {
@@ -60,6 +61,15 @@ type RegisterResult = {
 
 function createTestEmail() {
   return `${TEST_EMAIL_PREFIX}${crypto.randomUUID()}@example.com`;
+}
+
+function createEmailApiResponse() {
+  return new Response(JSON.stringify({ id: 'email_123' }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }
 
 async function requestJson(
@@ -87,6 +97,7 @@ async function requestJson(
     {
       JWT_SECRET: jwtSecret,
       DATABASE_URL: databaseUrl,
+      ...options.env,
     },
   );
 }
@@ -152,11 +163,16 @@ describe.sequential('Auth API', () => {
     await cleanupTestUsers();
   });
 
-  it('registers a buyer and returns access and refresh tokens', async () => {
+  it('registers a buyer and returns session tokens without exposing verification tokens', async () => {
     const { response } = await registerBuyer();
     const payload = await readJson<{
       success: boolean;
-      data: { access_token: string; refresh_token: string; user: { email: string; role: string } };
+      data: {
+        access_token: string;
+        refresh_token: string;
+        user: { email: string; role: string };
+        verify_email_token?: string;
+      };
     }>(response);
 
     expect(response.status).toBe(201);
@@ -164,9 +180,10 @@ describe.sequential('Auth API', () => {
     expect(payload.data.access_token).toBeTruthy();
     expect(payload.data.refresh_token).toBeTruthy();
     expect(payload.data.user.role).toBe('buyer');
+    expect(payload.data.verify_email_token).toBeUndefined();
   });
 
-  it('registers a seller and returns seller tokens', async () => {
+  it('registers a seller and returns seller tokens without exposing verification tokens', async () => {
     const email = createTestEmail();
 
     const response = await requestJson(app, '/auth/register/seller', {
@@ -183,7 +200,12 @@ describe.sequential('Auth API', () => {
 
     const payload = await readJson<{
       success: boolean;
-      data: { access_token: string; refresh_token: string; user: { email: string; role: string } };
+      data: {
+        access_token: string;
+        refresh_token: string;
+        user: { email: string; role: string };
+        verify_email_token?: string;
+      };
     }>(response);
 
     expect(response.status).toBe(201);
@@ -192,6 +214,48 @@ describe.sequential('Auth API', () => {
     expect(payload.data.user.role).toBe('seller');
     expect(payload.data.access_token).toBeTruthy();
     expect(payload.data.refresh_token).toBeTruthy();
+    expect(payload.data.verify_email_token).toBeUndefined();
+  });
+
+  it('sends a verification email when register email delivery is configured', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(createEmailApiResponse());
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchMock;
+
+    try {
+      const response = await requestJson(app, '/auth/register', {
+        method: 'POST',
+        body: {
+          email: createTestEmail(),
+          password: 'BuyerPass123!',
+          full_name: 'Vitest Buyer Email',
+          phone: '081234567890',
+        },
+        env: {
+          EMAIL_API_KEY: 'test-email-key',
+          EMAIL_FROM: 'noreply@example.com',
+        },
+      });
+
+      expect(response.status).toBe(201);
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://api.resend.com/emails',
+        expect.objectContaining({ method: 'POST' }),
+      );
+
+      const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+      const body = JSON.parse(String(requestInit?.body)) as {
+        html: string;
+        subject: string;
+        to: string[];
+      };
+
+      expect(body.subject).toBe('Verifikasi email akun Jeevatix Anda');
+      expect(body.html).toContain('/auth/verify-email?token=');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
   it('rejects duplicate buyer registration', async () => {
@@ -454,12 +518,67 @@ describe.sequential('Auth API', () => {
     expect(refreshPayload.error.code).toBe('INVALID_REFRESH_TOKEN');
   });
 
-  it('generates a reset token and allows password reset', async () => {
+  it('returns reset instructions without exposing reset tokens by default', async () => {
+    const { email } = await registerBuyer();
+
+    const response = await requestJson(app, '/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    });
+
+    const payload = await readJson<{
+      success: boolean;
+      data: { message: string; reset_token?: string };
+    }>(response);
+
+    expect(response.status).toBe(200);
+    expect(payload.success).toBe(true);
+    expect(payload.data.message).toBe(
+      'If the email is registered, reset instructions have been generated.',
+    );
+    expect(payload.data.reset_token).toBeUndefined();
+  });
+
+  it('sends a reset email when forgot-password email delivery is configured', async () => {
+    const { email } = await registerBuyer();
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(createEmailApiResponse());
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchMock;
+
+    try {
+      const response = await requestJson(app, '/auth/forgot-password', {
+        method: 'POST',
+        body: { email },
+        env: {
+          EMAIL_API_KEY: 'test-email-key',
+          EMAIL_FROM: 'noreply@example.com',
+          BUYER_APP_URL: 'https://buyer.example.com',
+        },
+      });
+
+      expect(response.status).toBe(200);
+      expect(fetchMock).toHaveBeenCalledOnce();
+
+      const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+      const body = JSON.parse(String(requestInit?.body)) as {
+        html: string;
+        subject: string;
+      };
+
+      expect(body.subject).toBe('Reset password akun Jeevatix');
+      expect(body.html).toContain('https://buyer.example.com/reset-password?token=');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('exposes a reset token only when debug mode is enabled and allows password reset', async () => {
     const { email, password } = await registerBuyer();
 
     const forgotResponse = await requestJson(app, '/auth/forgot-password', {
       method: 'POST',
       body: { email },
+      env: { AUTH_EXPOSE_DEBUG_TOKENS: '1' },
     });
     const forgotPayload = await readJson<{
       success: boolean;
@@ -497,25 +616,71 @@ describe.sequential('Auth API', () => {
     expect(newLoginResponse.status).toBe(200);
   });
 
-  it('verifies email with a valid token', async () => {
+  it('exposes a verification token only when debug mode is enabled and verifies email', async () => {
     const { response: registerResponse } = await registerBuyer();
     const registerPayload = await readJson<{
       success: boolean;
       data: { verify_email_token?: string; user: { email_verified_at: string | null } };
     }>(registerResponse);
 
+    expect(registerPayload.data.verify_email_token).toBeUndefined();
+
+    const debugRegisterResponse = await requestJson(app, '/auth/register', {
+      method: 'POST',
+      body: {
+        email: createTestEmail(),
+        password: 'BuyerPass123!',
+        full_name: 'Vitest Buyer Debug',
+        phone: '081234567890',
+      },
+      env: { AUTH_EXPOSE_DEBUG_TOKENS: '1' },
+    });
+    const debugRegisterPayload = await readJson<{
+      success: boolean;
+      data: { verify_email_token?: string; user: { email_verified_at: string | null } };
+    }>(debugRegisterResponse);
+
     const verifyResponse = await requestJson(app, '/auth/verify-email', {
       method: 'POST',
-      body: { token: registerPayload.data.verify_email_token ?? '' },
+      body: { token: debugRegisterPayload.data.verify_email_token ?? '' },
     });
     const verifyPayload = await readJson<{
       success: boolean;
       data: { message: string };
     }>(verifyResponse);
 
+    expect(debugRegisterResponse.status).toBe(201);
+    expect(debugRegisterPayload.data.verify_email_token).toBeTruthy();
     expect(verifyResponse.status).toBe(200);
     expect(verifyPayload.success).toBe(true);
     expect(verifyPayload.data.message).toBe('Email has been verified successfully.');
+  });
+
+  it('renders an HTML confirmation page for email verification links', async () => {
+    const debugRegisterResponse = await requestJson(app, '/auth/register', {
+      method: 'POST',
+      body: {
+        email: createTestEmail(),
+        password: 'BuyerPass123!',
+        full_name: 'Vitest Buyer Link',
+        phone: '081234567890',
+      },
+      env: { AUTH_EXPOSE_DEBUG_TOKENS: '1' },
+    });
+    const debugRegisterPayload = await readJson<{
+      success: boolean;
+      data: { verify_email_token?: string };
+    }>(debugRegisterResponse);
+
+    const response = await requestJson(
+      app,
+      `/auth/verify-email?token=${encodeURIComponent(debugRegisterPayload.data.verify_email_token ?? '')}`,
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(html).toContain('Email berhasil diverifikasi');
   });
 
   it('returns the generic forgot-password response for unknown emails', async () => {

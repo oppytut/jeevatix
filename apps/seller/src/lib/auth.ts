@@ -51,7 +51,6 @@ type AuthResponse = {
 
 type ForgotPasswordPayload = {
   message: string;
-  reset_token?: string;
 };
 
 type ForgotPasswordResponse = {

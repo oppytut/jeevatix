@@ -42,7 +42,6 @@ type AuthPayload = {
   access_token: string;
   refresh_token: string;
   user: BuyerAuthUser;
-  verify_email_token?: string;
 };
 
 type AuthResponse = {
@@ -61,7 +60,6 @@ type ForgotPasswordResponse = {
   success: true;
   data: {
     message: string;
-    reset_token?: string;
   };
 };
 

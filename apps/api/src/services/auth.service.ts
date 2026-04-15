@@ -21,6 +21,12 @@ import type {
   RegisterSellerInput,
   ResetPasswordInput,
 } from '../schemas/auth.schema';
+import {
+  buildResetPasswordEmail,
+  buildVerificationEmail,
+  createEmailService,
+  type EmailEnv,
+} from './email';
 
 const { refreshTokens, sellerProfiles, users } = schema;
 
@@ -39,7 +45,23 @@ type ActionTokenPayload = {
 
 type AuthenticatedUserRow = typeof users.$inferSelect;
 
-type AuthResult = AuthPayload;
+type BackgroundTaskScheduler = (task: Promise<unknown>) => void;
+
+type AuthFlowOptions = EmailEnv & {
+  apiBaseUrl?: string;
+  buyerAppUrl?: string;
+  sellerAppUrl?: string;
+  exposeDebugTokens?: boolean;
+  scheduleTask?: BackgroundTaskScheduler;
+};
+
+type AuthResult = AuthPayload & {
+  verify_email_token?: string;
+};
+
+type ForgotPasswordResult = ForgotPasswordPayload & {
+  reset_token?: string;
+};
 
 export class AuthServiceError extends Error {
   constructor(
@@ -56,6 +78,16 @@ export class AuthServiceError extends Error {
     super(message);
     this.name = 'AuthServiceError';
   }
+}
+
+function getProcessEnv(key: string) {
+  return (
+    globalThis as typeof globalThis & {
+      process?: {
+        env?: Record<string, string | undefined>;
+      };
+    }
+  ).process?.env?.[key];
 }
 
 function getDatabase(databaseUrl?: string) {
@@ -207,8 +239,120 @@ async function createVerifyEmailToken(user: AuthenticatedUserRow, secret: string
   );
 }
 
+function trimTrailingSlash(value: string) {
+  return value.replace(/\/+$/, '');
+}
+
+function resolveConfiguredUrl(value: string | undefined, envKey: string) {
+  const configuredValue = value ?? getProcessEnv(envKey);
+
+  return configuredValue ? trimTrailingSlash(configuredValue) : undefined;
+}
+
+function resolveBuyerAppUrl(options?: AuthFlowOptions) {
+  return resolveConfiguredUrl(options?.buyerAppUrl, 'BUYER_APP_URL') ?? 'http://localhost:4301';
+}
+
+function resolveSellerAppUrl(options?: AuthFlowOptions) {
+  return resolveConfiguredUrl(options?.sellerAppUrl, 'SELLER_APP_URL') ?? 'http://localhost:4303';
+}
+
+function resolveApiBaseUrl(options?: AuthFlowOptions) {
+  return resolveConfiguredUrl(options?.apiBaseUrl, 'API_BASE_URL') ?? 'http://localhost:8787';
+}
+
+function buildActionUrl(baseUrl: string, path: string, token: string) {
+  const url = new URL(path, `${baseUrl}/`);
+  url.searchParams.set('token', token);
+  return url.toString();
+}
+
+function shouldExposeDebugTokens(options?: AuthFlowOptions) {
+  if (options?.exposeDebugTokens !== undefined) {
+    return options.exposeDebugTokens;
+  }
+
+  const value = getProcessEnv('AUTH_EXPOSE_DEBUG_TOKENS');
+
+  return value === '1' || value === 'true';
+}
+
+function scheduleBackgroundTask(
+  options: AuthFlowOptions | undefined,
+  label: string,
+  taskFactory: () => Promise<void>,
+) {
+  const task = taskFactory().catch((error) => {
+    console.error(`[auth-email] ${label} failed.`, error);
+  });
+
+  if (options?.scheduleTask) {
+    options.scheduleTask(task);
+    return;
+  }
+
+  void task;
+}
+
+function resolveEmailEnv(options?: AuthFlowOptions): EmailEnv | null {
+  const EMAIL_API_KEY = options?.EMAIL_API_KEY ?? getProcessEnv('EMAIL_API_KEY');
+  const EMAIL_FROM = options?.EMAIL_FROM ?? getProcessEnv('EMAIL_FROM');
+
+  if (!EMAIL_API_KEY || !EMAIL_FROM) {
+    return null;
+  }
+
+  return {
+    EMAIL_API_KEY,
+    EMAIL_FROM,
+  };
+}
+
+async function sendVerificationEmail(
+  user: AuthenticatedUserRow,
+  token: string,
+  options?: AuthFlowOptions,
+) {
+  const emailEnv = resolveEmailEnv(options);
+
+  if (!emailEnv) {
+    return;
+  }
+
+  const verifyUrl = buildActionUrl(resolveApiBaseUrl(options), '/auth/verify-email', token);
+  const verificationEmail = buildVerificationEmail(user.fullName, verifyUrl);
+  const emailService = createEmailService(emailEnv);
+
+  await emailService.sendEmail(user.email, verificationEmail.subject, verificationEmail.html);
+}
+
+async function sendResetPasswordEmail(
+  user: AuthenticatedUserRow,
+  token: string,
+  options?: AuthFlowOptions,
+) {
+  const emailEnv = resolveEmailEnv(options);
+
+  if (!emailEnv) {
+    return;
+  }
+
+  const appBaseUrl =
+    user.role === 'seller' ? resolveSellerAppUrl(options) : resolveBuyerAppUrl(options);
+  const resetUrl = buildActionUrl(appBaseUrl, '/reset-password', token);
+  const resetPasswordEmail = buildResetPasswordEmail(user.fullName, resetUrl);
+  const emailService = createEmailService(emailEnv);
+
+  await emailService.sendEmail(user.email, resetPasswordEmail.subject, resetPasswordEmail.html);
+}
+
 export const authService = {
-  async register(input: RegisterInput, secret: string, databaseUrl?: string): Promise<AuthResult> {
+  async register(
+    input: RegisterInput,
+    secret: string,
+    databaseUrl?: string,
+    options?: AuthFlowOptions,
+  ): Promise<AuthResult> {
     const database = getDatabase(databaseUrl);
 
     const existingUser = await database.query.users.findFirst({
@@ -222,7 +366,7 @@ export const authService = {
     const passwordHash = await hashPassword(input.password);
 
     try {
-      return await database.transaction(async (tx) => {
+      const result = await database.transaction(async (tx) => {
         const [user] = await tx
           .insert(users)
           .values({
@@ -245,12 +389,26 @@ export const authService = {
         });
 
         return {
-          access_token: session.accessToken,
-          refresh_token: session.refreshToken,
-          user: toAuthUser(user),
-          verify_email_token: verifyEmailToken,
+          auth: {
+            access_token: session.accessToken,
+            refresh_token: session.refreshToken,
+            user: toAuthUser(user),
+          },
+          user,
+          verifyEmailToken,
         };
       });
+
+      scheduleBackgroundTask(options, 'register.verify-email', () =>
+        sendVerificationEmail(result.user, result.verifyEmailToken, options),
+      );
+
+      return shouldExposeDebugTokens(options)
+        ? {
+            ...result.auth,
+            verify_email_token: result.verifyEmailToken,
+          }
+        : result.auth;
     } catch (error) {
       if (isUniqueViolation(error)) {
         throw new AuthServiceError('EMAIL_ALREADY_EXISTS', 'Email is already registered.');
@@ -264,6 +422,7 @@ export const authService = {
     input: RegisterSellerInput,
     secret: string,
     databaseUrl?: string,
+    options?: AuthFlowOptions,
   ): Promise<AuthResult> {
     const database = getDatabase(databaseUrl);
 
@@ -278,7 +437,7 @@ export const authService = {
     const passwordHash = await hashPassword(input.password);
 
     try {
-      return await database.transaction(async (tx) => {
+      const result = await database.transaction(async (tx) => {
         const [user] = await tx
           .insert(users)
           .values({
@@ -307,12 +466,26 @@ export const authService = {
         });
 
         return {
-          access_token: session.accessToken,
-          refresh_token: session.refreshToken,
-          user: toAuthUser(user),
-          verify_email_token: verifyEmailToken,
+          auth: {
+            access_token: session.accessToken,
+            refresh_token: session.refreshToken,
+            user: toAuthUser(user),
+          },
+          user,
+          verifyEmailToken,
         };
       });
+
+      scheduleBackgroundTask(options, 'register-seller.verify-email', () =>
+        sendVerificationEmail(result.user, result.verifyEmailToken, options),
+      );
+
+      return shouldExposeDebugTokens(options)
+        ? {
+            ...result.auth,
+            verify_email_token: result.verifyEmailToken,
+          }
+        : result.auth;
     } catch (error) {
       if (isUniqueViolation(error)) {
         throw new AuthServiceError('EMAIL_ALREADY_EXISTS', 'Email is already registered.');
@@ -413,7 +586,8 @@ export const authService = {
     input: ForgotPasswordInput,
     secret: string,
     databaseUrl?: string,
-  ): Promise<ForgotPasswordPayload> {
+    options?: AuthFlowOptions,
+  ): Promise<ForgotPasswordResult> {
     const database = getDatabase(databaseUrl);
     const user = await database.query.users.findFirst({
       where: eq(users.email, input.email),
@@ -433,10 +607,18 @@ export const authService = {
       user.updatedAt.getTime(),
     );
 
-    return {
-      message: 'If the email is registered, reset instructions have been generated.',
-      reset_token: resetToken,
-    };
+    scheduleBackgroundTask(options, 'forgot-password.reset-email', () =>
+      sendResetPasswordEmail(user, resetToken, options),
+    );
+
+    return shouldExposeDebugTokens(options)
+      ? {
+          message: 'If the email is registered, reset instructions have been generated.',
+          reset_token: resetToken,
+        }
+      : {
+          message: 'If the email is registered, reset instructions have been generated.',
+        };
   },
 
   async resetPassword(input: ResetPasswordInput, secret: string, databaseUrl?: string) {
@@ -567,5 +749,21 @@ export const authService = {
     }
 
     return createVerifyEmailToken(user, secret);
+  },
+
+  async generateResetPasswordToken(userId: string, secret: string, databaseUrl?: string) {
+    const user = await getUserById(userId, databaseUrl);
+
+    if (!user) {
+      throw new AuthServiceError('INVALID_RESET_TOKEN', 'User not found.');
+    }
+
+    return signActionToken(
+      user.id,
+      secret,
+      'password_reset',
+      PASSWORD_RESET_TTL_SECONDS,
+      user.updatedAt.getTime(),
+    );
   },
 };
