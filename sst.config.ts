@@ -3,20 +3,274 @@
 const configuredStage =
   process.env.SST_STAGE ?? process.env.STAGE ?? process.env.NODE_ENV ?? undefined;
 
+const stage = configuredStage ?? 'development';
+const isProduction = stage === 'production';
+
+const cloudflareAccountId =
+  process.env.CLOUDFLARE_ACCOUNT_ID ?? process.env.CLOUDFLARE_DEFAULT_ACCOUNT_ID;
+
+const apiCompatibilityDate = '2026-03-30';
+const apiCompatibilityFlags = ['nodejs_compat', 'no_handle_cross_request_promise_resolution'];
+const portalCompatibilityDate = '2026-03-30';
+const portalCompatibilityFlags = ['nodejs_als'];
+
+const productionDomains = {
+  api: process.env.PRODUCTION_API_DOMAIN ?? 'api.jeevatix.com',
+  buyer: process.env.PRODUCTION_BUYER_DOMAIN ?? 'jeevatix.com',
+  admin: process.env.PRODUCTION_ADMIN_DOMAIN ?? 'admin.jeevatix.com',
+  seller: process.env.PRODUCTION_SELLER_DOMAIN ?? 'seller.jeevatix.com',
+};
+
+const queueName = process.env.RESERVATION_CLEANUP_QUEUE_NAME ?? `jeevatix-${stage}-reservation-cleanup`;
+const bucketName =
+  process.env.R2_BUCKET_NAME ?? (isProduction ? 'jeevatix-uploads' : `jeevatix-${stage}-uploads`);
+const apiScriptName = process.env.API_WORKER_NAME ?? `jeevatix-${stage}-api`;
+const reservationCleanupConsumerScriptName =
+  process.env.RESERVATION_CLEANUP_CONSUMER_WORKER_NAME ??
+  `jeevatix-${stage}-reservation-cleanup-consumer`;
+const reservationCleanupCronScriptName =
+  process.env.RESERVATION_CLEANUP_CRON_WORKER_NAME ??
+  `jeevatix-${stage}-reservation-cleanup-cron`;
+const buyerScriptName = process.env.BUYER_WORKER_NAME ?? `jeevatix-${stage}-buyer`;
+const adminScriptName = process.env.ADMIN_WORKER_NAME ?? `jeevatix-${stage}-admin`;
+const sellerScriptName = process.env.SELLER_WORKER_NAME ?? `jeevatix-${stage}-seller`;
+
+function requireEnv(name: string) {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`${name} is required to deploy the ${stage} stack.`);
+  }
+
+  return value;
+}
+
+function maybeEnv(name: string) {
+  return process.env[name];
+}
+
+function createApiEnvironment() {
+  return {
+    DATABASE_URL: requireEnv('DATABASE_URL'),
+    JWT_SECRET: requireEnv('JWT_SECRET'),
+    PAYMENT_WEBHOOK_SECRET: requireEnv('PAYMENT_WEBHOOK_SECRET'),
+    EMAIL_API_KEY: requireEnv('EMAIL_API_KEY'),
+    EMAIL_FROM: requireEnv('EMAIL_FROM'),
+    UPLOAD_PUBLIC_URL: requireEnv('UPLOAD_PUBLIC_URL'),
+    PARTY_SECRET: maybeEnv('PARTY_SECRET'),
+    PARTYKIT_HOST: maybeEnv('PARTYKIT_HOST'),
+    TICKET_RESERVER_DATABASE_URL: maybeEnv('TICKET_RESERVER_DATABASE_URL'),
+    TICKET_RESERVER_DB_MAX_CONNECTIONS: maybeEnv('TICKET_RESERVER_DB_MAX_CONNECTIONS'),
+  };
+}
+
+function applyApiWorkerTransform(
+  args: Record<string, any>,
+  options: {
+    scriptName: string;
+    includeBucket?: boolean;
+    includeQueue?: boolean;
+    durableObjectScriptName?: string;
+    configureMigrations?: boolean;
+  },
+) {
+  args.scriptName = options.scriptName;
+  args.compatibilityDate = apiCompatibilityDate;
+  args.compatibilityFlags = apiCompatibilityFlags;
+  args.observability = {
+    enabled: true,
+    logs: {
+      enabled: true,
+      invocationLogs: true,
+      destinations: ['cloudflare'],
+      persist: true,
+    },
+  };
+
+  const bindings = [...(args.bindings ?? [])];
+
+  if (options.includeBucket) {
+    bindings.push({
+      name: 'BUCKET',
+      type: 'r2bucket',
+      bucketName,
+    });
+  }
+
+  if (options.includeQueue) {
+    bindings.push({
+      name: 'RESERVATION_CLEANUP_QUEUE',
+      type: 'queue',
+      queueName,
+    });
+  }
+
+  bindings.push({
+    name: 'TICKET_RESERVER',
+    type: 'durableobjectnamespace',
+    className: 'TicketReserver',
+    ...(options.durableObjectScriptName
+      ? { scriptName: options.durableObjectScriptName }
+      : {}),
+  });
+
+  args.bindings = bindings;
+
+  if (options.configureMigrations) {
+    args.migrations = {
+      newTag: 'v1',
+      newClasses: ['TicketReserver'],
+    };
+  }
+}
+
+function applyPortalWorkerTransform(args: Record<string, any>, scriptName: string) {
+  args.scriptName = scriptName;
+  args.compatibilityDate = portalCompatibilityDate;
+  args.compatibilityFlags = portalCompatibilityFlags;
+}
+
 $config({
   app(input) {
     return {
       name: 'jeevatix',
       home: 'cloudflare',
       stage: configuredStage ?? input?.stage,
+      protect: input?.stage === 'production',
+      removal: input?.stage === 'production' ? 'retain' : 'remove',
+      providers: cloudflareAccountId
+        ? {
+            cloudflare: {
+              accountId: cloudflareAccountId,
+            },
+          }
+        : undefined,
     };
   },
   async run() {
-    // Placeholder: Cloudflare Workers API app will be defined here.
-    // Placeholder: Hyperdrive resource for PostgreSQL connection pooling will be defined here.
-    // Placeholder: Durable Objects like TicketReserver will be defined here.
-    // Placeholder: Queues for email and reservation cleanup will be defined here.
+    const apiEnvironment = createApiEnvironment();
 
-    return {};
+    const uploadsBucket = new sst.cloudflare.Bucket('UploadsBucket', {
+      transform: {
+        bucket(args) {
+          args.name = bucketName;
+        },
+      },
+    });
+
+    const reservationCleanupQueue = new sst.cloudflare.Queue('ReservationCleanupQueue', {
+      transform: {
+        queue(args) {
+          args.queueName = queueName;
+        },
+      },
+    });
+
+    const api = new sst.cloudflare.Worker('Api', {
+      handler: 'apps/api/src/index.ts',
+      environment: apiEnvironment,
+      url: !isProduction,
+      domain: isProduction ? productionDomains.api : undefined,
+      transform: {
+        worker(args) {
+          applyApiWorkerTransform(args, {
+            scriptName: apiScriptName,
+            includeBucket: true,
+            includeQueue: true,
+            configureMigrations: true,
+          });
+        },
+      },
+    });
+
+    reservationCleanupQueue.subscribe(
+      {
+        handler: 'apps/api/src/index.ts',
+        environment: apiEnvironment,
+        transform: {
+          worker(args) {
+            applyApiWorkerTransform(args, {
+              scriptName: reservationCleanupConsumerScriptName,
+              durableObjectScriptName: apiScriptName,
+            });
+          },
+        },
+      },
+      {
+        batch: {
+          size: 10,
+          window: '30 seconds',
+        },
+      },
+    );
+
+    new sst.cloudflare.Cron('ReservationCleanupCron', {
+      schedules: ['* * * * *'],
+      worker: {
+        handler: 'apps/api/src/index.ts',
+        environment: apiEnvironment,
+        transform: {
+          worker(args) {
+            applyApiWorkerTransform(args, {
+              scriptName: reservationCleanupCronScriptName,
+              includeQueue: true,
+              durableObjectScriptName: apiScriptName,
+            });
+          },
+        },
+      },
+    });
+
+    const buyer = new sst.cloudflare.Worker('BuyerPortal', {
+      handler: 'apps/buyer/.svelte-kit/cloudflare/_worker.js',
+      assets: {
+        directory: 'apps/buyer/.svelte-kit/cloudflare',
+      },
+      url: !isProduction,
+      domain: isProduction ? productionDomains.buyer : undefined,
+      transform: {
+        worker(args) {
+          applyPortalWorkerTransform(args, buyerScriptName);
+        },
+      },
+    });
+
+    const admin = new sst.cloudflare.Worker('AdminPortal', {
+      handler: 'apps/admin/.svelte-kit/cloudflare/_worker.js',
+      assets: {
+        directory: 'apps/admin/.svelte-kit/cloudflare',
+      },
+      url: !isProduction,
+      domain: isProduction ? productionDomains.admin : undefined,
+      transform: {
+        worker(args) {
+          applyPortalWorkerTransform(args, adminScriptName);
+        },
+      },
+    });
+
+    const seller = new sst.cloudflare.Worker('SellerPortal', {
+      handler: 'apps/seller/.svelte-kit/cloudflare/_worker.js',
+      assets: {
+        directory: 'apps/seller/.svelte-kit/cloudflare',
+      },
+      url: !isProduction,
+      domain: isProduction ? productionDomains.seller : undefined,
+      transform: {
+        worker(args) {
+          applyPortalWorkerTransform(args, sellerScriptName);
+        },
+      },
+    });
+
+    return {
+      api: isProduction ? `https://${productionDomains.api}` : api.url,
+      buyer: isProduction ? `https://${productionDomains.buyer}` : buyer.url,
+      admin: isProduction ? `https://${productionDomains.admin}` : admin.url,
+      seller: isProduction ? `https://${productionDomains.seller}` : seller.url,
+      apiWorker: apiScriptName,
+      uploadsBucket: uploadsBucket.name,
+      reservationCleanupQueue: queueName,
+    };
   },
 });

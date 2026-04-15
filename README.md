@@ -280,6 +280,51 @@ pnpm run build
 pnpm run deploy --stage production
 ```
 
+### Resource Yang Sekarang Dikelola SST
+
+Stack SST production sekarang mencakup resource inti berikut:
+
+* API worker Cloudflare dari `apps/api/src/index.ts`
+* Durable Object binding + migration untuk `TicketReserver`
+* Queue `reservation-cleanup` beserta consumer worker-nya
+* Cron worker untuk enqueue cleanup setiap menit
+* Bucket R2 untuk upload gambar
+* Tiga portal Cloudflare Workers untuk Buyer, Admin, dan Seller dari artefak build SvelteKit Cloudflare adapter
+
+### Environment Variables Yang Harus Ada Saat Deploy
+
+Sebelum menjalankan `pnpm run deploy --stage production`, pastikan environment berikut tersedia di shell/CI karena saat ini stack deploy membacanya langsung dari environment deploy:
+
+```bash
+DATABASE_URL
+JWT_SECRET
+PAYMENT_WEBHOOK_SECRET
+EMAIL_API_KEY
+EMAIL_FROM
+UPLOAD_PUBLIC_URL
+```
+
+Optional runtime env yang juga bisa diberikan saat deploy:
+
+```bash
+PARTY_SECRET
+PARTYKIT_HOST
+TICKET_RESERVER_DATABASE_URL
+TICKET_RESERVER_DB_MAX_CONNECTIONS
+R2_BUCKET_NAME
+PRODUCTION_API_DOMAIN
+PRODUCTION_BUYER_DOMAIN
+PRODUCTION_ADMIN_DOMAIN
+PRODUCTION_SELLER_DOMAIN
+RESERVATION_CLEANUP_QUEUE_NAME
+```
+
+### Catatan Manual Yang Masih Perlu Diperhatikan
+
+* `PARTYKIT_HOST` masih mengarah ke deployment PartyKit terpisah; stack SST ini belum membuat atau mendeploy PartyKit server.
+* Runtime API saat ini masih membaca `DATABASE_URL` langsung. Jika ingin memakai Hyperdrive sebagai binding runtime penuh, kontrak koneksi aplikasi perlu disejajarkan dulu dengan implementasi binding tersebut.
+* Portal workers mengasumsikan `pnpm run build` sudah menghasilkan artefak `.svelte-kit/cloudflare/_worker.js` sebelum `sst deploy` dijalankan.
+
 ---
 
 ## 📝 License
