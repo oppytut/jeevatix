@@ -7,6 +7,9 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    env:
+      PUBLIC_API_BASE_URL: https://api.jeevatix.com
+      PUBLIC_PARTYKIT_HOST: ${{ vars.PUBLIC_PARTYKIT_HOST }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

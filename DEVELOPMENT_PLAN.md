@@ -3276,15 +3276,18 @@ Dependensi: T-10.1 dan T-10.2 sudah selesai.
 Kerjakan Task T-10.6: Production Deploy.
 Dependensi: T-10.5 sudah selesai.
 
-1. Environment Variables — Set di Cloudflare Dashboard atau SST secrets:
+1. Environment Variables — Sediakan di environment deploy (shell lokal atau CI) untuk stack saat ini:
    - DATABASE_URL: connection string PostgreSQL production.
-   - JWT_SECRET: random 64 char string (generate dengan openssl rand -hex 32).
-   - JWT_REFRESH_SECRET: random 64 char berbeda.
+   - JWT_SECRET: random 64 char string (generate dengan openssl rand -hex 32). Saat ini dipakai untuk access token, refresh token, verify-email token, dan reset-password token.
    - PARTY_SECRET: random string untuk PartyKit auth.
    - PAYMENT_WEBHOOK_SECRET: dari payment gateway.
-   - RESEND_API_KEY: dari Resend (atau Mailgun API key).
-   - R2_BUCKET_NAME: nama bucket R2.
-     Jalankan: sst secret set JWT_SECRET "xxxxx" --stage production (untuk setiap secret).
+   - EMAIL_API_KEY: API key provider email (implementasi saat ini memakai Resend via `EMAIL_API_KEY`).
+   - EMAIL_FROM: alamat pengirim email transaksional.
+   - UPLOAD_PUBLIC_URL: public base URL untuk file upload R2.
+   - R2_BUCKET_NAME: nama bucket R2 jika ingin override default.
+   - PUBLIC_API_BASE_URL: base URL API yang dibake ke bundle frontend saat `pnpm run build`.
+   - PUBLIC_PARTYKIT_HOST: host PartyKit publik jika fitur live availability ingin aktif di frontend.
+   - CLOUDFLARE_ACCOUNT_ID dan CLOUDFLARE_API_TOKEN: kredensial deploy SST ke Cloudflare.
 
 2. Cloudflare Hyperdrive:
    - Buat Hyperdrive config di Cloudflare dashboard: point ke production PostgreSQL.

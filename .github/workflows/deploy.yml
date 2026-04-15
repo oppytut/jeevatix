@@ -7,6 +7,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      PUBLIC_API_BASE_URL: https://api.jeevatix.com
+      PUBLIC_PARTYKIT_HOST: ${{ vars.PUBLIC_PARTYKIT_HOST }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -29,6 +32,23 @@ jobs:
       - run: pnpm run deploy --stage production
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PAYMENT_WEBHOOK_SECRET: ${{ secrets.PAYMENT_WEBHOOK_SECRET }}
+          EMAIL_API_KEY: ${{ secrets.EMAIL_API_KEY }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          UPLOAD_PUBLIC_URL: ${{ vars.UPLOAD_PUBLIC_URL }}
+          PARTY_SECRET: ${{ secrets.PARTY_SECRET }}
+          PARTYKIT_HOST: ${{ vars.PARTYKIT_HOST }}
+          TICKET_RESERVER_DATABASE_URL: ${{ secrets.TICKET_RESERVER_DATABASE_URL }}
+          TICKET_RESERVER_DB_MAX_CONNECTIONS: ${{ vars.TICKET_RESERVER_DB_MAX_CONNECTIONS }}
+          R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME }}
+          RESERVATION_CLEANUP_QUEUE_NAME: ${{ vars.RESERVATION_CLEANUP_QUEUE_NAME }}
+          PRODUCTION_API_DOMAIN: ${{ vars.PRODUCTION_API_DOMAIN }}
+          PRODUCTION_BUYER_DOMAIN: ${{ vars.PRODUCTION_BUYER_DOMAIN }}
+          PRODUCTION_ADMIN_DOMAIN: ${{ vars.PRODUCTION_ADMIN_DOMAIN }}
+          PRODUCTION_SELLER_DOMAIN: ${{ vars.PRODUCTION_SELLER_DOMAIN }}
       - name: Smoke Test
         run: |
           curl -f https://api.jeevatix.com/health || exit 1

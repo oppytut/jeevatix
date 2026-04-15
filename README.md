@@ -176,7 +176,7 @@ Beberapa detail implementasi auth di `apps/api` perlu dipahami karena perilakuny
 
 * Script `pnpm --filter @jeevatix/api dev` memuat `.env` root melalui `dotenv-cli`, jadi `DATABASE_URL` dan `JWT_SECRET` harus tersedia di root project sebelum menjalankan Wrangler lokal.
 * `apps/api/wrangler.toml` memakai `compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]` untuk menghindari error I/O lintas request saat memakai postgres-js di runtime Worker lokal.
-* JWT auth memakai algoritma `HS256` secara eksplisit. Access token berlaku 15 menit, refresh token 7 hari, dan setiap token membawa `jti` agar rotasi token tidak bentrok walau dibuat pada detik yang sama.
+* JWT auth memakai algoritma `HS256` secara eksplisit. Saat ini access token, refresh token, verify-email token, dan reset-password token semuanya memakai `JWT_SECRET`; tidak ada `JWT_REFRESH_SECRET` terpisah di runtime. Access token berlaku 15 menit, refresh token 7 hari, dan setiap token membawa `jti` agar rotasi token tidak bentrok walau dibuat pada detik yang sama.
 * Refresh token disimpan di tabel `refresh_tokens` sebagai hash SHA-256 deterministik, bukan bcrypt. Ini disengaja supaya lookup, rotation, dan revocation tetap akurat untuk string JWT yang panjang.
 * Koneksi DB untuk Worker tidak di-cache sebagai singleton lintas request. Gunakan `getDb(databaseUrl?)` dari `packages/core/src/db/index.ts` bila butuh akses DB dari runtime API.
 * Selama task email queue belum selesai, flow `register`, `register-seller`, dan `forgot-password` masih mengembalikan `verify_email_token` atau `reset_token` di response agar frontend dan smoke test bisa melanjutkan flow end-to-end.
@@ -293,7 +293,16 @@ Stack SST production sekarang mencakup resource inti berikut:
 
 ### Environment Variables Yang Harus Ada Saat Deploy
 
-Sebelum menjalankan `pnpm run deploy --stage production`, pastikan environment berikut tersedia di shell/CI karena saat ini stack deploy membacanya langsung dari environment deploy:
+Sebelum menjalankan `pnpm run deploy --stage production`, pastikan environment berikut tersedia di shell/CI karena saat ini stack deploy membacanya langsung dari environment deploy.
+
+Deploy/SST setup:
+
+```bash
+CLOUDFLARE_ACCOUNT_ID
+CLOUDFLARE_API_TOKEN
+```
+
+API runtime required:
 
 ```bash
 DATABASE_URL
@@ -304,7 +313,16 @@ EMAIL_FROM
 UPLOAD_PUBLIC_URL
 ```
 
-Optional runtime env yang juga bisa diberikan saat deploy:
+Frontend public build-time env:
+
+```bash
+PUBLIC_API_BASE_URL
+PUBLIC_PARTYKIT_HOST
+```
+
+`PUBLIC_API_BASE_URL` sebaiknya selalu diekspor eksplisit saat `pnpm run build`, walau portal saat ini masih punya fallback production default. `PUBLIC_PARTYKIT_HOST` diperlukan jika fitur live availability buyer ingin aktif setelah deploy.
+
+Optional runtime/deploy override:
 
 ```bash
 PARTY_SECRET
@@ -319,11 +337,18 @@ PRODUCTION_SELLER_DOMAIN
 RESERVATION_CLEANUP_QUEUE_NAME
 ```
 
+Catatan kompatibilitas:
+
+* Nama canonical project untuk account Cloudflare adalah `CLOUDFLARE_ACCOUNT_ID`.
+* `sst.config.ts` masih menerima `CLOUDFLARE_DEFAULT_ACCOUNT_ID` sebagai fallback kompatibilitas dengan dokumentasi SST, tetapi nama itu bukan nama utama yang dipakai project ini.
+* Nama canonical secret email di repo ini adalah `EMAIL_API_KEY`, bukan `RESEND_API_KEY`, walau provider email saat ini memang Resend.
+
 ### Catatan Manual Yang Masih Perlu Diperhatikan
 
 * `PARTYKIT_HOST` masih mengarah ke deployment PartyKit terpisah; stack SST ini belum membuat atau mendeploy PartyKit server.
 * Runtime API saat ini masih membaca `DATABASE_URL` langsung. Jika ingin memakai Hyperdrive sebagai binding runtime penuh, kontrak koneksi aplikasi perlu disejajarkan dulu dengan implementasi binding tersebut.
 * Portal workers mengasumsikan `pnpm run build` sudah menghasilkan artefak `.svelte-kit/cloudflare/_worker.js` sebelum `sst deploy` dijalankan.
+* Workflow GitHub Actions sekarang juga perlu menyediakan env build-time public (`PUBLIC_API_BASE_URL`, opsional `PUBLIC_PARTYKIT_HOST`) selain secret runtime API saat langkah deploy dijalankan.
 
 ---
 

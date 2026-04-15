@@ -336,7 +336,6 @@ const env: Record<string, unknown> = {
   TICKET_RESERVER_DB_MAX_CONNECTIONS:
     process.env.TICKET_RESERVER_DB_MAX_CONNECTIONS ?? buildTicketReserverPoolSize(),
   JWT_SECRET: process.env.JWT_SECRET,
-  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   PAYMENT_WEBHOOK_SECRET: process.env.PAYMENT_WEBHOOK_SECRET,
   EMAIL_API_KEY: process.env.EMAIL_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
