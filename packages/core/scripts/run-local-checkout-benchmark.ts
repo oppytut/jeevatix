@@ -404,7 +404,10 @@ function buildBenchmarkSummary(
     prewarmHttpDurationP95: parseP95Metric(benchmarkRun.output, 'prewarm_http_duration'),
     stepReservationP95: parseP95Metric(benchmarkRun.output, 'step_reservation_duration'),
     reservationHttpBlockedP95: parseP95Metric(benchmarkRun.output, 'reservation_http_blocked'),
-    reservationHttpConnectingP95: parseP95Metric(benchmarkRun.output, 'reservation_http_connecting'),
+    reservationHttpConnectingP95: parseP95Metric(
+      benchmarkRun.output,
+      'reservation_http_connecting',
+    ),
     stepOrderP95: parseP95Metric(benchmarkRun.output, 'step_order_duration'),
     stepPaymentP95: parseP95Metric(benchmarkRun.output, 'step_payment_duration'),
     paymentHttpDurationP95: parseP95Metric(benchmarkRun.output, 'payment_http_duration'),
@@ -655,19 +658,15 @@ async function main() {
     ? openSync(runnerProfileOptions.logFilePath, 'a')
     : undefined;
 
-  const runnerProcess = spawn(
-    tsxPath,
-    [runnerPath, '--preset', preset],
-    {
-      cwd: repoRoot,
-      env: runnerEnv,
-      detached: true,
-      stdio:
-        typeof runnerLogFileDescriptor === 'number'
-          ? ['ignore', runnerLogFileDescriptor, runnerLogFileDescriptor]
-          : 'inherit',
-    },
-  );
+  const runnerProcess = spawn(tsxPath, [runnerPath, '--preset', preset], {
+    cwd: repoRoot,
+    env: runnerEnv,
+    detached: true,
+    stdio:
+      typeof runnerLogFileDescriptor === 'number'
+        ? ['ignore', runnerLogFileDescriptor, runnerLogFileDescriptor]
+        : 'inherit',
+  });
 
   const cleanup = async () => stopRunner(runnerProcess.pid);
   const handleSignal = async () => {
