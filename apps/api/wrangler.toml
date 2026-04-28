@@ -19,11 +19,11 @@ bindings = [
 
 [[migrations]]
 tag = "v1"
-new_classes = ["TicketReserver"]
+new_sqlite_classes = ["TicketReserver"]
 
 [[migrations]]
 tag = "v2"
-new_classes = ["RateLimiter"]
+new_sqlite_classes = ["RateLimiter"]
 
 [[r2_buckets]]
 binding = "BUCKET"

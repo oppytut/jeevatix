@@ -13,11 +13,17 @@ const LOGIN_BATCH_SIZE = parseInt(__ENV.LOGIN_BATCH_SIZE || '100', 10);
 const PAYMENT_METHOD = __ENV.PAYMENT_METHOD || 'bank_transfer';
 const PAYMENT_WEBHOOK_SECRET = __ENV.PAYMENT_WEBHOOK_SECRET || 'local-load-test-webhook-secret';
 const RESERVATION_CONNECTION_CLOSE = __ENV.RESERVATION_CONNECTION_CLOSE === '1';
+const PREWARM_RESERVATION_CONNECTION = __ENV.PREWARM_RESERVATION_CONNECTION === '1';
+const PRE_RESERVATION_VU_JITTER_MS = parseInt(__ENV.PRE_RESERVATION_VU_JITTER_MS || '0', 10);
 const LOAD_TEST_CLIENT_START_HEADER = 'x-load-test-client-start-ms';
 
 const flowSuccess = new Counter('checkout_flow_success');
 const flowFailed = new Counter('checkout_flow_failed');
 const reservationSoldOut = new Counter('checkout_flow_reservation_sold_out');
+const setupLoginHttpDuration = new Trend('setup_login_http_duration', true);
+const checkoutHttpDuration = new Trend('checkout_http_duration', true);
+const checkoutBusinessHttpDuration = new Trend('checkout_business_http_duration', true);
+const prewarmHttpDuration = new Trend('prewarm_http_duration', true);
 const reservationStep = new Trend('step_reservation_duration', true);
 const reservationHttpDuration = new Trend('reservation_http_duration', true);
 const reservationHttpBlocked = new Trend('reservation_http_blocked', true);
@@ -31,8 +37,13 @@ const orderHttpConnecting = new Trend('order_http_connecting', true);
 const orderHttpWaiting = new Trend('order_http_waiting', true);
 const orderClientOverhead = new Trend('order_client_overhead', true);
 const paymentStep = new Trend('step_payment_duration', true);
+const paymentHttpDuration = new Trend('payment_http_duration', true);
+const paymentClientOverhead = new Trend('payment_client_overhead', true);
 const webhookStep = new Trend('step_webhook_duration', true);
+const webhookHttpDuration = new Trend('webhook_http_duration', true);
+const webhookClientOverhead = new Trend('webhook_client_overhead', true);
 const fullFlowDuration = new Trend('full_flow_duration', true);
+const checkoutBusinessFlowDuration = new Trend('checkout_business_flow_duration', true);
 
 function signWebhookPayload(payload) {
   return crypto.hmac('sha256', PAYMENT_WEBHOOK_SECRET, payload, 'hex');
@@ -99,6 +110,7 @@ export function setup() {
 
     for (let index = 0; index < responses.length; index += 1) {
       const loginRes = responses[index];
+      setupLoginHttpDuration.add(loginRes.timings.duration);
 
       if (loginRes.status === 200) {
         try {
@@ -139,11 +151,43 @@ export default function (data) {
   };
 
   const flowStart = Date.now();
+  let businessFlowStart = flowStart;
   let reservationId = null;
   let orderId = null;
   let externalRef = null;
   let reservationStatus = null;
   let reservationBody = null;
+
+  if (PREWARM_RESERVATION_CONNECTION) {
+    const prewarmStart = Date.now();
+    const prewarmRes = http.get(`${BASE_URL}/health`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      responseCallback: http.expectedStatuses(200),
+    });
+    prewarmHttpDuration.add(prewarmRes.timings.duration);
+    checkoutHttpDuration.add(prewarmRes.timings.duration);
+
+    const prewarmOk = check(prewarmRes, {
+      'prewarm: status 200': (response) => response.status === 200,
+    });
+
+    if (!prewarmOk) {
+      flowFailed.add(1);
+      if (__VU <= 5) {
+        console.warn(`[VU ${__VU}] Prewarm failed: ${prewarmRes.status} - ${prewarmRes.body}`);
+      }
+      sleep(0.5);
+      return;
+    }
+
+    businessFlowStart = Date.now();
+  }
+
+  if (PRE_RESERVATION_VU_JITTER_MS > 0) {
+    sleep((vuIndex % PRE_RESERVATION_VU_JITTER_MS) / 1000);
+  }
 
   group('Step 1 — Reserve Ticket', function () {
     const start = Date.now();
@@ -170,6 +214,8 @@ export default function (data) {
     );
     const reservationElapsed = Date.now() - start;
     reservationStep.add(reservationElapsed);
+    checkoutHttpDuration.add(res.timings.duration);
+    checkoutBusinessHttpDuration.add(res.timings.duration);
     reservationHttpDuration.add(res.timings.duration);
     reservationHttpBlocked.add(res.timings.blocked);
     reservationHttpConnecting.add(res.timings.connecting);
@@ -229,6 +275,8 @@ export default function (data) {
     );
     const orderElapsed = Date.now() - start;
     orderStep.add(orderElapsed);
+    checkoutHttpDuration.add(res.timings.duration);
+    checkoutBusinessHttpDuration.add(res.timings.duration);
     orderHttpDuration.add(res.timings.duration);
     orderHttpBlocked.add(res.timings.blocked);
     orderHttpConnecting.add(res.timings.connecting);
@@ -273,7 +321,12 @@ export default function (data) {
         responseCallback: http.expectedStatuses(200),
       },
     );
-    paymentStep.add(Date.now() - start);
+    const paymentElapsed = Date.now() - start;
+    paymentStep.add(paymentElapsed);
+    checkoutHttpDuration.add(res.timings.duration);
+    checkoutBusinessHttpDuration.add(res.timings.duration);
+    paymentHttpDuration.add(res.timings.duration);
+    paymentClientOverhead.add(Math.max(0, paymentElapsed - res.timings.duration));
 
     const payOk = check(res, {
       'payment: status 200': (response) => response.status === 200,
@@ -318,7 +371,12 @@ export default function (data) {
       },
       responseCallback: http.expectedStatuses(200),
     });
-    webhookStep.add(Date.now() - start);
+    const webhookElapsed = Date.now() - start;
+    webhookStep.add(webhookElapsed);
+    checkoutHttpDuration.add(res.timings.duration);
+    checkoutBusinessHttpDuration.add(res.timings.duration);
+    webhookHttpDuration.add(res.timings.duration);
+    webhookClientOverhead.add(Math.max(0, webhookElapsed - res.timings.duration));
 
     const webhookOk = check(res, {
       'webhook: status 200': (response) => response.status === 200,
@@ -327,6 +385,7 @@ export default function (data) {
     if (webhookOk) {
       flowSuccess.add(1);
       fullFlowDuration.add(Date.now() - flowStart);
+      checkoutBusinessFlowDuration.add(Date.now() - businessFlowStart);
     } else {
       flowFailed.add(1);
       if (__VU <= 5) {

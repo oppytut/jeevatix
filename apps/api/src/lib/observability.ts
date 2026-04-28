@@ -56,13 +56,25 @@ function sanitizeLogValue(value: unknown, seen = new WeakSet<object>()): unknown
   }
 
   if (value instanceof Error) {
-    return {
+    const errorDetails: Record<string, unknown> = {
       name: value.name,
       message: redactSensitiveString(value.message),
       stack: value.stack
         ? redactSensitiveString(value.stack.split('\n').slice(0, MAX_STACK_LINES).join('\n'))
         : undefined,
     };
+
+    if ('cause' in value && value.cause !== undefined) {
+      errorDetails.cause = sanitizeLogValue(value.cause, seen);
+    }
+
+    for (const [key, entryValue] of Object.entries(value)) {
+      if (!(key in errorDetails)) {
+        errorDetails[key] = sanitizeLogValue(entryValue, seen);
+      }
+    }
+
+    return errorDetails;
   }
 
   if (Array.isArray(value)) {

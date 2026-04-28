@@ -62,6 +62,20 @@ type RequestCategory = 'reservation' | 'order' | 'payment' | 'paymentWebhook' | 
 
 type RequestCategoryCounts = Record<RequestCategory, number>;
 
+type RunnerPeakSummary = {
+  maxInFlightRequests: number;
+  maxPendingWaitUntilTasks: number;
+  maxActiveSockets: number;
+  maxInFlightByCategory: RequestCategoryCounts;
+  maxPendingWaitUntilTasksByActiveCategory: RequestCategoryCounts;
+  firstPendingWaitUntilSnapshot?: {
+    inFlightRequests: number;
+    activeSockets: number;
+    inFlightByCategory: RequestCategoryCounts;
+    seenByCategory: RequestCategoryCounts;
+  };
+};
+
 const localRunnerPresets: Record<LocalRunnerPresetName, LocalRunnerPreset> = {
   'load-baseline': {
     appDbMaxConnections: '50',
@@ -125,9 +139,14 @@ function applyLocalRunnerPreset() {
 
   const preset = localRunnerPresets[presetName];
 
-  process.env.DB_MAX_CONNECTIONS = preset.appDbMaxConnections;
-  process.env.TICKET_RESERVER_DB_MAX_CONNECTIONS = preset.ticketReserverDbMaxConnections;
-  process.env.PAYMENT_BACKGROUND_TASK_CONCURRENCY = preset.paymentBackgroundTaskConcurrency;
+  process.env.DB_MAX_CONNECTIONS =
+    process.env.LOCAL_RUNNER_OVERRIDE_DB_MAX_CONNECTIONS?.trim() || preset.appDbMaxConnections;
+  process.env.TICKET_RESERVER_DB_MAX_CONNECTIONS =
+    process.env.LOCAL_RUNNER_OVERRIDE_TICKET_RESERVER_DB_MAX_CONNECTIONS?.trim() ||
+    preset.ticketReserverDbMaxConnections;
+  process.env.PAYMENT_BACKGROUND_TASK_CONCURRENCY =
+    process.env.LOCAL_RUNNER_OVERRIDE_PAYMENT_BACKGROUND_TASK_CONCURRENCY?.trim() ||
+    preset.paymentBackgroundTaskConcurrency;
 
   return {
     presetName,
@@ -254,10 +273,84 @@ function buildTicketReserverPoolSize() {
 
 type WaitUntilPromise = Promise<unknown>;
 
+const pendingExecutionContextTasks = new Set<WaitUntilPromise>();
+const runnerPeakSummary: RunnerPeakSummary = {
+  maxInFlightRequests: 0,
+  maxPendingWaitUntilTasks: 0,
+  maxActiveSockets: 0,
+  maxInFlightByCategory: createRequestCategoryCounts(),
+  maxPendingWaitUntilTasksByActiveCategory: createRequestCategoryCounts(),
+};
+
+function updateRunnerPeakSummary() {
+  runnerPeakSummary.maxInFlightRequests = Math.max(
+    runnerPeakSummary.maxInFlightRequests,
+    inFlightRequestCount,
+  );
+  runnerPeakSummary.maxPendingWaitUntilTasks = Math.max(
+    runnerPeakSummary.maxPendingWaitUntilTasks,
+    pendingExecutionContextTasks.size,
+  );
+  runnerPeakSummary.maxActiveSockets = Math.max(
+    runnerPeakSummary.maxActiveSockets,
+    activeSocketCount,
+  );
+
+  if (
+    pendingExecutionContextTasks.size > 0 &&
+    runnerPeakSummary.firstPendingWaitUntilSnapshot === undefined
+  ) {
+    runnerPeakSummary.firstPendingWaitUntilSnapshot = {
+      inFlightRequests: inFlightRequestCount,
+      activeSockets: activeSocketCount,
+      inFlightByCategory: { ...inFlightRequestsByCategory },
+      seenByCategory: { ...seenRequestsByCategory },
+    };
+  }
+
+  for (const category of Object.keys(inFlightRequestsByCategory) as RequestCategory[]) {
+    runnerPeakSummary.maxInFlightByCategory[category] = Math.max(
+      runnerPeakSummary.maxInFlightByCategory[category],
+      inFlightRequestsByCategory[category],
+    );
+
+    if (inFlightRequestsByCategory[category] > 0) {
+      runnerPeakSummary.maxPendingWaitUntilTasksByActiveCategory[category] = Math.max(
+        runnerPeakSummary.maxPendingWaitUntilTasksByActiveCategory[category],
+        pendingExecutionContextTasks.size,
+      );
+    }
+  }
+}
+
+function trackExecutionContextTask(promise: WaitUntilPromise) {
+  pendingExecutionContextTasks.add(promise);
+  updateRunnerPeakSummary();
+  promise.finally(() => pendingExecutionContextTasks.delete(promise));
+}
+
+async function drainPendingExecutionContextTasks(timeoutMs: number) {
+  const pendingTasks = [...pendingExecutionContextTasks];
+
+  if (pendingTasks.length === 0) {
+    return true;
+  }
+
+  const drained = await Promise.race([
+    Promise.allSettled(pendingTasks).then(() => true),
+    new Promise<boolean>((resolve) => {
+      setTimeout(() => resolve(false), timeoutMs);
+    }),
+  ]);
+
+  return drained && pendingExecutionContextTasks.size === 0;
+}
+
 class LocalExecutionContext {
   private readonly pending = new Set<WaitUntilPromise>();
 
   waitUntil(promise: WaitUntilPromise) {
+    trackExecutionContextTask(promise);
     this.pending.add(promise);
     promise.finally(() => this.pending.delete(promise));
   }
@@ -352,7 +445,10 @@ const seenRequestsByCategory = createRequestCategoryCounts();
 let activeSocketCount = 0;
 let acceptedSocketCount = 0;
 let closedSocketCount = 0;
+let nextSocketSequence = 0;
 const socketAcceptedAt = new WeakMap<import('node:net').Socket, number>();
+const socketSequences = new WeakMap<import('node:net').Socket, number>();
+const socketRequestCounts = new WeakMap<import('node:net').Socket, number>();
 const eventLoopDelayMonitor = monitorEventLoopDelay({ resolution: 20 });
 let previousEventLoopUtilization = performance.eventLoopUtilization();
 
@@ -370,6 +466,7 @@ if (shouldProfileRunner()) {
       reservationRequestsSeen: reservationRequestCount,
       inFlightByCategory: { ...inFlightRequestsByCategory },
       seenByCategory: { ...seenRequestsByCategory },
+      pendingWaitUntilTasks: pendingExecutionContextTasks.size,
       activeSockets: activeSocketCount,
       acceptedSockets: acceptedSocketCount,
       closedSockets: closedSocketCount,
@@ -395,23 +492,38 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
     const origin = `http://${nodeRequest.headers.host ?? `localhost:${port}`}`;
     const url = new URL(nodeRequest.url ?? '/', origin);
     requestCategory = categorizeRequest(nodeRequest.method, url.pathname);
+
     inFlightRequestCount += 1;
     inFlightRequestsByCategory[requestCategory] += 1;
     seenRequestsByCategory[requestCategory] += 1;
     didIncrementInFlight = true;
+    updateRunnerPeakSummary();
 
-    const isReservationRequest = url.pathname.startsWith('/reservations');
-    const requestSequence = isReservationRequest ? ++reservationRequestCount : 0;
+    if (requestCategory === 'reservation') {
+      reservationRequestCount += 1;
+    }
+
+    const requestSequence = seenRequestsByCategory[requestCategory];
     const shouldProfile =
-      isReservationRequest &&
+      requestCategory !== 'other' &&
       shouldProfileRunner() &&
       requestSequence % getRunnerProfileSampleEvery() === 0;
     const steps: TimedStep[] = [];
     const inFlightByCategoryAtStart = shouldProfile ? { ...inFlightRequestsByCategory } : undefined;
+    const seenByCategoryAtStart = shouldProfile ? { ...seenRequestsByCategory } : undefined;
+    const pendingWaitUntilTasksAtStart = shouldProfile ? pendingExecutionContextTasks.size : undefined;
     const acceptedAt = nodeRequest.socket ? socketAcceptedAt.get(nodeRequest.socket) : undefined;
+    const socketSequence = shouldProfile ? socketSequences.get(nodeRequest.socket) : undefined;
+    const socketRequestSequence = shouldProfile
+      ? (socketRequestCounts.get(nodeRequest.socket) ?? 0) + 1
+      : undefined;
     const clientStartedAt = shouldProfile
       ? parseClientStartTimestamp(nodeRequest.headers[LOAD_TEST_CLIENT_START_HEADER])
       : undefined;
+
+    if (nodeRequest.socket) {
+      socketRequestCounts.set(nodeRequest.socket, (socketRequestCounts.get(nodeRequest.socket) ?? 0) + 1);
+    }
 
     if (shouldProfile && clientStartedAt) {
       steps.push({
@@ -424,6 +536,13 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
       steps.push({
         step: 'socket_accept_to_handler',
         durationMs: Math.max(0, requestStartedAt - acceptedAt),
+      });
+    }
+
+    if (shouldProfile && clientStartedAt && acceptedAt) {
+      steps.push({
+        step: 'pre_accept_gap',
+        durationMs: Math.max(0, acceptedAt - clientStartedAt),
       });
     }
 
@@ -498,6 +617,12 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
             inFlightAtStart: inFlightRequestCount,
             activeSocketsAtStart: activeSocketCount,
             inFlightByCategoryAtStart,
+            seenByCategoryAtStart,
+            pendingWaitUntilTasksAtStart,
+            socketSequence,
+            socketRequestSequence,
+            reusedSocketAtStart:
+              typeof socketRequestSequence === 'number' ? socketRequestSequence > 1 : undefined,
             totalDurationMs: Date.now() - requestStartedAt,
           },
           steps,
@@ -525,6 +650,12 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
           inFlightAtStart: inFlightRequestCount,
           activeSocketsAtStart: activeSocketCount,
           inFlightByCategoryAtStart,
+          seenByCategoryAtStart,
+          pendingWaitUntilTasksAtStart,
+          socketSequence,
+          socketRequestSequence,
+          reusedSocketAtStart:
+            typeof socketRequestSequence === 'number' ? socketRequestSequence > 1 : undefined,
           totalDurationMs: Date.now() - requestStartedAt,
         },
         steps,
@@ -550,14 +681,56 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
   }
 });
 
+let isShuttingDown = false;
+
+async function shutdownLocalRunner(signal: string) {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+
+  logRuntimeSnapshot('localRunner.shutdown', {
+    signal,
+    inFlightRequests: inFlightRequestCount,
+    pendingWaitUntilTasks: pendingExecutionContextTasks.size,
+    activeSockets: activeSocketCount,
+  });
+
+  server.close();
+  const drainedPendingWaitUntilTasks = await drainPendingExecutionContextTasks(400);
+
+  logRuntimeSnapshot('localRunner.shutdown_complete', {
+    signal,
+    drainedPendingWaitUntilTasks,
+    remainingPendingWaitUntilTasks: pendingExecutionContextTasks.size,
+  });
+
+  process.exit(0);
+}
+
+process.once('SIGINT', () => {
+  void shutdownLocalRunner('SIGINT');
+});
+
+process.once('SIGTERM', () => {
+  void shutdownLocalRunner('SIGTERM');
+});
+
 server.on('connection', (socket) => {
   acceptedSocketCount += 1;
   activeSocketCount += 1;
+  updateRunnerPeakSummary();
+  nextSocketSequence += 1;
   socketAcceptedAt.set(socket, Date.now());
+  socketSequences.set(socket, nextSocketSequence);
+  socketRequestCounts.set(socket, 0);
 
   socket.on('close', () => {
     activeSocketCount = Math.max(0, activeSocketCount - 1);
     closedSocketCount += 1;
+    socketSequences.delete(socket);
+    socketRequestCounts.delete(socket);
   });
 });
 
@@ -572,4 +745,19 @@ server.listen(port, () => {
   }
 
   console.log(`Local API runner listening on http://localhost:${port}`);
+});
+
+process.once('exit', () => {
+  console.log(
+    '[local-runner-summary]',
+    JSON.stringify({
+      maxInFlightRequests: runnerPeakSummary.maxInFlightRequests,
+      maxPendingWaitUntilTasks: runnerPeakSummary.maxPendingWaitUntilTasks,
+      maxActiveSockets: runnerPeakSummary.maxActiveSockets,
+      maxInFlightByCategory: runnerPeakSummary.maxInFlightByCategory,
+      maxPendingWaitUntilTasksByActiveCategory:
+        runnerPeakSummary.maxPendingWaitUntilTasksByActiveCategory,
+      firstPendingWaitUntilSnapshot: runnerPeakSummary.firstPendingWaitUntilSnapshot,
+    }),
+  );
 });

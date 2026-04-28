@@ -520,14 +520,14 @@ export class TicketReserver extends DurableObjectBase {
       const expiresAt = new Date(Date.now() + RESERVATION_TTL_MINUTES * 60 * 1000);
       const database = this.getDatabase();
       const insertReservationStartedAt = profile?.enabled ? Date.now() : 0;
-      const insertReservationQuery = database.insert(reservations).values({
-        id: reservationId,
-        userId,
-        ticketTierId: tierId,
-        quantity,
-        status: 'active',
-        expiresAt,
-      });
+        const insertReservationQuery = database.insert(reservations).values({
+          id: reservationId,
+          userId,
+          ticketTierId: tierId,
+          quantity,
+          status: 'active',
+          expiresAt,
+        });
 
       if (profile?.enabled) {
         const client = getDatabaseClient(database);
@@ -543,7 +543,7 @@ export class TicketReserver extends DurableObjectBase {
         });
 
         try {
-          await insertReservationQuery;
+            await insertReservationQuery;
           steps.push({
             step: 'insert_reservation_execute',
             durationMs: Math.max(0, Date.now() - executeStartedAt),
@@ -552,14 +552,14 @@ export class TicketReserver extends DurableObjectBase {
           unregisterDebugProbe();
         }
       } else {
-        const preparedQuery = getPreparedInsertReservationQuery(database);
-        await preparedQuery.execute({
-          reservationId,
-          userId,
-          tierId,
-          quantity,
-          expiresAt,
-        });
+          const preparedQuery = getPreparedInsertReservationQuery(database);
+          await preparedQuery.execute({
+            reservationId,
+            userId,
+            tierId,
+            quantity,
+            expiresAt,
+          });
       }
 
       if (profile?.enabled) {

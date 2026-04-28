@@ -70,11 +70,23 @@ app.openapi(route, async (c) => {
 - ESLint: flat config (`eslint.config.js`). Prettier: `.prettierrc` dengan plugin svelte + tailwindcss.
 - CI/CD wajib: format:check → lint → typecheck → test → build.
 
+## Load Test Safety
+
+- Project ini berjalan di layanan usage-based (Cloudflare Workers, Durable Objects, Queues, R2, Hyperdrive, dan database origin) dan harus diperlakukan sebagai cost-sensitive karena budget startup masih minim.
+- JANGAN menjalankan load test, stress test, soak test, benchmark, synthetic traffic, repeated probe skala besar, atau bulk seeding data load test pada environment remote tanpa konfirmasi eksplisit user di percakapan saat ini.
+- Konfirmasi eksplisit wajib diminta sebelum menjalankan command atau script seperti `k6`, `pnpm run test:load*`, `run-load-scenario.ts`, `run-local-checkout-benchmark.ts`, `seed-load-users.ts`, `cleanup-load-test-data.ts`, loop `curl`/`wget`, `xargs`/`parallel` traffic generators, atau mekanisme lain yang berpotensi menaikkan billing/usage.
+- Sebelum meminta konfirmasi, agent HARUS menjelaskan singkat target environment, skala traffic yang direncanakan, service yang bisa terdampak billing, potensi side effect, dan cleanup plan.
+- Default aman: lakukan analisis script, review konfigurasi, estimasi biaya, atau validasi skala terkecil/lokal terlebih dahulu.
+- Untuk environment production, agent HARUS meminta reconfirmation eksplisit walaupun user pernah memberi izin umum sebelumnya.
+- Perubahan yang menonaktifkan atau membypass limiter, auth protection, anti-abuse guardrail, atau mekanisme proteksi provider demi keperluan load test juga memerlukan konfirmasi eksplisit user sebelum diubah atau dijalankan.
+- Jika user belum memberi izin eksplisit, agent boleh menyiapkan kode, dokumentasi, atau rencana load test, tetapi tidak boleh mengeksekusi load test-nya.
+
 ## Git Workflow
 
 - Branch per fase: `feat/phase-X`
 - Commit per task: `feat(T-X.X): <deskripsi>`
 - Satu task = satu commit (jika memungkinkan)
+
 
 ## MCP Tools
 

@@ -260,6 +260,86 @@ describe.sequential('Phase 6 Reservation API', () => {
     expect(payload.error.message).toContain('sale window');
   });
 
+  it('rejects reservations that exceed max tickets after a confirmed order exists', async () => {
+    const buyer = await context.createBuyerFixture();
+    const seller = await context.createSellerFixture();
+    const { tier } = await context.createEventFixture({
+      sellerProfileId: seller.sellerProfile.id,
+      quota: 5,
+      maxTicketsPerOrder: 2,
+    });
+
+    const reservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: tier.id,
+        quantity: 2,
+      },
+    });
+    const reservationPayload = await context.readJson<{
+      data: { reservation_id: string };
+    }>(reservationResponse);
+
+    const orderResponse = await context.requestJson('/orders', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        reservation_id: reservationPayload.data.reservation_id,
+      },
+    });
+    const orderPayload = await context.readJson<{
+      data: { id: string };
+    }>(orderResponse);
+
+    const payResponse = await context.requestJson(`/payments/${orderPayload.data.id}/pay`, {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        method: 'virtual_account',
+      },
+    });
+    const payPayload = await context.readJson<{
+      data: { external_ref: string };
+    }>(payResponse);
+
+    const webhookBody = {
+      external_ref: payPayload.data.external_ref,
+      status: 'success',
+      paid_at: '2031-08-14T20:00:00.000Z',
+    };
+    const signature = await context.signWebhook(webhookBody);
+
+    const webhookResponse = await context.requestJson('/webhooks/payment', {
+      method: 'POST',
+      body: webhookBody,
+      headers: {
+        'x-payment-signature': signature,
+      },
+    });
+
+    const secondReservationResponse = await context.requestJson('/reservations', {
+      method: 'POST',
+      token: buyer.token,
+      body: {
+        ticket_tier_id: tier.id,
+        quantity: 1,
+      },
+    });
+    const secondReservationPayload = await context.readJson<{
+      success: boolean;
+      error: { code: string; message: string };
+    }>(secondReservationResponse);
+
+    expect(reservationResponse.status).toBe(201);
+    expect(orderResponse.status).toBe(201);
+    expect(payResponse.status).toBe(200);
+    expect(webhookResponse.status).toBe(200);
+    expect(secondReservationResponse.status).toBe(409);
+    expect(secondReservationPayload.success).toBe(false);
+    expect(secondReservationPayload.error.code).toBe('MAX_TICKETS_EXCEEDED');
+  });
+
   it('rate limits reservation creation per buyer', async () => {
     const buyer = await context.createBuyerFixture();
     const seller = await context.createSellerFixture();

@@ -8,6 +8,8 @@ type CloseDbOptions = {
   timeout?: number;
 };
 
+const WORKER_DB_MAX_CONNECTIONS = 1;
+
 const globalScope = globalThis as typeof globalThis & {
   process?: {
     env?: Record<string, string | undefined>;
@@ -52,6 +54,10 @@ function getLocalDatabaseUrl() {
   return globalScope.process?.env?.DATABASE_URL;
 }
 
+function shouldDisableDbCache() {
+  return globalScope.process?.env?.DB_DISABLE_CACHE === '1';
+}
+
 function getMaxConnections() {
   const rawValue = globalScope.process?.env?.DB_MAX_CONNECTIONS;
   const parsedValue = Number.parseInt(rawValue ?? '', 10);
@@ -66,6 +72,10 @@ function getMaxConnections() {
 function resolveMaxConnections(maxConnections?: number) {
   if (typeof maxConnections === 'number' && Number.isFinite(maxConnections) && maxConnections > 0) {
     return Math.trunc(maxConnections);
+  }
+
+  if (shouldDisableDbCache()) {
+    return WORKER_DB_MAX_CONNECTIONS;
   }
 
   return getMaxConnections();
@@ -101,6 +111,11 @@ export function getDb(databaseUrl?: string, maxConnections?: number) {
   }
 
   const resolvedMaxConnections = resolveMaxConnections(maxConnections);
+
+  if (shouldDisableDbCache()) {
+    return createDbWithConfig(resolvedDatabaseUrl, resolvedMaxConnections);
+  }
+
   const cache = getDbCache();
   const cacheKey = `${resolvedDatabaseUrl}::max=${resolvedMaxConnections}`;
   const cachedDb = cache.get(cacheKey);

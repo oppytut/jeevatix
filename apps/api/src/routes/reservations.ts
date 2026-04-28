@@ -8,6 +8,7 @@ import {
   logTimedSteps,
   type TimedStep,
 } from '../lib/load-test-profile';
+import { logErrorWithContext } from '../lib/observability';
 import {
   adminReservationListQuerySchema,
   adminReservationsListResponseSchema,
@@ -67,10 +68,24 @@ function getStatusFromError(error: ReservationServiceError) {
   }
 }
 
-function handleError(c: { json: (body: unknown, status?: number) => unknown }, error: unknown) {
+function handleError(
+  c: {
+    req: {
+      method: string;
+      path: string;
+    };
+    json: (body: unknown, status?: number) => unknown;
+  },
+  error: unknown,
+) {
   if (error instanceof ReservationServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
+
+  logErrorWithContext('reservations.route_error', error, {
+    method: c.req.method,
+    path: c.req.path,
+  });
 
   return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
 }

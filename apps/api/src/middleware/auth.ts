@@ -40,6 +40,15 @@ export type AuthEnv = {
   };
 };
 
+type CachedTokenVerification = {
+  payload: TokenPayload;
+  expiresAtMs: number;
+};
+
+const DEFAULT_AUTH_TOKEN_CACHE_MAX_ENTRIES = 5_000;
+const tokenVerificationCache = new Map<string, CachedTokenVerification>();
+let resolvedAuthTokenCacheMaxEntries: number | undefined;
+
 function getProcessEnv(key: string) {
   return (
     globalThis as typeof globalThis & {
@@ -52,6 +61,103 @@ function getProcessEnv(key: string) {
 
 function getJwtSecret(envSecret?: string) {
   return envSecret || getProcessEnv('JWT_SECRET');
+}
+
+function getAuthTokenCacheMaxEntries() {
+  if (resolvedAuthTokenCacheMaxEntries !== undefined) {
+    return resolvedAuthTokenCacheMaxEntries;
+  }
+
+  const parsedValue = Number.parseInt(getProcessEnv('AUTH_TOKEN_CACHE_MAX_ENTRIES') ?? '', 10);
+
+  if (Number.isFinite(parsedValue) && parsedValue >= 0) {
+    resolvedAuthTokenCacheMaxEntries = Math.trunc(parsedValue);
+    return resolvedAuthTokenCacheMaxEntries;
+  }
+
+  resolvedAuthTokenCacheMaxEntries = DEFAULT_AUTH_TOKEN_CACHE_MAX_ENTRIES;
+  return resolvedAuthTokenCacheMaxEntries;
+}
+
+function buildTokenCacheKey(secret: string, token: string) {
+  return `${secret}\n${token}`;
+}
+
+function pruneTokenVerificationCache(maxEntries: number) {
+  while (tokenVerificationCache.size > maxEntries) {
+    const oldestCacheKey = tokenVerificationCache.keys().next().value;
+
+    if (!oldestCacheKey) {
+      return;
+    }
+
+    tokenVerificationCache.delete(oldestCacheKey);
+  }
+}
+
+function getCachedTokenPayload(cacheKey: string, nowMs: number) {
+  const cachedVerification = tokenVerificationCache.get(cacheKey);
+
+  if (!cachedVerification) {
+    return undefined;
+  }
+
+  if (cachedVerification.expiresAtMs <= nowMs) {
+    tokenVerificationCache.delete(cacheKey);
+    return undefined;
+  }
+
+  // Promote recently used tokens to keep hot entries in cache.
+  tokenVerificationCache.delete(cacheKey);
+  tokenVerificationCache.set(cacheKey, cachedVerification);
+  return cachedVerification.payload;
+}
+
+function cacheTokenPayload(cacheKey: string, payload: TokenPayload, maxEntries: number) {
+  if (maxEntries === 0) {
+    return;
+  }
+
+  const expiresAtMs = payload.exp * 1_000;
+
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+    return;
+  }
+
+  tokenVerificationCache.set(cacheKey, {
+    payload,
+    expiresAtMs,
+  });
+  pruneTokenVerificationCache(maxEntries);
+}
+
+async function verifyTokenWithCache(token: string, secret: string) {
+  const maxEntries = getAuthTokenCacheMaxEntries();
+
+  if (maxEntries === 0) {
+    return {
+      payload: await verifyToken(token, secret),
+      cacheHit: false,
+    } as const;
+  }
+
+  const cacheKey = buildTokenCacheKey(secret, token);
+  const cachedPayload = getCachedTokenPayload(cacheKey, Date.now());
+
+  if (cachedPayload) {
+    return {
+      payload: cachedPayload,
+      cacheHit: true,
+    } as const;
+  }
+
+  const payload = await verifyToken(token, secret);
+  cacheTokenPayload(cacheKey, payload, maxEntries);
+
+  return {
+    payload,
+    cacheHit: false,
+  } as const;
 }
 
 function jsonError(code: string, message: string) {
@@ -98,11 +204,11 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
 
   try {
     const verifyTokenStartedAt = profile.enabled ? Date.now() : 0;
-    const payload = await verifyToken(token, secret);
+    const { payload, cacheHit } = await verifyTokenWithCache(token, secret);
 
     if (profile.enabled) {
       steps.push({
-        step: 'verify_token',
+        step: cacheHit ? 'verify_token_cache_hit' : 'verify_token_signature',
         durationMs: Date.now() - verifyTokenStartedAt,
       });
     }

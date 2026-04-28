@@ -415,11 +415,11 @@ async function getReservationEligibilityRecord(
     tier = await loadReservationEligibilityRecord(database, userId, ticketTierId);
   }
 
-  const postQueryChecksStartedAt = profile ? Date.now() : 0;
-
   if (!tier) {
     throw new ReservationServiceError('TIER_NOT_FOUND', 'Ticket tier not found.');
   }
+
+  const postQueryChecksStartedAt = profile ? Date.now() : 0;
 
   if (tier.status === 'hidden' || !['published', 'ongoing'].includes(tier.eventStatus)) {
     throw new ReservationServiceError(

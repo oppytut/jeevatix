@@ -21,6 +21,7 @@ jobs:
       - run: pnpm run format:check
       - run: pnpm run lint
       - run: pnpm run typecheck
+      - run: pnpm run validate:load-test-safety
       - run: pnpm run test
       - run: pnpm run build
       - name: Validate frontend bundles do not target localhost API

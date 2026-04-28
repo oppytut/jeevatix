@@ -11,6 +11,7 @@ import {
   publicEventSlugParamSchema,
   publicEventsListResponseSchema,
 } from '../schemas/public-event.schema';
+import { logErrorWithContext } from '../lib/observability';
 import { PublicEventServiceError, publicEventService } from '../services/public-event.service';
 
 const app = new OpenAPIHono();
@@ -55,6 +56,11 @@ function handleError(c: Context, error: unknown) {
   if (error instanceof PublicEventServiceError) {
     return c.json(jsonError(error.code, error.message), getStatusFromError(error));
   }
+
+  logErrorWithContext('public_events.route_error', error, {
+    method: c.req.method,
+    path: c.req.path,
+  });
 
   return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
 }

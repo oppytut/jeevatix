@@ -8,7 +8,11 @@ import type {
   OrderListItem,
 } from '../schemas/order.schema';
 import { logErrorWithContext } from '../lib/observability';
-import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
+import {
+  cacheReservationTicketTier,
+  OrderReservationServiceError,
+  releaseReservation,
+} from './order-reservation.service';
 
 const ORDER_EXPIRY_MINUTES = 30;
 const DEFAULT_PAYMENT_METHOD = 'bank_transfer' as const;
@@ -397,12 +401,41 @@ type OrderCreationReservationRecord = {
   quantity: number;
   status: 'active' | 'converted' | 'expired' | 'cancelled';
   expiresAt: Date;
-  tierName: string;
   tierPrice: string;
   eventId: string;
+};
+
+type OrderCreationResponseMetadata = {
+  tierName: string;
   eventSlug: string;
   eventTitle: string;
 };
+
+async function loadOrderCreationResponseMetadata(
+  ticketTierId: string,
+  databaseUrl?: string,
+): Promise<OrderCreationResponseMetadata> {
+  const database = getDatabase(databaseUrl);
+  const [metadata] = await database
+    .select({
+      tierName: ticketTiers.name,
+      eventSlug: events.slug,
+      eventTitle: events.title,
+    })
+    .from(ticketTiers)
+    .innerJoin(events, eq(ticketTiers.eventId, events.id))
+    .where(eq(ticketTiers.id, ticketTierId))
+    .limit(1);
+
+  if (!metadata) {
+    throw new OrderServiceError(
+      'INVALID_STATE',
+      'Event metadata is unavailable for this order.',
+    );
+  }
+
+  return metadata;
+}
 
 export const orderService = {
   async createOrder(
@@ -473,15 +506,11 @@ export const orderService = {
               quantity: reservations.quantity,
               status: reservations.status,
               expiresAt: reservations.expiresAt,
-              tierName: ticketTiers.name,
               tierPrice: ticketTiers.price,
-              eventId: events.id,
-              eventSlug: events.slug,
-              eventTitle: events.title,
+              eventId: ticketTiers.eventId,
             })
             .from(reservations)
             .innerJoin(ticketTiers, eq(reservations.ticketTierId, ticketTiers.id))
-            .innerJoin(events, eq(ticketTiers.eventId, events.id))
             .where(eq(reservations.id, input.reservation_id))
             .limit(1);
           attemptSteps.push({
@@ -533,6 +562,7 @@ export const orderService = {
               createdAt: orders.createdAt,
               updatedAt: orders.updatedAt,
             });
+
           attemptSteps.push({
             step: 'tx_insert_order',
             durationMs: Date.now() - insertOrderStartedAt,
@@ -652,6 +682,17 @@ export const orderService = {
       );
     }
 
+    const responseMetadataStartedAt = Date.now();
+    const responseMetadata = await loadOrderCreationResponseMetadata(
+      createdOrder.reservation.ticketTierId,
+      databaseUrl,
+    );
+    cacheReservationTicketTier(createdOrder.reservation.id, createdOrder.reservation.ticketTierId);
+    steps.push({
+      step: 'response_metadata_lookup',
+      durationMs: Date.now() - responseMetadataStartedAt,
+    });
+
     logTimedSteps(
       'order.createOrder',
       {
@@ -668,10 +709,10 @@ export const orderService = {
       payment: createdOrder.payment,
       event: {
         id: createdOrder.reservation.eventId,
-        slug: createdOrder.reservation.eventSlug,
-        title: createdOrder.reservation.eventTitle,
+        slug: responseMetadata.eventSlug,
+        title: responseMetadata.eventTitle,
       },
-      tierName: createdOrder.reservation.tierName,
+      tierName: responseMetadata.tierName,
     });
   },
 

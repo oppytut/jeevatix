@@ -227,6 +227,12 @@ pnpm run test:load         # K6 — load testing (war ticket simulation)
   `pnpm run test:e2e` saat ini memang ditujukan untuk mode lokal tersebut.
 - **Load Testing (K6):** Simulasi _war ticket_ dengan 1000 virtual users untuk memastikan tidak ada _overselling_.
 
+### Load Test Cost Safety
+
+- Load test pada staging atau production dapat menambah billing karena stack ini memakai layanan usage-based seperti Cloudflare Workers, Durable Objects, Queues, R2, Hyperdrive, dan database origin.
+- Default aman: jalankan benchmark lokal lebih dulu. Untuk load test remote, minta konfirmasi eksplisit owner/project maintainer sebelum mengeksekusi `k6`, `pnpm run test:load*`, atau bulk seed/cleanup data load test.
+- Repo ini juga menyediakan guardrail AI/workflow untuk area ini: preflight prompt, review prompt, hook approval, dan validator `pnpm run validate:load-test-safety`.
+
 Untuk investigasi performa checkout lokal dengan runner Node tunggal di `scripts/run-api-local.ts`, tersedia preset runner eksplisit agar benchmark tetap reproducible tanpa mengubah default local dev:
 
 ```bash
@@ -249,6 +255,7 @@ Untuk menjalankan benchmark checkout lokal end-to-end dalam satu command, gunaka
 
 ```bash
 pnpm run test:load:checkout:local
+pnpm run test:load:checkout:local:profile
 pnpm run test:load:checkout:local:baseline
 pnpm run test:load:checkout:local:balanced
 pnpm run test:load:checkout:local:fullflow
@@ -258,9 +265,11 @@ Alias `pnpm run test:load:checkout:local` saat ini sengaja menunjuk ke preset `l
 
 Helper benchmark lokal di atas juga otomatis men-seed batch fresh checkout users jika caller belum memberi `CHECKOUT_LOAD_TEST_PREFIX`, sehingga hasil run lebih reproducible. Runner generik `pnpm run test:load:checkout` tidak melakukan fresh-user seeding kecuali Anda mengaktifkannya eksplisit dengan `CHECKOUT_LOAD_TEST_FRESH_USERS=1`.
 
-Jika perlu smoke test yang lebih cepat, override jumlah user saat memanggil command, misalnya `TOTAL_USERS=10 CHECKOUT_LOAD_TEST_USER_COUNT=10 pnpm run test:load:checkout:local:balanced`.
+Helper benchmark lokal di atas sengaja memaksa baseline kanonis `500` user agar hasil tetap comparable antar run. Jika perlu smoke test yang lebih kecil atau skala ad hoc, gunakan runner/generic scenario terpisah alih-alih helper ini.
 
 Di akhir run, helper akan mencetak satu baris JSON berawalan `local-checkout-summary` yang merangkum preset, target, dan metrik utama p95 agar hasil lebih mudah dibandingkan antar run.
+
+Untuk diagnosis rendah-overhead yang tetap memakai helper resmi yang sama, gunakan `pnpm run test:load:checkout:local:profile`. Helper akan mengaktifkan runner sampling 1 per 10 reservation requests dan mencetak `runnerLogFile=...` agar log profiled runner bisa dianalisis ulang tanpa sequence manual terpisah. Jika perlu kustomisasi, Anda juga bisa meneruskan flag tambahan, misalnya `pnpm run test:load:checkout:local:balanced -- --profile-runner --profile-runner-sample-every=20 --runner-log-file=/tmp/checkout-profile.log`.
 
 ### Menjalankan E2E Lokal
 
@@ -351,6 +360,10 @@ APP_ENVIRONMENT
 APP_VERSION
 AUTH_EXPOSE_DEBUG_TOKENS
 R2_BUCKET_NAME
+STAGING_API_DOMAIN
+STAGING_BUYER_DOMAIN
+STAGING_ADMIN_DOMAIN
+STAGING_SELLER_DOMAIN
 PRODUCTION_API_DOMAIN
 PRODUCTION_BUYER_DOMAIN
 PRODUCTION_ADMIN_DOMAIN
@@ -363,8 +376,9 @@ Catatan kompatibilitas:
 - Nama canonical project untuk account Cloudflare adalah `CLOUDFLARE_ACCOUNT_ID`.
 - `sst.config.ts` masih menerima `CLOUDFLARE_DEFAULT_ACCOUNT_ID` sebagai fallback kompatibilitas dengan dokumentasi SST, tetapi nama itu bukan nama utama yang dipakai project ini.
 - Nama canonical secret email di repo ini adalah `EMAIL_API_KEY`, bukan `RESEND_API_KEY`, walau provider email saat ini memang Resend.
-- `CORS_ALLOWED_ORIGINS` menerima daftar origin dipisahkan koma. Bila tidak diisi, stack SST mengisi otomatis dengan domain portal production pada stage `production`, sedangkan local fallback tetap terbatas ke origin `localhost` portal.
+- `CORS_ALLOWED_ORIGINS` menerima daftar origin dipisahkan koma. Bila tidak diisi, stack SST mengisi otomatis dengan domain portal pada stage yang memakai custom domain (`staging` atau `production`), sedangkan local fallback tetap terbatas ke origin `localhost` portal.
 - CI deploy production sekarang mengekspor `APP_VERSION` dari `github.sha`. Untuk deploy manual, sebaiknya ekspor `APP_VERSION="$(git rev-parse HEAD)"` agar `/health` melaporkan release yang benar.
+- Stage `staging` sekarang bisa memasang custom domain lewat `STAGING_API_DOMAIN`, `STAGING_BUYER_DOMAIN`, `STAGING_ADMIN_DOMAIN`, dan `STAGING_SELLER_DOMAIN`.
 
 ### Catatan Manual Yang Masih Perlu Diperhatikan
 
@@ -394,6 +408,8 @@ Alerting minimum yang direkomendasikan:
 2. Anggap incident setelah `2` kegagalan beruntun atau timeout melebihi `10` detik.
 3. Kirim notifikasi minimal ke email operasional; Slack/PagerDuty boleh ditambahkan bila sudah tersedia.
 
+Untuk eksekusi release setelah status staging berubah menjadi `conditional go`, gunakan `PRODUCTION_RELEASE_RUNBOOK.md` sebagai checklist deploy, smoke pascadeploy, watchpoint reservation latency, dan panduan rollback.
+
 ---
 
 ## 📝 License
@@ -418,9 +434,13 @@ AI agent secara otomatis memuat rules dan instructions dari folder `.github/`:
 | `instructions/api-schemas.instructions.md`    | Zod + OpenAPI schema patterns                                                | Auto-attach saat edit `apps/api/src/schemas/**`        |
 | `instructions/svelte-pages.instructions.md`   | SvelteKit + shadcn-svelte page patterns                                      | Auto-attach saat edit `apps/**/src/routes/**/*.svelte` |
 | `instructions/drizzle-schema.instructions.md` | Drizzle ORM schema conventions                                               | Auto-attach saat edit `packages/core/src/db/**`        |
+| `instructions/load-testing.instructions.md`   | Guardrail untuk load test, benchmark, dan bulk seed/cleanup                  | Auto-attach saat edit file load test terkait           |
 | `prompts/new-api-endpoint.prompt.md`          | Generate endpoint baru (3 file: route + service + schema)                    | Slash command `/new-api-endpoint`                      |
 | `prompts/new-svelte-page.prompt.md`           | Generate halaman SvelteKit baru                                              | Slash command `/new-svelte-page`                       |
 | `prompts/phase-checkpoint.prompt.md`          | Jalankan validasi checkpoint fase                                            | Slash command `/phase-checkpoint`                      |
+| `prompts/load-test-preflight.prompt.md`       | Siapkan approval request + ringkasan cost/risk sebelum load test remote      | Slash command `/load-test-preflight`                   |
+| `prompts/review-load-test-safety.prompt.md`   | Review perubahan load test dari sisi cost safety dan guardrail               | Slash command `/review-load-test-safety`               |
+| `hooks/load-test-approval.json`               | Minta approval sebelum command yang terlihat seperti load test dijalankan     | PreToolUse guard untuk load test dan traffic generator |
 | `agents/reviewer.agent.md`                    | Code review agent (read-only, no edit)                                       | Pilih di agent selector                                |
 
 ### MCP Servers (`.vscode/mcp.json`)
