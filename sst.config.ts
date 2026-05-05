@@ -404,10 +404,21 @@ export default $config({
     const seller = new sst.cloudflare.Worker('SellerPortal', {
       handler: 'apps/seller/.svelte-kit/cloudflare/_worker.js',
       assets: {
-        directory: 'apps/seller/.svelte-kit/cloudflare',
+        directory: 'apps/seller/.svelte-kit',
+        fileOptions: [
+          {
+            files: ['cloudflare/**'],
+            cacheControl: 'public, max-age=0, must-revalidate',
+          },
+          {
+            files: ['output/**'],
+            cacheControl: 'public, max-age=0, must-revalidate',
+          },
+        ],
       },
       url: !usesCustomDomains(),
       domain: deployedDomains?.seller,
+      link: [api],
       transform: {
         worker(args) {
           applyPortalWorkerTransform(args, sellerScriptName);

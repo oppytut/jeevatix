@@ -3,6 +3,12 @@ import type { Cookies } from '@sveltejs/kit';
 import { browser, dev } from '$app/environment';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
+// Use workers.dev URL for server-side (Worker-to-Worker) communication to avoid error 522
+// Custom domain works for browser requests but not Worker-to-Worker
+const INTERNAL_API_URL = dev 
+  ? 'http://localhost:8787'
+  : 'https://jeevatix-staging-api.ariefna95.workers.dev';
+
 export const API_BASE_URL =
   PUBLIC_API_BASE_URL || (dev ? 'http://localhost:8787' : 'https://api.jeevatix.com');
 
@@ -164,7 +170,44 @@ function ensureSellerRole(user: SellerAuthUser) {
 }
 
 async function parseResponse<T extends object>(response: Response): Promise<T> {
-  const payload = (await response.json()) as T | ErrorResponse;
+  const contentType = response.headers.get('content-type');
+  
+  // Handle non-JSON responses (HTML error pages, plain text, etc.)
+  if (!contentType || !contentType.includes('application/json')) {
+    const text = await response.text();
+    console.error('Non-JSON response received:', {
+      status: response.status,
+      contentType,
+      url: response.url,
+      textPreview: text.substring(0, 200)
+    });
+    
+    throw new ApiError(
+      `Server returned non-JSON response (${response.status}). This might be a server error.`,
+      response.status,
+      'INVALID_RESPONSE_FORMAT',
+    );
+  }
+
+  let payload: T | ErrorResponse;
+  
+  try {
+    payload = (await response.json()) as T | ErrorResponse;
+  } catch (jsonError) {
+    const text = await response.text();
+    console.error('Failed to parse JSON response:', {
+      status: response.status,
+      url: response.url,
+      error: jsonError,
+      textPreview: text.substring(0, 200)
+    });
+    
+    throw new ApiError(
+      'Failed to parse server response. The server might be experiencing issues.',
+      response.status,
+      'JSON_PARSE_ERROR',
+    );
+  }
 
   if (!response.ok || ('success' in payload && payload.success === false)) {
     const errorPayload = payload as ErrorResponse;
@@ -273,13 +316,25 @@ export async function login(
   email: string,
   password: string,
 ) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/login`, {
+  const loginUrl = `${INTERNAL_API_URL}/auth/login`;
+  console.log('[auth.ts] login() called:', { 
+    loginUrl, 
+    email: dev ? email : `${email.substring(0, 3)}***@***`
+  });
+  
+  const response = await fetchFn(loginUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
     body: JSON.stringify({ email, password }),
+  });
+
+  console.log('[auth.ts] login() response:', { 
+    status: response.status, 
+    contentType: response.headers.get('content-type'),
+    url: response.url 
   });
 
   const payload = await parseResponse<AuthResponse>(response);
@@ -294,7 +349,7 @@ export async function registerSeller(
   cookies: Cookies,
   input: RegisterSellerInput,
 ) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/register/seller`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/register/seller`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -317,7 +372,7 @@ export async function refreshSession(fetchFn: typeof fetch, cookies: Cookies) {
     return null;
   }
 
-  const response = await fetchFn(`${API_BASE_URL}/auth/refresh`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -378,7 +433,7 @@ export async function logoutSession(fetchFn: typeof fetch, cookies: Cookies) {
 
   try {
     if (refreshToken) {
-      await fetchFn(`${API_BASE_URL}/auth/logout`, {
+      await fetchFn(`${INTERNAL_API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -34,6 +34,13 @@ export default defineConfig({
 				baseURL: 'http://localhost:4303'
 			},
 			testMatch: /seller-(flow|pages)\.spec\.ts/
+		},
+		{
+			name: 'staging',
+			use: {
+				...devices['Desktop Chrome']
+			},
+			testMatch: /staging-.*\.spec\.ts/
 		}
 	],
 	webServer: [
