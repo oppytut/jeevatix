@@ -55,9 +55,9 @@ jobs:
             echo "Frontend build artifacts still point to localhost API"
             exit 1
           fi
-      - run: pnpm run deploy --stage production
+      - run: pnpm run deploy --stage staging
         env:
-          APP_ENVIRONMENT: production
+          APP_ENVIRONMENT: staging
           APP_VERSION: ${{ github.sha }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -74,13 +74,14 @@ jobs:
           TICKET_RESERVER_DB_MAX_CONNECTIONS: ${{ vars.TICKET_RESERVER_DB_MAX_CONNECTIONS }}
           R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME }}
           RESERVATION_CLEANUP_QUEUE_NAME: ${{ vars.RESERVATION_CLEANUP_QUEUE_NAME }}
-          PRODUCTION_API_DOMAIN: ${{ vars.PRODUCTION_API_DOMAIN }}
-          PRODUCTION_BUYER_DOMAIN: ${{ vars.PRODUCTION_BUYER_DOMAIN }}
-          PRODUCTION_ADMIN_DOMAIN: ${{ vars.PRODUCTION_ADMIN_DOMAIN }}
-          PRODUCTION_SELLER_DOMAIN: ${{ vars.PRODUCTION_SELLER_DOMAIN }}
+          STAGING_API_DOMAIN: ${{ vars.STAGING_API_DOMAIN }}
+          STAGING_BUYER_DOMAIN: ${{ vars.STAGING_BUYER_DOMAIN }}
+          STAGING_ADMIN_DOMAIN: ${{ vars.STAGING_ADMIN_DOMAIN }}
+          STAGING_SELLER_DOMAIN: ${{ vars.STAGING_SELLER_DOMAIN }}
+          CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
       - name: Smoke Test
         run: |
-          health_payload="$(curl -fsS https://api.jeevatix.com/health)"
+          health_payload="$(curl -fsS https://api.jeevatix.my.id/health)"
           HEALTH_PAYLOAD="$health_payload" node - <<'EOF'
           const payload = JSON.parse(process.env.HEALTH_PAYLOAD ?? '{}');
 
@@ -89,6 +90,6 @@ jobs:
             process.exit(1);
           }
           EOF
-          curl -f https://jeevatix.com || exit 1
-          curl -f https://admin.jeevatix.com/login || exit 1
-          curl -f https://seller.jeevatix.com/login || exit 1
+          curl -f https://jeevatix.my.id || exit 1
+          curl -f https://admin.jeevatix.my.id/login || exit 1
+          curl -f https://seller.jeevatix.my.id/login || exit 1
