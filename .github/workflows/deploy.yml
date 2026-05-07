@@ -7,6 +7,22 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: jeevatix
+          POSTGRES_PASSWORD: jeevatix
+          POSTGRES_DB: jeevatix_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     env:
       PUBLIC_API_BASE_URL: https://api.jeevatix.com
       PUBLIC_PARTYKIT_HOST: ${{ vars.PUBLIC_PARTYKIT_HOST }}
@@ -22,7 +38,13 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run typecheck
       - run: pnpm run validate:load-test-safety
+      - name: Setup test database
+        run: pnpm --filter @jeevatix/core run db:push
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
       - run: pnpm run test
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
       - run: pnpm run build
       - name: Validate frontend bundles do not target localhost API
         run: |
