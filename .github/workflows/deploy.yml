@@ -41,10 +41,10 @@ jobs:
       - name: Setup test database
         run: |
           echo "DATABASE_URL=postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test" > .env
+          echo "JWT_SECRET=vitest-ci-secret" >> .env
+          echo "PAYMENT_WEBHOOK_SECRET=vitest-ci-webhook-secret" >> .env
           pnpm --filter @jeevatix/core run db:push
       - run: pnpm run test
-        env:
-          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
       - run: pnpm run build
       - name: Validate frontend bundles do not target localhost API
         run: |
