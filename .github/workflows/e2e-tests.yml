@@ -47,12 +47,17 @@ jobs:
         run: |
           cp .env.example .env
           echo "DATABASE_URL=postgresql://jeevatix:jeevatix@localhost:5432/jeevatix" >> .env
+          echo "PLAYWRIGHT_E2E=1" >> .env
           
       - name: Run database migrations
         run: pnpm --filter @jeevatix/core run db:push
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
         
       - name: Run E2E tests
         run: pnpm exec playwright test --project=critical --project=auth --project=events
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
         
       - uses: actions/upload-artifact@v4
         if: always()
