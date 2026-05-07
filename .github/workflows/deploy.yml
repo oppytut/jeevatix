@@ -39,9 +39,9 @@ jobs:
       - run: pnpm run typecheck
       - run: pnpm run validate:load-test-safety
       - name: Setup test database
-        run: pnpm --filter @jeevatix/core run db:push
-        env:
-          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
+        run: |
+          echo "DATABASE_URL=postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test" > .env
+          pnpm --filter @jeevatix/core run db:push
       - run: pnpm run test
         env:
           DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
