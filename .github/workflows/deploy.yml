@@ -24,7 +24,7 @@ jobs:
           - 5432:5432
     
     env:
-      PUBLIC_API_BASE_URL: https://api.jeevatix.com
+      PUBLIC_API_BASE_URL: https://jeevatix-staging-api.ariefna95.workers.dev
       PUBLIC_PARTYKIT_HOST: ${{ vars.PUBLIC_PARTYKIT_HOST }}
       DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
       JWT_SECRET: vitest-ci-secret
@@ -81,7 +81,7 @@ jobs:
           CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
       - name: Smoke Test
         run: |
-          health_payload="$(curl -fsS https://api.jeevatix.my.id/health)"
+          health_payload="$(curl -fsS https://jeevatix-staging-api.ariefna95.workers.dev/health)"
           HEALTH_PAYLOAD="$health_payload" node - <<'EOF'
           const payload = JSON.parse(process.env.HEALTH_PAYLOAD ?? '{}');
 
@@ -90,6 +90,5 @@ jobs:
             process.exit(1);
           }
           EOF
-          curl -f https://jeevatix.my.id || exit 1
-          curl -f https://admin.jeevatix.my.id/login || exit 1
-          curl -f https://seller.jeevatix.my.id/login || exit 1
+          echo "✅ API health check passed"
+          echo "Note: Skipping frontend smoke tests - staging uses workers.dev URLs"
