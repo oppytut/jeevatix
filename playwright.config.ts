@@ -2,13 +2,19 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
 	testDir: './tests/e2e',
-	fullyParallel: false,
+	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
-	workers: 1,
-	reporter: [['html', { open: 'never' }]],
+	workers: process.env.CI ? 2 : undefined,
+	reporter: [
+		['html', { open: 'never' }],
+		['list'],
+	],
+	globalSetup: './tests/global-setup.ts',
 	use: {
-		trace: 'on-first-retry'
+		trace: 'on-first-retry',
+		screenshot: 'only-on-failure',
+		video: 'retain-on-failure',
 	},
 	projects: [
 		{
@@ -81,6 +87,22 @@ export default defineConfig({
 				...devices['Desktop Chrome']
 			},
 			testMatch: /staging-.*\.spec\.ts/
+		},
+		{
+			name: 'visual-regression',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'http://localhost:4301'
+			},
+			testMatch: /visual-regression\.spec\.ts/
+		},
+		{
+			name: 'accessibility',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'http://localhost:4301'
+			},
+			testMatch: /accessibility\.spec\.ts/
 		}
 	],
 	webServer: [

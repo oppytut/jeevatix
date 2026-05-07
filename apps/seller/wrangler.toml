@@ -1,0 +1,10 @@
+name = "jeevatix-staging-seller-test"
+main = ".svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2026-03-30"
+compatibility_flags = ["nodejs_compat", "nodejs_als"]
+
+[site]
+bucket = ".svelte-kit"
+
+[[assets]]
+binding = "ASSETS"

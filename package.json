@@ -36,12 +36,16 @@
     "test:load:checkout": "pnpm --filter @jeevatix/core exec tsx scripts/run-load-scenario.ts checkout-flow"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
+    "@percy/cli": "^1.31.13",
+    "@percy/playwright": "^1.1.0",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.6.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
     "@vitest/coverage-v8": "^4.1.2",
     "aws-cdk-lib": "^2.245.0",
+    "axe-core": "^4.11.4",
     "constructs": "^10.6.0",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
