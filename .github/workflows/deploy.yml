@@ -59,6 +59,7 @@ jobs:
         env:
           APP_ENVIRONMENT: staging
           APP_VERSION: ${{ github.sha }}
+          SKIP_DURABLE_OBJECT_MIGRATIONS: "1"
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
