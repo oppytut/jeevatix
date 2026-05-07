@@ -36,6 +36,46 @@ export default defineConfig({
 			testMatch: /seller-(flow|pages)\.spec\.ts/
 		},
 		{
+			name: 'critical',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'http://localhost:4301'
+			},
+			testMatch: /critical-.*\.spec\.ts/
+		},
+		{
+			name: 'auth',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'http://localhost:4301'
+			},
+			testMatch: /auth\/.*\.spec\.ts/
+		},
+		{
+			name: 'events',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'http://localhost:4303'
+			},
+			testMatch: /events\/.*\.spec\.ts/
+		},
+		{
+			name: 'checkout',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'http://localhost:4301'
+			},
+			testMatch: /checkout\/.*\.spec\.ts/
+		},
+		{
+			name: 'checkin',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: 'http://localhost:4303'
+			},
+			testMatch: /checkin\/.*\.spec\.ts/
+		},
+		{
 			name: 'staging',
 			use: {
 				...devices['Desktop Chrome']
