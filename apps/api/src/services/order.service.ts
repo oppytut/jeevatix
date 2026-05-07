@@ -428,10 +428,7 @@ async function loadOrderCreationResponseMetadata(
     .limit(1);
 
   if (!metadata) {
-    throw new OrderServiceError(
-      'INVALID_STATE',
-      'Event metadata is unavailable for this order.',
-    );
+    throw new OrderServiceError('INVALID_STATE', 'Event metadata is unavailable for this order.');
   }
 
   return metadata;

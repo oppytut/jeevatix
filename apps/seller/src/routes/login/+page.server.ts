@@ -37,11 +37,12 @@ export const actions = {
         code: error instanceof ApiError ? error.code : undefined,
       });
 
-      const errorMessage = error instanceof ApiError
-        ? error.message
-        : error instanceof Error
-          ? `Login gagal: ${error.message}`
-          : 'Login gagal. Silakan coba lagi.';
+      const errorMessage =
+        error instanceof ApiError
+          ? error.message
+          : error instanceof Error
+            ? `Login gagal: ${error.message}`
+            : 'Login gagal. Silakan coba lagi.';
 
       return fail(error instanceof ApiError ? error.status : 500, {
         error: errorMessage,

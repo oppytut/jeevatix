@@ -5,7 +5,7 @@ import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
 // Use workers.dev URL for server-side (Worker-to-Worker) communication to avoid error 522
 // Custom domain works for browser requests but not Worker-to-Worker
-const INTERNAL_API_URL = dev 
+const INTERNAL_API_URL = dev
   ? 'http://localhost:8787'
   : 'https://jeevatix-staging-api.ariefna95.workers.dev';
 
@@ -171,7 +171,7 @@ function ensureSellerRole(user: SellerAuthUser) {
 
 async function parseResponse<T extends object>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type');
-  
+
   // Handle non-JSON responses (HTML error pages, plain text, etc.)
   if (!contentType || !contentType.includes('application/json')) {
     const text = await response.text();
@@ -179,9 +179,9 @@ async function parseResponse<T extends object>(response: Response): Promise<T> {
       status: response.status,
       contentType,
       url: response.url,
-      textPreview: text.substring(0, 200)
+      textPreview: text.substring(0, 200),
     });
-    
+
     throw new ApiError(
       `Server returned non-JSON response (${response.status}). This might be a server error.`,
       response.status,
@@ -190,7 +190,7 @@ async function parseResponse<T extends object>(response: Response): Promise<T> {
   }
 
   let payload: T | ErrorResponse;
-  
+
   try {
     payload = (await response.json()) as T | ErrorResponse;
   } catch (jsonError) {
@@ -199,9 +199,9 @@ async function parseResponse<T extends object>(response: Response): Promise<T> {
       status: response.status,
       url: response.url,
       error: jsonError,
-      textPreview: text.substring(0, 200)
+      textPreview: text.substring(0, 200),
     });
-    
+
     throw new ApiError(
       'Failed to parse server response. The server might be experiencing issues.',
       response.status,
@@ -317,11 +317,11 @@ export async function login(
   password: string,
 ) {
   const loginUrl = `${INTERNAL_API_URL}/auth/login`;
-  console.log('[auth.ts] login() called:', { 
-    loginUrl, 
-    email: dev ? email : `${email.substring(0, 3)}***@***`
+  console.log('[auth.ts] login() called:', {
+    loginUrl,
+    email: dev ? email : `${email.substring(0, 3)}***@***`,
   });
-  
+
   const response = await fetchFn(loginUrl, {
     method: 'POST',
     headers: {
@@ -331,10 +331,10 @@ export async function login(
     body: JSON.stringify({ email, password }),
   });
 
-  console.log('[auth.ts] login() response:', { 
-    status: response.status, 
+  console.log('[auth.ts] login() response:', {
+    status: response.status,
     contentType: response.headers.get('content-type'),
-    url: response.url 
+    url: response.url,
   });
 
   const payload = await parseResponse<AuthResponse>(response);
