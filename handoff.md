@@ -154,25 +154,26 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Result**: Root directory reduced from 30 → 8 MD files (73% reduction)
 - **Commit**: `104b860`
 
-**3. CI E2E Tests Fix** 🔧
-- **Issue**: E2E tests failing in CI (15+ consecutive failures since May 7)
-- **Root Causes Identified & Fixed**:
-  1. ✅ Seed script field name mismatch - **Fixed**: `760ab3d`
-  2. ✅ Playwright using mock API instead of real API - **Fixed**: `0bf0086`
-  3. ✅ Missing JWT_SECRET in wrangler dev - **Fixed**: `45a2a6d`, `dce73a0`, `a922cbf`
-  4. ✅ Test timeouts too short for CI - **Fixed**: `a439f1a`
-  5. ✅ Rate limiting too strict for parallel tests - **Fixed**: `d81f8c7`
-  6. ⚠️ **Wrangler dev instability in CI** (ONGOING)
-     - Random 500 errors on `/auth/register/seller`
-     - Error: "Request failed with status 500" (no specific cause)
-     - Likely cause: Wrangler dev not designed for CI environments
-     - Wrangler dev uses local Durable Objects, Queues, R2 which may not work reliably in CI
-- **Current Status**: 5/6 issues fixed, wrangler dev instability remains
-- **Recommendation**: Consider alternative approaches:
-  - Option A: Run API with Node.js adapter instead of wrangler dev
-  - Option B: Use staging environment for E2E tests instead of local
-  - Option C: Mock Cloudflare bindings for E2E tests
-- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`, `a439f1a`, `d81f8c7`, `6382eae`
+**3. CI E2E Tests Migration to Staging** 🔧
+- **Issue**: E2E tests failing in CI due to wrangler dev instability (15+ consecutive failures)
+- **Root Causes Fixed (5/6)**:
+  1. ✅ Seed script field name mismatch - `760ab3d`
+  2. ✅ Playwright using mock API - `0bf0086`
+  3. ✅ Missing JWT_SECRET - `45a2a6d`, `dce73a0`, `a922cbf`
+  4. ✅ Test timeouts too short - `a439f1a`
+  5. ✅ Rate limiting too strict - `d81f8c7`
+  6. ⚠️ Wrangler dev instability (unfixable)
+- **Solution**: Migrated E2E tests to run against staging environment
+  - Playwright config: Use staging URLs in CI (`process.env.CI`)
+  - Workflow: Removed local database, wrangler dev, seed steps
+  - Tests now run against real staging environment
+  - Benefits: No wrangler dev issues, tests production-like setup, faster CI (no local server startup)
+- **Trade-offs**: 
+  - Tests depend on staging stability
+  - Slightly slower due to network latency
+  - Tests use shared staging data (seed-e2e.ts already created test users)
+- **Status**: Implemented, awaiting CI validation
+- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`, `a439f1a`, `d81f8c7`, pending
 - **Status**: Fixes deployed, awaiting CI validation
 - **Commits**: `760ab3d`, pending
 

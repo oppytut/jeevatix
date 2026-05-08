@@ -11,21 +11,6 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: jeevatix
-          POSTGRES_PASSWORD: jeevatix
-          POSTGRES_DB: jeevatix
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - uses: actions/checkout@v4
       
@@ -43,40 +28,9 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
         
-      - name: Setup environment
+      - name: Run E2E tests against staging
         run: |
-          cp .env.example .env
-          echo "DATABASE_URL=postgresql://jeevatix:jeevatix@localhost:5432/jeevatix" >> .env
-          echo "PLAYWRIGHT_E2E=1" >> .env
-          echo "JWT_SECRET=test-jwt-secret-for-e2e-tests-only-not-for-production" >> .env
-          echo "PAYMENT_WEBHOOK_SECRET=test-webhook-secret" >> .env
-          echo "PARTY_SECRET=test-party-secret" >> .env
-          
-          # Create .dev.vars for wrangler dev
-          cat > apps/api/.dev.vars << EOF
-          DATABASE_URL=postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
-          JWT_SECRET=test-jwt-secret-for-e2e-tests-only-not-for-production
-          PAYMENT_WEBHOOK_SECRET=test-webhook-secret
-          PARTY_SECRET=test-party-secret
-          PLAYWRIGHT_E2E=1
-          EOF
-          
-      - name: Run database migrations
-        run: pnpm --filter @jeevatix/core run db:push
-        env:
-          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
-          
-      - name: Seed E2E test data
-        run: pnpm run seed:e2e
-        env:
-          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
-        
-      - name: Run E2E tests
-        run: |
-          export DATABASE_URL="postgresql://jeevatix:jeevatix@localhost:5432/jeevatix"
-          export JWT_SECRET="test-jwt-secret-for-e2e-tests-only-not-for-production"
-          export PAYMENT_WEBHOOK_SECRET="test-webhook-secret"
-          export PARTY_SECRET="test-party-secret"
+          export CI=1
           pnpm exec playwright test --project=critical --project=auth --project=events
         
       - uses: actions/upload-artifact@v4

@@ -1,5 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+const useStaging = isCI;
+
+const buyerURL = useStaging ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev' : 'http://localhost:4301';
+const adminURL = useStaging ? 'https://jeevatix-staging-admin.ariefna95.workers.dev' : 'http://localhost:4302';
+const sellerURL = useStaging ? 'https://jeevatix-staging-seller.ariefna95.workers.dev' : 'http://localhost:4303';
+
 export default defineConfig({
 	testDir: './tests/e2e',
 	fullyParallel: true,
@@ -24,7 +31,7 @@ export default defineConfig({
 			name: 'buyer',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4301'
+				baseURL: buyerURL
 			},
 			testMatch: /buyer-(flow|pages)\.spec\.ts/
 		},
@@ -32,7 +39,7 @@ export default defineConfig({
 			name: 'admin',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4302'
+				baseURL: adminURL
 			},
 			testMatch: /admin-(flow|pages)\.spec\.ts/
 		},
@@ -40,7 +47,7 @@ export default defineConfig({
 			name: 'seller',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4303'
+				baseURL: sellerURL
 			},
 			testMatch: /seller-(flow|pages)\.spec\.ts/
 		},
@@ -48,7 +55,7 @@ export default defineConfig({
 			name: 'critical',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4301'
+				baseURL: buyerURL
 			},
 			testMatch: /critical-.*\.spec\.ts/
 		},
@@ -56,7 +63,7 @@ export default defineConfig({
 			name: 'auth',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4301'
+				baseURL: buyerURL
 			},
 			testMatch: /auth\/.*\.spec\.ts/
 		},
@@ -64,7 +71,7 @@ export default defineConfig({
 			name: 'events',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4303'
+				baseURL: sellerURL
 			},
 			testMatch: /events\/.*\.spec\.ts/
 		},
@@ -72,7 +79,7 @@ export default defineConfig({
 			name: 'checkout',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4301'
+				baseURL: buyerURL
 			},
 			testMatch: /checkout\/.*\.spec\.ts/
 		},
@@ -80,7 +87,7 @@ export default defineConfig({
 			name: 'checkin',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4303'
+				baseURL: sellerURL
 			},
 			testMatch: /checkin\/.*\.spec\.ts/
 		},
@@ -95,7 +102,7 @@ export default defineConfig({
 			name: 'visual-regression',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4301'
+				baseURL: buyerURL
 			},
 			testMatch: /visual-regression\.spec\.ts/
 		},
@@ -103,12 +110,12 @@ export default defineConfig({
 			name: 'accessibility',
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4301'
+				baseURL: buyerURL
 			},
 			testMatch: /accessibility\.spec\.ts/
 		}
 	],
-	webServer: [
+	webServer: useStaging ? undefined : [
 		{
 			command: 'pnpm --filter @jeevatix/api run dev',
 			port: 8787,

@@ -6,7 +6,12 @@ async function globalSetup(config: FullConfig) {
 
 	console.log('🔧 Global Setup: Creating test data...');
 
-	const apiBaseURL = 'http://localhost:8787';
+	const isCI = !!process.env.CI;
+	const apiBaseURL = isCI 
+		? 'https://jeevatix-staging-api.ariefna95.workers.dev' 
+		: 'http://localhost:8787';
+
+	console.log(`🌐 Using API: ${apiBaseURL}`);
 
 	try {
 		const healthResponse = await page.request.get(`${apiBaseURL}/health`);

@@ -1,6 +1,8 @@
 import { expect, type APIRequestContext, type BrowserContext, type Page } from '@playwright/test';
 
-const API_URL = 'http://localhost:8787';
+const API_URL = process.env.CI 
+	? 'https://jeevatix-staging-api.ariefna95.workers.dev'
+	: 'http://localhost:8787';
 
 export const ADMIN_EMAIL = 'admin@jeevatix.id';
 export const ADMIN_PASSWORD = 'Admin123!';
