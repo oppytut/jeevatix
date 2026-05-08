@@ -6,6 +6,7 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 2 : undefined,
+	timeout: 60 * 1000,
 	reporter: [
 		['html', { open: 'never' }],
 		['list'],
@@ -15,6 +16,8 @@ export default defineConfig({
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
 		video: 'retain-on-failure',
+		actionTimeout: 15 * 1000,
+		navigationTimeout: 30 * 1000,
 	},
 	projects: [
 		{
@@ -110,7 +113,7 @@ export default defineConfig({
 			command: 'pnpm --filter @jeevatix/api run dev',
 			port: 8787,
 			reuseExistingServer: !process.env.CI,
-			timeout: 120 * 1000
+			timeout: 180 * 1000  // Increased from 120s to 180s for CI
 		},
 		{
 			command: 'PLAYWRIGHT_E2E=1 pnpm --filter buyer run dev -- --strictPort',
