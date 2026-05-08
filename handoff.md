@@ -155,7 +155,7 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Commit**: `104b860`
 
 **3. CI E2E Tests Fix** 🔧
-- **Issue**: E2E tests failing in CI (12+ consecutive failures since May 7)
+- **Issue**: E2E tests failing in CI (13+ consecutive failures since May 7)
 - **Root Causes Identified & Fixed**:
   1. ✅ Seed script field name mismatch with database schema
      - Used `password` instead of `passwordHash` in users table
@@ -170,12 +170,13 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
      - Wrangler dev requires secrets in `.dev.vars` file, not env vars
      - Tests failed with "JWT_SECRET_MISSING" error
      - **Fixed**: `45a2a6d`, `dce73a0`, `a922cbf`
-- **Current Status**: JWT configuration fixed, API starts successfully
-- **New Issue Discovered**: Workers runtime hang/timeout during some tests
-  - Error: "Workers runtime canceled this request because it detected that your Worker's code had hung"
-  - Likely cause: Infinite loop or deadlock in API code
-  - Requires further investigation
-- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`
+  4. ✅ Test timeouts too short for CI environment
+     - CI has slower performance (shared CPU, network latency, bcrypt)
+     - Tests timing out after 30s (auth registration took 30.2s)
+     - **Fixed**: Increased timeouts (test: 60s, action: 15s, webServer: 180s)
+     - **Commit**: `a439f1a`
+- **Current Status**: All infrastructure issues fixed, awaiting CI validation
+- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`, `a439f1a`
 - **Status**: Fixes deployed, awaiting CI validation
 - **Commits**: `760ab3d`, pending
 
