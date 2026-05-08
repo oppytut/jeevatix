@@ -42,7 +42,7 @@ async function seedE2EData() {
     .insert(users)
     .values({
       email: 'admin@jeevatix.id',
-      password: adminPassword,
+      passwordHash: adminPassword,
       fullName: 'Admin Jeevatix',
       phone: '081111111111',
       role: 'admin',
@@ -55,7 +55,7 @@ async function seedE2EData() {
     .insert(users)
     .values({
       email: 'buyer@jeevatix.id',
-      password: hashedPassword,
+      passwordHash: hashedPassword,
       fullName: 'Test Buyer',
       phone: '081234567890',
       role: 'buyer',
@@ -68,7 +68,7 @@ async function seedE2EData() {
     .insert(users)
     .values({
       email: 'seller@jeevatix.id',
-      password: sellerPassword,
+      passwordHash: sellerPassword,
       fullName: 'Test Seller',
       phone: '081234567891',
       role: 'seller',
@@ -82,10 +82,10 @@ async function seedE2EData() {
     .insert(sellerProfiles)
     .values({
       userId: sellerUser.id,
-      organizationName: 'Test Event Organizer',
-      organizationAddress: 'Jl. Test No. 123, Jakarta',
-      organizationPhone: '021-12345678',
-      status: 'active',
+      orgName: 'E2E Test Organizer',
+      orgDescription: 'Test event organizer for E2E testing',
+      isVerified: true,
+      verifiedAt: new Date(),
     })
     .returning();
 

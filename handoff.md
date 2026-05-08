@@ -152,7 +152,17 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
   - Refactored: `copilot-instructions.md` — removed duplicates, added references
   - Updated: `tests/e2e/README.md` with links to all TIER docs
 - **Result**: Root directory reduced from 30 → 8 MD files (73% reduction)
-- **Commits**: Pending
+- **Commit**: `104b860`
+
+**3. CI E2E Tests Fix** 🔧
+- **Issue**: E2E tests failing in CI (8 consecutive failures since May 7)
+- **Root Cause**: Seed script field name mismatch with database schema
+  - Used `password` instead of `passwordHash` in users table
+  - Used `organizationName` instead of `orgName` in seller_profiles table
+- **Solution**: Fixed field names in `seed-e2e.ts` to match schema
+- **Verification**: Seed script now runs successfully locally
+- **Status**: Fix ready to deploy, awaiting CI validation
+- **Commit**: Pending
 
 ---
 
