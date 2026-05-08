@@ -155,19 +155,24 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Commit**: `104b860`
 
 **3. CI E2E Tests Fix** 🔧
-- **Issue**: E2E tests failing in CI (14+ consecutive failures since May 7)
+- **Issue**: E2E tests failing in CI (15+ consecutive failures since May 7)
 - **Root Causes Identified & Fixed**:
   1. ✅ Seed script field name mismatch - **Fixed**: `760ab3d`
   2. ✅ Playwright using mock API instead of real API - **Fixed**: `0bf0086`
   3. ✅ Missing JWT_SECRET in wrangler dev - **Fixed**: `45a2a6d`, `dce73a0`, `a922cbf`
   4. ✅ Test timeouts too short for CI - **Fixed**: `a439f1a`
-  5. ✅ Rate limiting too strict for parallel E2E tests
-     - Register: 3 req/60s, Login: 5 req/60s
-     - Parallel tests with retries exceeded limits immediately
-     - **Fixed**: Bypass rate limiter when PLAYWRIGHT_E2E=1
-     - **Commit**: `d81f8c7`
-- **Current Status**: All infrastructure issues fixed, awaiting CI validation
-- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`, `a439f1a`, `d81f8c7`
+  5. ✅ Rate limiting too strict for parallel tests - **Fixed**: `d81f8c7`
+  6. ⚠️ **Wrangler dev instability in CI** (ONGOING)
+     - Random 500 errors on `/auth/register/seller`
+     - Error: "Request failed with status 500" (no specific cause)
+     - Likely cause: Wrangler dev not designed for CI environments
+     - Wrangler dev uses local Durable Objects, Queues, R2 which may not work reliably in CI
+- **Current Status**: 5/6 issues fixed, wrangler dev instability remains
+- **Recommendation**: Consider alternative approaches:
+  - Option A: Run API with Node.js adapter instead of wrangler dev
+  - Option B: Use staging environment for E2E tests instead of local
+  - Option C: Mock Cloudflare bindings for E2E tests
+- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`, `a439f1a`, `d81f8c7`, `6382eae`
 - **Status**: Fixes deployed, awaiting CI validation
 - **Commits**: `760ab3d`, pending
 
