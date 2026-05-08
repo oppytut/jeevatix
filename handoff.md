@@ -15,6 +15,30 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Smoke Tests**: API health checks passing post-deployment
 - **Workflow URL**: https://github.com/oppytut/jeevatix/actions
 
+### ⚠️ E2E Test Suite - MIGRATED TO STAGING (REQUIRES MANUAL SEED)
+
+**Status:** Tests now run against staging environment (no local servers)
+
+**IMPORTANT - Manual Seed Required:**
+Before E2E tests can pass in CI, staging database must be seeded with test data.
+
+```bash
+# One-time setup: Seed staging database
+export DATABASE_URL="<your-staging-neon-database-url>"
+pnpm run seed:e2e
+```
+
+**Test Users:**
+- Admin: `admin@jeevatix.id` / `Admin123!`
+- Buyer: `buyer-e2e@jeevatix.id` / `Buyer123!`  
+- Seller: `seller-e2e@jeevatix.id` / `Seller123!`
+
+**Migration Details:**
+- **CI Tests**: Run against staging URLs (no wrangler dev)
+- **Local Tests**: Still use localhost (unchanged)
+- **Benefits**: No wrangler dev issues, production-like environment
+- **Trade-off**: Requires staging to be stable and seeded
+
 ### ✅ E2E Test Suite - TIER 1-3 COMPLETE + REAL DATABASE
 - **Tier 1-2 Coverage**: 125+ test cases across 20 spec files
   - Authentication: 18 tests (buyer, seller, admin)
