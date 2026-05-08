@@ -3,13 +3,111 @@
 ## Overview
 
 Tier 3 tests enhance the E2E test suite with:
-1. **Visual Regression Testing** - Detect unintended UI changes
-2. **Accessibility Testing** - Ensure WCAG compliance
-3. **Performance Optimization** - Faster test execution
+1. **Page Object Model (POM)** - Improve test maintainability
+2. **Visual Regression Testing** - Detect unintended UI changes
+3. **Accessibility Testing** - Ensure WCAG compliance
+4. **Performance Optimization** - Faster test execution
 
 ---
 
-## 1. Visual Regression Testing with Percy
+## 1. Page Object Model (POM)
+
+### Overview
+
+**Effort**: 2-3 days | **Priority**: High | **Impact**: Maintainability
+
+The Page Object Model pattern encapsulates page interactions into reusable classes, reducing code duplication and improving test readability.
+
+### Directory Structure
+
+```
+tests/e2e/pages/
+├── common/
+│   ├── BasePage.ts          ✅ IMPLEMENTED
+│   ├── NavigationComponent.ts
+│   └── FormComponent.ts
+├── buyer/
+│   ├── LoginPage.ts          ✅ IMPLEMENTED
+│   ├── HomePage.ts
+│   ├── EventDetailPage.ts
+│   ├── CheckoutPage.ts
+│   ├── PaymentPage.ts
+│   ├── OrdersPage.ts
+│   └── TicketsPage.ts
+├── seller/
+│   ├── LoginPage.ts
+│   ├── DashboardPage.ts
+│   ├── EventFormPage.ts
+│   ├── EventListPage.ts
+│   ├── TierManagementPage.ts
+│   ├── OrdersPage.ts
+│   └── CheckinPage.ts
+└── admin/
+    ├── LoginPage.ts
+    ├── DashboardPage.ts
+    ├── UserManagementPage.ts
+    ├── SellerVerificationPage.ts
+    └── CategoryManagementPage.ts
+```
+
+### Implementation Steps
+
+1. **Common Components** (4-6 hours)
+   - NavigationComponent (header, sidebar)
+   - FormComponent (reusable form interactions)
+   - ModalComponent (dialogs, confirmations)
+
+2. **Buyer Pages** (8-10 hours)
+   - HomePage: event browsing, search, filters
+   - EventDetailPage: event info, tier selection
+   - CheckoutPage: reservation, quantity selection
+   - PaymentPage: payment methods, order summary
+   - OrdersPage: order history, filters
+   - TicketsPage: ticket list, QR codes
+
+3. **Seller Pages** (8-10 hours)
+   - DashboardPage: stats, quick actions
+   - EventFormPage: create/edit event
+   - TierManagementPage: add/edit tiers
+   - CheckinPage: QR scanner, manual check-in
+
+4. **Admin Pages** (6-8 hours)
+   - UserManagementPage: user list, actions
+   - SellerVerificationPage: verify sellers
+   - CategoryManagementPage: CRUD categories
+
+5. **Refactor Existing Tests** (6-8 hours)
+   - Update buyer-flow.spec.ts to use POM
+   - Update seller-flow.spec.ts to use POM
+   - Update admin-flow.spec.ts to use POM
+   - Update Tier 1 & 2 tests to use POM
+
+### Benefits
+
+- ✅ Reduced code duplication
+- ✅ Easier maintenance
+- ✅ Better test readability
+- ✅ Centralized selector management
+- ✅ Type-safe page interactions
+
+### Example Usage
+
+```typescript
+// Before (direct page interactions)
+await page.goto('/login');
+await page.getByLabel('Email').fill('user@example.com');
+await page.getByLabel('Password').fill('password');
+await page.getByRole('button', { name: 'Login' }).click();
+
+// After (Page Object Model)
+const loginPage = new LoginPage(page);
+await loginPage.goto();
+await loginPage.login('user@example.com', 'password');
+```
+
+---
+
+## 2. Visual Regression Testing with Percy
 
 ### Setup
 
@@ -71,7 +169,7 @@ test('My new page', async ({ page }) => {
 
 ---
 
-## 2. Accessibility Testing with axe-core
+## 3. Accessibility Testing with axe-core
 
 ### Running Accessibility Tests
 
@@ -142,7 +240,7 @@ const results = await new AxeBuilder({ page })
 
 ---
 
-## 3. Performance Optimization
+## 4. Performance Optimization
 
 ### Parallelization
 
@@ -205,7 +303,7 @@ playwright test --workers=4
 
 ---
 
-## 4. CI/CD Integration
+## 5. CI/CD Integration
 
 ### GitHub Actions
 
@@ -231,7 +329,7 @@ Accessibility tests run automatically:
 
 ---
 
-## 5. Best Practices
+## 6. Best Practices
 
 ### Visual Regression
 

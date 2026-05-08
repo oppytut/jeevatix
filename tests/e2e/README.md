@@ -85,8 +85,18 @@ tests/e2e/
 ├── visual-regression.spec.ts    # Percy visual tests
 ├── accessibility.spec.ts        # axe-core a11y tests
 ├── helpers.ts                   # Test utilities
-└── mock-api-server.mjs         # Mock API (deprecated)
+├── mock-api-server.mjs         # Mock API (deprecated)
+├── README.md                    # This file
+├── TIER1_CRITICAL_TESTS.md      # Critical error scenarios & edge cases
+├── TIER2_FEATURE_TESTS.md       # Feature-specific test catalog
+└── TIER3_IMPLEMENTATION_GUIDE.md # POM, visual regression, accessibility guide
 ```
+
+### Test Documentation
+
+- **[TIER1_CRITICAL_TESTS.md](./TIER1_CRITICAL_TESTS.md)** — Critical error scenarios, edge cases, security tests (16 tests)
+- **[TIER2_FEATURE_TESTS.md](./TIER2_FEATURE_TESTS.md)** — Feature-specific tests: auth, events, checkout, check-in (~38 tests)
+- **[TIER3_IMPLEMENTATION_GUIDE.md](./TIER3_IMPLEMENTATION_GUIDE.md)** — Page Object Model, visual regression (Percy), accessibility (axe-core), performance optimization
 
 ---
 

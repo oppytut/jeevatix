@@ -25,33 +25,16 @@ Selalu baca dokumen referensi sebelum mengerjakan task:
 
 ## Arsitektur 3-Layer (Semua API Endpoint)
 
-```
-Route (routes/*.ts)           → Thin HTTP handler (~30 baris)
-  ↓ import
-Service (services/*.service.ts) → Business logic + DB queries
-  ↓ import
-Schema (schemas/*.schema.ts)    → Zod schemas + .openapi() = DTO + OpenAPI spec
-```
+Semua API endpoint mengikuti strict 3-layer separation:
 
-- **Route**: Hanya parse request → panggil service → return response. JANGAN taruh business logic.
-- **Service**: Semua business logic, DB queries, orchestration. Bisa di-test tanpa HTTP.
-- **Schema**: `z` dari `@hono/zod-openapi` (BUKAN dari `zod`). Setiap schema diberi `.openapi('Name')`.
+1. **Route** (`apps/api/src/routes/`) — Thin HTTP handlers, OpenAPI contract
+2. **Service** (`apps/api/src/services/`) — Business logic, DB queries, no HTTP context
+3. **Schema** (`apps/api/src/schemas/`) — Zod + OpenAPI validation
 
-## OpenAPI Contract Pattern
-
-```typescript
-// Schema: import z dari @hono/zod-openapi
-import { z } from '@hono/zod-openapi';
-const mySchema = z.object({ ... }).openapi('MySchema');
-
-// Route: createRoute() + app.openapi()
-import { createRoute } from '@hono/zod-openapi';
-const route = createRoute({ method: 'post', path: '/...', tags: ['...'], request: { body: { content: { 'application/json': { schema: mySchema } } } }, responses: { ... } });
-app.openapi(route, async (c) => {
-  const body = c.req.valid('json'); // BUKAN c.req.json()
-  // panggil service → return response
-});
-```
+**Lihat detail pattern di:**
+- `instructions/api-routes.instructions.md` — Route handler patterns
+- `instructions/api-services.instructions.md` — Service layer patterns
+- `instructions/api-schemas.instructions.md` — Schema patterns
 
 ## Konvensi Kode
 
@@ -72,14 +55,14 @@ app.openapi(route, async (c) => {
 
 ## Load Test Safety
 
-- Project ini berjalan di layanan usage-based (Cloudflare Workers, Durable Objects, Queues, R2, Hyperdrive, dan database origin) dan harus diperlakukan sebagai cost-sensitive karena budget startup masih minim.
-- JANGAN menjalankan load test, stress test, soak test, benchmark, synthetic traffic, repeated probe skala besar, atau bulk seeding data load test pada environment remote tanpa konfirmasi eksplisit user di percakapan saat ini.
-- Konfirmasi eksplisit wajib diminta sebelum menjalankan command atau script seperti `k6`, `pnpm run test:load*`, `run-load-scenario.ts`, `run-local-checkout-benchmark.ts`, `seed-load-users.ts`, `cleanup-load-test-data.ts`, loop `curl`/`wget`, `xargs`/`parallel` traffic generators, atau mekanisme lain yang berpotensi menaikkan billing/usage.
-- Sebelum meminta konfirmasi, agent HARUS menjelaskan singkat target environment, skala traffic yang direncanakan, service yang bisa terdampak billing, potensi side effect, dan cleanup plan.
-- Default aman: lakukan analisis script, review konfigurasi, estimasi biaya, atau validasi skala terkecil/lokal terlebih dahulu.
-- Untuk environment production, agent HARUS meminta reconfirmation eksplisit walaupun user pernah memberi izin umum sebelumnya.
-- Perubahan yang menonaktifkan atau membypass limiter, auth protection, anti-abuse guardrail, atau mekanisme proteksi provider demi keperluan load test juga memerlukan konfirmasi eksplisit user sebelum diubah atau dijalankan.
-- Jika user belum memberi izin eksplisit, agent boleh menyiapkan kode, dokumentasi, atau rencana load test, tetapi tidak boleh mengeksekusi load test-nya.
+⚠️ **CRITICAL**: Project ini berjalan di layanan usage-based Cloudflare dengan budget terbatas.
+
+**Lihat `instructions/load-testing.instructions.md` untuk detailed safety rules.**
+
+Key requirements:
+- JANGAN jalankan load test di remote environment tanpa konfirmasi eksplisit user
+- Jelaskan target environment, skala traffic, billing impact, dan cleanup plan sebelum minta approval
+- Production load test butuh reconfirmation walaupun user sudah kasih izin umum sebelumnya
 
 ## Git Workflow
 

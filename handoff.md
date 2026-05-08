@@ -1,8 +1,8 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-07
+last_updated: 2026-05-08
 status: Active
-phase: Tier 3 E2E Tests Complete - Production Ready
+phase: E2E Real Database Migration + Documentation Cleanup Complete
 ---
 
 # Handoff Progress
@@ -15,7 +15,7 @@ phase: Tier 3 E2E Tests Complete - Production Ready
 - **Smoke Tests**: API health checks passing post-deployment
 - **Workflow URL**: https://github.com/oppytut/jeevatix/actions
 
-### ✅ E2E Test Suite - TIER 1-3 COMPLETE
+### ✅ E2E Test Suite - TIER 1-3 COMPLETE + REAL DATABASE
 - **Tier 1-2 Coverage**: 125+ test cases across 20 spec files
   - Authentication: 18 tests (buyer, seller, admin)
   - Event Management: 11 tests (CRUD, tiers)
@@ -23,17 +23,26 @@ phase: Tier 3 E2E Tests Complete - Production Ready
   - Check-in System: 6 tests (QR scanning)
   - Critical Edge Cases: 15 tests (security, concurrency)
 
-- **Tier 3 Enhancements** (NEW):
+- **Tier 3 Enhancements**:
   - **Visual Regression**: 20+ Percy snapshots (homepage, events, forms, responsive)
   - **Accessibility**: 15+ axe-core tests (WCAG 2.1 Level A/AA, keyboard navigation)
   - **Performance**: Parallel execution enabled (50-60% faster)
   - **Fixtures**: Authenticated session reuse (buyer, seller, admin)
   - **Global Setup**: API health checks before test runs
 
-- **Infrastructure**: Page Object Model, helper utilities, mock API server, fixtures
+- **Real Database Migration** (NEW - 2026-05-08):
+  - **Replaced**: Mock API server → Real PostgreSQL database
+  - **Seed Script**: `seed-e2e.ts` creates minimal test data (~2s)
+  - **Test Data**: Admin, Buyer, Seller users + 1 published event with 3 tiers
+  - **Benefits**: More reliable, faster setup, tests actual DB interactions
+  - **CI Integration**: Auto-seed before E2E tests in GitHub Actions
+
+- **Infrastructure**: Page Object Model, helper utilities, real database, fixtures
 - **Documentation**: 
+  - `tests/e2e/README.md` (updated with real DB setup)
   - `tests/e2e/TIER1_CRITICAL_TESTS.md`
-  - `tests/e2e/TIER3_IMPLEMENTATION_GUIDE.md` (NEW)
+  - `tests/e2e/TIER2_FEATURE_TESTS.md`
+  - `tests/e2e/TIER3_IMPLEMENTATION_GUIDE.md`
 
 ### ✅ Staging Environment - ACTIVE
 - **API**: https://jeevatix-staging-api.ariefna95.workers.dev
@@ -42,6 +51,22 @@ phase: Tier 3 E2E Tests Complete - Production Ready
 - **Seller Portal**: https://jeevatix-staging-seller.ariefna95.workers.dev
 - **Database**: Neon PostgreSQL (staging)
 - **Storage**: Cloudflare R2 (jeevatix-stg bucket)
+
+### 📚 Documentation Structure - CLEANED UP (NEW - 2026-05-08)
+- **Root Directory**: Reduced from 30 → 8 MD files (73% reduction)
+  - Kept: Core permanent docs only (README, DATABASE_DESIGN, PAGES, etc.)
+  - Archived: 8 resolved issues → `docs/archived/2026-05/`
+  - Organized: 11 DNS troubleshooting files → `docs/dns-troubleshooting/`
+  
+- **Test Documentation**: Consolidated in `tests/e2e/`
+  - Moved: `TIER2_FEATURE_TESTS.md` from root → `tests/e2e/`
+  - Merged: `TIER3_IMPLEMENTATION_PLAN.md` + `TIER3_IMPLEMENTATION_GUIDE.md` → single source
+  - Updated: `tests/e2e/README.md` with links to all TIER docs
+  
+- **AI Development Setup**: Improved navigation
+  - Created: `.github/README.md` — navigation guide for instructions/prompts/agents
+  - Refactored: `copilot-instructions.md` — removed duplicates, added references
+  - Single source of truth: Load test safety & API architecture patterns
 
 ### 📋 Previous Work (Archived)
 - **Task I (Local Checkout Optimization)**: `[DONE]` Diparkir sementara setelah iterasi ekstensif. Optimasi yang dipertahankan:
@@ -98,7 +123,40 @@ phase: Tier 3 E2E Tests Complete - Production Ready
 
 ---
 
-## 📝 Recent Session Summary (2026-05-07)
+## 📝 Recent Session Summary (2026-05-08)
+
+### Tasks Completed
+
+**1. E2E Real Database Migration** ⭐
+- **Issue**: E2E tests using mock API server (unreliable, hard to debug)
+- **Solution**: Migrated to real PostgreSQL database with seed script
+- **Changes**:
+  - Created `seed-e2e.ts` with minimal test data (admin, buyer, seller, 1 event)
+  - Added `seed:e2e` script to package.json
+  - Updated E2E workflow to seed database before tests
+  - Re-enabled automatic E2E workflow triggers
+  - Updated `tests/e2e/README.md` with real database setup guide
+- **Benefits**: More reliable tests, faster setup (~2s), tests actual DB interactions
+- **Commits**: `f5fc202`, `012d3ee`, `36bae8c`
+
+**2. Documentation Structure Cleanup** 🧹
+- **Issue**: 30 MD files in root (cluttered with task artifacts, DNS troubleshooting, resolved issues)
+- **Solution**: Consolidated documentation into organized structure
+- **Changes**:
+  - Deleted: `task.md` (empty file)
+  - Archived: 8 resolved issues → `docs/archived/2026-05/` with README
+  - Organized: 11 DNS troubleshooting files → `docs/dns-troubleshooting/`
+  - Moved: `TIER2_FEATURE_TESTS.md` → `tests/e2e/`
+  - Merged: `TIER3_IMPLEMENTATION_PLAN.md` + `TIER3_IMPLEMENTATION_GUIDE.md` → single source
+  - Created: `.github/README.md` — AI development navigation guide
+  - Refactored: `copilot-instructions.md` — removed duplicates, added references
+  - Updated: `tests/e2e/README.md` with links to all TIER docs
+- **Result**: Root directory reduced from 30 → 8 MD files (73% reduction)
+- **Commits**: Pending
+
+---
+
+## 📝 Previous Session Summary (2026-05-07)
 
 ### Issues Resolved
 
