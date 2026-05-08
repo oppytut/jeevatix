@@ -58,6 +58,7 @@ jobs:
           JWT_SECRET=test-jwt-secret-for-e2e-tests-only-not-for-production
           PAYMENT_WEBHOOK_SECRET=test-webhook-secret
           PARTY_SECRET=test-party-secret
+          PLAYWRIGHT_E2E=1
           EOF
           
       - name: Run database migrations
