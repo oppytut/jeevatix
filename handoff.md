@@ -155,25 +155,27 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Commit**: `104b860`
 
 **3. CI E2E Tests Fix** 🔧
-- **Issue**: E2E tests failing in CI (9+ consecutive failures since May 7)
-- **Root Causes**:
-  1. Seed script field name mismatch with database schema
+- **Issue**: E2E tests failing in CI (12+ consecutive failures since May 7)
+- **Root Causes Identified & Fixed**:
+  1. ✅ Seed script field name mismatch with database schema
      - Used `password` instead of `passwordHash` in users table
      - Used `organizationName` instead of `orgName` in seller_profiles table
-  2. Playwright config still using mock API server instead of real API
+     - **Fixed**: `760ab3d`
+  2. ✅ Playwright config still using mock API server instead of real API
      - After migrating to real database, forgot to update webServer config
      - Tests failed with "⚠️ API not responding"
-  3. Missing JWT_SECRET and other secrets in CI environment
+     - **Fixed**: `0bf0086`
+  3. ✅ Missing JWT_SECRET and other secrets in CI environment
      - API requires JWT_SECRET, PAYMENT_WEBHOOK_SECRET, PARTY_SECRET
-     - Workflow only set DATABASE_URL, missing other required env vars
+     - Wrangler dev requires secrets in `.dev.vars` file, not env vars
      - Tests failed with "JWT_SECRET_MISSING" error
-- **Solutions**:
-  1. Fixed field names in `seed-e2e.ts` to match schema
-  2. Updated `playwright.config.ts` to start real API server
-  3. Added JWT_SECRET and other required secrets to E2E workflow
-- **Verification**: Seed script runs successfully locally, API starts correctly
-- **Status**: Fixes deployed, awaiting CI validation
-- **Commits**: `760ab3d`, `0bf0086`, pending
+     - **Fixed**: `45a2a6d`, `dce73a0`, `a922cbf`
+- **Current Status**: JWT configuration fixed, API starts successfully
+- **New Issue Discovered**: Workers runtime hang/timeout during some tests
+  - Error: "Workers runtime canceled this request because it detected that your Worker's code had hung"
+  - Likely cause: Infinite loop or deadlock in API code
+  - Requires further investigation
+- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`
 - **Status**: Fixes deployed, awaiting CI validation
 - **Commits**: `760ab3d`, pending
 
