@@ -155,28 +155,19 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Commit**: `104b860`
 
 **3. CI E2E Tests Fix** 🔧
-- **Issue**: E2E tests failing in CI (13+ consecutive failures since May 7)
+- **Issue**: E2E tests failing in CI (14+ consecutive failures since May 7)
 - **Root Causes Identified & Fixed**:
-  1. ✅ Seed script field name mismatch with database schema
-     - Used `password` instead of `passwordHash` in users table
-     - Used `organizationName` instead of `orgName` in seller_profiles table
-     - **Fixed**: `760ab3d`
-  2. ✅ Playwright config still using mock API server instead of real API
-     - After migrating to real database, forgot to update webServer config
-     - Tests failed with "⚠️ API not responding"
-     - **Fixed**: `0bf0086`
-  3. ✅ Missing JWT_SECRET and other secrets in CI environment
-     - API requires JWT_SECRET, PAYMENT_WEBHOOK_SECRET, PARTY_SECRET
-     - Wrangler dev requires secrets in `.dev.vars` file, not env vars
-     - Tests failed with "JWT_SECRET_MISSING" error
-     - **Fixed**: `45a2a6d`, `dce73a0`, `a922cbf`
-  4. ✅ Test timeouts too short for CI environment
-     - CI has slower performance (shared CPU, network latency, bcrypt)
-     - Tests timing out after 30s (auth registration took 30.2s)
-     - **Fixed**: Increased timeouts (test: 60s, action: 15s, webServer: 180s)
-     - **Commit**: `a439f1a`
+  1. ✅ Seed script field name mismatch - **Fixed**: `760ab3d`
+  2. ✅ Playwright using mock API instead of real API - **Fixed**: `0bf0086`
+  3. ✅ Missing JWT_SECRET in wrangler dev - **Fixed**: `45a2a6d`, `dce73a0`, `a922cbf`
+  4. ✅ Test timeouts too short for CI - **Fixed**: `a439f1a`
+  5. ✅ Rate limiting too strict for parallel E2E tests
+     - Register: 3 req/60s, Login: 5 req/60s
+     - Parallel tests with retries exceeded limits immediately
+     - **Fixed**: Bypass rate limiter when PLAYWRIGHT_E2E=1
+     - **Commit**: `d81f8c7`
 - **Current Status**: All infrastructure issues fixed, awaiting CI validation
-- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`, `a439f1a`
+- **Commits**: `760ab3d`, `0bf0086`, `45a2a6d`, `dce73a0`, `a922cbf`, `a439f1a`, `d81f8c7`
 - **Status**: Fixes deployed, awaiting CI validation
 - **Commits**: `760ab3d`, pending
 
