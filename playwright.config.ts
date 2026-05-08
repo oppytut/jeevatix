@@ -107,7 +107,7 @@ export default defineConfig({
 	],
 	webServer: [
 		{
-			command: 'node tests/e2e/mock-api-server.mjs',
+			command: 'pnpm --filter @jeevatix/api run dev',
 			port: 8787,
 			reuseExistingServer: !process.env.CI,
 			timeout: 120 * 1000
