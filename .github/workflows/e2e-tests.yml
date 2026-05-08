@@ -1,15 +1,10 @@
 name: E2E Tests
 
-# Temporarily disabled - E2E tests require complex mock API setup
-# Run E2E tests locally with: pnpm exec playwright test
-# on:
-#   push:
-#     branches: [main, develop]
-#   pull_request:
-#     branches: [main, develop]
-
 on:
-  workflow_dispatch:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
 
 jobs:
   e2e-tests:
@@ -58,9 +53,14 @@ jobs:
         run: pnpm --filter @jeevatix/core run db:push
         env:
           DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
+          
+      - name: Seed E2E test data
+        run: pnpm run seed:e2e
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
         
       - name: Run E2E tests
-        run: pnpm exec playwright test --project=buyer --project=admin --project=seller --grep-invert "@requires-auth"
+        run: pnpm exec playwright test --project=critical --project=auth --project=events
         env:
           DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
         
