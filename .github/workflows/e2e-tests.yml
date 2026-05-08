@@ -63,12 +63,12 @@ jobs:
           DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
         
       - name: Run E2E tests
-        run: pnpm exec playwright test --project=critical --project=auth --project=events
-        env:
-          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
-          JWT_SECRET: test-jwt-secret-for-e2e-tests-only-not-for-production
-          PAYMENT_WEBHOOK_SECRET: test-webhook-secret
-          PARTY_SECRET: test-party-secret
+        run: |
+          export DATABASE_URL="postgresql://jeevatix:jeevatix@localhost:5432/jeevatix"
+          export JWT_SECRET="test-jwt-secret-for-e2e-tests-only-not-for-production"
+          export PAYMENT_WEBHOOK_SECRET="test-webhook-secret"
+          export PARTY_SECRET="test-party-secret"
+          pnpm exec playwright test --project=critical --project=auth --project=events
         
       - uses: actions/upload-artifact@v4
         if: always()
