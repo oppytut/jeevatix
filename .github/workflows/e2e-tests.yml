@@ -52,6 +52,14 @@ jobs:
           echo "PAYMENT_WEBHOOK_SECRET=test-webhook-secret" >> .env
           echo "PARTY_SECRET=test-party-secret" >> .env
           
+          # Create .dev.vars for wrangler dev
+          cat > apps/api/.dev.vars << EOF
+          DATABASE_URL=postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
+          JWT_SECRET=test-jwt-secret-for-e2e-tests-only-not-for-production
+          PAYMENT_WEBHOOK_SECRET=test-webhook-secret
+          PARTY_SECRET=test-party-secret
+          EOF
+          
       - name: Run database migrations
         run: pnpm --filter @jeevatix/core run db:push
         env:
