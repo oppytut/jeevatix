@@ -15,29 +15,26 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Smoke Tests**: API health checks passing post-deployment
 - **Workflow URL**: https://github.com/oppytut/jeevatix/actions
 
-### ⚠️ E2E Test Suite - MIGRATED TO STAGING (REQUIRES MANUAL SEED)
+### ⚠️ E2E Test Suite - STAGING MIGRATION IN PROGRESS
 
-**Status:** Tests now run against staging environment (no local servers)
+**Status:** Migration to staging environment - seed script hanging in CI
 
-**IMPORTANT - Manual Seed Required:**
-Before E2E tests can pass in CI, staging database must be seeded with test data.
+**Current Issue:**
+- Seed script (`seed-e2e.ts`) hangs in CI after TRUNCATE CASCADE command
+- Likely cause: Database connection timeout or permission issue
+- Local execution works fine
 
-```bash
-# One-time setup: Seed staging database
-export DATABASE_URL="<your-staging-neon-database-url>"
-pnpm run seed:e2e
-```
+**Completed:**
+1. ✅ Playwright config updated to use staging URLs
+2. ✅ Workflow simplified (no local servers)
+3. ✅ STAGING_DATABASE_URL secret configured
+4. ✅ Seed script fixed to use TRUNCATE CASCADE
+5. ⏳ CI execution hanging (investigating)
 
-**Test Users:**
-- Admin: `admin@jeevatix.id` / `Admin123!`
-- Buyer: `buyer-e2e@jeevatix.id` / `Buyer123!`  
-- Seller: `seller-e2e@jeevatix.id` / `Seller123!`
-
-**Migration Details:**
-- **CI Tests**: Run against staging URLs (no wrangler dev)
-- **Local Tests**: Still use localhost (unchanged)
-- **Benefits**: No wrangler dev issues, production-like environment
-- **Trade-off**: Requires staging to be stable and seeded
+**Next Steps:**
+- Debug why seed hangs in CI (connection timeout?)
+- Consider alternative: Manual seed once, skip auto-seed in CI
+- Or: Seed via API endpoint instead of direct DB connection
 
 ### ✅ E2E Test Suite - TIER 1-3 COMPLETE + REAL DATABASE
 - **Tier 1-2 Coverage**: 125+ test cases across 20 spec files
