@@ -26,7 +26,7 @@ test.describe('Admin E2E Flow', () => {
     await page.getByLabel('Password').fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL(/localhost:4302\/$/);
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.getByRole('heading', { name: 'Admin Dashboard' })).toBeVisible();
 
     await page.goto('/categories');
@@ -57,8 +57,8 @@ test.describe('Admin E2E Flow', () => {
     await page.getByRole('button', { name: 'Logout' }).click();
     await page.context().clearCookies();
     const loginPage = await page.context().newPage();
-    await loginPage.goto('http://localhost:4302/login');
-    await expect(loginPage).toHaveURL(/localhost:4302\/login/);
+    await loginPage.goto('http:///login');
+    await expect(loginPage).toHaveURL(/\/login/);
     await expect(loginPage.getByRole('button', { name: 'Login' })).toBeVisible();
     await loginPage.close();
   });

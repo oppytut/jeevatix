@@ -92,13 +92,13 @@ test.describe('Critical Error Scenarios', () => {
   test('should handle invalid QR code gracefully', async ({ page }) => {
     const invalidTicketCode = 'INVALID-QR-CODE-12345';
 
-    await page.goto(`http://localhost:4303/login`);
+    await page.goto(`baseURL/login`);
     await page.getByLabel('Email').fill('seller@jeevatix.id');
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/localhost:4303\/$/);
+    await expect(page).toHaveURL(/\/$/);
 
-    await page.goto(`http://localhost:4303/events`);
+    await page.goto(`baseURL/events`);
     await page.waitForLoadState('networkidle');
 
     const firstEvent = page.locator('[data-event-card]').first();
@@ -237,7 +237,7 @@ test.describe('Critical Error Scenarios', () => {
   });
 
   test('should validate form inputs before submission', async ({ page }) => {
-    await page.goto('http://localhost:4301/register');
+    await page.goto('baseURL/register');
 
     await page.getByRole('button', { name: /daftar|register/i }).click();
 

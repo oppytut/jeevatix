@@ -28,10 +28,30 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
         
-      - name: Run E2E tests against staging
+      - name: Setup test database
         run: |
-          export CI=1
-          pnpm exec playwright test --project=critical --project=auth --project=events
+          docker compose up -d
+          sleep 5
+          
+      - name: Run database migrations
+        run: pnpm --filter @jeevatix/core run db:push
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
+          
+      - name: Seed test data
+        run: pnpm --filter @jeevatix/core run db:seed:e2e
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
+          
+      - name: Run E2E tests locally
+        run: pnpm exec playwright test --project=critical --project=auth --project=events
+        env:
+          DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
+          JWT_SECRET: test-secret-key-for-ci-only
+          PAYMENT_WEBHOOK_SECRET: test-webhook-secret
+          EMAIL_API_KEY: test-email-key
+          EMAIL_FROM: test@jeevatix.com
+          UPLOAD_PUBLIC_URL: http://localhost:8787/uploads
         
       - uses: actions/upload-artifact@v4
         if: always()

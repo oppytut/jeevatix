@@ -84,7 +84,7 @@ test.describe('Edge Cases & Boundary Conditions', () => {
   test('should handle extremely long event title', async ({ page }) => {
     await loginSellerUi(page, sellerEmail, sellerPassword);
 
-    await page.goto('http://localhost:4303/events/create');
+    await page.goto('baseURL/events/create');
     await page.waitForLoadState('networkidle');
 
     const longTitle = 'A'.repeat(300);
@@ -99,7 +99,7 @@ test.describe('Edge Cases & Boundary Conditions', () => {
   });
 
   test('should handle special characters in search', async ({ page }) => {
-    await page.goto('http://localhost:4301/events');
+    await page.goto('baseURL/events');
     await page.waitForLoadState('networkidle');
 
     const searchInput = page.locator('input[type="search"], input[placeholder*="cari"]').first();
@@ -119,7 +119,7 @@ test.describe('Edge Cases & Boundary Conditions', () => {
   });
 
   test('should handle rapid form submissions', async ({ page }) => {
-    await page.goto('http://localhost:4301/login');
+    await page.goto('baseURL/login');
 
     const emailInput = page.getByLabel(/email/i);
     const passwordInput = page.getByLabel(/password/i);
@@ -133,13 +133,13 @@ test.describe('Edge Cases & Boundary Conditions', () => {
     await page.waitForTimeout(2000);
 
     const currentUrl = page.url();
-    expect(currentUrl).toMatch(/localhost:4301\/(login)?$/);
+    expect(currentUrl).toMatch(/\/(login)?$/);
   });
 
   test('should handle missing required fields', async ({ page }) => {
     await loginSellerUi(page, sellerEmail, sellerPassword);
 
-    await page.goto('http://localhost:4303/events/create');
+    await page.goto('baseURL/events/create');
     await page.waitForLoadState('networkidle');
 
     const submitButton = page.getByRole('button', { name: /simpan|save|buat/i }).first();
@@ -162,7 +162,7 @@ test.describe('Edge Cases & Boundary Conditions', () => {
   test('should handle date in the past for event', async ({ page }) => {
     await loginSellerUi(page, sellerEmail, sellerPassword);
 
-    await page.goto('http://localhost:4303/events/create');
+    await page.goto('baseURL/events/create');
     await page.waitForLoadState('networkidle');
 
     const dateInput = page.locator('input[type="datetime-local"]').first();
@@ -195,7 +195,7 @@ test.describe('Edge Cases & Boundary Conditions', () => {
   test('should handle file upload size limits', async ({ page }) => {
     await loginSellerUi(page, sellerEmail, sellerPassword);
 
-    await page.goto('http://localhost:4303/events/create');
+    await page.goto('baseURL/events/create');
     await page.waitForLoadState('networkidle');
 
     const fileInput = page.locator('input[type="file"]').first();
@@ -222,7 +222,7 @@ test.describe('Edge Cases & Boundary Conditions', () => {
   test('should handle concurrent ticket check-ins', async ({ page, context }) => {
     await loginSellerUi(page, sellerEmail, sellerPassword);
 
-    await page.goto('http://localhost:4303/events');
+    await page.goto('baseURL/events');
     await page.waitForLoadState('networkidle');
 
     const firstEvent = page.locator('[data-event-card]').first();

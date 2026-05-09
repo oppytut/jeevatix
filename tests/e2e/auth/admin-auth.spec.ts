@@ -3,18 +3,18 @@ import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../helpers';
 
 test.describe('Admin Authentication', () => {
   test('should login with valid admin credentials', async ({ page }) => {
-    await page.goto('http://localhost:4302/login');
+    await page.goto('/login');
     
     await page.getByLabel('Email').fill(ADMIN_EMAIL);
     await page.getByLabel('Password').fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: 'Login' }).click();
     
-    await expect(page).toHaveURL(/localhost:4302\/$/);
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('body')).toContainText(/dashboard|admin/i);
   });
 
   test('should reject non-admin user login', async ({ page }) => {
-    await page.goto('http://localhost:4302/login');
+    await page.goto('/login');
     
     await page.getByLabel('Email').fill('buyer@jeevatix.id');
     await page.getByLabel('Password').fill('Buyer123!');
@@ -31,7 +31,7 @@ test.describe('Admin Authentication', () => {
   test('should enforce admin-only routes', async ({ page, context }) => {
     await context.clearCookies();
     
-    await page.goto('http://localhost:4302/users');
+    await page.goto('/users');
     
     await page.waitForLoadState('networkidle');
     
@@ -40,11 +40,11 @@ test.describe('Admin Authentication', () => {
   });
 
   test('should logout admin successfully', async ({ page }) => {
-    await page.goto('http://localhost:4302/login');
+    await page.goto('/login');
     await page.getByLabel('Email').fill(ADMIN_EMAIL);
     await page.getByLabel('Password').fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/localhost:4302\/$/);
+    await expect(page).toHaveURL(/\/$/);
     
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if ((await logoutButton.count()) > 0) {

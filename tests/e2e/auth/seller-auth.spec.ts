@@ -8,7 +8,7 @@ test.describe('Seller Authentication', () => {
     const fullName = 'Test Seller';
     const orgName = 'Test Organization';
 
-    await page.goto('http://localhost:4303/register');
+    await page.goto('/register');
 
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/^password$/i).fill(password);
@@ -20,7 +20,7 @@ test.describe('Seller Authentication', () => {
 
     await page.getByRole('button', { name: /daftar|register/i }).click();
 
-    await page.waitForURL(/localhost:4303\/(|verify-email)/);
+    await page.waitForURL(/\/(|verify-email)/);
     
     const bodyText = await page.locator('body').textContent();
     const isSuccess = bodyText?.includes('berhasil') || 
@@ -32,7 +32,7 @@ test.describe('Seller Authentication', () => {
   });
 
   test('should validate organization name is required', async ({ page }) => {
-    await page.goto('http://localhost:4303/register');
+    await page.goto('/register');
 
     await page.getByLabel(/email/i).fill(uniqueEmail('seller-val'));
     await page.getByLabel(/^password$/i).fill('Seller123!');
@@ -52,18 +52,18 @@ test.describe('Seller Authentication', () => {
   });
 
   test('should login seller and redirect to dashboard', async ({ page }) => {
-    await page.goto('http://localhost:4303/login');
+    await page.goto('/login');
 
     await page.getByLabel('Email').fill('seller@jeevatix.id');
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL(/localhost:4303\/$/);
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('body')).toContainText(/dashboard|event|pesanan/i);
   });
 
   test('should show error for invalid seller credentials', async ({ page }) => {
-    await page.goto('http://localhost:4303/login');
+    await page.goto('/login');
 
     await page.getByLabel('Email').fill('invalid@seller.com');
     await page.getByLabel('Password').fill('WrongPassword123!');
@@ -81,7 +81,7 @@ test.describe('Seller Authentication', () => {
   });
 
   test('should handle forgot password flow', async ({ page }) => {
-    await page.goto('http://localhost:4303/forgot-password');
+    await page.goto('/forgot-password');
 
     await page.getByLabel(/email/i).fill('seller@jeevatix.id');
     await page.getByRole('button', { name: /kirim|send|reset/i }).click();
@@ -97,11 +97,11 @@ test.describe('Seller Authentication', () => {
   });
 
   test('should logout seller successfully', async ({ page }) => {
-    await page.goto('http://localhost:4303/login');
+    await page.goto('/login');
     await page.getByLabel('Email').fill('seller@jeevatix.id');
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/localhost:4303\/$/);
+    await expect(page).toHaveURL(/\/$/);
 
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if (await logoutButton.count() > 0) {

@@ -13,7 +13,7 @@ test.describe('Buyer Authentication', () => {
   });
 
   test('should register new buyer account successfully', async ({ page }) => {
-    await page.goto('http://localhost:4301/register');
+    await page.goto('/register');
 
     await page.getByLabel(/email/i).fill(testEmail);
     await page.getByLabel(/password/i).first().fill(testPassword);
@@ -22,7 +22,7 @@ test.describe('Buyer Authentication', () => {
 
     await page.getByRole('button', { name: /daftar|register/i }).click();
 
-    await page.waitForURL(/localhost:4301\/(|verify-email)/);
+    await page.waitForURL(/\/(|verify-email)/);
     
     const bodyText = await page.locator('body').textContent();
     const isSuccess = 
@@ -35,7 +35,7 @@ test.describe('Buyer Authentication', () => {
   });
 
   test('should prevent duplicate email registration', async ({ page }) => {
-    await page.goto('http://localhost:4301/register');
+    await page.goto('/register');
 
     await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).first().fill(testPassword);
@@ -57,19 +57,19 @@ test.describe('Buyer Authentication', () => {
   });
 
   test('should login with valid credentials', async ({ page }) => {
-    await page.goto('http://localhost:4301/login');
+    await page.goto('/login');
 
     await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('Buyer123!');
 
     await page.getByRole('button', { name: /login|masuk/i }).click();
 
-    await page.waitForURL(/localhost:4301\/$/);
-    await expect(page).toHaveURL(/localhost:4301\/$/);
+    await page.waitForURL(/\/$/);
+    await expect(page).toHaveURL(/\/$/);
   });
 
   test('should reject invalid credentials', async ({ page }) => {
-    await page.goto('http://localhost:4301/login');
+    await page.goto('/login');
 
     await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('WrongPassword123!');
@@ -89,7 +89,7 @@ test.describe('Buyer Authentication', () => {
   });
 
   test('should handle forgot password flow', async ({ page }) => {
-    await page.goto('http://localhost:4301/forgot-password');
+    await page.goto('/forgot-password');
 
     await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
 
@@ -108,7 +108,7 @@ test.describe('Buyer Authentication', () => {
   });
 
   test('should validate password strength on registration', async ({ page }) => {
-    await page.goto('http://localhost:4301/register');
+    await page.goto('/register');
 
     await page.getByLabel(/email/i).fill(testEmail);
     await page.getByLabel(/password/i).first().fill('weak');
@@ -130,7 +130,7 @@ test.describe('Buyer Authentication', () => {
   });
 
   test('should validate password confirmation match', async ({ page }) => {
-    await page.goto('http://localhost:4301/register');
+    await page.goto('/register');
 
     await page.getByLabel(/email/i).fill(testEmail);
     await page.getByLabel(/password/i).first().fill(testPassword);
@@ -152,11 +152,11 @@ test.describe('Buyer Authentication', () => {
   });
 
   test('should logout successfully', async ({ page }) => {
-    await page.goto('http://localhost:4301/login');
+    await page.goto('/login');
     await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('Buyer123!');
     await page.getByRole('button', { name: /login|masuk/i }).click();
-    await page.waitForURL(/localhost:4301\/$/);
+    await page.waitForURL(/\/$/);
 
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if (await logoutButton.count() > 0) {

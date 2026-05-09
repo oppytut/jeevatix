@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility - Buyer Portal', () => {
-	const baseURL = 'http://localhost:4301';
+	const baseURL = 'baseURL';
 
 	test('Homepage should not have accessibility violations', async ({ page }) => {
 		await page.goto(baseURL);
@@ -61,7 +61,7 @@ test.describe('Accessibility - Buyer Portal', () => {
 });
 
 test.describe('Accessibility - Admin Portal', () => {
-	const baseURL = 'http://localhost:4302';
+	const baseURL = 'baseURL';
 
 	test('Admin login page should not have accessibility violations', async ({ page }) => {
 		await page.goto(`${baseURL}/login`);
@@ -74,7 +74,7 @@ test.describe('Accessibility - Admin Portal', () => {
 });
 
 test.describe('Accessibility - Seller Portal', () => {
-	const baseURL = 'http://localhost:4303';
+	const baseURL = 'baseURL';
 
 	test('Seller login page should not have accessibility violations', async ({ page }) => {
 		await page.goto(`${baseURL}/login`);
@@ -96,7 +96,7 @@ test.describe('Accessibility - Seller Portal', () => {
 });
 
 test.describe('Accessibility - WCAG Compliance Levels', () => {
-	const baseURL = 'http://localhost:4301';
+	const baseURL = 'baseURL';
 
 	test('Homepage - WCAG 2.1 Level A compliance', async ({ page }) => {
 		await page.goto(baseURL);
@@ -133,7 +133,7 @@ test.describe('Accessibility - WCAG Compliance Levels', () => {
 });
 
 test.describe('Accessibility - Specific Rules', () => {
-	const baseURL = 'http://localhost:4301';
+	const baseURL = 'baseURL';
 
 	test('Forms should have proper labels', async ({ page }) => {
 		await page.goto(`${baseURL}/login`);
@@ -193,7 +193,7 @@ test.describe('Accessibility - Specific Rules', () => {
 });
 
 test.describe('Accessibility - Keyboard Navigation', () => {
-	const baseURL = 'http://localhost:4301';
+	const baseURL = 'baseURL';
 
 	test('Login form should be keyboard navigable', async ({ page }) => {
 		await page.goto(`${baseURL}/login`);

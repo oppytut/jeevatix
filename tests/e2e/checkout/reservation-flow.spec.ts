@@ -133,7 +133,7 @@ test.describe('Reservation Flow', () => {
 
     // Try to start another reservation in new tab
     const newPage = await page.context().newPage();
-    await newPage.goto(`http://localhost:4301/checkout/${eventSlug}`);
+    await newPage.goto(`baseURL/checkout/${eventSlug}`);
     await newPage.waitForLoadState('networkidle');
 
     // Should either show error or redirect

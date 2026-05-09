@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env.CI;
-const useStaging = isCI;
+const useStaging = process.env.E2E_TARGET === 'staging';
 
 const buyerURL = useStaging ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev' : 'http://localhost:4301';
 const adminURL = useStaging ? 'https://jeevatix-staging-admin.ariefna95.workers.dev' : 'http://localhost:4302';

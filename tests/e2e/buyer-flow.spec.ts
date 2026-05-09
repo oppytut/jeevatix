@@ -28,20 +28,20 @@ test.describe('Buyer E2E Flow', () => {
     await page.getByLabel('Nama Lengkap').fill(buyerName);
     await page.getByLabel('Nomor Telepon').fill('081298765433');
     await page.getByRole('button', { name: 'Daftar Sekarang' }).click();
-    await expect(page).toHaveURL(/localhost:4301\/$/);
+    await expect(page).toHaveURL(/\/$/);
 
     await clearBuyerSession(page.context());
     await page.goto('/login');
     await page.getByLabel('Email').fill(buyerEmail);
     await page.getByLabel('Password').fill(buyerPassword);
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/localhost:4301\/$/);
+    await expect(page).toHaveURL(/\/$/);
 
     await expect(page.getByRole('heading', { name: /Panggung, tribun, workshop/i })).toBeVisible();
     await expect(page.getByText('Upcoming Picks')).toBeVisible();
     await page.getByRole('link', { name: 'Jelajah Event' }).click();
 
-    await expect(page).toHaveURL(/localhost:4301\/events/);
+    await expect(page).toHaveURL(/\/events/);
     await page.getByRole('link', { name: new RegExp(fixture.event.title, 'i') }).first().click();
 
     await expect(page).toHaveURL(new RegExp(`/events/${fixture.event.slug}$`));
@@ -53,7 +53,7 @@ test.describe('Buyer E2E Flow', () => {
     await expect(page.getByText('Reservasi berhasil dibuat')).toBeVisible();
     await page.getByRole('button', { name: 'Lanjut ke Pembayaran' }).click();
 
-    await expect(page).toHaveURL(/localhost:4301\/payment\//);
+    await expect(page).toHaveURL(/\/payment\//);
     await expect(page.getByText('Ringkasan Order')).toBeVisible();
     await page.getByLabel('Bank Transfer').check();
     await page.getByRole('button', { name: 'Bayar Sekarang' }).click();
@@ -87,7 +87,7 @@ test.describe('Buyer E2E Flow', () => {
     await expect(ticketSection).toBeVisible();
     await page.waitForTimeout(500);
     await ticketSection.locator('button').last().click({ force: true });
-    await expect(page).toHaveURL(/localhost:4301\/tickets\//);
+    await expect(page).toHaveURL(/\/tickets\//);
     await expect(page.getByText('Scan-ready QR code')).toBeVisible();
     await expect(page.locator('img[alt*="QR code"]')).toBeVisible();
 

@@ -32,17 +32,17 @@ test.describe('Seller E2E Flow', () => {
     await page.locator('#orgName').fill(orgName);
     await page.locator('#orgDescription').fill('Seller studio fixture untuk Playwright.');
     await page.getByRole('button', { name: 'Daftar Seller' }).click();
-    await expect(page).toHaveURL(/localhost:4303\/$/);
+    await expect(page).toHaveURL(/\/$/);
 
     await page.getByRole('button', { name: 'Logout' }).click();
     await page.context().clearCookies();
     await page.goto('/login');
-    await expect(page).toHaveURL(/localhost:4303\/login/);
+    await expect(page).toHaveURL(/\/login/);
 
     await page.getByLabel('Email').fill(sellerEmail);
     await page.getByLabel('Password').fill(sellerPassword);
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/localhost:4303\/$/);
+    await expect(page).toHaveURL(/\/$/);
 
     await page.goto('/events/create');
     await page.waitForTimeout(500);
@@ -83,7 +83,7 @@ test.describe('Seller E2E Flow', () => {
     await page.waitForTimeout(500);
     await page.getByRole('button', { name: 'Simpan Event Draft' }).click();
 
-    await expect(page).toHaveURL(/localhost:4303\/events\/(?!create$)[^/]+$/);
+    await expect(page).toHaveURL(/\/events\/(?!create$)[^/]+$/);
     await expect(page.getByRole('heading', { name: eventTitle })).toBeVisible();
 
     const eventId = page.url().split('/').pop();
@@ -112,6 +112,6 @@ test.describe('Seller E2E Flow', () => {
     await page.getByRole('button', { name: 'Logout' }).click();
     await page.context().clearCookies();
     await page.goto('/login');
-    await expect(page).toHaveURL(/localhost:4303\/login/);
+    await expect(page).toHaveURL(/\/login/);
   });
 });
