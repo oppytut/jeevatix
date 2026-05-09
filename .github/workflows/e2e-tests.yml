@@ -28,6 +28,11 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
         
+      - name: Seed staging database with test data
+        run: pnpm run seed:e2e
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        
       - name: Run E2E tests against staging
         run: |
           export CI=1
