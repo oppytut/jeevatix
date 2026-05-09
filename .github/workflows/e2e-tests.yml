@@ -18,6 +18,7 @@ jobs:
       EMAIL_API_KEY: test-email-key
       EMAIL_FROM: test@jeevatix.com
       UPLOAD_PUBLIC_URL: http://localhost:8787/uploads
+      PLAYWRIGHT_E2E: "1"
     
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +46,7 @@ jobs:
           EMAIL_API_KEY=${{ env.EMAIL_API_KEY }}
           EMAIL_FROM=${{ env.EMAIL_FROM }}
           UPLOAD_PUBLIC_URL=${{ env.UPLOAD_PUBLIC_URL }}
+          PLAYWRIGHT_E2E=${{ env.PLAYWRIGHT_E2E }}
           EOF
           
       - name: Setup test database
