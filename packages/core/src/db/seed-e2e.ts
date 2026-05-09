@@ -37,18 +37,23 @@ async function seedE2EData() {
   const sellerPassword = await bcrypt.hash('Seller123!', 10);
 
   console.log('🗑️  Cleaning existing data...');
-  await db.delete(tickets);
-  await db.delete(orderItems);
-  await db.delete(orders);
-  await db.delete(reservations);
-  await db.delete(ticketTiers);
-  await db.delete(eventCategories);
-  await db.delete(events);
-  await db.delete(sellerProfiles);
-  await db.delete(notifications);
-  await db.delete(refreshTokens);
-  await db.delete(users);
-  await db.delete(categories);
+  await db.execute(`
+    TRUNCATE TABLE 
+      tickets, 
+      order_items, 
+      payments,
+      orders, 
+      reservations, 
+      ticket_tiers, 
+      event_categories, 
+      events, 
+      seller_profiles, 
+      notifications, 
+      refresh_tokens, 
+      users, 
+      categories 
+    CASCADE
+  `);
 
   console.log('📂 Creating categories...');
   const categoryData = [
