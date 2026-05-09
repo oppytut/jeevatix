@@ -10,6 +10,8 @@ import {
   categories,
   eventCategories,
   events,
+  notifications,
+  orderItems,
   orders,
   refreshTokens,
   reservations,
@@ -36,12 +38,14 @@ async function seedE2EData() {
 
   console.log('🗑️  Cleaning existing data...');
   await db.delete(tickets);
+  await db.delete(orderItems);
   await db.delete(orders);
   await db.delete(reservations);
   await db.delete(ticketTiers);
   await db.delete(eventCategories);
   await db.delete(events);
   await db.delete(sellerProfiles);
+  await db.delete(notifications);
   await db.delete(refreshTokens);
   await db.delete(users);
   await db.delete(categories);
