@@ -6,7 +6,18 @@ import { fileURLToPath } from 'node:url';
 const currentDir = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(currentDir, '../../../../.env') });
 
-import { categories, events, sellerProfiles, ticketTiers, users } from './schema';
+import {
+  categories,
+  eventCategories,
+  events,
+  orders,
+  refreshTokens,
+  reservations,
+  sellerProfiles,
+  ticketTiers,
+  tickets,
+  users,
+} from './schema';
 
 const { closeDb, db: importedDb } = await import('./index');
 
@@ -23,8 +34,17 @@ async function seedE2EData() {
   const adminPassword = await bcrypt.hash('Admin123!', 10);
   const sellerPassword = await bcrypt.hash('Seller123!', 10);
 
-  await db.delete(categories);
+  console.log('🗑️  Cleaning existing data...');
+  await db.delete(tickets);
+  await db.delete(orders);
+  await db.delete(reservations);
+  await db.delete(ticketTiers);
+  await db.delete(eventCategories);
+  await db.delete(events);
+  await db.delete(sellerProfiles);
+  await db.delete(refreshTokens);
   await db.delete(users);
+  await db.delete(categories);
 
   console.log('📂 Creating categories...');
   const categoryData = [
