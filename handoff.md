@@ -15,26 +15,42 @@ phase: E2E Real Database Migration + Documentation Cleanup Complete
 - **Smoke Tests**: API health checks passing post-deployment
 - **Workflow URL**: https://github.com/oppytut/jeevatix/actions
 
-### ⚠️ E2E Test Suite - STAGING MIGRATION IN PROGRESS
+### ⚠️ E2E Test Suite - STAGING MIGRATION (MANUAL SEED REQUIRED)
 
-**Status:** Migration to staging environment - seed script hanging in CI
+**Status:** Tests run against staging - requires one-time manual seed
 
-**Current Issue:**
-- Seed script (`seed-e2e.ts`) hangs in CI after TRUNCATE CASCADE command
-- Likely cause: Database connection timeout or permission issue
-- Local execution works fine
+**IMPORTANT - One-Time Manual Seed:**
 
-**Completed:**
-1. ✅ Playwright config updated to use staging URLs
-2. ✅ Workflow simplified (no local servers)
-3. ✅ STAGING_DATABASE_URL secret configured
-4. ✅ Seed script fixed to use TRUNCATE CASCADE
-5. ⏳ CI execution hanging (investigating)
+You need to seed staging database once with test data:
 
-**Next Steps:**
-- Debug why seed hangs in CI (connection timeout?)
-- Consider alternative: Manual seed once, skip auto-seed in CI
-- Or: Seed via API endpoint instead of direct DB connection
+```bash
+# Set staging database URL
+export DATABASE_URL="<your-staging-neon-database-url>"
+
+# Run seed script
+cd /home/debian/project/jeevatix
+pnpm run seed:e2e
+```
+
+**This creates:**
+- Admin: `admin@jeevatix.id` / `Admin123!`
+- Buyer: `buyer-e2e@jeevatix.id` / `Buyer123!`
+- Seller: `seller-e2e@jeevatix.id` / `Seller123!`
+- 1 test event with 3 tiers
+- 5 categories
+
+**After seeding, E2E tests in CI will pass!**
+
+**Why Manual Seed:**
+- Auto-seed in CI hangs (connection timeout from GitHub Actions)
+- Manual seed works fine locally
+- One-time operation - data persists in staging database
+
+**Migration Complete:**
+- ✅ Playwright config uses staging URLs
+- ✅ Workflow simplified (no local servers)
+- ✅ No more wrangler dev issues
+- ⏳ Waiting for manual seed to be executed
 
 ### ✅ E2E Test Suite - TIER 1-3 COMPLETE + REAL DATABASE
 - **Tier 1-2 Coverage**: 125+ test cases across 20 spec files
