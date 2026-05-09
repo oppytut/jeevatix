@@ -32,7 +32,7 @@ const db = importedDb;
 async function seedE2EData() {
   console.log('🌱 Seeding E2E test data...');
 
-  const hashedPassword = await bcrypt.hash('TestPassword123!', 10);
+  const hashedPassword = await bcrypt.hash('Buyer123!', 10);
   const adminPassword = await bcrypt.hash('Admin123!', 10);
   const sellerPassword = await bcrypt.hash('Seller123!', 10);
 
@@ -166,7 +166,7 @@ async function seedE2EData() {
   console.log('✅ E2E seed data created successfully!');
   console.log('\nTest Accounts:');
   console.log('  Admin: admin@jeevatix.id / Admin123!');
-  console.log('  Buyer: buyer@jeevatix.id / TestPassword123!');
+  console.log('  Buyer: buyer@jeevatix.id / Buyer123!');
   console.log('  Seller: seller@jeevatix.id / Seller123!');
 }
 
