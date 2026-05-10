@@ -117,7 +117,7 @@ export default defineConfig({
 	],
 	webServer: useStaging ? undefined : [
 		{
-			command: 'pnpm --filter @jeevatix/api run dev -- --var PLAYWRIGHT_E2E:1',
+			command: 'pnpm --filter @jeevatix/api run dev',
 			port: 8787,
 			reuseExistingServer: !process.env.CI,
 			timeout: 180 * 1000

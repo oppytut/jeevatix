@@ -49,6 +49,12 @@ jobs:
           PLAYWRIGHT_E2E=${{ env.PLAYWRIGHT_E2E }}
           EOF
           
+      - name: Create .dev.vars for Wrangler
+        run: |
+          cat > apps/api/.dev.vars << EOF
+          PLAYWRIGHT_E2E=1
+          EOF
+          
       - name: Setup test database
         run: |
           docker compose up -d
