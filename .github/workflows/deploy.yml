@@ -24,7 +24,7 @@ jobs:
           - 5432:5432
     
     env:
-      PUBLIC_API_BASE_URL: https://jeevatix-staging-api.ariefna95.workers.dev
+      PUBLIC_API_BASE_URL: https://api.jeevatix.my.id
       PUBLIC_PARTYKIT_HOST: ${{ vars.PUBLIC_PARTYKIT_HOST }}
       DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
       JWT_SECRET: vitest-ci-secret
