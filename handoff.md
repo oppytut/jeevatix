@@ -2,44 +2,86 @@
 title: Handoff Progress
 last_updated: 2026-05-11
 status: Active
-phase: E2E Staging Migration Complete — Worker-to-Worker Blocker Remaining
+phase: W2W Resolved + Rate Limit Bypass Wired — E2E Test Selectors Pending
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
 
-### ✅ CI/CD Pipeline - DEPLOY OPERATIONAL, E2E BLOCKED
+### ✅ CI/CD Pipeline - DEPLOY OPERATIONAL, E2E PARTIAL PASS
 - **Automated Testing**: Unit/integration tests passing in CI (30+ test files)
 - **Automated Deployment**: Push to `main` → auto-deploy to staging ✅
 - **Smoke Tests**: API health checks passing post-deployment
-- **E2E Tests**: Blocked by Worker-to-Worker communication issue (see below)
+- **E2E Tests**: W2W 404 & rate limit issues resolved. Remaining failures are pre-existing test selector mismatches (see below).
 - **Workflow URL**: https://github.com/oppytut/jeevatix/actions
 
-### 🚨 E2E Test Suite - BLOCKED: Worker-to-Worker 404
+### ✅ Worker-to-Worker 404 - RESOLVED (session 2026-05-11 siang)
 
-**Status:** E2E test code is correct, staging DB is seeded, but portal Workers cannot reach API Worker server-side.
+**Solusi yang diterapkan: Solution 2 (custom domain sebagai INTERNAL_API_URL).**
 
-**Problem:**
-All three portal Workers (buyer, seller, admin) get a **404 non-JSON response** when their server-side login action calls the API Worker. The API works perfectly from external clients (curl, browser direct), but fails when called from another Cloudflare Worker on the same account.
+Sebelumnya semua portal Workers (buyer/seller/admin) dapat 404 non-JSON saat memanggil API Worker via `workers.dev` URL server-side (same-account Worker-to-Worker routing issue). Diperbaiki dengan switch ke custom domain yang melewati Cloudflare Routes, sehingga hop intra-account ditangani dengan benar.
 
-**Evidence:**
-- `curl -X POST https://jeevatix-staging-api.ariefna95.workers.dev/auth/login` → 200 ✅
-- Seller portal form submit → server-side fetch to same URL → 404 ❌
-- Buyer portal form submit → same issue → 404 ❌
-- Error shown in browser: "Server returned non-JSON response (404). This might be a server error."
+**Perubahan (commit `023ef0c`):**
+- `apps/seller/src/lib/auth.ts`: `INTERNAL_API_URL` literal `workers.dev` → `https://api.jeevatix.my.id`, comment diperbarui untuk mencatat alasan routing quirk
+- `.github/workflows/deploy.yml` line 27: `PUBLIC_API_BASE_URL` build-time env → `https://api.jeevatix.my.id` (mempengaruhi buyer + admin `API_BASE_URL` SSR)
 
-**Root Cause:** Cloudflare Worker-to-Worker routing issue. Workers on the same account fetching each other via public URL can hit routing problems.
+**Verifikasi post-deploy:**
+- `curl -X POST https://api.jeevatix.my.id/auth/login` → 200 OK dengan access + refresh token
+- `curl` form POST ke `https://jeevatix-staging-seller.ariefna95.workers.dev/login` → 303 redirect, cookies `jeevatix_seller_*` ter-set, GET `/` return dashboard HTML 200
+- Test `auth-seller` lokal (E2E_TARGET=staging, 1 worker) → pass
+- Pre-existing error `Received string "https://...workers.dev/login"` di CI hilang setelah deploy baru
 
-**Solutions (pick one):**
-1. **Service Bindings** (recommended) — Bind API worker directly to portal workers in `sst.config.ts`. Zero-latency, no network hop.
-2. **Use custom domain as INTERNAL_API_URL** — Change `INTERNAL_API_URL` in portal auth files from `https://jeevatix-staging-api.ariefna95.workers.dev` to `https://api.jeevatix.my.id` (custom domain routes differently in CF).
-3. **Cloudflare Workers Routes** — Configure explicit routes to avoid the same-account routing conflict.
+**Catatan:** `.env.staging` line 10 juga perlu manual update kalau ada yang run deploy dari mesin lokal, tapi file itu gitignored — ikuti format yang di `.github/workflows/deploy.yml`.
 
-**Files to modify for Solution 2:**
-- `apps/seller/src/lib/auth.ts` line 9: change `INTERNAL_API_URL`
-- `apps/buyer/src/lib/auth.ts` line 6-7: uses `PUBLIC_API_BASE_URL` (set at build time)
-- `apps/admin/src/lib/auth.ts` (check same pattern)
+### ✅ Auth Rate Limit Bypass on Staging - WIRED (session 2026-05-11 siang)
+
+Setelah W2W fix, CI masih fail dengan `RATE_LIMIT_EXCEEDED` di `/auth/register/seller` dan login URL stuck di `/login`. Root cause: rate limit ketat di auth endpoints (5 login/menit/IP, 3 register/menit/IP per [apps/api/src/routes/auth.ts:24-38](apps/api/src/routes/auth.ts)). Playwright CI jalan 2 workers paralel × 2 retry dari single GitHub Actions egress IP → mudah melebihi limit. Request 429 bikin portal action `login()` throw → form `fail()` → user stuck di `/login`, masking actual 429.
+
+**Solusi (commit `5eabaef`):**
+Middleware sudah support bypass via `c.env.PLAYWRIGHT_E2E === '1'` di [apps/api/src/middleware/rate-limit.ts:182](apps/api/src/middleware/rate-limit.ts), tapi flag belum ter-inject ke staging Worker. Wire via `sst.config.ts` `createApiEnvironment()` — hanya untuk stage `staging`, production tetap enforce rate limit.
+
+```ts
+// sst.config.ts
+if (isStagingStage()) {
+  environment.PLAYWRIGHT_E2E = '1';
+}
+```
+
+**Verifikasi post-deploy:**
+- 10x konsekutif `curl -X POST https://api.jeevatix.my.id/auth/login` dengan invalid creds → semua 401 (bukan 429). Rate limit bypass aktif.
+- CI run berikutnya: `RATE_LIMIT_EXCEEDED` error hilang total.
+
+### ⚠️ E2E Test Selector Mismatches - PENDING (buat issue baru)
+
+10 tests masih fail di CI run `25667840340` (job 75345662169). Ini **pre-existing test issues**, bukan infrastructure. Reproducible lokal juga. Perlu audit spec vs actual UI/API.
+
+**Kategori failure:**
+
+1. **Login seller redirect masih stuck di `/login` di CI (tapi pass lokal)** — 9 iteratons
+   - Spec: [tests/e2e/auth/seller-auth.spec.ts:54](tests/e2e/auth/seller-auth.spec.ts)
+   - Lokal (E2E_TARGET=staging, 1 worker) → pass
+   - CI (2 workers paralel) → fail
+   - Hipotesis: race condition antara `page.context().clearCookies()` di [helpers.ts loginSellerUi](tests/e2e/helpers.ts) dan cookie set dari login action. Worth investigating trace.zip artifact.
+
+2. **`getByLabel(/confirm.*password|password.*confirm/i)` timeout 15s**
+   - Spec: [tests/e2e/auth/buyer-auth.spec.ts:20](tests/e2e/auth/buyer-auth.spec.ts), [seller-auth.spec.ts:5-34](tests/e2e/auth/seller-auth.spec.ts)
+   - Form register buyer/seller tidak punya field confirm password (atau label tidak match). Cek [apps/buyer/src/routes/register/+page.svelte](apps/buyer/src/routes/register/+page.svelte) dan seller equivalent.
+
+3. **`POST /seller/events` schema mismatch: `banner_url: null`**
+   - Test kirim `banner_url: null`, API schema: `expected string, received null`
+   - Spec: [tests/e2e/events/event-crud.spec.ts:22](tests/e2e/events/event-crud.spec.ts), [event-tiers.spec.ts:17](tests/e2e/events/event-tiers.spec.ts)
+   - Fix: ubah test agar omit `banner_url` kalau tidak ada, atau kirim string kosong. Atau relax schema to accept `.optional().nullable()`.
+
+4. **`critical-errors.spec.ts:27` - should handle payment timeout gracefully** — 0ms fails, depends on seller event creation (cascade dari #3)
+
+**Files to audit:**
+- `tests/e2e/auth/buyer-auth.spec.ts`
+- `tests/e2e/auth/seller-auth.spec.ts`
+- `tests/e2e/events/event-crud.spec.ts`
+- `tests/e2e/events/event-tiers.spec.ts`
+- `tests/e2e/critical-errors.spec.ts`
+- `tests/e2e/helpers.ts` (loginSellerUi cookie clear logic)
 
 ### ✅ E2E Test Code - MIGRATION COMPLETE
 
@@ -133,19 +175,16 @@ DATABASE_URL="postgresql://neondb_owner:npg_xktHJXA39Oqp@ep-steep-paper-a1t7qaap
 
 ## 🎯 Tujuan Utama (Next Steps)
 
-### Priority 0: Fix Worker-to-Worker Communication (BLOCKING E2E)
-**Status**: Diagnosed, solution identified, not yet implemented
+### Priority 0: Fix E2E Test Selector Mismatches (UNBLOCK CI)
+**Status**: Diagnosed, kerjakan di session berikutnya
 
-**Problem**: Portal Workers (buyer/seller/admin) get 404 when calling API Worker server-side.
+Lihat "⚠️ E2E Test Selector Mismatches" section di atas untuk detail. 4 kategori failure yang reproducible lokal juga. Selesai → CI E2E hijau end-to-end untuk pertama kalinya.
 
-**Recommended Fix** (Solution 2 — quickest):
-1. Change `INTERNAL_API_URL` in `apps/seller/src/lib/auth.ts` from `https://jeevatix-staging-api.ariefna95.workers.dev` to `https://api.jeevatix.my.id`
-2. Change `API_BASE_URL` in `apps/buyer/src/lib/auth.ts` — ensure server-side calls use custom domain
-3. Check `apps/admin/src/lib/auth.ts` for same pattern
-4. Redeploy all portals
-
-**Alternative Fix** (Solution 1 — better long-term):
-- Add Service Bindings in `sst.config.ts` to bind API worker directly to portal workers
+**Recommended order of attack:**
+1. Audit register form markup di `apps/buyer/src/routes/register/+page.svelte` dan seller equivalent. Fix selector di spec atau tambah `aria-label` di form.
+2. Fix `banner_url: null` issue — paling mudah: buat test helper kirim string kosong / omit. Alternatif: relax API schema.
+3. Cascade tests (critical-errors payment timeout) kemungkinan auto-pass setelah #2.
+4. Last: investigasi seller login CI vs lokal divergence (trace.zip artifact di run `25667840340`).
 
 ### Priority 1: Production Deployment (When Ready)
 **Status**: Staging validated, ready for production
@@ -191,7 +230,42 @@ DATABASE_URL="postgresql://neondb_owner:npg_xktHJXA39Oqp@ep-steep-paper-a1t7qaap
 
 ---
 
-## 📝 Recent Session Summary (2026-05-11)
+## 📝 Recent Session Summary (2026-05-11 siang)
+
+### Tasks Completed
+
+**1. Worker-to-Worker 404 Fix via Custom Domain** ⭐
+- **Issue**: Semua portal Workers dapat 404 non-JSON saat panggil API Worker server-side
+- **Solution**: Solusi 2 dari handoff sebelumnya — switch `INTERNAL_API_URL` dan `PUBLIC_API_BASE_URL` build-time ke custom domain `api.jeevatix.my.id`
+- **Changes**:
+  - `apps/seller/src/lib/auth.ts` line 8-10: `INTERNAL_API_URL` literal → `https://api.jeevatix.my.id`, comment direvisi menjelaskan routing quirk (comment necessary agar fix tidak di-revert)
+  - `.github/workflows/deploy.yml` line 27: `PUBLIC_API_BASE_URL: https://jeevatix-staging-api.ariefna95.workers.dev` → `https://api.jeevatix.my.id` (affects buyer + admin SSR API_BASE_URL lewat `$env/static/public`)
+- **Verifikasi**: svelte-check clean semua portal, curl E2E flow lewat portal Worker return 303 + cookies + dashboard HTML 200
+- **Commit**: `023ef0c`
+
+**2. Auth Rate Limit Bypass on Staging API** 🔧
+- **Issue**: Setelah W2W fix, CI masih fail — rate limit API throttle login paralel dari single GitHub Actions IP (5 login/menit, 3 register/menit)
+- **Root cause**: Middleware `apps/api/src/middleware/rate-limit.ts:182` sudah support `c.env.PLAYWRIGHT_E2E === '1'` bypass, tapi flag tidak di-inject ke staging Worker oleh SST config
+- **Solution**: Tambah `environment.PLAYWRIGHT_E2E = '1'` di `createApiEnvironment()` staging stage only (production tetap enforce rate limit)
+- **Changes**: `sst.config.ts` line 189-191
+- **Verifikasi**: 10x `curl login` dengan invalid creds → semua 401 (no 429). Rate limit bypassed.
+- **Commit**: `5eabaef`
+
+### Status Update
+
+- **W2W 404**: ✅ Resolved
+- **Rate limit on E2E**: ✅ Bypassed on staging
+- **E2E pass count**: 4 passed, 10 failed, 25 did not run (sebelumnya banyak yang 429, sekarang pure test selector issues)
+- **Remaining work**: Test selector mismatches — buyer/seller register form labels, `banner_url: null` schema, seller login CI-only flakiness. Bukan infrastructure issue.
+
+### Commits
+
+- `023ef0c` — fix(portal): route server-side API calls via custom domain
+- `5eabaef` — fix(e2e): enable rate limit bypass on staging API
+
+---
+
+## 📝 Previous Session Summary (2026-05-11 pagi)
 
 ### Tasks Completed
 
