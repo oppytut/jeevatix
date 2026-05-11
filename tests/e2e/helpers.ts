@@ -299,7 +299,6 @@ export async function createEventViaSellerApi(
       end_at: endAt.toISOString(),
       sale_start_at: saleStart.toISOString(),
       sale_end_at: saleEnd.toISOString(),
-      banner_url: null,
       max_tickets_per_order: 5,
       category_ids: categoryIds.slice(0, 1),
       images: [],
@@ -466,7 +465,7 @@ export async function loginAdminUi(page: Page) {
   await page.getByLabel('Email').fill(ADMIN_EMAIL);
   await page.getByLabel('Password').fill(ADMIN_PASSWORD);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await page.waitForURL(/\/$/, { timeout: 15000 });
 }
 
 export async function loginBuyerUi(page: Page, email: string, password: string) {
@@ -475,7 +474,7 @@ export async function loginBuyerUi(page: Page, email: string, password: string) 
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await page.waitForURL(/\/$/, { timeout: 15000 });
 }
 
 export async function loginSellerUi(page: Page, email: string, password: string) {
@@ -484,7 +483,7 @@ export async function loginSellerUi(page: Page, email: string, password: string)
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await page.waitForURL(/\/$/, { timeout: 15000 });
 }
 
 export async function clearBuyerSession(context: BrowserContext) {

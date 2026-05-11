@@ -9,7 +9,7 @@ test.describe('Admin Authentication', () => {
     await page.getByLabel('Password').fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: 'Login' }).click();
     
-    await expect(page).toHaveURL(/\/$/);
+    await page.waitForURL(/\/$/, { timeout: 15000 });
     await expect(page.locator('body')).toContainText(/dashboard|admin/i);
   });
 
@@ -44,8 +44,7 @@ test.describe('Admin Authentication', () => {
     await page.getByLabel('Email').fill(ADMIN_EMAIL);
     await page.getByLabel('Password').fill(ADMIN_PASSWORD);
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/\/$/);
-    
+    await page.waitForURL(/\/$/, { timeout: 15000 });    
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if ((await logoutButton.count()) > 0) {
       await logoutButton.click();

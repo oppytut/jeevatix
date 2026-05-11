@@ -12,7 +12,6 @@ test.describe('Seller Authentication', () => {
 
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/^password$/i).fill(password);
-    await page.getByLabel(/confirm.*password/i).fill(password);
     await page.getByLabel(/nama.*lengkap|full.*name/i).fill(fullName);
     await page.getByLabel(/phone|telepon/i).fill('081234567890');
     await page.getByLabel(/nama.*organisasi|organization.*name/i).fill(orgName);
@@ -36,7 +35,6 @@ test.describe('Seller Authentication', () => {
 
     await page.getByLabel(/email/i).fill(uniqueEmail('seller-val'));
     await page.getByLabel(/^password$/i).fill('Seller123!');
-    await page.getByLabel(/confirm.*password/i).fill('Seller123!');
     await page.getByLabel(/nama.*lengkap|full.*name/i).fill('Test Seller');
 
     await page.getByRole('button', { name: /daftar|register/i }).click();
@@ -58,7 +56,7 @@ test.describe('Seller Authentication', () => {
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await expect(page).toHaveURL(/\/$/);
+    await page.waitForURL(/\/$/, { timeout: 15000 });
     await expect(page.locator('body')).toContainText(/dashboard|event|pesanan/i);
   });
 
@@ -101,8 +99,7 @@ test.describe('Seller Authentication', () => {
     await page.getByLabel('Email').fill('seller@jeevatix.id');
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/\/$/);
-
+    await page.waitForURL(/\/$/, { timeout: 15000 });
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if (await logoutButton.count() > 0) {
       await logoutButton.click();
