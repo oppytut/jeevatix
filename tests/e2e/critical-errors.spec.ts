@@ -9,7 +9,7 @@ import {
 test.describe('Critical Error Scenarios', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test.fixme(true, 'Checkout page selectors (data-tier-id, button "Pilih") need audit against actual UI');
+  test.fixme(true, 'Checkout uses radio buttons for tier selection, not data-tier-id + "Pilih" button. Needs full rewrite to match actual UI: radio select tier → set quantity → click "Reservasi Tiket"');
   let buyerEmail: string;
   let buyerPassword: string;
   let eventSlug: string;
