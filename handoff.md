@@ -1,56 +1,73 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-08
+last_updated: 2026-05-11
 status: Active
-phase: E2E Real Database Migration + Documentation Cleanup Complete
+phase: E2E Staging Migration Complete — Worker-to-Worker Blocker Remaining
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
 
-### ✅ CI/CD Pipeline - FULLY OPERATIONAL
-- **Automated Testing**: All tests passing in CI (30+ test files, 100% pass rate)
-- **Automated Deployment**: Push to `main` → auto-deploy to staging
+### ✅ CI/CD Pipeline - DEPLOY OPERATIONAL, E2E BLOCKED
+- **Automated Testing**: Unit/integration tests passing in CI (30+ test files)
+- **Automated Deployment**: Push to `main` → auto-deploy to staging ✅
 - **Smoke Tests**: API health checks passing post-deployment
+- **E2E Tests**: Blocked by Worker-to-Worker communication issue (see below)
 - **Workflow URL**: https://github.com/oppytut/jeevatix/actions
 
-### ⚠️ E2E Test Suite - STAGING MIGRATION (MANUAL SEED REQUIRED)
+### 🚨 E2E Test Suite - BLOCKED: Worker-to-Worker 404
 
-**Status:** Tests run against staging - requires one-time manual seed
+**Status:** E2E test code is correct, staging DB is seeded, but portal Workers cannot reach API Worker server-side.
 
-**IMPORTANT - One-Time Manual Seed:**
+**Problem:**
+All three portal Workers (buyer, seller, admin) get a **404 non-JSON response** when their server-side login action calls the API Worker. The API works perfectly from external clients (curl, browser direct), but fails when called from another Cloudflare Worker on the same account.
 
-You need to seed staging database once with test data:
+**Evidence:**
+- `curl -X POST https://jeevatix-staging-api.ariefna95.workers.dev/auth/login` → 200 ✅
+- Seller portal form submit → server-side fetch to same URL → 404 ❌
+- Buyer portal form submit → same issue → 404 ❌
+- Error shown in browser: "Server returned non-JSON response (404). This might be a server error."
 
-```bash
-# Set staging database URL
-export DATABASE_URL="<your-staging-neon-database-url>"
+**Root Cause:** Cloudflare Worker-to-Worker routing issue. Workers on the same account fetching each other via public URL can hit routing problems.
 
-# Run seed script
-cd /home/debian/project/jeevatix
-pnpm run seed:e2e
-```
+**Solutions (pick one):**
+1. **Service Bindings** (recommended) — Bind API worker directly to portal workers in `sst.config.ts`. Zero-latency, no network hop.
+2. **Use custom domain as INTERNAL_API_URL** — Change `INTERNAL_API_URL` in portal auth files from `https://jeevatix-staging-api.ariefna95.workers.dev` to `https://api.jeevatix.my.id` (custom domain routes differently in CF).
+3. **Cloudflare Workers Routes** — Configure explicit routes to avoid the same-account routing conflict.
 
-**This creates:**
+**Files to modify for Solution 2:**
+- `apps/seller/src/lib/auth.ts` line 9: change `INTERNAL_API_URL`
+- `apps/buyer/src/lib/auth.ts` line 6-7: uses `PUBLIC_API_BASE_URL` (set at build time)
+- `apps/admin/src/lib/auth.ts` (check same pattern)
+
+### ✅ E2E Test Code - MIGRATION COMPLETE
+
+**What was done (session 2026-05-11):**
+- Workflow simplified: no docker/wrangler/seed, uses `E2E_TARGET=staging`
+- Auth projects split: `auth` (buyer), `auth-seller`, `auth-admin` with correct baseURLs
+- Hardcoded localhost URLs removed from helpers.ts
+- Test credentials aligned with actual seed data
+- API typecheck error fixed (`process.env` removed from rate-limit.ts)
+- Staging DB seeded successfully (data persists)
+
+**Commits:** `a02d156`, `5818886`, `17cd5dd`
+
+### ✅ Staging Database - SEEDED
 - Admin: `admin@jeevatix.id` / `Admin123!`
-- Buyer: `buyer-e2e@jeevatix.id` / `Buyer123!`
-- Seller: `seller-e2e@jeevatix.id` / `Seller123!`
+- Buyer: `buyer@jeevatix.id` / `Buyer123!`
+- Seller: `seller@jeevatix.id` / `Seller123!`
 - 1 test event with 3 tiers
 - 5 categories
 
-**After seeding, E2E tests in CI will pass!**
+**Note:** Seed script creates `buyer@jeevatix.id` (not `buyer-e2e@`). Handoff previously had wrong emails.
 
-**Why Manual Seed:**
-- Auto-seed in CI hangs (connection timeout from GitHub Actions)
-- Manual seed works fine locally
-- One-time operation - data persists in staging database
+**Seed from local (if needed again):**
+```bash
+DATABASE_URL="postgresql://neondb_owner:npg_xktHJXA39Oqp@ep-steep-paper-a1t7qaap.ap-southeast-1.aws.neon.tech/neondb?sslmode=require" pnpm run seed:e2e
+```
 
-**Migration Complete:**
-- ✅ Playwright config uses staging URLs
-- ✅ Workflow simplified (no local servers)
-- ✅ No more wrangler dev issues
-- ⏳ Waiting for manual seed to be executed
+**Auto-seed in CI:** Confirmed hangs (Neon connection timeout from GitHub Actions). Must be done manually.
 
 ### ✅ E2E Test Suite - TIER 1-3 COMPLETE + REAL DATABASE
 - **Tier 1-2 Coverage**: 125+ test cases across 20 spec files
@@ -116,6 +133,20 @@ pnpm run seed:e2e
 
 ## 🎯 Tujuan Utama (Next Steps)
 
+### Priority 0: Fix Worker-to-Worker Communication (BLOCKING E2E)
+**Status**: Diagnosed, solution identified, not yet implemented
+
+**Problem**: Portal Workers (buyer/seller/admin) get 404 when calling API Worker server-side.
+
+**Recommended Fix** (Solution 2 — quickest):
+1. Change `INTERNAL_API_URL` in `apps/seller/src/lib/auth.ts` from `https://jeevatix-staging-api.ariefna95.workers.dev` to `https://api.jeevatix.my.id`
+2. Change `API_BASE_URL` in `apps/buyer/src/lib/auth.ts` — ensure server-side calls use custom domain
+3. Check `apps/admin/src/lib/auth.ts` for same pattern
+4. Redeploy all portals
+
+**Alternative Fix** (Solution 1 — better long-term):
+- Add Service Bindings in `sst.config.ts` to bind API worker directly to portal workers
+
 ### Priority 1: Production Deployment (When Ready)
 **Status**: Staging validated, ready for production
 
@@ -160,7 +191,51 @@ pnpm run seed:e2e
 
 ---
 
-## 📝 Recent Session Summary (2026-05-08)
+## 📝 Recent Session Summary (2026-05-11)
+
+### Tasks Completed
+
+**1. E2E CI Workflow Migration to Staging** ⭐
+- **Issue**: E2E tests failing in CI — wrangler dev instability, 47min timeout, login failures
+- **Solution**: Migrated workflow to run against staging environment
+- **Changes**:
+  - Removed all local infra from workflow (docker, wrangler, .env, migrations, seed)
+  - Set `E2E_TARGET=staging` environment variable
+  - Added staging API health check step
+  - Reduced timeout from 60m → 15m
+  - Split `auth` project into `auth`/`auth-seller`/`auth-admin` with correct portal baseURLs
+- **Commits**: `a02d156`, `5818886`, `17cd5dd`
+
+**2. E2E Test Code Fixes** 🔧
+- **Issue**: Tests had hardcoded localhost URLs, wrong credentials, wrong function signatures
+- **Changes**:
+  - `helpers.ts`: Export `API_URL`, use `E2E_TARGET` flag, fix `loginBuyerUi`/`loginSellerUi`/`loginAdminUi` regex
+  - `buyer-auth.spec.ts`: Fix credentials to `buyer@jeevatix.id`
+  - `seller-auth.spec.ts`: Fix credentials to `seller@jeevatix.id`
+  - `critical-errors.spec.ts`: Use `API_URL` instead of hardcoded localhost, fix `createBuyerViaApi` signature, fix `baseURL/` paths
+  - `event-crud.spec.ts` + `event-tiers.spec.ts`: Fix `createSellerViaApi` call signatures
+  - `playwright.config.ts`: Split auth project per portal
+
+**3. API Typecheck Fix** 🐛
+- **Issue**: `process.env.PLAYWRIGHT_E2E` in `rate-limit.ts` — `process` not available in CF Workers
+- **Solution**: Removed `process.env` fallback, keep only `c.env.PLAYWRIGHT_E2E`
+- **Result**: Deploy pipeline passing again ✅
+
+**4. Staging Database Seeded** ✅
+- Ran `pnpm run seed:e2e` with staging DATABASE_URL from local machine
+- Confirmed API login works for all 3 test users via curl
+- Auto-seed from CI confirmed to hang (Neon connection timeout)
+
+### Blocker Discovered
+
+**Worker-to-Worker 404** — All portal Workers get 404 when calling API Worker server-side.
+- This is a Cloudflare same-account routing issue
+- API works externally, fails when called from another Worker
+- See "🚨 E2E Test Suite" section above for solutions
+
+---
+
+## 📝 Previous Session Summary (2026-05-08)
 
 ### Tasks Completed
 
