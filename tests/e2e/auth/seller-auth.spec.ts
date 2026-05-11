@@ -23,16 +23,15 @@ test.describe('Seller Authentication', () => {
     await page.waitForTimeout(2000);
 
     const currentUrl = page.url();
-    if (currentUrl.includes('/register')) {
-      const errorEl = page.locator('[class*="rose-"]');
-      if ((await errorEl.count()) > 0 && (await errorEl.first().isVisible())) {
-        const errorText = await errorEl.first().textContent();
-        test.skip(true, `Registration form action failed in CI: ${errorText?.trim()}`);
-        return;
-      }
-    }
+    const bodyText = await page.locator('body').textContent();
+    const isSuccess =
+      !currentUrl.includes('/register') ||
+      bodyText?.includes('berhasil') ||
+      bodyText?.includes('success') ||
+      bodyText?.includes('verifikasi') ||
+      currentUrl.includes('verify-email');
 
-    expect(true).toBeTruthy();
+    expect(isSuccess).toBeTruthy();
   });
 
   test('should validate organization name is required', async ({ page }) => {
@@ -61,12 +60,8 @@ test.describe('Seller Authentication', () => {
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
 
-    await page.waitForLoadState('networkidle');
-
-    const loginSucceeded = !page.url().includes('/login') ||
-      (await page.locator('body').textContent())?.match(/dashboard|event|pesanan/i);
-
-    expect(loginSucceeded).toBeTruthy();
+    await page.waitForURL(/\/$/, { timeout: 15000 });
+    await expect(page.locator('body')).toContainText(/dashboard|event|pesanan/i);
   });
 
   test('should show error for invalid seller credentials', async ({ page }) => {
@@ -108,13 +103,7 @@ test.describe('Seller Authentication', () => {
     await page.getByLabel('Email').fill('seller@jeevatix.id');
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
-    await page.waitForLoadState('networkidle');
-
-    const isLoggedIn = !page.url().includes('/login');
-    if (!isLoggedIn) {
-      test.skip(true, 'Login via UI not working in this environment');
-      return;
-    }
+    await page.waitForURL(/\/$/, { timeout: 15000 });
 
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if (await logoutButton.count() > 0) {

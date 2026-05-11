@@ -25,16 +25,15 @@ test.describe('Buyer Authentication', () => {
     await page.waitForTimeout(2000);
     
     const currentUrl = page.url();
-    if (currentUrl.includes('/register')) {
-      const errorEl = page.locator('[class*="rose-"]');
-      if ((await errorEl.count()) > 0 && (await errorEl.first().isVisible())) {
-        const errorText = await errorEl.first().textContent();
-        test.skip(true, `Registration form action failed in CI: ${errorText?.trim()}`);
-        return;
-      }
-    }
+    const bodyText = await page.locator('body').textContent();
+    const isSuccess =
+      !currentUrl.includes('/register') ||
+      bodyText?.includes('berhasil') ||
+      bodyText?.includes('success') ||
+      bodyText?.includes('verifikasi') ||
+      currentUrl.includes('verify-email');
 
-    expect(true).toBeTruthy();
+    expect(isSuccess).toBeTruthy();
   });
 
   test('should prevent duplicate email registration', async ({ page }) => {
@@ -66,15 +65,7 @@ test.describe('Buyer Authentication', () => {
 
     await page.getByRole('button', { name: /login|masuk/i }).click();
 
-    await page.waitForLoadState('networkidle');
-
-    const loginSucceeded = !page.url().includes('/login');
-    if (!loginSucceeded) {
-      test.skip(true, 'SvelteKit form action redirect not working in CF Workers E2E');
-      return;
-    }
-
-    expect(page.url()).toMatch(/\/$/);
+    await page.waitForURL(/\/$/, { timeout: 15000 });
   });
 
   test('should reject invalid credentials', async ({ page }) => {
@@ -164,12 +155,7 @@ test.describe('Buyer Authentication', () => {
     await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('Buyer123!');
     await page.getByRole('button', { name: /login|masuk/i }).click();
-    await page.waitForLoadState('networkidle');
-
-    if (page.url().includes('/login')) {
-      test.skip(true, 'SvelteKit form action redirect not working in CF Workers E2E');
-      return;
-    }
+    await page.waitForURL(/\/$/, { timeout: 15000 });
 
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if (await logoutButton.count() > 0) {
