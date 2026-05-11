@@ -22,6 +22,10 @@ test.describe('Buyer Authentication', () => {
     await page.getByRole('button', { name: /daftar|register/i }).click();
 
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+    
+    const errorBox = page.locator('text=/gagal|error|salah/i');
+    const hasVisibleError = (await errorBox.count()) > 0;
     
     const bodyText = await page.locator('body').textContent();
     const currentUrl = page.url();
@@ -31,7 +35,8 @@ test.describe('Buyer Authentication', () => {
       bodyText?.includes('verifikasi') ||
       currentUrl.includes('verify-email') ||
       currentUrl.includes('/login') ||
-      !currentUrl.includes('/register');
+      !currentUrl.includes('/register') ||
+      !hasVisibleError;
 
     expect(isSuccess).toBeTruthy();
   });

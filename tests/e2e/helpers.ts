@@ -3,7 +3,7 @@ import { expect, type APIRequestContext, type BrowserContext, type Page } from '
 const useStaging = process.env.E2E_TARGET === 'staging' || !!process.env.CI;
 
 export const API_URL = useStaging
-	? 'https://api.jeevatix.my.id'
+	? 'https://jeevatix-staging-api.ariefna95.workers.dev'
 	: 'http://localhost:8787';
 
 const SELLER_BASE_URL = useStaging
@@ -174,6 +174,7 @@ async function apiRequest<T>(
 ): Promise<Envelope<T>> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
+    'User-Agent': 'Playwright-E2E/1.0',
     ...options.headers,
   };
 
@@ -191,6 +192,15 @@ async function apiRequest<T>(
     data: options.data,
     timeout: 30000,
   });
+
+  const contentType = response.headers()['content-type'] ?? '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text();
+    throw new Error(
+      `${method} ${path} returned non-JSON (${response.status()}): ${text.substring(0, 200)}`,
+    );
+  }
+
   const payload = ((await response.json()) as Envelope<T> | ErrorEnvelope);
 
   if (!response.ok || !('success' in payload) || payload.success !== true) {
