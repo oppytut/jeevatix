@@ -9,15 +9,9 @@ test.describe('Event Tiers Management', () => {
   let eventId: string;
 
   test.beforeAll(async ({ request }) => {
-    sellerEmail = uniqueEmail('tier-seller');
-    sellerPassword = 'Seller123!';
-
-    await createSellerViaApi(request, {
-      email: sellerEmail,
-      password: sellerPassword,
-      full_name: 'Tier Test Seller',
-      org_name: 'Tier Test Org',
-    });
+    const seller = await createSellerViaApi(request);
+    sellerEmail = seller.email;
+    sellerPassword = seller.password;
   });
 
   test('should create event and add multiple tiers', async ({ page }) => {

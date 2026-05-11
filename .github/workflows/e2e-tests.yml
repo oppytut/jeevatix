@@ -41,7 +41,7 @@ jobs:
           echo "✅ Staging API is healthy"
 
       - name: Run E2E tests against staging
-        run: pnpm exec playwright test --project=critical --project=auth --project=events
+        run: pnpm exec playwright test --project=critical --project=auth --project=auth-seller --project=auth-admin --project=events
         
       - uses: actions/upload-artifact@v4
         if: always()

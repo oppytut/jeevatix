@@ -14,15 +14,9 @@ test.describe('Event CRUD Operations', () => {
   let createdEventSlug: string;
 
   test.beforeAll(async ({ request }) => {
-    sellerEmail = uniqueEmail('event-crud-seller');
-    sellerPassword = 'Seller123!';
-
-    await createSellerViaApi(request, {
-      email: sellerEmail,
-      password: sellerPassword,
-      full_name: 'Event CRUD Test Seller',
-      org_name: 'Test Event Org',
-    });
+    const seller = await createSellerViaApi(request);
+    sellerEmail = seller.email;
+    sellerPassword = seller.password;
   });
 
   test('should create new event with all required fields', async ({ page }) => {

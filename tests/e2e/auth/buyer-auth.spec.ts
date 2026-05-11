@@ -37,7 +37,7 @@ test.describe('Buyer Authentication', () => {
   test('should prevent duplicate email registration', async ({ page }) => {
     await page.goto('/register');
 
-    await page.getByLabel(/email/i).fill('buyer-e2e@jeevatix.id');
+    await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).first().fill(testPassword);
     await page.getByLabel(/confirm.*password|password.*confirm/i).fill(testPassword);
     await page.getByLabel(/nama|name/i).fill(testFullName);
@@ -59,7 +59,7 @@ test.describe('Buyer Authentication', () => {
   test('should login with valid credentials', async ({ page }) => {
     await page.goto('/login');
 
-    await page.getByLabel(/email/i).fill('buyer-e2e@jeevatix.id');
+    await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('Buyer123!');
 
     await page.getByRole('button', { name: /login|masuk/i }).click();
@@ -71,7 +71,7 @@ test.describe('Buyer Authentication', () => {
   test('should reject invalid credentials', async ({ page }) => {
     await page.goto('/login');
 
-    await page.getByLabel(/email/i).fill('buyer-e2e@jeevatix.id');
+    await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('WrongPassword123!');
 
     await page.getByRole('button', { name: /login|masuk/i }).click();
@@ -91,7 +91,7 @@ test.describe('Buyer Authentication', () => {
   test('should handle forgot password flow', async ({ page }) => {
     await page.goto('/forgot-password');
 
-    await page.getByLabel(/email/i).fill('buyer-e2e@jeevatix.id');
+    await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
 
     await page.getByRole('button', { name: /kirim|send|reset/i }).click();
 
@@ -153,7 +153,7 @@ test.describe('Buyer Authentication', () => {
 
   test('should logout successfully', async ({ page }) => {
     await page.goto('/login');
-    await page.getByLabel(/email/i).fill('buyer-e2e@jeevatix.id');
+    await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('Buyer123!');
     await page.getByRole('button', { name: /login|masuk/i }).click();
     await page.waitForURL(/\/$/);

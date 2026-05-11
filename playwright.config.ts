@@ -65,7 +65,23 @@ export default defineConfig({
 				...devices['Desktop Chrome'],
 				baseURL: buyerURL
 			},
-			testMatch: /auth\/.*\.spec\.ts/
+			testMatch: /auth\/buyer-auth\.spec\.ts/
+		},
+		{
+			name: 'auth-seller',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: sellerURL
+			},
+			testMatch: /auth\/seller-auth\.spec\.ts/
+		},
+		{
+			name: 'auth-admin',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: adminURL
+			},
+			testMatch: /auth\/admin-auth\.spec\.ts/
 		},
 		{
 			name: 'events',

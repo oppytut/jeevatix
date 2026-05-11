@@ -179,7 +179,7 @@ export function createRateLimitMiddleware({
   const normalizedMethods = methods?.map((method) => method.toUpperCase());
 
   return createMiddleware<AuthEnv>(async (c, next) => {
-    if (c.env.PLAYWRIGHT_E2E === '1' || process.env.PLAYWRIGHT_E2E === '1') {
+    if (c.env.PLAYWRIGHT_E2E === '1') {
       await next();
       return;
     }

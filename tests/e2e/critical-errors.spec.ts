@@ -88,7 +88,7 @@ test.describe('Critical Error Scenarios', () => {
     const invalidTicketCode = 'INVALID-QR-CODE-12345';
 
     await page.goto(`/login`);
-    await page.getByLabel('Email').fill('seller-e2e@jeevatix.id');
+    await page.getByLabel('Email').fill('seller@jeevatix.id');
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page).toHaveURL(/\/$/);
