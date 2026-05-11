@@ -3,8 +3,16 @@ import { expect, type APIRequestContext, type BrowserContext, type Page } from '
 const useStaging = process.env.E2E_TARGET === 'staging' || !!process.env.CI;
 
 export const API_URL = useStaging
-	? 'https://jeevatix-staging-api.ariefna95.workers.dev'
+	? 'https://api.jeevatix.my.id'
 	: 'http://localhost:8787';
+
+const SELLER_BASE_URL = useStaging
+	? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
+	: 'http://localhost:4303';
+
+const ADMIN_BASE_URL = useStaging
+	? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
+	: 'http://localhost:4302';
 
 export const ADMIN_EMAIL = 'admin@jeevatix.id';
 export const ADMIN_PASSWORD = 'Admin123!';
@@ -181,6 +189,7 @@ async function apiRequest<T>(
     method,
     headers,
     data: options.data,
+    timeout: 30000,
   });
   const payload = ((await response.json()) as Envelope<T> | ErrorEnvelope);
 
@@ -460,25 +469,53 @@ export async function gotoAndExpectDocument(
 }
 
 export async function loginAdminUi(page: Page) {
-  await page.context().clearCookies();
-  await page.goto('/login');
-  await page.getByLabel('Email').fill(ADMIN_EMAIL);
-  await page.getByLabel('Password').fill(ADMIN_PASSWORD);
-  await page.getByRole('button', { name: 'Login' }).click();
-  await page.waitForURL(/\/$/, { timeout: 15000 });
+  const context = page.context();
+  await context.clearCookies();
+
+  const response = await context.request.post(`${API_URL}/auth/login`, {
+    data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  });
+  const payload = await response.json() as Envelope<AuthPayload>;
+  const { access_token, refresh_token, user } = payload.data;
+
+  const domain = new URL(ADMIN_BASE_URL).hostname;
+  const isSecure = ADMIN_BASE_URL.startsWith('https');
+
+  await context.addCookies([
+    { name: 'jeevatix_admin_access_token', value: access_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    { name: 'jeevatix_admin_refresh_token', value: refresh_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    { name: 'jeevatix_admin_user', value: JSON.stringify(user), domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+  ]);
+
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+}
+
+export async function loginSellerUi(page: Page, email: string, password: string) {
+  const context = page.context();
+  await context.clearCookies();
+
+  const response = await context.request.post(`${API_URL}/auth/login`, {
+    data: { email, password },
+  });
+  const payload = await response.json() as Envelope<AuthPayload>;
+  const { access_token, refresh_token, user } = payload.data;
+
+  const domain = new URL(SELLER_BASE_URL).hostname;
+  const isSecure = SELLER_BASE_URL.startsWith('https');
+
+  await context.addCookies([
+    { name: 'jeevatix_seller_access_token', value: access_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    { name: 'jeevatix_seller_refresh_token', value: refresh_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    { name: 'jeevatix_seller_user', value: JSON.stringify(user), domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+  ]);
+
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
 }
 
 export async function loginBuyerUi(page: Page, email: string, password: string) {
   await clearBuyerSession(page.context());
-  await page.goto('/login');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Login' }).click();
-  await page.waitForURL(/\/$/, { timeout: 15000 });
-}
-
-export async function loginSellerUi(page: Page, email: string, password: string) {
-  await page.context().clearCookies();
   await page.goto('/login');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
