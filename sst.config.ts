@@ -186,6 +186,9 @@ function createApiEnvironment() {
     'AUTH_EXPOSE_DEBUG_TOKENS',
     maybeEnv('AUTH_EXPOSE_DEBUG_TOKENS'),
   );
+  if (isStagingStage()) {
+    environment.PLAYWRIGHT_E2E = '1';
+  }
   setOptionalEnvironmentValue(environment, 'PARTY_SECRET', maybeEnv('PARTY_SECRET'));
   setOptionalEnvironmentValue(environment, 'PARTYKIT_HOST', maybeEnv('PARTYKIT_HOST'));
   setOptionalEnvironmentValue(
