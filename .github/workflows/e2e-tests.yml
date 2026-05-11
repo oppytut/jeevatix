@@ -40,12 +40,6 @@ jobs:
           echo ""
           echo "✅ Staging API is healthy"
 
-      - name: Seed staging database
-        run: pnpm run seed:e2e
-        timeout-minutes: 2
-        env:
-          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-          
       - name: Run E2E tests against staging
         run: pnpm exec playwright test --project=critical --project=auth --project=events
         
