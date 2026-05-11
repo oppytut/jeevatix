@@ -1,5 +1,6 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import { enhance } from '$app/forms';
   import { Building2, TriangleAlert } from '@lucide/svelte';
   import { Button, Card, Input } from '@jeevatix/ui';
 
@@ -43,7 +44,7 @@
         </div>
       </div>
 
-      <form class="space-y-5 px-8 py-10 sm:px-10" method="POST">
+      <form class="space-y-5 px-8 py-10 sm:px-10" method="POST" use:enhance>
         <div class="grid gap-5 sm:grid-cols-2">
           <div class="space-y-2 sm:col-span-2">
             <label class="text-sm font-medium text-slate-700" for="email">Email</label>
