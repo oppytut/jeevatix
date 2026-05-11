@@ -8,17 +8,12 @@ on:
 
 jobs:
   e2e-tests:
-    timeout-minutes: 60
+    timeout-minutes: 15
     runs-on: ubuntu-latest
     
     env:
-      DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix
-      JWT_SECRET: test-secret-key-for-ci-only
-      PAYMENT_WEBHOOK_SECRET: test-webhook-secret
-      EMAIL_API_KEY: test-email-key
-      EMAIL_FROM: test@jeevatix.com
-      UPLOAD_PUBLIC_URL: http://localhost:8787/uploads
-      PLAYWRIGHT_E2E: "1"
+      E2E_TARGET: staging
+      CI: "true"
     
     steps:
       - uses: actions/checkout@v4
@@ -36,56 +31,22 @@ jobs:
         
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
-        
-      - name: Create .env file for API
+
+      - name: Verify staging API health
         run: |
-          cat > .env << EOF
-          DATABASE_URL=${{ env.DATABASE_URL }}
-          JWT_SECRET=${{ env.JWT_SECRET }}
-          PAYMENT_WEBHOOK_SECRET=${{ env.PAYMENT_WEBHOOK_SECRET }}
-          EMAIL_API_KEY=${{ env.EMAIL_API_KEY }}
-          EMAIL_FROM=${{ env.EMAIL_FROM }}
-          UPLOAD_PUBLIC_URL=${{ env.UPLOAD_PUBLIC_URL }}
-          PLAYWRIGHT_E2E=${{ env.PLAYWRIGHT_E2E }}
-          EOF
+          echo "Checking staging API health..."
+          curl -fsS --retry 3 --retry-delay 5 \
+            https://jeevatix-staging-api.ariefna95.workers.dev/health
+          echo ""
+          echo "✅ Staging API is healthy"
+
+      - name: Seed staging database
+        run: pnpm run seed:e2e
+        timeout-minutes: 2
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
           
-      - name: Create .dev.vars for Wrangler
-        run: |
-          cat > apps/api/.dev.vars << EOF
-          PLAYWRIGHT_E2E=1
-          EOF
-          
-      - name: Setup test database
-        run: |
-          docker compose up -d
-          echo "Waiting for PostgreSQL to be ready..."
-          for i in {1..30}; do
-            if docker compose exec -T postgres pg_isready -U jeevatix; then
-              echo "PostgreSQL is ready!"
-              break
-            fi
-            echo "Waiting... ($i/30)"
-            sleep 2
-          done
-          docker compose ps
-          
-      - name: Run database migrations
-        run: pnpm --filter @jeevatix/core run db:push
-          
-      - name: Seed test data
-        run: pnpm --filter @jeevatix/core run db:seed:e2e
-        
-      - name: Debug - Check environment
-        run: |
-          echo "=== Environment Check ==="
-          echo "DATABASE_URL is set: $([[ -n "$DATABASE_URL" ]] && echo "yes" || echo "no")"
-          echo "JWT_SECRET is set: $([[ -n "$JWT_SECRET" ]] && echo "yes" || echo "no")"
-          echo ".env file exists: $(test -f .env && echo "yes" || echo "no")"
-          echo "Docker containers:"
-          docker compose ps
-          echo "=== End Environment Check ==="
-          
-      - name: Run E2E tests locally
+      - name: Run E2E tests against staging
         run: pnpm exec playwright test --project=critical --project=auth --project=events
         
       - uses: actions/upload-artifact@v4

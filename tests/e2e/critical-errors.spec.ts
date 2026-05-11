@@ -3,7 +3,7 @@ import {
   createBuyerViaApi,
   createPublishedEventFixture,
   loginBuyerUi,
-  uniqueEmail,
+  API_URL,
 } from './helpers';
 
 test.describe('Critical Error Scenarios', () => {
@@ -15,14 +15,9 @@ test.describe('Critical Error Scenarios', () => {
   let tierId: string;
 
   test.beforeAll(async ({ request }) => {
-    buyerEmail = uniqueEmail('critical-buyer');
-    buyerPassword = 'Buyer123!';
-
-    await createBuyerViaApi(request, {
-      email: buyerEmail,
-      password: buyerPassword,
-      full_name: 'Critical Test Buyer',
-    });
+    const buyer = await createBuyerViaApi(request);
+    buyerEmail = buyer.email;
+    buyerPassword = buyer.password;
 
     const fixture = await createPublishedEventFixture(request);
     eventSlug = fixture.event.slug;
@@ -49,7 +44,7 @@ test.describe('Critical Error Scenarios', () => {
 
     await page.waitForTimeout(2000);
 
-    const orderResponse = await request.get(`http://localhost:8787/orders/${orderId}`);
+    const orderResponse = await request.get(`${API_URL}/orders/${orderId}`);
     expect(orderResponse.ok()).toBeTruthy();
 
     const orderData = await orderResponse.json();
@@ -62,7 +57,7 @@ test.describe('Critical Error Scenarios', () => {
   test('should show error for expired reservation', async ({ page, request }) => {
     await loginBuyerUi(page, buyerEmail, buyerPassword);
 
-    const reserveResponse = await request.post('http://localhost:8787/reservations', {
+    const reserveResponse = await request.post(`${API_URL}/reservations`, {
       data: {
         event_slug: eventSlug,
         tier_id: tierId,
@@ -77,7 +72,7 @@ test.describe('Critical Error Scenarios', () => {
     await page.waitForTimeout(1000);
 
     const checkResponse = await request.get(
-      `http://localhost:8787/reservations/${reservationId}`,
+      `${API_URL}/reservations/${reservationId}`,
     );
 
     if (checkResponse.ok()) {
@@ -92,13 +87,13 @@ test.describe('Critical Error Scenarios', () => {
   test('should handle invalid QR code gracefully', async ({ page }) => {
     const invalidTicketCode = 'INVALID-QR-CODE-12345';
 
-    await page.goto(`baseURL/login`);
-    await page.getByLabel('Email').fill('seller@jeevatix.id');
+    await page.goto(`/login`);
+    await page.getByLabel('Email').fill('seller-e2e@jeevatix.id');
     await page.getByLabel('Password').fill('Seller123!');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page).toHaveURL(/\/$/);
 
-    await page.goto(`baseURL/events`);
+    await page.goto(`/events`);
     await page.waitForLoadState('networkidle');
 
     const firstEvent = page.locator('[data-event-card]').first();
@@ -237,7 +232,7 @@ test.describe('Critical Error Scenarios', () => {
   });
 
   test('should validate form inputs before submission', async ({ page }) => {
-    await page.goto('baseURL/register');
+    await page.goto('/register');
 
     await page.getByRole('button', { name: /daftar|register/i }).click();
 

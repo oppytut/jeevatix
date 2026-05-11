@@ -1,6 +1,8 @@
 import { expect, type APIRequestContext, type BrowserContext, type Page } from '@playwright/test';
 
-const API_URL = process.env.CI 
+const useStaging = process.env.E2E_TARGET === 'staging' || !!process.env.CI;
+
+export const API_URL = useStaging
 	? 'https://jeevatix-staging-api.ariefna95.workers.dev'
 	: 'http://localhost:8787';
 
@@ -464,7 +466,7 @@ export async function loginAdminUi(page: Page) {
   await page.getByLabel('Email').fill(ADMIN_EMAIL);
   await page.getByLabel('Password').fill(ADMIN_PASSWORD);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/localhost:4302\/$/);
+  await expect(page).toHaveURL(/\/$/);
 }
 
 export async function loginBuyerUi(page: Page, email: string, password: string) {
@@ -473,7 +475,7 @@ export async function loginBuyerUi(page: Page, email: string, password: string) 
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/localhost:4301\/$/);
+  await expect(page).toHaveURL(/\/$/);
 }
 
 export async function loginSellerUi(page: Page, email: string, password: string) {
@@ -482,7 +484,7 @@ export async function loginSellerUi(page: Page, email: string, password: string)
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Login' }).click();
-  await expect(page).toHaveURL(/localhost:4303\/$/);
+  await expect(page).toHaveURL(/\/$/);
 }
 
 export async function clearBuyerSession(context: BrowserContext) {
