@@ -21,9 +21,11 @@ import { AuthServiceError, authService } from '../services/auth.service';
 
 const app = new OpenAPIHono<AuthEnv>();
 
+const isE2ETest = process.env.PLAYWRIGHT_E2E === '1';
+
 const registerRateLimitMiddleware = createRateLimitMiddleware({
   name: 'auth-register',
-  limit: 3,
+  limit: isE2ETest ? 10000 : 3,
   windowMs: 60_000,
   methods: ['POST'],
   keyGenerator: (c) => getClientIp(c.req.raw.headers),
@@ -31,7 +33,7 @@ const registerRateLimitMiddleware = createRateLimitMiddleware({
 
 const loginRateLimitMiddleware = createRateLimitMiddleware({
   name: 'auth-login',
-  limit: 5,
+  limit: isE2ETest ? 10000 : 5,
   windowMs: 60_000,
   methods: ['POST'],
   keyGenerator: (c) => getClientIp(c.req.raw.headers),
