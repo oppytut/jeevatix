@@ -17,28 +17,17 @@ test.describe('Buyer Authentication', () => {
 
     await page.getByLabel(/email/i).fill(testEmail);
     await page.getByLabel(/password/i).fill(testPassword);
-    await page.getByLabel(/nama|name/i).fill(testFullName);
+    await page.getByLabel(/nama/i).fill(testFullName);
 
-    await page.getByRole('button', { name: /daftar|register/i }).click();
+    await page.getByRole('button', { name: /daftar/i }).click();
 
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
     
-    const errorBox = page.locator('text=/gagal|error|salah/i');
-    const hasVisibleError = (await errorBox.count()) > 0;
-    
-    const bodyText = await page.locator('body').textContent();
-    const currentUrl = page.url();
-    const isSuccess = 
-      bodyText?.includes('berhasil') || 
-      bodyText?.includes('success') ||
-      bodyText?.includes('verifikasi') ||
-      currentUrl.includes('verify-email') ||
-      currentUrl.includes('/login') ||
-      !currentUrl.includes('/register') ||
-      !hasVisibleError;
+    const formError = page.locator('[class*="rose"]');
+    const hasFormError = (await formError.count()) > 0 && (await formError.first().isVisible());
 
-    expect(isSuccess).toBeTruthy();
+    expect(hasFormError).toBeFalsy();
   });
 
   test('should prevent duplicate email registration', async ({ page }) => {

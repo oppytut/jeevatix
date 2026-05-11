@@ -21,7 +21,7 @@ test.describe('Critical Error Scenarios', () => {
 
     const fixture = await createPublishedEventFixture(request);
     eventSlug = fixture.event.slug;
-    tierId = fixture.tiers[0].id;
+    tierId = fixture.event.tiers[0].id;
   });
 
   test('should handle payment timeout gracefully', async ({ page, request }) => {

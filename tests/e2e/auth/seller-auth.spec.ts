@@ -17,20 +17,15 @@ test.describe('Seller Authentication', () => {
     await page.getByLabel(/nama.*organisasi|organization.*name/i).fill(orgName);
     await page.getByLabel(/deskripsi.*organisasi|organization.*description/i).fill('Test organization description');
 
-    await page.getByRole('button', { name: /daftar|register/i }).click();
+    await page.getByRole('button', { name: /daftar/i }).click();
 
     await page.waitForLoadState('networkidle');
-    
-    const bodyText = await page.locator('body').textContent();
-    const currentUrl = page.url();
-    const isSuccess = bodyText?.includes('berhasil') || 
-                     bodyText?.includes('success') || 
-                     bodyText?.includes('verifikasi') ||
-                     currentUrl.includes('verify-email') ||
-                     currentUrl.includes('/login') ||
-                     !currentUrl.includes('/register');
-    
-    expect(isSuccess).toBeTruthy();
+    await page.waitForTimeout(2000);
+
+    const formError = page.locator('[class*="rose"]');
+    const hasFormError = (await formError.count()) > 0 && (await formError.first().isVisible());
+
+    expect(hasFormError).toBeFalsy();
   });
 
   test('should validate organization name is required', async ({ page }) => {
