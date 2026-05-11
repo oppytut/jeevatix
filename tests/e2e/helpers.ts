@@ -6,6 +6,10 @@ export const API_URL = useStaging
 	? 'https://jeevatix-staging-api.ariefna95.workers.dev'
 	: 'http://localhost:8787';
 
+const BUYER_BASE_URL = useStaging
+	? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
+	: 'http://localhost:4301';
+
 const SELLER_BASE_URL = useStaging
 	? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
 	: 'http://localhost:4303';
@@ -525,12 +529,26 @@ export async function loginSellerUi(page: Page, email: string, password: string)
 }
 
 export async function loginBuyerUi(page: Page, email: string, password: string) {
-  await clearBuyerSession(page.context());
-  await page.goto('/login');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Login' }).click();
-  await page.waitForURL(/\/$/, { timeout: 15000 });
+  const context = page.context();
+  await clearBuyerSession(context);
+
+  const response = await context.request.post(`${API_URL}/auth/login`, {
+    data: { email, password },
+  });
+  const payload = await response.json() as Envelope<AuthPayload>;
+  const { access_token, refresh_token, user } = payload.data;
+
+  const domain = new URL(BUYER_BASE_URL).hostname;
+  const isSecure = BUYER_BASE_URL.startsWith('https');
+
+  await context.addCookies([
+    { name: 'jeevatix_buyer_access_token', value: access_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    { name: 'jeevatix_buyer_refresh_token', value: refresh_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    { name: 'jeevatix_buyer_user', value: JSON.stringify(user), domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+  ]);
+
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
 }
 
 export async function clearBuyerSession(context: BrowserContext) {
