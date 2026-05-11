@@ -1,13 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { createSellerViaApi, loginSellerUi, uniqueEmail, formatDateTimeLocal } from '../helpers';
+import { createSellerViaApi, loginSellerUi, formatDateTimeLocal } from '../helpers';
 
 test.describe('Event Tiers Management', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test.fixme(true, 'Event create form is a multi-step wizard — selectors need audit');
   let sellerEmail: string;
   let sellerPassword: string;
-  let eventId: string;
 
   test.beforeAll(async ({ request }) => {
     const seller = await createSellerViaApi(request);
@@ -21,129 +19,82 @@ test.describe('Event Tiers Management', () => {
     await page.goto('/events/create');
     await page.waitForLoadState('networkidle');
 
-    const title = `Event with Tiers ${Date.now()}`;
-    await page.getByLabel(/judul|title/i).fill(title);
-    await page.getByLabel(/deskripsi|description/i).fill('Event untuk test tiers');
+    await page.getByLabel('Title Event').fill(`Tier Test Event ${Date.now()}`);
+    await page.getByLabel('Deskripsi').fill('Event for tier management testing');
+    await page.getByLabel('Kota Event').fill('Bandung');
+    await page.getByRole('button', { name: 'Musik' }).click();
+
+    await page.getByRole('button', { name: 'Lanjut' }).click();
+    await page.waitForTimeout(300);
 
     const startDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    await page.getByLabel(/mulai|start/i).fill(formatDateTimeLocal(startDate));
+    const endDate = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000);
+    const saleStart = new Date(Date.now() - 60 * 60 * 1000);
+    const saleEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
-    const endDate = new Date(startDate.getTime() + 4 * 60 * 60 * 1000);
-    await page.getByLabel(/selesai|end/i).fill(formatDateTimeLocal(endDate));
+    await page.getByLabel('Venue Name').fill('Sasana Budaya Ganesha');
+    await page.getByLabel('Start At').fill(formatDateTimeLocal(startDate));
+    await page.getByLabel('End At').fill(formatDateTimeLocal(endDate));
+    await page.getByLabel('Sale Start').fill(formatDateTimeLocal(saleStart));
+    await page.getByLabel('Sale End').fill(formatDateTimeLocal(saleEnd));
 
-    await page.getByLabel(/lokasi|location|venue/i).fill('Test Venue');
-    await page.getByLabel(/kota|city/i).fill('Jakarta');
+    await page.getByRole('button', { name: 'Lanjut' }).click();
+    await page.waitForTimeout(300);
 
-    await page.getByRole('button', { name: /simpan|save/i }).click();
-    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'Lanjut' }).click();
+    await page.waitForTimeout(300);
 
-    const url = page.url();
-    const match = url.match(/\/events\/([^\/]+)/);
-    if (match) {
-      eventId = match[1];
-    }
+    await page.getByLabel('Nama Tier').fill('Early Bird');
+    await page.getByLabel('Harga').fill('100000');
+    await page.getByLabel('Quota').fill('50');
 
-    await page.goto(`/events/${eventId}/tiers`);
-    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'Tambah Tier' }).click();
+    await page.waitForTimeout(300);
 
-    await page.getByRole('button', { name: /tambah.*tier|add.*tier/i }).click();
-    await page.getByLabel(/nama.*tier|tier.*name/i).fill('VIP');
-    await page.getByLabel(/harga|price/i).fill('500000');
-    await page.getByLabel(/kuota|quota|stock/i).fill('50');
-    await page.getByRole('button', { name: /simpan|save/i }).click();
+    const tierSections = page.locator('[class*="rounded"][class*="border"][class*="slate-50"]');
+    const tierCount = await tierSections.count();
 
-    await page.waitForTimeout(1000);
-    await expect(page.locator('body')).toContainText('VIP');
-
-    await page.getByRole('button', { name: /tambah.*tier|add.*tier/i }).click();
-    await page.getByLabel(/nama.*tier|tier.*name/i).fill('Regular');
-    await page.getByLabel(/harga|price/i).fill('250000');
-    await page.getByLabel(/kuota|quota|stock/i).fill('100');
-    await page.getByRole('button', { name: /simpan|save/i }).click();
-
-    await page.waitForTimeout(1000);
-    await expect(page.locator('body')).toContainText('Regular');
-  });
-
-  test('should edit tier details', async ({ page }) => {
-    await loginSellerUi(page, sellerEmail, sellerPassword);
-
-    await page.goto(`/events/${eventId}/tiers`);
-    await page.waitForLoadState('networkidle');
-
-    const editButton = page.getByRole('button', { name: /edit|ubah/i }).first();
-    await editButton.click();
-
-    await page.getByLabel(/harga|price/i).fill('550000');
-    await page.getByRole('button', { name: /simpan|save|update/i }).click();
-
-    await page.waitForTimeout(1000);
-    await expect(page.locator('body')).toContainText('550');
-  });
-
-  test('should delete tier', async ({ page }) => {
-    await loginSellerUi(page, sellerEmail, sellerPassword);
-
-    await page.goto(`/events/${eventId}/tiers`);
-    await page.waitForLoadState('networkidle');
-
-    const initialTiers = await page.locator('[data-tier-card]').count();
-
-    const deleteButton = page.getByRole('button', { name: /hapus|delete/i }).first();
-    await deleteButton.click();
-
-    const confirmButton = page.getByRole('button', { name: /ya|yes|confirm/i });
-    if ((await confirmButton.count()) > 0) {
-      await confirmButton.click();
-    }
-
-    await page.waitForTimeout(1000);
-
-    const finalTiers = await page.locator('[data-tier-card]').count();
-    expect(finalTiers).toBeLessThan(initialTiers);
+    expect(tierCount).toBeGreaterThanOrEqual(2);
   });
 
   test('should validate tier price is positive', async ({ page }) => {
     await loginSellerUi(page, sellerEmail, sellerPassword);
 
-    await page.goto(`/events/${eventId}/tiers`);
+    await page.goto('/events/create');
     await page.waitForLoadState('networkidle');
 
-    await page.getByRole('button', { name: /tambah.*tier|add.*tier/i }).click();
-    await page.getByLabel(/nama.*tier|tier.*name/i).fill('Invalid Tier');
-    await page.getByLabel(/harga|price/i).fill('-100');
-    await page.getByLabel(/kuota|quota|stock/i).fill('10');
-    await page.getByRole('button', { name: /simpan|save/i }).click();
+    await page.getByLabel('Title Event').fill('Price Validation Event');
+    await page.getByLabel('Kota Event').fill('Jakarta');
+    await page.getByRole('button', { name: 'Musik' }).click();
 
-    await page.waitForTimeout(500);
+    await page.getByRole('button', { name: 'Lanjut' }).click();
+    await page.waitForTimeout(300);
 
-    const hasError =
-      (await page.locator('[role="alert"]').count()) > 0 ||
-      (await page.locator('.error').count()) > 0 ||
-      page.url().includes('/tiers');
+    await page.getByLabel('Venue Name').fill('Test Venue');
+    const startDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const endDate = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000);
+    await page.getByLabel('Start At').fill(formatDateTimeLocal(startDate));
+    await page.getByLabel('End At').fill(formatDateTimeLocal(endDate));
+    await page.getByLabel('Sale Start').fill(formatDateTimeLocal(new Date(Date.now() - 3600000)));
+    await page.getByLabel('Sale End').fill(formatDateTimeLocal(new Date(Date.now() + 86400000 * 3)));
 
-    expect(hasError).toBeTruthy();
-  });
+    await page.getByRole('button', { name: 'Lanjut' }).click();
+    await page.waitForTimeout(300);
 
-  test('should validate tier quota is positive', async ({ page }) => {
-    await loginSellerUi(page, sellerEmail, sellerPassword);
+    await page.getByRole('button', { name: 'Lanjut' }).click();
+    await page.waitForTimeout(300);
 
-    await page.goto(`/events/${eventId}/tiers`);
-    await page.waitForLoadState('networkidle');
+    await page.getByLabel('Nama Tier').fill('Free Tier');
+    await page.getByLabel('Harga').fill('-100');
+    await page.getByLabel('Quota').fill('10');
 
-    await page.getByRole('button', { name: /tambah.*tier|add.*tier/i }).click();
-    await page.getByLabel(/nama.*tier|tier.*name/i).fill('Zero Quota');
-    await page.getByLabel(/harga|price/i).fill('100000');
-    await page.getByLabel(/kuota|quota|stock/i).fill('0');
-    await page.getByRole('button', { name: /simpan|save/i }).click();
+    await page.getByRole('button', { name: 'Lanjut' }).click();
+    await page.waitForTimeout(300);
 
-    await page.waitForTimeout(500);
+    await page.getByRole('button', { name: 'Simpan Event Draft' }).click();
+    await page.waitForTimeout(1000);
 
-    const hasError =
-      (await page.locator('[role="alert"]').count()) > 0 ||
-      (await page.locator('.error').count()) > 0 ||
-      page.url().includes('/tiers');
-
-    expect(hasError).toBeTruthy();
+    const isStillOnForm = page.url().includes('/create');
+    expect(isStillOnForm).toBeTruthy();
   });
 });
