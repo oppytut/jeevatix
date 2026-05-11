@@ -30,8 +30,8 @@ test.describe('Event CRUD Operations', () => {
 
     await page.getByRole('button', { name: 'Musik' }).click();
 
-    await page.getByRole('button', { name: 'Lanjut' }).click();
-    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Lanjut/i }).click();
+    await page.getByLabel('Venue Name').waitFor({ state: 'visible', timeout: 10000 });
 
     const startDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const endDate = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000);
@@ -44,21 +44,22 @@ test.describe('Event CRUD Operations', () => {
     await page.getByLabel('Sale Start').fill(formatDateTimeLocal(saleStart));
     await page.getByLabel('Sale End').fill(formatDateTimeLocal(saleEnd));
 
-    await page.getByRole('button', { name: 'Lanjut' }).click();
-    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Lanjut/i }).click();
+    await page.waitForTimeout(500);
 
-    await page.getByRole('button', { name: 'Lanjut' }).click();
-    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Lanjut/i }).click();
+    await page.getByLabel('Nama Tier').waitFor({ state: 'visible', timeout: 10000 });
 
     await page.getByLabel('Nama Tier').fill('Regular');
     await page.getByLabel('Harga').fill('150000');
     await page.getByLabel('Quota').fill('25');
 
-    await page.getByRole('button', { name: 'Lanjut' }).click();
-    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Lanjut/i }).click();
+    await page.getByRole('button', { name: 'Simpan Event Draft' }).waitFor({ state: 'visible', timeout: 10000 });
 
     await page.getByRole('button', { name: 'Simpan Event Draft' }).click();
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
 
     const bodyText = await page.locator('body').textContent();
     const isSuccess =

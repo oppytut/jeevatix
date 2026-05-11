@@ -24,8 +24,8 @@ test.describe('Event Tiers Management', () => {
     await page.getByLabel('Kota Event').fill('Bandung');
     await page.getByRole('button', { name: 'Musik' }).click();
 
-    await page.getByRole('button', { name: 'Lanjut' }).click();
-    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Lanjut/i }).click();
+    await page.getByLabel('Venue Name').waitFor({ state: 'visible', timeout: 10000 });
 
     const startDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const endDate = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000);
@@ -38,23 +38,21 @@ test.describe('Event Tiers Management', () => {
     await page.getByLabel('Sale Start').fill(formatDateTimeLocal(saleStart));
     await page.getByLabel('Sale End').fill(formatDateTimeLocal(saleEnd));
 
-    await page.getByRole('button', { name: 'Lanjut' }).click();
-    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Lanjut/i }).click();
+    await page.waitForTimeout(500);
 
-    await page.getByRole('button', { name: 'Lanjut' }).click();
-    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: /Lanjut/i }).click();
+    await page.getByLabel('Nama Tier').waitFor({ state: 'visible', timeout: 10000 });
 
     await page.getByLabel('Nama Tier').fill('Early Bird');
     await page.getByLabel('Harga').fill('100000');
     await page.getByLabel('Quota').fill('50');
 
     await page.getByRole('button', { name: 'Tambah Tier' }).click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
 
-    const tierSections = page.locator('[class*="rounded"][class*="border"][class*="slate-50"]');
-    const tierCount = await tierSections.count();
-
-    expect(tierCount).toBeGreaterThanOrEqual(2);
+    const tierCards = page.locator('text=Tier 2');
+    expect(await tierCards.count()).toBeGreaterThanOrEqual(1);
   });
 
   test('should validate tier price is positive', async ({ page }) => {
