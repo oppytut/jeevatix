@@ -68,6 +68,14 @@ export default defineConfig({
 			testMatch: /auth\/buyer-auth\.spec\.ts/
 		},
 		{
+			name: 'auth-password-reset',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: buyerURL
+			},
+			testMatch: /auth\/password-reset-flow\.spec\.ts/
+		},
+		{
 			name: 'auth-seller',
 			use: {
 				...devices['Desktop Chrome'],
@@ -145,6 +153,14 @@ export default defineConfig({
 				baseURL: buyerURL
 			},
 			testMatch: /buyer\/.*\.spec\.ts/
+		},
+		{
+			name: 'seller-features',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: sellerURL
+			},
+			testMatch: /seller\/.*\.spec\.ts/
 		}
 	],
 	webServer: useStaging ? undefined : [
