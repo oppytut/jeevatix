@@ -40,8 +40,19 @@ jobs:
           echo ""
           echo "✅ Staging API is healthy"
 
+      - name: Warm up staging Workers
+        run: |
+          echo "Warming up API endpoints..."
+          curl -fsS https://jeevatix-staging-api.ariefna95.workers.dev/categories || true
+          curl -fsS https://jeevatix-staging-api.ariefna95.workers.dev/events?limit=1 || true
+          curl -fsS https://jeevatix-staging-buyer.ariefna95.workers.dev/ || true
+          curl -fsS https://jeevatix-staging-seller.ariefna95.workers.dev/login || true
+          curl -fsS https://jeevatix-staging-admin.ariefna95.workers.dev/login || true
+          sleep 2
+          echo "✅ Workers warmed up"
+
       - name: Run E2E tests against staging
-        run: pnpm exec playwright test --project=critical --project=auth --project=auth-seller --project=auth-admin --project=events
+        run: pnpm exec playwright test
         
       - uses: actions/upload-artifact@v4
         if: always()
