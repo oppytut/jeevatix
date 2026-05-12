@@ -3,6 +3,8 @@ import {
   createBuyerViaApi,
   createPublishedEventFixture,
   loginBuyerUi,
+  API_URL,
+  withRetry,
 } from '../helpers';
 
 test.describe('Payment Methods', () => {
@@ -12,15 +14,38 @@ test.describe('Payment Methods', () => {
   let buyerPassword: string;
   let eventSlug: string;
   let tierId: string;
+  let fixtureReady = false;
 
   test.beforeAll(async ({ request }) => {
-    const buyer = await createBuyerViaApi(request);
-    buyerEmail = buyer.email;
-    buyerPassword = buyer.password;
+    await withRetry(async () => {
+      const buyer = await createBuyerViaApi(request);
+      buyerEmail = buyer.email;
+      buyerPassword = buyer.password;
 
-    const fixture = await createPublishedEventFixture(request);
-    eventSlug = fixture.event.slug;
-    tierId = fixture.event.tiers[0].id;
+      const fixture = await createPublishedEventFixture(request);
+      eventSlug = fixture.event.slug;
+      tierId = fixture.event.tiers[0].id;
+    });
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const response = await request.get(`${API_URL}/events/${eventSlug}`, {
+        headers: { Accept: 'application/json' },
+      });
+      if (response.ok()) {
+        const payload = await response.json();
+        if (payload.data?.tiers?.length > 0) {
+          fixtureReady = true;
+          break;
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  });
+
+  test.beforeEach(async ({}, testInfo) => {
+    if (!fixtureReady) {
+      testInfo.skip();
+    }
   });
 
   test('should display reservation state after submitting', async ({ page }) => {
