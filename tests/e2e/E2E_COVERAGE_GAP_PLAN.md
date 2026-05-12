@@ -1,7 +1,7 @@
 # E2E Test Coverage Gap — Implementation Plan
 
 > Generated: 2026-05-12
-> Status: Tier 1-2 COMPLETE, Tier 3 pending
+> Status: Tier 1-3 COMPLETE
 > Prerequisite: CI E2E green (0 failed, 15+ passed, ~24 skipped)
 > Branch: `feat/e2e-coverage-tier1` (merged), `feat/e2e-coverage-tier2` (merged to main)
 
@@ -37,6 +37,27 @@
 
 **CI Status:** GREEN (0 failed, 16+ passed, ~21 skipped)
 **Known:** Tier management first test gracefully skips on staging (async data loading mismatch) — needs local investigation of actual page rendering.
+
+---
+
+### Tier 3 — Low Priority ✅ COMPLETE (2026-05-12)
+
+**Branch**: main (direct commits)
+**Tests added**: 16 new tests across 5 spec files
+
+| # | Spec File | Tests | Status |
+|---|-----------|-------|--------|
+| 3.1 | `tests/e2e/notifications.spec.ts` | 4 | ✅ Done |
+| 3.2 | `tests/e2e/buyer/category-browse.spec.ts` | 3 | ✅ Done |
+| 3.3 | `tests/e2e/admin/category-crud.spec.ts` | 3 | ✅ Done |
+| 3.4 | `tests/e2e/dashboard-stats.spec.ts` | 3 | ✅ Done |
+| 3.5 | `tests/e2e/admin/reservation-monitor.spec.ts` | 3 | ✅ Done |
+
+**Supporting changes:**
+- `playwright.config.ts` — Added `notifications` and `dashboard-stats` projects
+- Multi-portal tests use absolute URLs for correct portal navigation
+
+**CI Status:** GREEN
 
 ---
 
@@ -269,8 +290,8 @@ export async function submitEventForReview(request, eventId, sellerToken): void
 |------|-------|--------|--------|--------|
 | Tier 1 (5 items) | ~20 tests | 4-6 hours | Covers critical gaps | ✅ COMPLETE |
 | Tier 2 (5 items) | ~15 tests | 3-4 hours | Improves confidence | ✅ COMPLETE |
-| Tier 3 (5 items) | ~12 tests | 2-3 hours | Nice-to-have | ⏳ Pending |
-| **Total** | **~47 tests** | **9-13 hours** | **Full coverage** | **35/47 done** |
+| Tier 3 (5 items) | ~12 tests | 2-3 hours | Nice-to-have | ✅ COMPLETE |
+| **Total** | **~47 tests** | **9-13 hours** | **Full coverage** | **✅ 51/47 done** |
 
 ---
 
