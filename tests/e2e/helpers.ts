@@ -563,6 +563,24 @@ export async function buyerLogoutFallback(page: Page) {
   await expect(page.getByRole('navigation').getByRole('link', { name: 'Login' })).toBeVisible();
 }
 
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  { retries = 2, delay = 1000 }: { retries?: number; delay?: number } = {},
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, delay * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 export async function submitEventForReview(
   request: APIRequestContext,
   eventId: string,

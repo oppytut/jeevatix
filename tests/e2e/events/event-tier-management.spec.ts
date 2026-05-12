@@ -4,6 +4,7 @@ import {
   createEventViaSellerApi,
   loginApi,
   loginSellerUi,
+  withRetry,
 } from '../helpers';
 
 test.describe('Tier Management Page', () => {
@@ -15,12 +16,12 @@ test.describe('Tier Management Page', () => {
   let eventId: string;
 
   test.beforeAll(async ({ request }) => {
-    const seller = await createSellerViaApi(request);
+    const seller = await withRetry(() => createSellerViaApi(request));
     sellerEmail = seller.email;
     sellerPassword = seller.password;
-    const session = await loginApi(request, seller.email, seller.password);
+    const session = await withRetry(() => loginApi(request, seller.email, seller.password));
     sellerAccessToken = session.access_token;
-    const event = await createEventViaSellerApi(request, sellerAccessToken, 'Tier Mgmt');
+    const event = await withRetry(() => createEventViaSellerApi(request, sellerAccessToken, 'Tier Mgmt'));
     eventId = event.id;
   });
 

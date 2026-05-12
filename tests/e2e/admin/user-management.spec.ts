@@ -6,6 +6,7 @@ import {
   loginBuyerUi,
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
+  withRetry,
 } from '../helpers';
 
 test.describe('Admin User Management', () => {
@@ -16,7 +17,7 @@ test.describe('Admin User Management', () => {
   let targetPassword: string;
 
   test.beforeAll(async ({ request }) => {
-    const buyer = await createBuyerViaApi(request);
+    const buyer = await withRetry(() => createBuyerViaApi(request));
     targetUserId = buyer.userId;
     targetEmail = buyer.email;
     targetPassword = buyer.password;

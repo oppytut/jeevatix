@@ -5,6 +5,7 @@ import {
   loginApi,
   loginSellerUi,
   formatDateTimeLocal,
+  withRetry,
 } from '../helpers';
 
 test.describe('Event Edit Flow', () => {
@@ -16,12 +17,12 @@ test.describe('Event Edit Flow', () => {
   let eventId: string;
 
   test.beforeAll(async ({ request }) => {
-    const seller = await createSellerViaApi(request);
+    const seller = await withRetry(() => createSellerViaApi(request));
     sellerEmail = seller.email;
     sellerPassword = seller.password;
-    const session = await loginApi(request, seller.email, seller.password);
+    const session = await withRetry(() => loginApi(request, seller.email, seller.password));
     sellerAccessToken = session.access_token;
-    const event = await createEventViaSellerApi(request, sellerAccessToken, 'Edit Test');
+    const event = await withRetry(() => createEventViaSellerApi(request, sellerAccessToken, 'Edit Test'));
     eventId = event.id;
   });
 

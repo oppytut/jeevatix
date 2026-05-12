@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import {
   createBuyerViaApi,
   loginBuyerUi,
+  withRetry,
 } from '../helpers';
 
 test.describe('Buyer Profile Edit', () => {
@@ -11,7 +12,7 @@ test.describe('Buyer Profile Edit', () => {
   let buyerPassword: string;
 
   test.beforeAll(async ({ request }) => {
-    const buyer = await createBuyerViaApi(request);
+    const buyer = await withRetry(() => createBuyerViaApi(request));
     buyerEmail = buyer.email;
     buyerPassword = buyer.password;
   });

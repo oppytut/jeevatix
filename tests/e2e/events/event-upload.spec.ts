@@ -3,6 +3,7 @@ import {
   createSellerViaApi,
   loginSellerUi,
   formatDateTimeLocal,
+  withRetry,
 } from '../helpers';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -18,7 +19,7 @@ test.describe('Event File Upload', () => {
   const testImagePath = path.resolve(__dirname, '../fixtures/test-image.png');
 
   test.beforeAll(async ({ request }) => {
-    const seller = await createSellerViaApi(request);
+    const seller = await withRetry(() => createSellerViaApi(request));
     sellerEmail = seller.email;
     sellerPassword = seller.password;
   });
