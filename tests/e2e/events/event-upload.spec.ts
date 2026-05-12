@@ -37,7 +37,7 @@ test.describe('Event File Upload', () => {
 
     const musikButton = page.locator('button', { hasText: 'Musik' }).first();
     await musikButton.click();
-    await page.waitForTimeout(200);
+    await expect(musikButton).toHaveClass(/jeevatix-600/, { timeout: 5000 });
 
     const lanjutButton = page.getByRole('button', { name: /Lanjut/i });
     await lanjutButton.click();
