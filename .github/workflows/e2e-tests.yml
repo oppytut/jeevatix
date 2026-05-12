@@ -52,7 +52,20 @@ jobs:
           echo "✅ Workers warmed up"
 
       - name: Run E2E tests against staging
-        run: pnpm exec playwright test
+        run: |
+          pnpm exec playwright test \
+            --project=critical \
+            --project=auth \
+            --project=auth-seller \
+            --project=auth-admin \
+            --project=auth-password-reset \
+            --project=events \
+            --project=checkout \
+            --project=admin-management \
+            --project=buyer-features \
+            --project=seller-features \
+            --project=notifications \
+            --project=dashboard-stats
         
       - uses: actions/upload-artifact@v4
         if: always()
