@@ -129,6 +129,22 @@ export default defineConfig({
 				baseURL: buyerURL
 			},
 			testMatch: /accessibility\.spec\.ts/
+		},
+		{
+			name: 'admin-management',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: adminURL
+			},
+			testMatch: /admin\/.*\.spec\.ts/
+		},
+		{
+			name: 'buyer-features',
+			use: {
+				...devices['Desktop Chrome'],
+				baseURL: buyerURL
+			},
+			testMatch: /buyer\/.*\.spec\.ts/
 		}
 	],
 	webServer: useStaging ? undefined : [
