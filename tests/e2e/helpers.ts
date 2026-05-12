@@ -562,3 +562,102 @@ export async function buyerLogoutFallback(page: Page) {
   await page.goto('/');
   await expect(page.getByRole('navigation').getByRole('link', { name: 'Login' })).toBeVisible();
 }
+
+export async function submitEventForReview(
+  request: APIRequestContext,
+  eventId: string,
+  sellerAccessToken: string,
+) {
+  await apiRequest(request, 'POST', `/seller/events/${eventId}/submit`, {
+    token: sellerAccessToken,
+  });
+}
+
+export async function updateEventViaSellerApi(
+  request: APIRequestContext,
+  eventId: string,
+  sellerAccessToken: string,
+  data: Record<string, unknown>,
+) {
+  const result = await apiRequest<SellerEventDetail>(request, 'PATCH', `/seller/events/${eventId}`, {
+    token: sellerAccessToken,
+    data,
+  });
+  return result.data;
+}
+
+export async function getEventTiersViaApi(
+  request: APIRequestContext,
+  eventId: string,
+  sellerAccessToken: string,
+) {
+  const result = await apiRequest<Array<{ id: string; name: string; price: number; quota: number; sold_count: number; status: string }>>(
+    request,
+    'GET',
+    `/seller/events/${eventId}/tiers`,
+    { token: sellerAccessToken },
+  );
+  return result.data;
+}
+
+export async function createTierViaApi(
+  request: APIRequestContext,
+  eventId: string,
+  sellerAccessToken: string,
+  tier: { name: string; price: number; quota: number; description?: string; sort_order?: number },
+) {
+  const result = await apiRequest<{ id: string; name: string; price: number; quota: number }>(
+    request,
+    'POST',
+    `/seller/events/${eventId}/tiers`,
+    { token: sellerAccessToken, data: tier },
+  );
+  return result.data;
+}
+
+export async function deleteTierViaApi(
+  request: APIRequestContext,
+  eventId: string,
+  tierId: string,
+  sellerAccessToken: string,
+) {
+  await apiRequest(request, 'DELETE', `/seller/events/${eventId}/tiers/${tierId}`, {
+    token: sellerAccessToken,
+  });
+}
+
+export async function suspendUserViaApi(
+  request: APIRequestContext,
+  userId: string,
+  adminAccessToken: string,
+) {
+  await apiRequest(request, 'PATCH', `/admin/users/${userId}/status`, {
+    token: adminAccessToken,
+    data: { status: 'suspended' },
+  });
+}
+
+export async function activateUserViaApi(
+  request: APIRequestContext,
+  userId: string,
+  adminAccessToken: string,
+) {
+  await apiRequest(request, 'PATCH', `/admin/users/${userId}/status`, {
+    token: adminAccessToken,
+    data: { status: 'active' },
+  });
+}
+
+export async function updateProfileViaApi(
+  request: APIRequestContext,
+  accessToken: string,
+  data: { full_name?: string; phone?: string; avatar_url?: string },
+) {
+  const result = await apiRequest<{ id: string; full_name: string; phone: string | null; avatar_url: string | null }>(
+    request,
+    'PATCH',
+    '/users/me',
+    { token: accessToken, data },
+  );
+  return result.data;
+}

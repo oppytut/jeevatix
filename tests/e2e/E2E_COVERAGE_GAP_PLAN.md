@@ -1,8 +1,9 @@
 # E2E Test Coverage Gap — Implementation Plan
 
 > Generated: 2026-05-12
-> Status: Ready for implementation
+> Status: Tier 1 COMPLETE, Tier 2-3 pending
 > Prerequisite: CI E2E green (0 failed, 16 passed, 14 skipped)
+> Branch: `feat/e2e-coverage-tier1`
 
 ---
 
@@ -15,80 +16,32 @@
 
 ---
 
+## Tier 1 — High Priority ✅ COMPLETE (2026-05-12)
+
+**Branch**: `feat/e2e-coverage-tier1`
+**Tests added**: 20 new tests across 5 spec files
+**Playwright discovery**: 25 tests in 7 files (events + admin-management + buyer-features projects)
+
+| # | Spec File | Tests | Status |
+|---|-----------|-------|--------|
+| 1.1 | `tests/e2e/events/event-edit.spec.ts` | 4 | ✅ Done |
+| 1.2 | `tests/e2e/events/event-tier-management.spec.ts` | 5 | ✅ Done |
+| 1.3 | `tests/e2e/admin/user-management.spec.ts` | 4 | ✅ Done |
+| 1.4 | `tests/e2e/buyer/profile.spec.ts` | 4 | ✅ Done |
+| 1.5 | `tests/e2e/events/event-upload.spec.ts` | 3 | ✅ Done |
+
+**Supporting changes:**
+- `tests/e2e/helpers.ts` — 8 new helpers (`submitEventForReview`, `updateEventViaSellerApi`, `getEventTiersViaApi`, `createTierViaApi`, `deleteTierViaApi`, `suspendUserViaApi`, `activateUserViaApi`, `updateProfileViaApi`)
+- `playwright.config.ts` — Added `admin-management` and `buyer-features` projects
+- `tests/e2e/fixtures/test-image.png` — Minimal 1x1 PNG for upload testing
+
+---
+
 ## Coverage Gaps (Prioritized)
 
-### Tier 1 — High Priority
+### Tier 1 — High Priority ✅ COMPLETE
 
-These are critical user paths with zero or minimal E2E coverage.
-
-#### 1.1 Event Edit Flow (Seller)
-
-**Route**: `/events/[id]/edit`
-**Why**: Users create events then need to edit them. Zero test coverage.
-**Test plan**:
-- Create event via API → navigate to edit page
-- Modify title, description, dates
-- Save and verify changes persisted
-- Verify validation (empty required fields)
-
-**Dependencies**: `loginSellerUi`, `createEventViaSellerApi`
-**File**: `tests/e2e/events/event-edit.spec.ts`
-
-#### 1.2 Tier Management Edit/Delete (Seller)
-
-**Route**: `/events/[id]/tiers`
-**Why**: Only creation tested via wizard. Dedicated tier page edit/delete untested.
-**Test plan**:
-- Navigate to tier management page for existing event
-- Edit tier name, price, quota
-- Delete a tier (verify confirmation dialog)
-- Verify cannot delete last tier
-- Verify sold tier cannot be deleted
-
-**Dependencies**: `loginSellerUi`, `createEventViaSellerApi`
-**File**: `tests/e2e/events/event-tier-management.spec.ts`
-
-#### 1.3 User Management Actions (Admin)
-
-**Route**: `/users/[id]`
-**Why**: Admin-critical functionality. Suspend/ban users untested.
-**Test plan**:
-- Login as admin → navigate to users list
-- Click user detail
-- Suspend user → verify status change
-- Activate user → verify status restored
-- Verify suspended user cannot login
-
-**Dependencies**: `loginAdminUi`, `createBuyerViaApi`
-**File**: `tests/e2e/admin/user-management.spec.ts`
-
-#### 1.4 Profile Edit (Buyer)
-
-**Route**: `/profile`
-**Why**: Basic CRUD for user profile. No interaction test.
-**Test plan**:
-- Login as buyer → navigate to profile
-- Edit full name, phone
-- Save and verify changes
-- Verify validation (empty name)
-
-**Dependencies**: `loginBuyerUi`
-**File**: `tests/e2e/buyer/profile.spec.ts`
-
-#### 1.5 File Upload (Cross-cutting)
-
-**Route**: Event create wizard step 3 (banner + gallery)
-**Why**: R2 upload flow completely untested.
-**Test plan**:
-- Navigate to event create → step 3
-- Upload banner image (mock file)
-- Upload gallery image
-- Verify preview renders
-- Verify uploaded URL in form state
-
-**Dependencies**: `loginSellerUi`, test image fixture
-**File**: `tests/e2e/events/event-upload.spec.ts`
-**Note**: May need to mock R2 or use a small test image
+See above for implementation details.
 
 ---
 
