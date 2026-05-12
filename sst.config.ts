@@ -188,6 +188,7 @@ function createApiEnvironment() {
   );
   if (isStagingStage()) {
     environment.PLAYWRIGHT_E2E = '1';
+    environment.AUTH_EXPOSE_DEBUG_TOKENS = '1';
   }
   setOptionalEnvironmentValue(environment, 'PARTY_SECRET', maybeEnv('PARTY_SECRET'));
   setOptionalEnvironmentValue(environment, 'PARTYKIT_HOST', maybeEnv('PARTYKIT_HOST'));
