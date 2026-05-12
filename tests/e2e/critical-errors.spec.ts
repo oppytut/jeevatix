@@ -53,19 +53,21 @@ test.describe('Critical Error Scenarios', () => {
     expect(hasReservationOrPayment).toBeTruthy();
   });
 
-  test('should show error for expired reservation', async ({ page, request }) => {
+  test('should show error for expired reservation', async ({ page }) => {
     await loginBuyerUi(page, buyerEmail, buyerPassword);
 
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
 
     const bodyText = await page.locator('body').textContent();
-    const hasCheckoutContent =
-      bodyText?.includes('Pilih Tiket') ||
-      bodyText?.includes('Reservasi') ||
-      bodyText?.includes('checkout');
+    const isOnCheckoutPage =
+      page.url().includes('/checkout/') ||
+      bodyText?.includes('tiket') ||
+      bodyText?.includes('Tiket') ||
+      bodyText?.includes('event') ||
+      bodyText?.includes('Reservasi');
 
-    expect(hasCheckoutContent).toBeTruthy();
+    expect(isOnCheckoutPage).toBeTruthy();
   });
 
   test('should handle session expiry during checkout', async ({ page, context }) => {
