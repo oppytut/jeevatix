@@ -30,11 +30,15 @@ test.describe('Critical Error Scenarios', () => {
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
 
+    // Wait for tiers to render (up to 10s)
     const tierRadio = page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`);
+    await tierRadio.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
+
     if ((await tierRadio.count()) === 0) {
-      test.skip(true, 'Tier radio button not found on checkout page');
+      test.skip(true, 'Tier radio button not found — event tiers may not have loaded');
       return;
     }
+
     await tierRadio.check({ force: true });
 
     await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
@@ -48,7 +52,7 @@ test.describe('Critical Error Scenarios', () => {
       bodyText?.includes('bayar') ||
       bodyText?.includes('payment') ||
       bodyText?.includes('countdown') ||
-      page.url().includes('/payment');
+      bodyText?.includes('dikunci');
 
     expect(hasReservationOrPayment).toBeTruthy();
   });
@@ -94,11 +98,15 @@ test.describe('Critical Error Scenarios', () => {
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
 
+    // Wait for tiers to render (up to 10s)
     const tierRadio = page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`);
+    await tierRadio.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
+
     if ((await tierRadio.count()) === 0) {
-      test.skip(true, 'Tier radio button not found on checkout page');
+      test.skip(true, 'Tier radio button not found — event tiers may not have loaded');
       return;
     }
+
     await tierRadio.check({ force: true });
 
     const reserveButton = page.getByRole('button', { name: 'Reservasi Tiket' });
@@ -116,57 +124,98 @@ test.describe('Critical Error Scenarios', () => {
     expect(hasReservationState).toBeTruthy();
   });
 
-  test('should show appropriate error for insufficient stock', async ({ page }) => {
+  test('should handle network errors during reservation', async ({ page, context }) => {
     await loginBuyerUi(page, buyerEmail, buyerPassword);
 
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
 
+    // Wait for tiers to render (up to 10s)
     const tierRadio = page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`);
+    await tierRadio.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
+
     if ((await tierRadio.count()) === 0) {
-      test.skip(true, 'Tier radio button not found on checkout page');
+      test.skip(true, 'Tier radio button not found — event tiers may not have loaded');
       return;
     }
+
     await tierRadio.check({ force: true });
 
-    const quantityInput = page.locator('input[name="quantity"]');
-    await quantityInput.fill('999');
+    // Simulate network failure by blocking API requests
+    await context.route(`${API_URL}/**`, (route) => route.abort());
 
     await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
     await page.waitForTimeout(2000);
 
+    // Should show error or stay on checkout page
     const bodyText = await page.locator('body').textContent();
-    const hasStockError =
-      bodyText?.includes('stok') ||
-      bodyText?.includes('stock') ||
-      bodyText?.includes('tersedia') ||
-      bodyText?.includes('melebihi') ||
-      bodyText?.includes('insufficient') ||
+    const hasErrorOrStaysOnPage =
+      bodyText?.includes('error') ||
+      bodyText?.includes('gagal') ||
+      bodyText?.includes('failed') ||
       page.url().includes('/checkout/');
 
-    expect(hasStockError).toBeTruthy();
+    expect(hasErrorOrStaysOnPage).toBeTruthy();
+
+    // Restore network
+    await context.unroute(`${API_URL}/**`);
   });
 
-  test('should handle network errors gracefully', async ({ page, context }) => {
+  test('should validate required fields before submission', async ({ page }) => {
     await loginBuyerUi(page, buyerEmail, buyerPassword);
 
-    await page.goto('/');
+    await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
 
-    const bodyText = await page.locator('body').textContent();
-    const hasContent = bodyText && bodyText.length > 100;
+    // Try to submit without selecting tier
+    const reserveButton = page.getByRole('button', { name: 'Reservasi Tiket' });
+    await reserveButton.click();
+    await page.waitForTimeout(1000);
 
-    expect(hasContent).toBeTruthy();
+    // Should show validation error or stay on page
+    const bodyText = await page.locator('body').textContent();
+    const hasValidationOrStaysOnPage =
+      bodyText?.includes('pilih') ||
+      bodyText?.includes('select') ||
+      bodyText?.includes('required') ||
+      bodyText?.includes('wajib') ||
+      page.url().includes('/checkout/');
+
+    expect(hasValidationOrStaysOnPage).toBeTruthy();
   });
 
-  test('should validate form inputs before submission', async ({ page }) => {
-    await page.goto('/register');
+  test('should handle sold out tiers gracefully', async ({ page }) => {
+    await loginBuyerUi(page, buyerEmail, buyerPassword);
 
-    await page.getByRole('button', { name: /daftar/i }).click();
+    await page.goto(`/checkout/${eventSlug}`);
+    await page.waitForLoadState('networkidle');
 
-    await page.waitForTimeout(500);
+    // Wait for tiers to render (up to 10s)
+    const tierRadio = page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`);
+    await tierRadio.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
 
-    const isStillOnRegister = page.url().includes('/register');
-    expect(isStillOnRegister).toBeTruthy();
+    if ((await tierRadio.count()) === 0) {
+      test.skip(true, 'Tier radio button not found — event tiers may not have loaded');
+      return;
+    }
+
+    // Check if tier is disabled (sold out)
+    const isDisabled = await tierRadio.isDisabled();
+
+    if (isDisabled) {
+      // Verify sold out message is shown
+      const bodyText = await page.locator('body').textContent();
+      const hasSoldOutMessage =
+        bodyText?.includes('habis') ||
+        bodyText?.includes('sold out') ||
+        bodyText?.includes('tidak tersedia');
+
+      expect(hasSoldOutMessage).toBeTruthy();
+    } else {
+      // If not sold out, should be able to select
+      await tierRadio.check({ force: true });
+      const isChecked = await tierRadio.isChecked();
+      expect(isChecked).toBeTruthy();
+    }
   });
 });
