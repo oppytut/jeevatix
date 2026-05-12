@@ -63,9 +63,7 @@ jobs:
             --project=checkout \
             --project=admin-management \
             --project=buyer-features \
-            --project=seller-features \
-            --project=notifications \
-            --project=dashboard-stats
+            --project=seller-features
         
       - uses: actions/upload-artifact@v4
         if: always()

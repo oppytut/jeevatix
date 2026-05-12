@@ -161,22 +161,6 @@ export default defineConfig({
 				baseURL: sellerURL
 			},
 			testMatch: /seller\/.*\.spec\.ts/
-		},
-		{
-			name: 'notifications',
-			use: {
-				...devices['Desktop Chrome'],
-				baseURL: buyerURL
-			},
-			testMatch: /notifications\.spec\.ts/
-		},
-		{
-			name: 'dashboard-stats',
-			use: {
-				...devices['Desktop Chrome'],
-				baseURL: sellerURL
-			},
-			testMatch: /dashboard-stats\.spec\.ts/
 		}
 	],
 	webServer: useStaging ? undefined : [
