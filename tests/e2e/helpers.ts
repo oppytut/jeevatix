@@ -193,49 +193,31 @@ async function apiRequest<T>(
     headers.Authorization = `Bearer ${options.token}`;
   }
 
-  const maxAttempts = 3;
-  let lastError: Error | undefined;
+  const response = await request.fetch(`${API_URL}${path}`, {
+    method,
+    headers,
+    data: options.data,
+    timeout: 30000,
+  });
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const response = await request.fetch(`${API_URL}${path}`, {
-      method,
-      headers,
-      data: options.data,
-      timeout: 30000,
-    });
-
-    if (response.status() === 503 || response.status() === 502 || response.status() === 504) {
-      lastError = new Error(
-        `${method} ${path} failed: ${response.status()} ${response.statusText()}`,
-      );
-      if (attempt < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
-        continue;
-      }
-      throw lastError;
-    }
-
-    const contentType = response.headers()['content-type'] ?? '';
-    if (!contentType.includes('application/json')) {
-      const text = await response.text();
-      throw new Error(
-        `${method} ${path} returned non-JSON (${response.status()}): ${text.substring(0, 200)}`,
-      );
-    }
-
-    const payload = (await response.json()) as Envelope<T> | ErrorEnvelope;
-
-    if (!response.ok() || !('success' in payload) || payload.success !== true) {
-      const errorPayload = payload as ErrorEnvelope;
-      throw new Error(
-        `${method} ${path} failed: ${errorPayload.error?.code ?? response.status()} ${errorPayload.error?.message ?? response.statusText()}`,
-      );
-    }
-
-    return payload;
+  const contentType = response.headers()['content-type'] ?? '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text();
+    throw new Error(
+      `${method} ${path} returned non-JSON (${response.status()}): ${text.substring(0, 200)}`,
+    );
   }
 
-  throw lastError ?? new Error(`${method} ${path} failed after ${maxAttempts} attempts`);
+  const payload = (await response.json()) as Envelope<T> | ErrorEnvelope;
+
+  if (!response.ok() || !('success' in payload) || payload.success !== true) {
+    const errorPayload = payload as ErrorEnvelope;
+    throw new Error(
+      `${method} ${path} failed: ${errorPayload.error?.code ?? response.status()} ${errorPayload.error?.message ?? response.statusText()}`,
+    );
+  }
+
+  return payload;
 }
 
 export async function loginApi(request: APIRequestContext, email: string, password: string) {
@@ -669,7 +651,7 @@ export async function buyerLogoutFallback(page: Page) {
 
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  { retries = 4, delay = 2000 }: { retries?: number; delay?: number } = {},
+  { retries = 2, delay = 1500 }: { retries?: number; delay?: number } = {},
 ): Promise<T> {
   let lastError: Error | undefined;
   for (let attempt = 0; attempt <= retries; attempt++) {
