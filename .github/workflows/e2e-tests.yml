@@ -1,7 +1,9 @@
 name: E2E Tests
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
@@ -10,6 +12,7 @@ jobs:
   e2e-tests:
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
     
     env:
       E2E_TARGET: staging
