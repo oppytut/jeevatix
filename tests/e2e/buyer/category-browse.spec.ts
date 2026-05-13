@@ -3,10 +3,10 @@ import { loginBuyerUi, createBuyerViaApi, listCategories, withRetry } from '../h
 
 test.describe('Buyer Category Browse', () => {
 	test('should display category page with events', async ({ page, request }) => {
-		const buyer = await createBuyerViaApi(request);
+		const buyer = await withRetry(() => createBuyerViaApi(request));
 		await loginBuyerUi(page, buyer.email, buyer.password);
 
-		const categories = await listCategories(request);
+		const categories = await withRetry(() => listCategories(request));
 		expect(categories.length).toBeGreaterThan(0);
 
 		await page.goto(`/categories/${categories[0].slug}`);
@@ -19,7 +19,7 @@ test.describe('Buyer Category Browse', () => {
 	});
 
 	test('should show empty state for category with no events', async ({ page, request }) => {
-		const buyer = await createBuyerViaApi(request);
+		const buyer = await withRetry(() => createBuyerViaApi(request));
 		await loginBuyerUi(page, buyer.email, buyer.password);
 
 		await page.goto('/categories/nonexistent-category-slug-xyz');
@@ -33,10 +33,10 @@ test.describe('Buyer Category Browse', () => {
 	});
 
 	test('should display category filter pills', async ({ page, request }) => {
-		const buyer = await createBuyerViaApi(request);
+		const buyer = await withRetry(() => createBuyerViaApi(request));
 		await loginBuyerUi(page, buyer.email, buyer.password);
 
-		const categories = await listCategories(request);
+		const categories = await withRetry(() => listCategories(request));
 		expect(categories.length).toBeGreaterThan(0);
 
 		await page.goto(`/categories/${categories[0].slug}`);

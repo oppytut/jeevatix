@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { loginBuyerUi, createBuyerViaApi } from '../helpers';
+import { loginBuyerUi, createBuyerViaApi, withRetry } from '../helpers';
 
 test.describe('Buyer Notifications', () => {
 	test('should display buyer notifications page', async ({ page, request }) => {
-		const buyer = await createBuyerViaApi(request);
+		const buyer = await withRetry(() => createBuyerViaApi(request));
 		await loginBuyerUi(page, buyer.email, buyer.password);
 
 		await page.goto('/notifications');
@@ -19,7 +19,7 @@ test.describe('Buyer Notifications', () => {
 	});
 
 	test('should show mark all as read or empty state', async ({ page, request }) => {
-		const buyer = await createBuyerViaApi(request);
+		const buyer = await withRetry(() => createBuyerViaApi(request));
 		await loginBuyerUi(page, buyer.email, buyer.password);
 
 		await page.goto('/notifications');

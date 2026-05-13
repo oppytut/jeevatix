@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { loginSellerUi, createSellerViaApi } from '../helpers';
+import { loginSellerUi, createSellerViaApi, withRetry } from '../helpers';
 
 test.describe('Seller Dashboard Stats', () => {
 	test('should display seller dashboard stats', async ({ page, request }) => {
-		const seller = await createSellerViaApi(request);
+		const seller = await withRetry(() => createSellerViaApi(request));
 		await loginSellerUi(page, seller.email, seller.password);
 
 		await page.goto('/');
