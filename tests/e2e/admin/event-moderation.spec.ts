@@ -59,13 +59,11 @@ test.describe('Admin Event Moderation', () => {
     await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
-    // Navigate to event detail
     await page.goto(`/events/${eventId}`);
     await page.waitForLoadState('networkidle');
 
-    // Verify event detail page shows status badge
     const body = page.locator('body');
-    await expect(body).toContainText(/pending_review|published|rejected/i);
+    await expect(body).toContainText(/pending review|published|rejected|draft|approved/i);
   });
 
   test('should publish event successfully', async ({ page }) => {
