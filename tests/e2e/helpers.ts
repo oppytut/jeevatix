@@ -207,10 +207,10 @@ async function apiRequest<T>(
 
   const payload = ((await response.json()) as Envelope<T> | ErrorEnvelope);
 
-  if (!response.ok || !('success' in payload) || payload.success !== true) {
+  if (!response.ok() || !('success' in payload) || payload.success !== true) {
     const errorPayload = payload as ErrorEnvelope;
     throw new Error(
-      `${method} ${path} failed: ${errorPayload.error?.code ?? response.status} ${errorPayload.error?.message ?? response.statusText}`,
+      `${method} ${path} failed: ${errorPayload.error?.code ?? response.status()} ${errorPayload.error?.message ?? response.statusText()}`,
     );
   }
 
