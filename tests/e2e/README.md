@@ -87,16 +87,13 @@ tests/e2e/
 ├── helpers.ts                   # Test utilities
 ├── mock-api-server.mjs         # Mock API (deprecated)
 ├── README.md                    # This file
-├── TIER1_CRITICAL_TESTS.md      # Critical error scenarios & edge cases
-├── TIER2_FEATURE_TESTS.md       # Feature-specific test catalog
-└── TIER3_IMPLEMENTATION_GUIDE.md # POM, visual regression, accessibility guide
+└── E2E_COVERAGE_GAP_PLAN.md    # Coverage gap analysis & implementation status
 ```
 
 ### Test Documentation
 
-- **[TIER1_CRITICAL_TESTS.md](./TIER1_CRITICAL_TESTS.md)** — Critical error scenarios, edge cases, security tests (16 tests)
-- **[TIER2_FEATURE_TESTS.md](./TIER2_FEATURE_TESTS.md)** — Feature-specific tests: auth, events, checkout, check-in (~38 tests)
-- **[TIER3_IMPLEMENTATION_GUIDE.md](./TIER3_IMPLEMENTATION_GUIDE.md)** — Page Object Model, visual regression (Percy), accessibility (axe-core), performance optimization
+- **[E2E_COVERAGE_GAP_PLAN.md](./E2E_COVERAGE_GAP_PLAN.md)** — Coverage gap analysis, Tier 1-3 implementation status, test inventory
+- Archived: TIER1/2/3 planning docs moved to `docs/archived/2026-05/`
 
 ---
 
