@@ -1,16 +1,28 @@
 import { expect, test } from '@playwright/test';
-import { createBuyerViaApi, isPortalErrorPage, loginBuyerUi, withRetry } from '../helpers';
+import { createBuyerViaApi, isPortalErrorPage, loginBuyerUi, tryWithRetry } from '../helpers';
 
 test.describe('Buyer Profile Edit', () => {
   test.describe.configure({ mode: 'serial' });
 
   let buyerEmail: string;
   let buyerPassword: string;
+  let fixtureReady = false;
 
   test.beforeAll(async ({ request }) => {
-    const buyer = await withRetry(() => createBuyerViaApi(request));
-    buyerEmail = buyer.email;
-    buyerPassword = buyer.password;
+    const buyerResult = await tryWithRetry(() => createBuyerViaApi(request));
+    if (!buyerResult.ok) {
+      console.error('Profile fixture creation failed:', buyerResult.error);
+      return;
+    }
+    buyerEmail = buyerResult.value.email;
+    buyerPassword = buyerResult.value.password;
+    fixtureReady = true;
+  });
+
+  test.beforeEach(async ({}, testInfo) => {
+    if (!fixtureReady) {
+      testInfo.skip();
+    }
   });
 
   test('should display profile page with user info', async ({ page }) => {

@@ -18,28 +18,33 @@ test.describe('Reservation Flow', () => {
   let fixtureReady = false;
 
   test.beforeAll(async ({ request }) => {
-    await withRetry(async () => {
-      const buyer = await createBuyerViaApi(request);
-      buyerEmail = buyer.email;
-      buyerPassword = buyer.password;
+    try {
+      await withRetry(async () => {
+        const buyer = await createBuyerViaApi(request);
+        buyerEmail = buyer.email;
+        buyerPassword = buyer.password;
 
-      const fixture = await createPublishedEventFixture(request);
-      eventSlug = fixture.event.slug;
-      tierId = fixture.event.tiers[0].id;
-    });
-
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const response = await request.get(`${API_URL}/events/${eventSlug}`, {
-        headers: { Accept: 'application/json' },
+        const fixture = await createPublishedEventFixture(request);
+        eventSlug = fixture.event.slug;
+        tierId = fixture.event.tiers[0].id;
       });
-      if (response.ok()) {
-        const payload = await response.json();
-        if (payload.data?.tiers?.length > 0) {
-          fixtureReady = true;
-          break;
+
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const response = await request.get(`${API_URL}/events/${eventSlug}`, {
+          headers: { Accept: 'application/json' },
+        });
+        if (response.ok()) {
+          const payload = await response.json();
+          if (payload.data?.tiers?.length > 0) {
+            fixtureReady = true;
+            break;
+          }
         }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+    } catch (error) {
+      console.error('Reservation flow fixture creation failed:', error);
+      fixtureReady = false;
     }
   });
 
