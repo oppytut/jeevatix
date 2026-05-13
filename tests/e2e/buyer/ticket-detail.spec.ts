@@ -19,20 +19,19 @@ test.describe('Buyer Ticket Detail', () => {
   let fixtureCreated = false;
 
   test.beforeAll(async ({ request }) => {
+    test.setTimeout(180_000);
     try {
       const seller = await withRetry(() => createSellerViaApi(request));
-      const sellerSession = await withRetry(() =>
-        loginApi(request, seller.email, seller.password)
-      );
+      const sellerSession = await withRetry(() => loginApi(request, seller.email, seller.password));
 
       const event = await withRetry(() =>
-        createEventViaSellerApi(request, sellerSession.access_token)
+        createEventViaSellerApi(request, sellerSession.access_token),
       );
 
       await withRetry(() => publishEventAsAdmin(request, event.id));
 
       const fixture = await withRetry(() =>
-        createConfirmedOrderFixture(request, event.id, sellerSession.access_token)
+        createConfirmedOrderFixture(request, event.id, sellerSession.access_token),
       );
 
       buyerEmail = fixture.buyer.email;

@@ -18,17 +18,18 @@ test.describe('Buyer Order Detail', () => {
   let orderNumber: string;
   let fixtureCreated = false;
 
+  // Fixture creates seller + event + publish + buyer + reservation + order + payment + webhook
+  // — many sequential API calls that can exceed default 60s on staging cold start.
   test.beforeAll(async ({ request }) => {
+    test.setTimeout(180_000);
     try {
       // Create seller
       const seller = await withRetry(() => createSellerViaApi(request));
-      const sellerSession = await withRetry(() =>
-        loginApi(request, seller.email, seller.password)
-      );
+      const sellerSession = await withRetry(() => loginApi(request, seller.email, seller.password));
 
       // Create event
       const event = await withRetry(() =>
-        createEventViaSellerApi(request, sellerSession.access_token)
+        createEventViaSellerApi(request, sellerSession.access_token),
       );
 
       // Publish event
@@ -36,7 +37,7 @@ test.describe('Buyer Order Detail', () => {
 
       // Create confirmed order fixture
       const fixture = await withRetry(() =>
-        createConfirmedOrderFixture(request, event.id, sellerSession.access_token)
+        createConfirmedOrderFixture(request, event.id, sellerSession.access_token),
       );
 
       buyerEmail = fixture.buyer.email;
