@@ -3,20 +3,20 @@ import { expect, type APIRequestContext, type BrowserContext, type Page } from '
 const useStaging = process.env.E2E_TARGET === 'staging' || !!process.env.CI;
 
 export const API_URL = useStaging
-	? 'https://jeevatix-staging-api.ariefna95.workers.dev'
-	: 'http://localhost:8787';
+  ? 'https://jeevatix-staging-api.ariefna95.workers.dev'
+  : 'http://localhost:8787';
 
 const BUYER_BASE_URL = useStaging
-	? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
-	: 'http://localhost:4301';
+  ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
+  : 'http://localhost:4301';
 
 const SELLER_BASE_URL = useStaging
-	? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
-	: 'http://localhost:4303';
+  ? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
+  : 'http://localhost:4303';
 
 const ADMIN_BASE_URL = useStaging
-	? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
-	: 'http://localhost:4302';
+  ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
+  : 'http://localhost:4302';
 
 export const ADMIN_EMAIL = 'admin@jeevatix.id';
 export const ADMIN_PASSWORD = 'Admin123!';
@@ -150,7 +150,10 @@ export async function waitForUrl(request: APIRequestContext, url: string) {
     .toBe(true);
 }
 
-export async function waitForPortal(request: APIRequestContext, portal: 'buyer' | 'admin' | 'seller') {
+export async function waitForPortal(
+  request: APIRequestContext,
+  portal: 'buyer' | 'admin' | 'seller',
+) {
   const url =
     portal === 'buyer'
       ? 'http://localhost:4301'
@@ -205,7 +208,7 @@ async function apiRequest<T>(
     );
   }
 
-  const payload = ((await response.json()) as Envelope<T> | ErrorEnvelope);
+  const payload = (await response.json()) as Envelope<T> | ErrorEnvelope;
 
   if (!response.ok() || !('success' in payload) || payload.success !== true) {
     const errorPayload = payload as ErrorEnvelope;
@@ -217,11 +220,7 @@ async function apiRequest<T>(
   return payload;
 }
 
-export async function loginApi(
-  request: APIRequestContext,
-  email: string,
-  password: string,
-) {
+export async function loginApi(request: APIRequestContext, email: string, password: string) {
   const result = await apiRequest<AuthPayload>(request, 'POST', '/auth/login', {
     data: { email, password },
   });
@@ -345,7 +344,11 @@ export async function createEventViaSellerApi(
 export async function createPublishedEventFixture(request: APIRequestContext) {
   const seller = await createSellerViaApi(request);
   const sellerSession = await loginApi(request, seller.email, seller.password);
-  const event = await createEventViaSellerApi(request, sellerSession.access_token, 'Buyer Flow Event');
+  const event = await createEventViaSellerApi(
+    request,
+    sellerSession.access_token,
+    'Buyer Flow Event',
+  );
   await publishEventAsAdmin(request, event.id, 'published');
 
   return {
@@ -367,10 +370,10 @@ export async function createConfirmedOrderFixture(
     'POST',
     `/payments/${pendingOrder.order.id}/pay`,
     {
-    token: pendingOrder.buyerSession.access_token,
-    data: {
-      method: 'bank_transfer',
-    },
+      token: pendingOrder.buyerSession.access_token,
+      data: {
+        method: 'bank_transfer',
+      },
     },
   );
 
@@ -388,10 +391,16 @@ export async function createConfirmedOrderFixture(
     },
   });
 
-  const tickets = await apiRequest<BuyerTicketListItem[]>(request, 'GET', '/tickets?page=1&limit=20', {
-    token: pendingOrder.buyerSession.access_token,
-  });
-  const issuedTicket = tickets.data.find((ticket) => ticket.event_id === eventId) ?? tickets.data[0];
+  const tickets = await apiRequest<BuyerTicketListItem[]>(
+    request,
+    'GET',
+    '/tickets?page=1&limit=20',
+    {
+      token: pendingOrder.buyerSession.access_token,
+    },
+  );
+  const issuedTicket =
+    tickets.data.find((ticket) => ticket.event_id === eventId) ?? tickets.data[0];
 
   if (!issuedTicket) {
     throw new Error(`No ticket was generated for event ${eventId}.`);
@@ -414,9 +423,14 @@ export async function createPendingOrderFixture(
 ): Promise<PendingOrderFixture> {
   const activeBuyer = buyer ?? (await createBuyerViaApi(request));
   const buyerSession = await loginApi(request, activeBuyer.email, activeBuyer.password);
-  const sellerEvent = await apiRequest<SellerEventDetail>(request, 'GET', `/seller/events/${eventId}`, {
-    token: sellerAccessToken,
-  });
+  const sellerEvent = await apiRequest<SellerEventDetail>(
+    request,
+    'GET',
+    `/seller/events/${eventId}`,
+    {
+      token: sellerAccessToken,
+    },
+  );
   const reservation = await apiRequest<ReservationPayload>(request, 'POST', '/reservations', {
     token: buyerSession.access_token,
     data: {
@@ -467,7 +481,7 @@ export async function gotoAndExpectDocument(
   await expect(page).toHaveURL(
     typeof options.finalPath === 'string'
       ? getPathPattern(options.finalPath)
-      : options.finalPath ?? getPathPattern(path),
+      : (options.finalPath ?? getPathPattern(path)),
   );
   await expect(page.locator('body')).toBeVisible();
 
@@ -489,16 +503,40 @@ export async function loginAdminUi(page: Page) {
   const response = await context.request.post(`${API_URL}/auth/login`, {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
   });
-  const payload = await response.json() as Envelope<AuthPayload>;
+  const payload = (await response.json()) as Envelope<AuthPayload>;
   const { access_token, refresh_token, user } = payload.data;
 
   const domain = new URL(ADMIN_BASE_URL).hostname;
   const isSecure = ADMIN_BASE_URL.startsWith('https');
 
   await context.addCookies([
-    { name: 'jeevatix_admin_access_token', value: access_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
-    { name: 'jeevatix_admin_refresh_token', value: refresh_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
-    { name: 'jeevatix_admin_user', value: JSON.stringify(user), domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    {
+      name: 'jeevatix_admin_access_token',
+      value: access_token,
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'jeevatix_admin_refresh_token',
+      value: refresh_token,
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'jeevatix_admin_user',
+      value: JSON.stringify(user),
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
   ]);
 
   await page.goto('/');
@@ -512,16 +550,40 @@ export async function loginSellerUi(page: Page, email: string, password: string)
   const response = await context.request.post(`${API_URL}/auth/login`, {
     data: { email, password },
   });
-  const payload = await response.json() as Envelope<AuthPayload>;
+  const payload = (await response.json()) as Envelope<AuthPayload>;
   const { access_token, refresh_token, user } = payload.data;
 
   const domain = new URL(SELLER_BASE_URL).hostname;
   const isSecure = SELLER_BASE_URL.startsWith('https');
 
   await context.addCookies([
-    { name: 'jeevatix_seller_access_token', value: access_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
-    { name: 'jeevatix_seller_refresh_token', value: refresh_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
-    { name: 'jeevatix_seller_user', value: JSON.stringify(user), domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    {
+      name: 'jeevatix_seller_access_token',
+      value: access_token,
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'jeevatix_seller_refresh_token',
+      value: refresh_token,
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'jeevatix_seller_user',
+      value: JSON.stringify(user),
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
   ]);
 
   await page.goto('/');
@@ -535,16 +597,40 @@ export async function loginBuyerUi(page: Page, email: string, password: string) 
   const response = await context.request.post(`${API_URL}/auth/login`, {
     data: { email, password },
   });
-  const payload = await response.json() as Envelope<AuthPayload>;
+  const payload = (await response.json()) as Envelope<AuthPayload>;
   const { access_token, refresh_token, user } = payload.data;
 
   const domain = new URL(BUYER_BASE_URL).hostname;
   const isSecure = BUYER_BASE_URL.startsWith('https');
 
   await context.addCookies([
-    { name: 'jeevatix_buyer_access_token', value: access_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
-    { name: 'jeevatix_buyer_refresh_token', value: refresh_token, domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
-    { name: 'jeevatix_buyer_user', value: JSON.stringify(user), domain, path: '/', httpOnly: true, secure: isSecure, sameSite: 'Lax' },
+    {
+      name: 'jeevatix_buyer_access_token',
+      value: access_token,
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'jeevatix_buyer_refresh_token',
+      value: refresh_token,
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
+    {
+      name: 'jeevatix_buyer_user',
+      value: JSON.stringify(user),
+      domain,
+      path: '/',
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'Lax',
+    },
   ]);
 
   await page.goto('/');
@@ -581,6 +667,24 @@ export async function withRetry<T>(
   throw lastError;
 }
 
+export async function isPortalErrorPage(page: Page): Promise<boolean> {
+  const heading =
+    (await page
+      .locator('h1')
+      .first()
+      .textContent()
+      .catch(() => '')) ?? '';
+  if (/^\s*(403|404|500|502|503|504)\s*$/.test(heading)) {
+    return true;
+  }
+  const bodyText =
+    (await page
+      .locator('body')
+      .textContent()
+      .catch(() => '')) ?? '';
+  return bodyText.includes('Request failed');
+}
+
 export async function submitEventForReview(
   request: APIRequestContext,
   eventId: string,
@@ -597,10 +701,15 @@ export async function updateEventViaSellerApi(
   sellerAccessToken: string,
   data: Record<string, unknown>,
 ) {
-  const result = await apiRequest<SellerEventDetail>(request, 'PATCH', `/seller/events/${eventId}`, {
-    token: sellerAccessToken,
-    data,
-  });
+  const result = await apiRequest<SellerEventDetail>(
+    request,
+    'PATCH',
+    `/seller/events/${eventId}`,
+    {
+      token: sellerAccessToken,
+      data,
+    },
+  );
   return result.data;
 }
 
@@ -609,12 +718,16 @@ export async function getEventTiersViaApi(
   eventId: string,
   sellerAccessToken: string,
 ) {
-  const result = await apiRequest<Array<{ id: string; name: string; price: number; quota: number; sold_count: number; status: string }>>(
-    request,
-    'GET',
-    `/seller/events/${eventId}/tiers`,
-    { token: sellerAccessToken },
-  );
+  const result = await apiRequest<
+    Array<{
+      id: string;
+      name: string;
+      price: number;
+      quota: number;
+      sold_count: number;
+      status: string;
+    }>
+  >(request, 'GET', `/seller/events/${eventId}/tiers`, { token: sellerAccessToken });
   return result.data;
 }
 
@@ -671,11 +784,11 @@ export async function updateProfileViaApi(
   accessToken: string,
   data: { full_name?: string; phone?: string; avatar_url?: string },
 ) {
-  const result = await apiRequest<{ id: string; full_name: string; phone: string | null; avatar_url: string | null }>(
-    request,
-    'PATCH',
-    '/users/me',
-    { token: accessToken, data },
-  );
+  const result = await apiRequest<{
+    id: string;
+    full_name: string;
+    phone: string | null;
+    avatar_url: string | null;
+  }>(request, 'PATCH', '/users/me', { token: accessToken, data });
   return result.data;
 }
