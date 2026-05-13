@@ -496,15 +496,40 @@ export async function gotoAndExpectDocument(
   }
 }
 
+async function fetchAuthPayloadForCookies(
+  context: BrowserContext,
+  email: string,
+  password: string,
+): Promise<AuthPayload> {
+  const result = await withRetry(async () => {
+    const response = await context.request.post(`${API_URL}/auth/login`, {
+      data: { email, password },
+    });
+    const contentType = response.headers()['content-type'] ?? '';
+    if (!contentType.includes('application/json')) {
+      throw new Error(`Login returned non-JSON (${response.status()})`);
+    }
+    const payload = (await response.json()) as Envelope<AuthPayload> | ErrorEnvelope;
+    if (!response.ok() || !('success' in payload) || payload.success !== true) {
+      const errorPayload = payload as ErrorEnvelope;
+      throw new Error(
+        `Login failed: ${errorPayload.error?.code ?? response.status()} ${errorPayload.error?.message ?? response.statusText()}`,
+      );
+    }
+    return payload.data;
+  });
+  return result;
+}
+
 export async function loginAdminUi(page: Page) {
   const context = page.context();
   await context.clearCookies();
 
-  const response = await context.request.post(`${API_URL}/auth/login`, {
-    data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
-  });
-  const payload = (await response.json()) as Envelope<AuthPayload>;
-  const { access_token, refresh_token, user } = payload.data;
+  const { access_token, refresh_token, user } = await fetchAuthPayloadForCookies(
+    context,
+    ADMIN_EMAIL,
+    ADMIN_PASSWORD,
+  );
 
   const domain = new URL(ADMIN_BASE_URL).hostname;
   const isSecure = ADMIN_BASE_URL.startsWith('https');
@@ -547,11 +572,11 @@ export async function loginSellerUi(page: Page, email: string, password: string)
   const context = page.context();
   await context.clearCookies();
 
-  const response = await context.request.post(`${API_URL}/auth/login`, {
-    data: { email, password },
-  });
-  const payload = (await response.json()) as Envelope<AuthPayload>;
-  const { access_token, refresh_token, user } = payload.data;
+  const { access_token, refresh_token, user } = await fetchAuthPayloadForCookies(
+    context,
+    email,
+    password,
+  );
 
   const domain = new URL(SELLER_BASE_URL).hostname;
   const isSecure = SELLER_BASE_URL.startsWith('https');
@@ -594,11 +619,11 @@ export async function loginBuyerUi(page: Page, email: string, password: string) 
   const context = page.context();
   await clearBuyerSession(context);
 
-  const response = await context.request.post(`${API_URL}/auth/login`, {
-    data: { email, password },
-  });
-  const payload = (await response.json()) as Envelope<AuthPayload>;
-  const { access_token, refresh_token, user } = payload.data;
+  const { access_token, refresh_token, user } = await fetchAuthPayloadForCookies(
+    context,
+    email,
+    password,
+  );
 
   const domain = new URL(BUYER_BASE_URL).hostname;
   const isSecure = BUYER_BASE_URL.startsWith('https');
