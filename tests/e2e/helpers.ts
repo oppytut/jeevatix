@@ -565,7 +565,7 @@ export async function buyerLogoutFallback(page: Page) {
 
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  { retries = 2, delay = 1000 }: { retries?: number; delay?: number } = {},
+  { retries = 4, delay = 2000 }: { retries?: number; delay?: number } = {},
 ): Promise<T> {
   let lastError: Error | undefined;
   for (let attempt = 0; attempt <= retries; attempt++) {
