@@ -1,11 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { isPortalErrorPage, loginAdminUi } from '../helpers';
+import { isPortalErrorPage, tryLoginAdminUi } from '../helpers';
 
 test.describe('Admin Notifications', () => {
   test('should display admin notifications page', async ({ page }) => {
-    try {
-      await loginAdminUi(page);
-    } catch {
+    if (!(await tryLoginAdminUi(page))) {
       test.skip(true, 'Admin login failed on staging - service flakiness');
       return;
     }

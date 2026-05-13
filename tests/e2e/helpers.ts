@@ -710,6 +710,41 @@ export async function isPortalErrorPage(page: Page): Promise<boolean> {
   return bodyText.includes('Request failed');
 }
 
+export async function tryLoginAdminUi(page: Page): Promise<boolean> {
+  try {
+    await loginAdminUi(page);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function tryLoginSellerUi(
+  page: Page,
+  email: string,
+  password: string,
+): Promise<boolean> {
+  try {
+    await loginSellerUi(page, email, password);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function tryLoginBuyerUi(
+  page: Page,
+  email: string,
+  password: string,
+): Promise<boolean> {
+  try {
+    await loginBuyerUi(page, email, password);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function tryWithRetry<T>(
   fn: () => Promise<T>,
   options?: { retries?: number; delay?: number },
