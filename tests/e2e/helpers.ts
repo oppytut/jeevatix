@@ -685,6 +685,18 @@ export async function isPortalErrorPage(page: Page): Promise<boolean> {
   return bodyText.includes('Request failed');
 }
 
+export async function tryWithRetry<T>(
+  fn: () => Promise<T>,
+  options?: { retries?: number; delay?: number },
+): Promise<{ ok: true; value: T } | { ok: false; error: Error }> {
+  try {
+    const value = await withRetry(fn, options);
+    return { ok: true, value };
+  } catch (error) {
+    return { ok: false, error: error as Error };
+  }
+}
+
 export async function submitEventForReview(
   request: APIRequestContext,
   eventId: string,

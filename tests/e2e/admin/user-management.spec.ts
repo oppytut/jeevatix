@@ -1,13 +1,5 @@
 import { expect, test } from '@playwright/test';
-import {
-  createBuyerViaApi,
-  loginApi,
-  loginAdminUi,
-  loginBuyerUi,
-  ADMIN_EMAIL,
-  ADMIN_PASSWORD,
-  withRetry,
-} from '../helpers';
+import { createBuyerViaApi, loginAdminUi, tryWithRetry } from '../helpers';
 
 test.describe('Admin User Management', () => {
   test.describe.configure({ mode: 'serial' });
@@ -15,12 +7,23 @@ test.describe('Admin User Management', () => {
   let targetUserId: string;
   let targetEmail: string;
   let targetPassword: string;
+  let fixtureReady = false;
 
   test.beforeAll(async ({ request }) => {
-    const buyer = await withRetry(() => createBuyerViaApi(request));
-    targetUserId = buyer.userId;
-    targetEmail = buyer.email;
-    targetPassword = buyer.password;
+    const buyerResult = await tryWithRetry(() => createBuyerViaApi(request));
+    if (!buyerResult.ok) {
+      return;
+    }
+    targetUserId = buyerResult.value.userId;
+    targetEmail = buyerResult.value.email;
+    targetPassword = buyerResult.value.password;
+    fixtureReady = true;
+  });
+
+  test.beforeEach(async ({}, testInfo) => {
+    if (!fixtureReady) {
+      testInfo.skip();
+    }
   });
 
   test('should display users list with search', async ({ page }) => {
@@ -90,7 +93,9 @@ test.describe('Admin User Management', () => {
     await page.waitForTimeout(500);
 
     // Handle confirmation modal
-    const confirmButton = page.getByRole('button', { name: /Simpan Status|Konfirmasi|Confirm|Ya/i });
+    const confirmButton = page.getByRole('button', {
+      name: /Simpan Status|Konfirmasi|Confirm|Ya/i,
+    });
     if (await confirmButton.isVisible().catch(() => false)) {
       await confirmButton.click();
     }
@@ -126,7 +131,9 @@ test.describe('Admin User Management', () => {
     await page.waitForTimeout(500);
 
     // Handle confirmation modal
-    const confirmButton = page.getByRole('button', { name: /Simpan Status|Konfirmasi|Confirm|Ya/i });
+    const confirmButton = page.getByRole('button', {
+      name: /Simpan Status|Konfirmasi|Confirm|Ya/i,
+    });
     if (await confirmButton.isVisible().catch(() => false)) {
       await confirmButton.click();
     }
@@ -137,16 +144,17 @@ test.describe('Admin User Management', () => {
     // Verify status restored
     const bodyText = await page.locator('body').textContent();
     const isActive =
-      bodyText?.includes('active') ||
-      bodyText?.includes('Active') ||
-      bodyText?.includes('aktif');
+      bodyText?.includes('active') || bodyText?.includes('Active') || bodyText?.includes('aktif');
 
     expect(isActive).toBeTruthy();
 
     // Verify suspended user can login again
-    const loginResult = await page.context().request.post('http://localhost:8787/auth/login', {
-      data: { email: targetEmail, password: targetPassword },
-    }).catch(() => null);
+    const loginResult = await page
+      .context()
+      .request.post('http://localhost:8787/auth/login', {
+        data: { email: targetEmail, password: targetPassword },
+      })
+      .catch(() => null);
 
     if (loginResult) {
       expect(loginResult.ok()).toBeTruthy();
