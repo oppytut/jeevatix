@@ -91,8 +91,10 @@ function getQueueName() {
 }
 
 function getBucketName() {
-  return process.env.R2_BUCKET_NAME ??
-    (isProductionStage() ? 'jeevatix-uploads' : `jeevatix-${getStage()}-uploads`);
+  return (
+    process.env.R2_BUCKET_NAME ??
+    (isProductionStage() ? 'jeevatix-uploads' : `jeevatix-${getStage()}-uploads`)
+  );
 }
 
 function getApiScriptName() {
@@ -160,7 +162,6 @@ function createApiEnvironment() {
     APP_ENVIRONMENT: stage,
     APP_VERSION: buildAppVersion(),
     DATABASE_URL: requireEnv('DATABASE_URL'),
-    DB_DISABLE_CACHE: '1',
     JWT_SECRET: requireEnv('JWT_SECRET'),
     PAYMENT_WEBHOOK_SECRET: requireEnv('PAYMENT_WEBHOOK_SECRET'),
     EMAIL_API_KEY: requireEnv('EMAIL_API_KEY'),
@@ -172,8 +173,7 @@ function createApiEnvironment() {
   setOptionalEnvironmentValue(
     environment,
     'BUYER_APP_URL',
-    maybeEnv('BUYER_APP_URL') ??
-      (deployedDomains ? `https://${deployedDomains.buyer}` : undefined),
+    maybeEnv('BUYER_APP_URL') ?? (deployedDomains ? `https://${deployedDomains.buyer}` : undefined),
   );
   setOptionalEnvironmentValue(
     environment,
@@ -357,25 +357,29 @@ export default $config({
       },
     );
 
-    new sst.cloudflare.Cron('ReservationCleanupCron', {
-      schedules: ['* * * * *'],
-      worker: {
-        handler: 'apps/api/src/index.ts',
-        environment: apiEnvironment,
-        link: [reservationCleanupQueue],
-        transform: {
-          worker(args) {
-            applyApiWorkerTransform(args, {
-              scriptName: reservationCleanupCronScriptName,
-              includeDurableObjects: false,
-              durableObjectScriptName: apiScriptName,
-            });
+    new sst.cloudflare.Cron(
+      'ReservationCleanupCron',
+      {
+        schedules: ['* * * * *'],
+        worker: {
+          handler: 'apps/api/src/index.ts',
+          environment: apiEnvironment,
+          link: [reservationCleanupQueue],
+          transform: {
+            worker(args) {
+              applyApiWorkerTransform(args, {
+                scriptName: reservationCleanupCronScriptName,
+                includeDurableObjects: false,
+                durableObjectScriptName: apiScriptName,
+              });
+            },
           },
         },
       },
-    }, {
-      dependsOn: [api.nodes.worker],
-    });
+      {
+        dependsOn: [api.nodes.worker],
+      },
+    );
 
     const buyer = new sst.cloudflare.Worker('BuyerPortal', {
       handler: 'apps/buyer/.svelte-kit/cloudflare/_worker.js',
