@@ -162,7 +162,7 @@ function createApiEnvironment() {
     APP_ENVIRONMENT: stage,
     APP_VERSION: buildAppVersion(),
     DATABASE_URL: requireEnv('DATABASE_URL'),
-    DB_MAX_CONNECTIONS: '1',
+    DB_DISABLE_CACHE: '1',
     JWT_SECRET: requireEnv('JWT_SECRET'),
     PAYMENT_WEBHOOK_SECRET: requireEnv('PAYMENT_WEBHOOK_SECRET'),
     EMAIL_API_KEY: requireEnv('EMAIL_API_KEY'),
