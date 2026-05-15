@@ -1,13 +1,39 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-14
+last_updated: 2026-05-15
 status: Active
-phase: E2E CI Stabilized — DB Connection Investigation Complete
+phase: E2E CI Stabilized — events/ folder rollout completed
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ E2E CI - events/ folder rollout completed (session 2026-05-15)
+
+Run [25868753359](https://github.com/oppytut/jeevatix/actions/runs/25868753359) (post 2026-05-13 "green") gagal dengan 1 hard failed + 3 flaky di `tests/e2e/events/`. Investigation menemukan folder ini **tidak terkena rollout** `tryLoginSellerUi` dari session 2026-05-13 — masih pakai raw `loginSellerUi(...)` yang throw saat staging API balas 503.
+
+**Fix applied (5 specs, +230/-69 lines):**
+
+| File | Pattern Applied |
+|---|---|
+| `event-tier-management.spec.ts` | tryLoginSellerUi + fixtureReady gate + 180s timeout |
+| `event-edit.spec.ts` | tryLoginSellerUi + fixtureReady gate + 180s timeout |
+| `event-upload.spec.ts` | tryLoginSellerUi + fixtureReady gate + 180s timeout |
+| `event-tiers.spec.ts` | tryLoginSellerUi + fixtureReady gate + 180s timeout |
+| `event-crud.spec.ts` | tryLoginSellerUi + fixtureReady gate + 180s timeout |
+
+Pattern identik dengan canonical `seller/order-management.spec.ts`:
+- `beforeAll` wrap try/catch + `withRetry` → `fixtureReady = true/false`
+- `beforeEach` skip if `!fixtureReady`
+- Per-test: `if (!(await tryLoginSellerUi(...))) { test.skip(...); return; }`
+
+**Verification:**
+- Playwright discovery: 187 tests OK (14 di events/)
+- ESLint: 0 errors (4 pre-existing warnings tidak di-touch)
+- Prettier: clean
+
+**Expected impact:** Saat 503 storm hit, events/ specs sekarang gracefully skip (sama seperti folder lain) alih-alih hard fail. Skipped count maks naik dari 66 → ~80. Tidak fix root cause 503 — masih butuh Hyperdrive (P0).
 
 ### ✅ E2E CI - FULLY GREEN (session 2026-05-13)
 
