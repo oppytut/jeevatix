@@ -268,13 +268,9 @@ test.describe('Tier Management Page', () => {
     expect(page.url()).toContain('/tiers');
   });
 
-  test('should not allow deleting tier with sales', async ({ page, request }) => {
+  test('should not allow deleting tier with sales', async ({ page }) => {
     // This test verifies the API constraint - if a tier has sold tickets, it cannot be deleted
-    // We test this via API since creating a sale requires full checkout flow
-    const session = await loginApi(request, sellerEmail, sellerPassword);
-
-    // Try to delete via API - the tier from beforeAll has no sales so it should succeed
-    // This test documents the expected behavior
+    // We test this via UI smoke (creating a sale requires full checkout flow not exercised here).
     if (!(await tryLoginSellerUi(page, sellerEmail, sellerPassword))) {
       test.skip(true, 'Seller login failed on staging - service flakiness');
       return;
