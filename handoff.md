@@ -2,12 +2,75 @@
 title: Handoff Progress
 last_updated: 2026-05-19
 status: Active
-phase: Local E2E (Phase 1) shipped — real DB Playwright stack runs locally
+phase: Local E2E Phase 2 shipped — email dry-run + local R2 stub unblock password reset and event upload locally
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ Local E2E Phase 2 — email dry-run + local R2 stub (session 2026-05-19)
+
+Goal: vanilla laptop bisa menjalankan `password-reset-flow` dan `event-upload` lewat `pnpm run test:e2e:local` tanpa akun Resend dan tanpa binding R2 Cloudflare. Phase 1 sebelumnya sudah ship real-DB Playwright stack lokal; Phase 2 sekarang menutup dua gap email dan upload yang masih force-skip.
+
+**What changed (6 files):**
+
+| File | Change |
+|---|---|
+| `apps/api/src/services/email.ts` | `EmailEnv` dapat opsional `EMAIL_DRY_RUN`; `EmailService.sendEmail` jadi no-op tanpa cek API key/sender saat flag aktif; `createEmailService` meneruskan flag dari env. |
+| `apps/api/src/services/auth.service.ts` | `resolveEmailEnv` mengembalikan env saat `EMAIL_DRY_RUN` aktif walau `EMAIL_API_KEY`/`EMAIL_FROM` kosong, jadi `sendVerificationEmail`/`sendResetPasswordEmail` tetap dieksekusi dan jadi no-op di service layer. |
+| `apps/api/src/services/payment.service.ts` | `PaymentServiceEnv` + `enqueuePostPaymentEffects` ikut meneruskan `EMAIL_DRY_RUN` ke `createEmailService`. |
+| `apps/api/src/middleware/auth.ts` | `AuthBindings` ditambah `EMAIL_DRY_RUN?: string` agar typing `c.env` konsisten. |
+| `apps/api/src/routes/auth.ts` | `getAuthFlowOptions` meneruskan `EMAIL_DRY_RUN` dari `c.env` / `process.env`. |
+| `apps/api/src/__tests__/email.test.ts` | Test baru: dry-run skip Resend, `createEmailService({ EMAIL_DRY_RUN: '1' })` valid tanpa kredensial. |
+
+**Local R2 stub (4 files):**
+
+| File | Change |
+|---|---|
+| `scripts/run-api-local.ts` | Tambah `LocalDiskBucket` (Node-only, hidup di runner): `put` dipakai upload service, `get` minimal untuk static handler. Static handler baru `/local-uploads/*` melayani file dari disk dengan `content-type` aslinya. Wire `BUCKET_LOCAL=1` → `env.BUCKET = new LocalDiskBucket(...)` dan default `UPLOAD_PUBLIC_URL` ke `http://localhost:<port>/local-uploads/` kalau kosong. Lokasi disk default `<repo>/.tmp/local-r2`, override via `BUCKET_LOCAL_DIR`. Loader env juga membaca `.env.e2e.local` selain `.env`. |
+| `.env.e2e.local.example` | Default `EMAIL_DRY_RUN=1` + `BUCKET_LOCAL=1`, `UPLOAD_PUBLIC_URL=` dibiarkan kosong. Komentar diperbarui. |
+| `apps/api/src/__tests__/upload.test.ts` | Test baru: pastikan `uploadService.uploadFile` menghasilkan URL valid saat base lokal `http://localhost:8787/local-uploads/`. |
+| `apps/api/src/services/upload.service.ts` | Tidak diubah — kontrak Worker tetap, hanya dependency injection runner yang berubah. |
+
+Key design decisions:
+
+- Semua kode Node-only hanya di `scripts/run-api-local.ts`. Worker bundle (`apps/api/src`) tidak berubah, jadi staging/production tetap pakai Resend asli + R2 Cloudflare.
+- `sst.config.ts` sengaja tidak inject `EMAIL_DRY_RUN` atau `BUCKET_LOCAL`. Production tidak mungkin masuk dry-run path.
+- URL pattern stub mengikuti contract `upload.service.ts` (`new URL(key, base/)`) sehingga frontend `<img src={banner_url}>` di buyer/seller/admin merender tanpa modifikasi.
+- Email dry-run di-resolve dengan fallback `process.env.EMAIL_DRY_RUN` sehingga path pemanggil yang masih meneruskan literal env (contoh test) tetap kompatibel.
+
+**Verification:**
+
+- `pnpm run e2e:local:setup` → docker postgres healthy, schema push (`No changes detected`), seed sukses, exit clean.
+- `pnpm run test:e2e:local -- --project=auth-password-reset --reporter=line` → 4 passed (54.4s). Sebelumnya skip karena `EMAIL_API_KEY_MISSING`.
+- `pnpm run test:e2e:local -- --project=events tests/e2e/events/event-upload.spec.ts --reporter=line` → 3 passed (59.5s). Sebelumnya gagal karena `BUCKET_NOT_CONFIGURED`.
+- `pnpm run test:e2e:local` (full suite, sebelum staging-project filter) → 87 passed, 84 skipped, 16 failed (~4 min). Tidak ada failure baru dari Phase 2: zero `EMAIL_API_KEY_MISSING`, `BUCKET_NOT_CONFIGURED`, atau `UPLOAD_PUBLIC_URL_MISSING`. 16 failure semuanya pre-existing (form-action redirect, wizard timing, fixture cascade, test-code bugs di `[object Object]`/`http://login/`, staging-only specs ikut local run, dll).
+- `pnpm run test:e2e:local -- --reporter=json --output=/tmp/jeevatix-e2e-results-2` (setelah staging-project filter) → 86 passed, 84 skipped, 14 failed (~4 min). Dua failure staging-only hilang; sisa 14 tetap pre-existing dan bukan Phase 2 regression.
+- `pnpm --filter @jeevatix/api exec vitest run` (full suite) → 30 file, 153 test pass.
+- `pnpm --filter @jeevatix/api exec tsc --noEmit` → clean.
+- `tsc --noEmit -p scripts/tsconfig.json` → clean.
+- `pnpm exec turbo run lint --filter=@jeevatix/api` → 0 error.
+- Prettier check pada file yang diubah → clean (warning repo-wide hanya artefak generated `apps/api/.wrangler/tmp/*`, `dist/*`, README — pre-existing).
+
+**Polishing tambahan (file ke-11 dalam Phase 2):**
+
+| File | Change |
+|---|---|
+| `playwright.config.ts` | Project `staging` sekarang `testMatch: useStaging ? /staging-.*\.spec\.ts/ : []` sehingga `tests/e2e/staging-*.spec.ts` tidak ikut jalan saat `E2E_TARGET=local`. Menghilangkan 2 false-positive failure di full local run. Mode staging tetap discover spec yang sama persis seperti sebelumnya. |
+
+**Known gaps (Phase 2C / backlog):**
+
+| Area | Status |
+|---|---|
+| Cloudflare Queue / scheduled handlers (reservation cleanup cron) | Belum dijalankan dari `scripts/run-api-local.ts`. Hanya dibutuhkan kalau test reservation cleanup harus runnable lokal — risiko menyentuh semantics, kerjakan terakhir. |
+| `seller-flow.spec.ts:98` raw `loginApi` mid-test | Low risk, masih deferred dari session 2026-05-18. |
+
+### 🎯 Next Step
+
+1. Jalankan full local E2E (`pnpm run test:e2e:local`) sekali untuk konfirmasi tidak ada regresi di luar password-reset/event-upload, terutama spec yang sebelumnya graceful-skip karena email/upload missing.
+2. P0 Hyperdrive masih blocked di Cloudflare paid Workers plan + account access. Setup step-by-step di Priority 0 di bawah.
+3. Optional Phase 2C: drive Cloudflare Queue + cleanup cron dari `scripts/run-api-local.ts`.
 
 ### ✅ Local E2E Phase 1 — real-DB Playwright stack runs locally (session 2026-05-19)
 
@@ -43,21 +106,15 @@ Key design decisions:
 
 **Known gaps (intentional Phase 2 scope):**
 
-| Area | Why it's deferred |
+| Area | Status |
 |---|---|
-| Email send paths (`forgot-password` UI, register verify) | `apps/api/src/services/email.ts` throws `EMAIL_API_KEY_MISSING` when key is empty; no local no-op driver. Mitigated for tokens via `AUTH_EXPOSE_DEBUG_TOKENS=1`, but UI paths still skip. |
-| R2 upload tests (`tests/e2e/events/event-upload.spec.ts`) | `apps/api/src/services/upload.service.ts:56` hard-throws `BUCKET_NOT_CONFIGURED` without a real Cloudflare R2 binding. |
-| Cloudflare Queue / scheduled handlers | `scripts/run-api-local.ts` only routes HTTP via `app.fetch` — queue consumers and the cleanup cron are not driven locally. |
+| Email send paths (`forgot-password` UI, register verify) | ✅ Resolved by Phase 2 — `EMAIL_DRY_RUN=1` membuat `EmailService.sendEmail` no-op tanpa cek kredensial. |
+| R2 upload tests (`tests/e2e/events/event-upload.spec.ts`) | ✅ Resolved by Phase 2 — `BUCKET_LOCAL=1` mengaktifkan `LocalDiskBucket` di runner + static handler `/local-uploads/*`. |
+| Cloudflare Queue / scheduled handlers | Belum diselesaikan — pindah ke Phase 2C / backlog di section status terkini. |
 
-### 🎯 Next Step: Local E2E Phase 2 (separate session)
+### 🎯 Next Step: Local E2E Phase 2 — DONE
 
-Picked up by the next opencode session. Anchor files:
-
-1. **Email no-op driver** in `apps/api/src/services/email.ts` — gated by env (e.g. `EMAIL_DRY_RUN=1`) so register/verify/reset flows complete locally without a real Resend account. Keep `AUTH_EXPOSE_DEBUG_TOKENS=1` as the secondary path for token-extracting tests.
-2. **Local R2 stub** for `apps/api/src/services/upload.service.ts` — either a disk-backed fallback or in-memory bucket adapter, behind a `BUCKET_LOCAL=1` flag. Must keep `UPLOAD_PUBLIC_URL` resolvable so portal `<img>` tags render.
-3. **Optional**: drive the Cloudflare Queue / cron handlers from `scripts/run-api-local.ts` so reservation cleanup tests can run locally.
-
-Stop conditions for Phase 2: `pnpm run test:e2e:local` should make `password-reset-flow` and `event-upload` fully runnable (not skipped) on a vanilla laptop.
+Phase 2 sudah ship di session 2026-05-19; lihat section "Local E2E Phase 2" di atas. Stop condition tercapai: `password-reset-flow` (4 passed) dan `event-upload` (3 passed) sekarang fully runnable di vanilla laptop, bukan skip.
 
 ---
 
