@@ -24,6 +24,7 @@ const ADMIN_BASE_URL =
   (useStaging
     ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
     : 'http://localhost:4302');
+const PAYMENT_WEBHOOK_SECRET = process.env.PAYMENT_WEBHOOK_SECRET ?? 'local-e2e-payment-webhook-secret';
 
 export const ADMIN_EMAIL = 'admin@jeevatix.id';
 export const ADMIN_PASSWORD = 'Admin123!';
@@ -174,6 +175,25 @@ export async function waitForPortal(
 
 export async function ensureBaseFixtures() {
   await fetch(`${API_URL}/doc`).catch(() => undefined);
+}
+
+function toHex(buffer: ArrayBuffer) {
+  return Array.from(new Uint8Array(buffer), (value) => value.toString(16).padStart(2, '0')).join(
+    '',
+  );
+}
+
+async function signPaymentWebhookPayload(rawBody: string) {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(PAYMENT_WEBHOOK_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
+  return toHex(signature);
 }
 
 async function apiRequest<T>(
@@ -384,30 +404,43 @@ export async function createConfirmedOrderFixture(
     },
   );
 
-  await apiRequest(request, 'POST', '/webhooks/payment', {
-    data: {
-      external_ref: payment.data.external_ref,
-      status: 'success',
-      paid_at: new Date().toISOString(),
-      metadata: {
-        gateway: 'playwright-mock',
-      },
+  const webhookBody = {
+    external_ref: payment.data.external_ref,
+    status: 'success',
+    paid_at: new Date().toISOString(),
+    metadata: {
+      gateway: 'playwright-mock',
     },
+  };
+  const rawBody = JSON.stringify(webhookBody);
+  const signature = await signPaymentWebhookPayload(rawBody);
+
+  await apiRequest(request, 'POST', '/webhooks/payment', {
+    data: webhookBody,
     headers: {
-      'x-payment-signature': 'mock-signature',
+      'x-payment-signature': signature,
     },
   });
 
-  const tickets = await apiRequest<BuyerTicketListItem[]>(
-    request,
-    'GET',
-    '/tickets?page=1&limit=20',
-    {
-      token: pendingOrder.buyerSession.access_token,
-    },
-  );
-  const issuedTicket =
-    tickets.data.find((ticket) => ticket.event_id === eventId) ?? tickets.data[0];
+  let issuedTicket: BuyerTicketListItem | undefined;
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const tickets = await apiRequest<BuyerTicketListItem[]>(
+      request,
+      'GET',
+      '/tickets?page=1&limit=20',
+      {
+        token: pendingOrder.buyerSession.access_token,
+      },
+    );
+    issuedTicket = tickets.data.find((ticket) => ticket.event_id === eventId) ?? tickets.data[0];
+
+    if (issuedTicket) {
+      break;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
 
   if (!issuedTicket) {
     throw new Error(`No ticket was generated for event ${eventId}.`);

@@ -57,7 +57,7 @@ test.describe('Admin E2E Flow', () => {
     await page.getByRole('button', { name: 'Logout' }).click();
     await page.context().clearCookies();
     const loginPage = await page.context().newPage();
-    await loginPage.goto('http:///login');
+    await loginPage.goto('/login');
     await expect(loginPage).toHaveURL(/\/login/);
     await expect(loginPage.getByRole('button', { name: 'Login' })).toBeVisible();
     await loginPage.close();

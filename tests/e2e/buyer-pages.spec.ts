@@ -29,18 +29,20 @@ test.describe('Buyer Route Smoke Coverage', () => {
 
     const eventFixture = await createPublishedEventFixture(request);
     const buyer = await createBuyerViaApi(request);
+    const pendingOrderBuyer = await createBuyerViaApi(request);
+    const confirmedOrderBuyer = await createBuyerViaApi(request);
     const categories = await listCategories(request);
     const pendingOrder = await createPendingOrderFixture(
       request,
       eventFixture.event.id,
       eventFixture.sellerSession.access_token,
-      buyer,
+      pendingOrderBuyer,
     );
     const confirmedOrder = await createConfirmedOrderFixture(
       request,
       eventFixture.event.id,
       eventFixture.sellerSession.access_token,
-      buyer,
+      confirmedOrderBuyer,
     );
 
     fixture = {
@@ -95,8 +97,22 @@ test.describe('Buyer Route Smoke Coverage', () => {
   });
 
   test.beforeEach(async ({ page }, testInfo) => {
-    if (testInfo.title.startsWith('loads /profile') || testInfo.title.startsWith('loads /notifications') || testInfo.title.startsWith('loads /checkout') || testInfo.title.startsWith('loads /orders') || testInfo.title.startsWith('loads /payment') || testInfo.title.startsWith('loads /tickets')) {
+    if (
+      testInfo.title.startsWith('loads /profile') ||
+      testInfo.title.startsWith('loads /notifications') ||
+      testInfo.title.startsWith('loads /checkout')
+    ) {
       await loginBuyerUi(page, fixture.buyer.email, fixture.buyer.password);
+      return;
+    }
+
+    if (testInfo.title.startsWith('loads /payment')) {
+      await loginBuyerUi(page, fixture.pendingOrder.buyer.email, fixture.pendingOrder.buyer.password);
+      return;
+    }
+
+    if (testInfo.title.startsWith('loads /orders') || testInfo.title.startsWith('loads /tickets')) {
+      await loginBuyerUi(page, fixture.confirmedOrder.buyer.email, fixture.confirmedOrder.buyer.password);
     }
   });
 
