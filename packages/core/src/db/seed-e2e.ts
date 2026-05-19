@@ -173,7 +173,7 @@ async function seedE2EData() {
 seedE2EData()
   .then(() => {
     console.log('\n🎉 E2E seeding complete!');
-    return closeDb();
+    return closeDb(db, { timeout: 5 });
   })
   .catch((error) => {
     console.error('❌ E2E seeding failed:', error);
