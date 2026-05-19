@@ -300,14 +300,16 @@ function scheduleBackgroundTask(
 function resolveEmailEnv(options?: AuthFlowOptions): EmailEnv | null {
   const EMAIL_API_KEY = options?.EMAIL_API_KEY ?? getProcessEnv('EMAIL_API_KEY');
   const EMAIL_FROM = options?.EMAIL_FROM ?? getProcessEnv('EMAIL_FROM');
+  const EMAIL_DRY_RUN = options?.EMAIL_DRY_RUN ?? getProcessEnv('EMAIL_DRY_RUN');
 
-  if (!EMAIL_API_KEY || !EMAIL_FROM) {
+  if (!EMAIL_DRY_RUN && (!EMAIL_API_KEY || !EMAIL_FROM)) {
     return null;
   }
 
   return {
     EMAIL_API_KEY,
     EMAIL_FROM,
+    EMAIL_DRY_RUN,
   };
 }
 

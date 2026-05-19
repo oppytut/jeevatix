@@ -28,6 +28,7 @@ type PaymentServiceEnv = {
   PAYMENT_WEBHOOK_SECRET?: string;
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
+  EMAIL_DRY_RUN?: string;
   TICKET_RESERVER?: DurableObjectNamespace;
 };
 
@@ -317,6 +318,7 @@ async function enqueuePostPaymentEffects(
   const emailService = createEmailService({
     EMAIL_API_KEY: env.EMAIL_API_KEY,
     EMAIL_FROM: env.EMAIL_FROM,
+    EMAIL_DRY_RUN: env.EMAIL_DRY_RUN,
   });
   const orderEmail = buildOrderConfirmationEmail(
     payload.buyerName,

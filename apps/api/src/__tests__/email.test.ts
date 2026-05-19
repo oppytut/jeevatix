@@ -11,6 +11,16 @@ import {
 } from '../services/email';
 
 describe('email service', () => {
+  it('skips Resend and credential checks when dry-run is enabled', async () => {
+    const fetchFn = vi.fn(async () => new Response(null, { status: 200 }));
+    const service = new EmailService({ dryRun: true, fetchFn });
+
+    await expect(
+      service.sendEmail('buyer@example.com', 'Test', '<p>Hello</p>'),
+    ).resolves.toBeUndefined();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
   it('throws when the API key is missing', async () => {
     const service = new EmailService({ from: 'Jeevatix <noreply@example.com>' });
 
@@ -99,5 +109,6 @@ describe('email service', () => {
     expect(
       createEmailService({ EMAIL_API_KEY: 'key', EMAIL_FROM: 'from@example.com' }),
     ).toBeInstanceOf(EmailService);
+    expect(createEmailService({ EMAIL_DRY_RUN: '1' })).toBeInstanceOf(EmailService);
   });
 });

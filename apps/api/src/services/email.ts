@@ -3,6 +3,7 @@ const RESEND_EMAILS_ENDPOINT = 'https://api.resend.com/emails';
 type EmailEnv = {
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
+  EMAIL_DRY_RUN?: string;
 };
 
 type OrderConfirmationItem = {
@@ -25,6 +26,7 @@ type EmailTemplate = {
 type EmailServiceOptions = {
   apiKey?: string;
   from?: string;
+  dryRun?: boolean;
   fetchFn?: typeof fetch;
 };
 
@@ -86,18 +88,28 @@ function formatPrice(price: number | string | undefined) {
   return String(price);
 }
 
+function isEnabledFlag(value: string | undefined) {
+  return value === '1' || value === 'true';
+}
+
 export class EmailService {
   private readonly apiKey?: string;
   private readonly from?: string;
+  private readonly dryRun: boolean;
   private readonly fetchFn: typeof fetch;
 
   constructor(options: EmailServiceOptions = {}) {
     this.apiKey = options.apiKey ?? getProcessEnv('EMAIL_API_KEY');
     this.from = options.from ?? getProcessEnv('EMAIL_FROM');
+    this.dryRun = options.dryRun ?? isEnabledFlag(getProcessEnv('EMAIL_DRY_RUN'));
     this.fetchFn = options.fetchFn ?? fetch;
   }
 
   async sendEmail(to: string, subject: string, htmlBody: string): Promise<void> {
+    if (this.dryRun) {
+      return;
+    }
+
     if (!this.apiKey) {
       throw new EmailServiceError('EMAIL_API_KEY_MISSING', 'Email API key is not configured.');
     }
@@ -142,6 +154,7 @@ export function createEmailService(env?: EmailEnv) {
   return new EmailService({
     apiKey: env?.EMAIL_API_KEY,
     from: env?.EMAIL_FROM,
+    dryRun: env?.EMAIL_DRY_RUN === undefined ? undefined : isEnabledFlag(env.EMAIL_DRY_RUN),
   });
 }
 

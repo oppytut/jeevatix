@@ -105,6 +105,7 @@ function getAuthFlowOptions(c: Context<AuthEnv>) {
     sellerAppUrl: c.env.SELLER_APP_URL || getProcessEnv('SELLER_APP_URL'),
     EMAIL_API_KEY: c.env.EMAIL_API_KEY || getProcessEnv('EMAIL_API_KEY'),
     EMAIL_FROM: c.env.EMAIL_FROM || getProcessEnv('EMAIL_FROM'),
+    EMAIL_DRY_RUN: c.env.EMAIL_DRY_RUN || getProcessEnv('EMAIL_DRY_RUN'),
     exposeDebugTokens: getBooleanFlag(
       c.env.AUTH_EXPOSE_DEBUG_TOKENS || getProcessEnv('AUTH_EXPOSE_DEBUG_TOKENS'),
     ),
