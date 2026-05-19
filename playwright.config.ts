@@ -1,17 +1,24 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env.CI;
-const useStaging = process.env.E2E_TARGET === 'staging';
+const e2eTarget = process.env.E2E_TARGET ?? (isCI ? 'staging' : 'local');
+const useStaging = e2eTarget === 'staging';
 
-const buyerURL = useStaging
-  ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
-  : 'http://localhost:4301';
-const adminURL = useStaging
-  ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
-  : 'http://localhost:4302';
-const sellerURL = useStaging
-  ? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
-  : 'http://localhost:4303';
+const buyerURL =
+  process.env.E2E_BUYER_URL ??
+  (useStaging
+    ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
+    : 'http://localhost:4301');
+const adminURL =
+  process.env.E2E_ADMIN_URL ??
+  (useStaging
+    ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
+    : 'http://localhost:4302');
+const sellerURL =
+  process.env.E2E_SELLER_URL ??
+  (useStaging
+    ? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
+    : 'http://localhost:4303');
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -170,7 +177,7 @@ export default defineConfig({
     ? undefined
     : [
         {
-          command: 'PLAYWRIGHT_E2E=1 pnpm --filter @jeevatix/api run dev',
+          command: 'PLAYWRIGHT_E2E=1 pnpm run dev:api:local',
           port: 8787,
           reuseExistingServer: !process.env.CI,
           timeout: 180 * 1000,

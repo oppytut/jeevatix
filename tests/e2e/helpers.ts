@@ -1,22 +1,29 @@
 import { expect, type APIRequestContext, type BrowserContext, type Page } from '@playwright/test';
 
-const useStaging = process.env.E2E_TARGET === 'staging' || !!process.env.CI;
+const e2eTarget = process.env.E2E_TARGET ?? (process.env.CI ? 'staging' : 'local');
+const useStaging = e2eTarget === 'staging';
 
-export const API_URL = useStaging
-  ? 'https://jeevatix-staging-api.ariefna95.workers.dev'
-  : 'http://localhost:8787';
+export const API_URL =
+  process.env.E2E_API_URL ??
+  (useStaging ? 'https://jeevatix-staging-api.ariefna95.workers.dev' : 'http://localhost:8787');
 
-const BUYER_BASE_URL = useStaging
-  ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
-  : 'http://localhost:4301';
+const BUYER_BASE_URL =
+  process.env.E2E_BUYER_URL ??
+  (useStaging
+    ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
+    : 'http://localhost:4301');
 
-const SELLER_BASE_URL = useStaging
-  ? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
-  : 'http://localhost:4303';
+const SELLER_BASE_URL =
+  process.env.E2E_SELLER_URL ??
+  (useStaging
+    ? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
+    : 'http://localhost:4303');
 
-const ADMIN_BASE_URL = useStaging
-  ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
-  : 'http://localhost:4302';
+const ADMIN_BASE_URL =
+  process.env.E2E_ADMIN_URL ??
+  (useStaging
+    ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
+    : 'http://localhost:4302');
 
 export const ADMIN_EMAIL = 'admin@jeevatix.id';
 export const ADMIN_PASSWORD = 'Admin123!';
@@ -156,10 +163,10 @@ export async function waitForPortal(
 ) {
   const url =
     portal === 'buyer'
-      ? 'http://localhost:4301'
+      ? BUYER_BASE_URL
       : portal === 'admin'
-        ? 'http://localhost:4302/login'
-        : 'http://localhost:4303/login';
+        ? `${ADMIN_BASE_URL}/login`
+        : `${SELLER_BASE_URL}/login`;
 
   await waitForUrl(request, API_URL + '/doc');
   await waitForUrl(request, url);
