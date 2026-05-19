@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
 import { monitorEventLoopDelay, performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
 
@@ -14,8 +15,13 @@ import { TicketReserver } from '../apps/api/src/durable-objects/ticket-reserver'
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const envFilePath = resolve(currentDir, '../.env');
+const localE2eEnvFilePath = resolve(currentDir, '../.env.e2e.local');
 
 function loadDotEnv(path: string) {
+  if (!existsSync(path)) {
+    return;
+  }
+
   const fileContents = readFileSync(path, 'utf8');
 
   for (const line of fileContents.split(/\r?\n/u)) {
@@ -44,6 +50,7 @@ function loadDotEnv(path: string) {
 }
 
 loadDotEnv(envFilePath);
+loadDotEnv(localE2eEnvFilePath);
 
 type TimedStep = {
   step: string;
@@ -158,6 +165,14 @@ const appliedLocalRunnerPreset = applyLocalRunnerPreset();
 
 process.env.JWT_SECRET ||= 'local-load-test-jwt-secret';
 process.env.PAYMENT_WEBHOOK_SECRET ||= 'local-load-test-webhook-secret';
+
+function isEnabledFlag(value: string | undefined) {
+  return value === '1' || value === 'true';
+}
+
+function getLocalBucketRoot() {
+  return process.env.BUCKET_LOCAL_DIR || resolve(currentDir, '../.tmp/local-r2');
+}
 
 function shouldProfileLoadTests() {
   return process.env.LOAD_TEST_PROFILE === '1';
@@ -410,6 +425,98 @@ class LocalDurableObjectNamespace {
   }
 }
 
+type LocalBucketBody = ArrayBuffer | ArrayBufferView | Blob | string | ReadableStream<Uint8Array>;
+
+type LocalBucketPutOptions = {
+  httpMetadata?: { contentType?: string };
+};
+
+class LocalDiskBucket {
+  constructor(private readonly rootDir: string) {}
+
+  async put(key: string, body: LocalBucketBody, options?: LocalBucketPutOptions) {
+    const safeKey = normalizeBucketKey(key);
+    const target = join(this.rootDir, safeKey);
+
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, await bucketBodyToBuffer(body));
+
+    const contentType = options?.httpMetadata?.contentType;
+
+    if (contentType) {
+      await writeFile(`${target}.meta.json`, JSON.stringify({ contentType }));
+    }
+  }
+
+  async get(key: string) {
+    const safeKey = normalizeBucketKey(key);
+    const target = join(this.rootDir, safeKey);
+
+    if (!existsSync(target)) {
+      return null;
+    }
+
+    let contentType: string | undefined;
+    const metaPath = `${target}.meta.json`;
+
+    if (existsSync(metaPath)) {
+      try {
+        const parsed = JSON.parse(await readFile(metaPath, 'utf8')) as {
+          contentType?: string;
+        };
+        contentType = parsed.contentType;
+      } catch {
+        contentType = undefined;
+      }
+    }
+
+    return {
+      path: target,
+      contentType,
+    };
+  }
+}
+
+function normalizeBucketKey(key: string) {
+  if (typeof key !== 'string' || !key.length) {
+    throw new Error('Bucket key must be a non-empty string.');
+  }
+
+  if (key.includes('..')) {
+    throw new Error('Bucket key must not contain parent traversal segments.');
+  }
+
+  return key.replace(/^\/+/, '');
+}
+
+async function bucketBodyToBuffer(body: LocalBucketBody): Promise<Buffer> {
+  if (body instanceof ArrayBuffer) {
+    return Buffer.from(body);
+  }
+
+  if (ArrayBuffer.isView(body)) {
+    return Buffer.from(body.buffer, body.byteOffset, body.byteLength);
+  }
+
+  if (typeof body === 'string') {
+    return Buffer.from(body);
+  }
+
+  if (typeof Blob !== 'undefined' && body instanceof Blob) {
+    return Buffer.from(await body.arrayBuffer());
+  }
+
+  if (
+    typeof ReadableStream !== 'undefined' &&
+    body instanceof ReadableStream &&
+    typeof Response !== 'undefined'
+  ) {
+    return Buffer.from(await new Response(body).arrayBuffer());
+  }
+
+  throw new Error('Unsupported bucket body type for local disk bucket.');
+}
+
 function readRequestBody(request: import('node:http').IncomingMessage) {
   return new Promise<Buffer>((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -423,6 +530,14 @@ function readRequestBody(request: import('node:http').IncomingMessage) {
 }
 
 const port = Number.parseInt(process.env.PORT ?? '8787', 10);
+const bucketLocalEnabled = isEnabledFlag(process.env.BUCKET_LOCAL);
+const bucketLocalRoot = bucketLocalEnabled ? getLocalBucketRoot() : undefined;
+const bucketLocalUrlPrefix = '/local-uploads/';
+
+if (bucketLocalEnabled) {
+  process.env.UPLOAD_PUBLIC_URL ||= `http://localhost:${port}${bucketLocalUrlPrefix}`;
+}
+
 const env: Record<string, unknown> = {
   DATABASE_URL: process.env.DATABASE_URL,
   TICKET_RESERVER_DATABASE_URL: buildTicketReserverDatabaseUrl(process.env.DATABASE_URL),
@@ -432,11 +547,17 @@ const env: Record<string, unknown> = {
   PAYMENT_WEBHOOK_SECRET: process.env.PAYMENT_WEBHOOK_SECRET,
   EMAIL_API_KEY: process.env.EMAIL_API_KEY,
   EMAIL_FROM: process.env.EMAIL_FROM,
+  EMAIL_DRY_RUN: process.env.EMAIL_DRY_RUN,
   PARTYKIT_HOST: process.env.PARTYKIT_HOST,
   PARTY_SECRET: process.env.PARTY_SECRET,
+  UPLOAD_PUBLIC_URL: process.env.UPLOAD_PUBLIC_URL,
 };
 
 env.TICKET_RESERVER = new LocalDurableObjectNamespace(env, TicketReserver);
+
+if (bucketLocalEnabled && bucketLocalRoot) {
+  env.BUCKET = new LocalDiskBucket(bucketLocalRoot);
+}
 
 let inFlightRequestCount = 0;
 let reservationRequestCount = 0;
@@ -491,6 +612,30 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
   try {
     const origin = `http://${nodeRequest.headers.host ?? `localhost:${port}`}`;
     const url = new URL(nodeRequest.url ?? '/', origin);
+
+    if (bucketLocalRoot && url.pathname.startsWith(bucketLocalUrlPrefix)) {
+      const key = url.pathname.slice(bucketLocalUrlPrefix.length);
+      const file = await new LocalDiskBucket(bucketLocalRoot).get(key);
+
+      if (!file) {
+        nodeResponse.writeHead(404, { 'content-type': 'application/json' });
+        nodeResponse.end(
+          JSON.stringify({
+            success: false,
+            error: { code: 'NOT_FOUND', message: 'Local upload not found.' },
+          }),
+        );
+        return;
+      }
+
+      nodeResponse.writeHead(200, {
+        'cache-control': 'no-store',
+        'content-type': file.contentType ?? 'application/octet-stream',
+      });
+      nodeResponse.end(await readFile(file.path));
+      return;
+    }
+
     requestCategory = categorizeRequest(nodeRequest.method, url.pathname);
 
     inFlightRequestCount += 1;

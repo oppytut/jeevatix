@@ -17,6 +17,20 @@ describe('upload service', () => {
     expect(response.url).toMatch(/^https:\/\/cdn\.example\.com\/assets\/uploads\/.+\.png$/);
   });
 
+  it('builds local upload URLs against the local runner static prefix', async () => {
+    const put = vi.fn(async () => undefined);
+    const response = await uploadService.uploadFile(
+      {
+        BUCKET: { put } as unknown as R2Bucket,
+        UPLOAD_PUBLIC_URL: 'http://localhost:8787/local-uploads/',
+      } as never,
+      new File([new Uint8Array([1, 2, 3])], 'poster.png', { type: 'image/png' }),
+    );
+
+    expect(put).toHaveBeenCalledOnce();
+    expect(response.url).toMatch(/^http:\/\/localhost:8787\/local-uploads\/uploads\/.+\.png$/);
+  });
+
   it('rejects uploads when the bucket is missing', async () => {
     await expect(
       uploadService.uploadFile(
