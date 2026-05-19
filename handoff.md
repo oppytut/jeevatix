@@ -1,13 +1,65 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-18
+last_updated: 2026-05-19
 status: Active
-phase: E2E CI Fully Resilient — all specs wrapped with graceful skip
+phase: Local E2E (Phase 1) shipped — real DB Playwright stack runs locally
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ Local E2E Phase 1 — real-DB Playwright stack runs locally (session 2026-05-19)
+
+Goal: a fresh laptop can `cp .env.e2e.local.example .env.e2e.local && pnpm run e2e:local:setup && pnpm run test:e2e:local` and exercise the full stack against a local Postgres + local API + 3 portals — without touching Cloudflare staging.
+
+**What changed (8 files):**
+
+| File | Change |
+|---|---|
+| `docker-compose.yml` | Add `pg_isready` healthcheck on the `postgres` service |
+| `.env.e2e.local.example` | New template — `E2E_TARGET=local`, local URLs, `PLAYWRIGHT_E2E=1`, `AUTH_EXPOSE_DEBUG_TOKENS=1`, dummy JWT/payment secrets |
+| `package.json` | Replace `/home/ubuntu/...` absolute paths in `dev:api:local*` with relative `scripts/run-api-local.ts`; add `db:up`, `db:down`, `db:reset:e2e`, `e2e:local:setup`, repoint `test:e2e:local` to a Node wrapper that loads `.env` + `.env.e2e.local` |
+| `scripts/run-local-e2e.mjs` | New — loads env files, sets `E2E_TARGET=local PLAYWRIGHT_E2E=1`, forwards CLI args to `playwright test` |
+| `playwright.config.ts` | `E2E_TARGET` enum (`local` default on dev, `staging` default on CI), URL overrides via `E2E_API_URL` / `E2E_BUYER_URL` / `E2E_ADMIN_URL` / `E2E_SELLER_URL`, switch local API webServer to Node runner (`pnpm run dev:api:local`) for in-process Durable Object emulation |
+| `tests/e2e/helpers.ts` | Same `E2E_TARGET` enum + URL override env support; drop the `\|\| !!process.env.CI` clause that forced staging in CI; `waitForPortal` now uses base URL constants instead of hardcoded `localhost` |
+| `packages/core/src/db/seed-e2e.ts` | `closeDb()` → `closeDb(db, { timeout: 5 })` so seeding exits cleanly (was hanging the 180s setup script) |
+| `tests/e2e/README.md` | Quick-start rewrite: `e2e:local:setup` + `test:e2e:local`, mode matrix (`local` / `staging` / default) |
+
+Key design decisions:
+
+- Default `pnpm run test:e2e` behavior unchanged for staging callers; the new mode is opt-in via `pnpm run test:e2e:local` (which forces `E2E_TARGET=local`).
+- API runtime intentionally uses the Node runner instead of Wrangler — `scripts/run-api-local.ts` already emulates `TICKET_RESERVER` Durable Object in-process, avoiding `workerd` instability for local E2E.
+- `PLAYWRIGHT_E2E=1` already disables the Cloudflare adapter in all three SvelteKit apps and bypasses API rate limit (`apps/api/src/middleware/rate-limit.ts:182`), so no app-level changes were required.
+
+**Verification:**
+
+- `pnpm run e2e:local:setup` → docker postgres up + healthy, schema push (`No changes detected`), seed creates admin/buyer/seller + categories + 1 event + 2 tiers, exits clean.
+- `pnpm run test:e2e:local -- --project=auth --reporter=line` → API health check passes against `http://localhost:8787`, all 3 portals boot, 6 passed / 1 failed / 1 not-run in ~1 min.
+- The single failure (`buyer-auth.spec.ts:138 should validate password confirmation match`) is the same SvelteKit form-action redirect issue documented for staging — not a regression from this change.
+- `pnpm run typecheck` (with `PUBLIC_API_BASE_URL` set) → 8/8 packages pass.
+- `pnpm run lint` → clean (only pre-existing 9 warnings in `seed-e2e.ts`).
+- `pnpm run format:check` → clean across all touched files.
+
+**Known gaps (intentional Phase 2 scope):**
+
+| Area | Why it's deferred |
+|---|---|
+| Email send paths (`forgot-password` UI, register verify) | `apps/api/src/services/email.ts` throws `EMAIL_API_KEY_MISSING` when key is empty; no local no-op driver. Mitigated for tokens via `AUTH_EXPOSE_DEBUG_TOKENS=1`, but UI paths still skip. |
+| R2 upload tests (`tests/e2e/events/event-upload.spec.ts`) | `apps/api/src/services/upload.service.ts:56` hard-throws `BUCKET_NOT_CONFIGURED` without a real Cloudflare R2 binding. |
+| Cloudflare Queue / scheduled handlers | `scripts/run-api-local.ts` only routes HTTP via `app.fetch` — queue consumers and the cleanup cron are not driven locally. |
+
+### 🎯 Next Step: Local E2E Phase 2 (separate session)
+
+Picked up by the next opencode session. Anchor files:
+
+1. **Email no-op driver** in `apps/api/src/services/email.ts` — gated by env (e.g. `EMAIL_DRY_RUN=1`) so register/verify/reset flows complete locally without a real Resend account. Keep `AUTH_EXPOSE_DEBUG_TOKENS=1` as the secondary path for token-extracting tests.
+2. **Local R2 stub** for `apps/api/src/services/upload.service.ts` — either a disk-backed fallback or in-memory bucket adapter, behind a `BUCKET_LOCAL=1` flag. Must keep `UPLOAD_PUBLIC_URL` resolvable so portal `<img>` tags render.
+3. **Optional**: drive the Cloudflare Queue / cron handlers from `scripts/run-api-local.ts` so reservation cleanup tests can run locally.
+
+Stop conditions for Phase 2: `pnpm run test:e2e:local` should make `password-reset-flow` and `event-upload` fully runnable (not skipped) on a vanilla laptop.
+
+---
 
 ### ✅ E2E CI - Full resilience rollout (session 2026-05-15)
 

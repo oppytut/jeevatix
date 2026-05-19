@@ -8,24 +8,54 @@ E2E tests untuk Jeevatix menggunakan Playwright dan real database (PostgreSQL) u
 
 ## Quick Start
 
-### Local Development
+### Local Development (real DB, one-shot)
+
+Mode `local` menjalankan API via Node runner (`scripts/run-api-local.ts` — punya
+in-process Durable Object emulation), tiga portal SvelteKit dengan adapter
+di-bypass (`PLAYWRIGHT_E2E=1`), dan PostgreSQL via Docker Compose.
 
 ```bash
-# 1. Pastikan database PostgreSQL running
-# 2. Push schema ke database
+# 1. Salin env override (sekali saja)
+cp .env.e2e.local.example .env.e2e.local
+
+# 2. Bootstrap stack: docker postgres + healthcheck + db push + seed
+pnpm run e2e:local:setup
+
+# 3. Jalankan suite Playwright lokal (start API + 3 portal otomatis)
+pnpm run test:e2e:local
+```
+
+Reset DB lokal saat data jadi kotor:
+
+```bash
+pnpm run db:reset:e2e
+```
+
+### Manual / iteratif
+
+```bash
+# Push schema saja
 pnpm --filter @jeevatix/core run db:push
 
-# 3. Seed test data
+# Seed ulang
 pnpm run seed:e2e
 
-# 4. Run E2E tests
-pnpm exec playwright test
-
-# Atau run specific project
+# Jalankan project tertentu
 pnpm exec playwright test --project=auth
 pnpm exec playwright test --project=events
 pnpm exec playwright test --project=critical
 ```
+
+### Mode lain
+
+| Mode | Command | Catatan |
+|---|---|---|
+| `local` (default) | `pnpm run test:e2e:local` | Real DB lokal, butuh `pnpm run e2e:local:setup` dulu |
+| `staging` | `E2E_TARGET=staging pnpm run test:e2e` | Hit Cloudflare staging Workers |
+| Default `test:e2e` | `pnpm run test:e2e` | Mengikuti `E2E_TARGET`; jatuh ke `local` di mesin dev, `staging` di CI |
+
+URL portal/API bisa di-override per-mode lewat env: `E2E_API_URL`,
+`E2E_BUYER_URL`, `E2E_ADMIN_URL`, `E2E_SELLER_URL`.
 
 ### Run with UI Mode
 
