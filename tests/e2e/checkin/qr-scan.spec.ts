@@ -1,11 +1,5 @@
 import { expect, test } from '@playwright/test';
-import {
-  createConfirmedOrderFixture,
-  createPublishedEventFixture,
-  createSellerViaApi,
-  loginSellerUi,
-  uniqueEmail,
-} from '../helpers';
+import { createConfirmedOrderFixture, createPublishedEventFixture, loginSellerUi } from '../helpers';
 
 test.describe('QR Code Check-in', () => {
   test.describe.configure({ mode: 'serial' });
@@ -13,26 +7,20 @@ test.describe('QR Code Check-in', () => {
   let sellerEmail: string;
   let sellerPassword: string;
   let eventId: string;
-  let eventSlug: string;
   let validTicketCode: string;
 
   test.beforeAll(async ({ request }) => {
-    sellerEmail = uniqueEmail('checkin-seller');
-    sellerPassword = 'Seller123!';
-
-    const seller = await createSellerViaApi(request, {
-      email: sellerEmail,
-      password: sellerPassword,
-      full_name: 'Check-in Test Seller',
-      org_name: 'Check-in Test Org',
-    });
-
-    const eventFixture = await createPublishedEventFixture(request, seller.userId);
+    const eventFixture = await createPublishedEventFixture(request);
+    sellerEmail = eventFixture.seller.email;
+    sellerPassword = eventFixture.seller.password;
     eventId = eventFixture.event.id;
-    eventSlug = eventFixture.event.slug;
 
-    const orderFixture = await createConfirmedOrderFixture(request, eventFixture);
-    validTicketCode = orderFixture.tickets[0].ticket_code;
+    const orderFixture = await createConfirmedOrderFixture(
+      request,
+      eventFixture.event.id,
+      eventFixture.sellerSession.access_token,
+    );
+    validTicketCode = orderFixture.ticket.ticket_code;
   });
 
   test('should successfully check-in valid QR code', async ({ page }) => {
