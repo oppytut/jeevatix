@@ -130,7 +130,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
       },
-      testMatch: /staging-.*\.spec\.ts/,
+      testMatch: useStaging ? /staging-.*\.spec\.ts/ : [],
     },
     {
       name: 'visual-regression',
