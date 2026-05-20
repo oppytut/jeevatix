@@ -119,8 +119,8 @@ test.describe('Seller Authentication', () => {
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     if (await logoutButton.count() > 0) {
       await logoutButton.click();
-      await page.waitForTimeout(500);
-      
+      await page.waitForURL(/\/login/, { timeout: 10000 }).catch(() => {});
+
       const currentUrl = page.url();
       expect(currentUrl).toContain('/login');
     }
