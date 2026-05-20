@@ -52,7 +52,7 @@ async function seedE2EData() {
       refresh_tokens, 
       users, 
       categories 
-    CASCADE
+    RESTART IDENTITY CASCADE
   `);
 
   console.log('📂 Creating categories...');
