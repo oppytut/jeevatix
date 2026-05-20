@@ -29,7 +29,7 @@ test.describe('QR Code Check-in', () => {
     await page.goto(`/events/${eventId}/checkin`);
     await page.waitForLoadState('networkidle');
 
-    const searchInput = page.locator('input[type="text"]').first();
+    const searchInput = page.locator('#ticket-code');
     await searchInput.fill(validTicketCode);
     await page.keyboard.press('Enter');
 
@@ -51,7 +51,7 @@ test.describe('QR Code Check-in', () => {
     await page.goto(`/events/${eventId}/checkin`);
     await page.waitForLoadState('networkidle');
 
-    const searchInput = page.locator('input[type="text"]').first();
+    const searchInput = page.locator('#ticket-code');
     await searchInput.fill(validTicketCode);
     await page.keyboard.press('Enter');
 
@@ -74,7 +74,7 @@ test.describe('QR Code Check-in', () => {
     await page.waitForLoadState('networkidle');
 
     const invalidCode = 'INVALID-FORMAT-123';
-    const searchInput = page.locator('input[type="text"]').first();
+    const searchInput = page.locator('#ticket-code');
     await searchInput.fill(invalidCode);
     await page.keyboard.press('Enter');
 
@@ -115,7 +115,7 @@ test.describe('QR Code Check-in', () => {
     await page.goto(`/events/${anotherEventId}/checkin`);
     await page.waitForLoadState('networkidle');
 
-    const searchInput = page.locator('input[type="text"]').first();
+    const searchInput = page.locator('#ticket-code');
     if ((await searchInput.count()) > 0) {
       await searchInput.fill(validTicketCode);
       await page.keyboard.press('Enter');

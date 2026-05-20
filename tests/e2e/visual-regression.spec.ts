@@ -18,7 +18,7 @@ import percySnapshot from '@percy/playwright';
  */
 
 test.describe('Visual Regression - Buyer Portal', () => {
-	const baseURL = 'baseURL';
+	const baseURL = '';
 
 	test('Homepage - Desktop', async ({ page }) => {
 		await page.goto(baseURL);
@@ -92,7 +92,7 @@ test.describe('Visual Regression - Buyer Portal', () => {
 });
 
 test.describe('Visual Regression - Admin Portal', () => {
-	const baseURL = 'baseURL';
+	const baseURL = '';
 
 	test('Admin Login Page', async ({ page }) => {
 		await page.goto(`${baseURL}/login`);
@@ -103,7 +103,7 @@ test.describe('Visual Regression - Admin Portal', () => {
 });
 
 test.describe('Visual Regression - Seller Portal', () => {
-	const baseURL = 'baseURL';
+	const baseURL = '';
 
 	test('Seller Login Page', async ({ page }) => {
 		await page.goto(`${baseURL}/login`);
@@ -121,7 +121,7 @@ test.describe('Visual Regression - Seller Portal', () => {
 });
 
 test.describe('Visual Regression - Responsive Design', () => {
-	const baseURL = 'baseURL';
+	const baseURL = '';
 	const viewports = [
 		{ name: 'Mobile', width: 375, height: 667 },
 		{ name: 'Tablet', width: 768, height: 1024 },
@@ -141,7 +141,7 @@ test.describe('Visual Regression - Responsive Design', () => {
 });
 
 test.describe('Visual Regression - Component States', () => {
-	const baseURL = 'baseURL';
+	const baseURL = '';
 
 	test('Form Validation States', async ({ page }) => {
 		await page.goto(`${baseURL}/login`);
