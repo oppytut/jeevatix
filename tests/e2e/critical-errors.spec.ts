@@ -9,6 +9,10 @@ import {
 
 test.describe('Critical Error Scenarios', () => {
   test.describe.configure({ mode: 'serial' });
+  test.skip(
+    (process.env.E2E_TARGET ?? (process.env.CI ? 'staging' : 'local')) === 'local',
+    'Checkout form-action error flows hang in local Playwright mode; run against staging for this suite.',
+  );
 
   let buyerEmail: string;
   let buyerPassword: string;
