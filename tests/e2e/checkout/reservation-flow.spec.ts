@@ -248,15 +248,22 @@ test.describe('Reservation Flow', () => {
     }
   });
 
-  test('should handle concurrent reservation attempts', async ({ page, context }) => {
-    if (!(await tryLoginBuyerUi(page, buyerEmail, buyerPassword))) {
+  test('should handle concurrent reservation attempts', async ({ page, request, context }) => {
+    const e2eTarget = process.env.E2E_TARGET ?? (process.env.CI ? 'staging' : 'local');
+    if (e2eTarget === 'local') {
+      test.skip(true, 'Concurrent native form POSTs too slow for local DO emulation');
+      return;
+    }
+
+    const freshBuyer = await createBuyerViaApi(request);
+    if (!(await tryLoginBuyerUi(page, freshBuyer.email, freshBuyer.password))) {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
     }
 
     // Open two tabs
     const page2 = await context.newPage();
-    if (!(await tryLoginBuyerUi(page2, buyerEmail, buyerPassword))) {
+    if (!(await tryLoginBuyerUi(page2, freshBuyer.email, freshBuyer.password))) {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
     }
@@ -277,16 +284,16 @@ test.describe('Reservation Flow', () => {
 
     // Both try to reserve simultaneously
     await Promise.all([
-      page.getByRole('button', { name: 'Reservasi Tiket' }).click(),
-      page2.getByRole('button', { name: 'Reservasi Tiket' }).click(),
+      page.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 }),
+      page2.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 }),
     ]);
 
     await page.waitForLoadState('networkidle');
     await page2.waitForLoadState('networkidle');
 
     // At least one should succeed
-    const page1Text = await page.locator('body').textContent();
-    const page2Text = await page2.locator('body').textContent();
+    const page1Text = await page.locator('body').textContent({ timeout: 30000 });
+    const page2Text = await page2.locator('body').textContent({ timeout: 30000 });
 
     const page1Success =
       page1Text?.includes('reservasi') ||

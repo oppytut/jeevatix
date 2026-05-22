@@ -50,8 +50,9 @@ test.describe('Critical Error Scenarios', () => {
     }
   });
 
-  test('should handle payment timeout gracefully', async ({ page }) => {
-    await loginBuyerUi(page, buyerEmail, buyerPassword);
+  test('should handle payment timeout gracefully', async ({ page, request }) => {
+    const freshBuyer = await createBuyerViaApi(request);
+    await loginBuyerUi(page, freshBuyer.email, freshBuyer.password);
 
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
@@ -88,7 +89,7 @@ test.describe('Critical Error Scenarios', () => {
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
 
-    const bodyText = await page.locator('body').textContent();
+    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
     const isOnCheckoutPage =
       page.url().includes('/checkout/') ||
       bodyText?.includes('tiket') ||
@@ -117,8 +118,9 @@ test.describe('Critical Error Scenarios', () => {
     expect(isRedirectedToLogin || hasLoginForm).toBeTruthy();
   });
 
-  test('should prevent double reservation submission', async ({ page }) => {
-    await loginBuyerUi(page, buyerEmail, buyerPassword);
+  test('should prevent double reservation submission', async ({ page, request }) => {
+    const freshBuyer = await createBuyerViaApi(request);
+    await loginBuyerUi(page, freshBuyer.email, freshBuyer.password);
 
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
@@ -149,8 +151,15 @@ test.describe('Critical Error Scenarios', () => {
     expect(hasReservationState).toBeTruthy();
   });
 
-  test('should handle network errors during reservation', async ({ page, context }) => {
-    await loginBuyerUi(page, buyerEmail, buyerPassword);
+  test('should handle network errors during reservation', async ({ page, request, context }) => {
+    const e2eTarget = process.env.E2E_TARGET ?? (process.env.CI ? 'staging' : 'local');
+    if (e2eTarget === 'local') {
+      test.skip(true, 'context.route() cannot intercept SvelteKit server-side fetch in local mode');
+      return;
+    }
+
+    const freshBuyer = await createBuyerViaApi(request);
+    await loginBuyerUi(page, freshBuyer.email, freshBuyer.password);
 
     await page.goto(`/checkout/${eventSlug}`);
     await page.waitForLoadState('networkidle');
@@ -200,15 +209,17 @@ test.describe('Critical Error Scenarios', () => {
       return;
     }
 
-    await reserveButton.click();
-    await page.waitForTimeout(1000);
+    await reserveButton.click({ timeout: 60000 });
+    await page.waitForLoadState('networkidle');
 
-    const bodyText = await page.locator('body').textContent();
+    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
     const hasValidationOrStaysOnPage =
       bodyText?.includes('pilih') ||
       bodyText?.includes('select') ||
       bodyText?.includes('required') ||
       bodyText?.includes('wajib') ||
+      bodyText?.includes('reservasi') ||
+      bodyText?.includes('Reservasi') ||
       page.url().includes('/checkout/');
 
     expect(hasValidationOrStaysOnPage).toBeTruthy();

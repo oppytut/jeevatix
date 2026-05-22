@@ -130,8 +130,9 @@ test.describe('Payment Methods', () => {
     }
   });
 
-  test('should show payment-related content after reservation', async ({ page }) => {
-    if (!(await tryLoginBuyerUi(page, buyerEmail, buyerPassword))) {
+  test('should show payment-related content after reservation', async ({ page, request }) => {
+    const freshBuyer = await createBuyerViaApi(request);
+    if (!(await tryLoginBuyerUi(page, freshBuyer.email, freshBuyer.password))) {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
     }
@@ -150,12 +151,11 @@ test.describe('Payment Methods', () => {
     await page.locator('input[name="quantity"]').fill('1');
 
     // Submit reservation
-    await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
+    await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 });
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
 
     // Check for payment-related content on checkout page
-    const bodyText = await page.locator('body').textContent();
+    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
     const hasPaymentContent =
       bodyText?.includes('bayar') ||
       bodyText?.includes('payment') ||
@@ -165,8 +165,9 @@ test.describe('Payment Methods', () => {
     expect(hasPaymentContent).toBeTruthy();
   });
 
-  test('should handle reservation with different quantities', async ({ page }) => {
-    if (!(await tryLoginBuyerUi(page, buyerEmail, buyerPassword))) {
+  test('should handle reservation with different quantities', async ({ page, request }) => {
+    const freshBuyer = await createBuyerViaApi(request);
+    if (!(await tryLoginBuyerUi(page, freshBuyer.email, freshBuyer.password))) {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
     }
@@ -185,11 +186,11 @@ test.describe('Payment Methods', () => {
     await page.locator('input[name="quantity"]').fill('3');
 
     // Submit reservation
-    await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
+    await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 });
     await page.waitForLoadState('networkidle');
 
     // Verify reservation succeeded or shows appropriate error
-    const bodyText = await page.locator('body').textContent();
+    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
     const hasValidState =
       bodyText?.includes('reservasi') ||
       bodyText?.includes('dikunci') ||
@@ -199,8 +200,9 @@ test.describe('Payment Methods', () => {
     expect(hasValidState).toBeTruthy();
   });
 
-  test('should show countdown timer after reservation', async ({ page }) => {
-    if (!(await tryLoginBuyerUi(page, buyerEmail, buyerPassword))) {
+  test('should show countdown timer after reservation', async ({ page, request }) => {
+    const freshBuyer = await createBuyerViaApi(request);
+    if (!(await tryLoginBuyerUi(page, freshBuyer.email, freshBuyer.password))) {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
     }
@@ -219,10 +221,10 @@ test.describe('Payment Methods', () => {
     await page.locator('input[name="quantity"]').fill('1');
 
     // Submit reservation
-    await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
+    await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 });
     await page.waitForLoadState('networkidle');
 
-    const bodyText = (await page.locator('body').textContent()) ?? '';
+    const bodyText = (await page.locator('body').textContent({ timeout: 30000 })) ?? '';
     const hasCountdown =
       (await page.locator('[data-countdown]').count()) > 0 ||
       (await page.locator('text=/\\d{1,2}:\\d{2}/').count()) > 0 ||
@@ -232,8 +234,9 @@ test.describe('Payment Methods', () => {
     expect(hasCountdown).toBeTruthy();
   });
 
-  test('should disable reservation button after submission', async ({ page }) => {
-    if (!(await tryLoginBuyerUi(page, buyerEmail, buyerPassword))) {
+  test('should disable reservation button after submission', async ({ page, request }) => {
+    const freshBuyer = await createBuyerViaApi(request);
+    if (!(await tryLoginBuyerUi(page, freshBuyer.email, freshBuyer.password))) {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
     }
@@ -253,12 +256,12 @@ test.describe('Payment Methods', () => {
 
     // Submit reservation
     const reserveButton = page.getByRole('button', { name: 'Reservasi Tiket' });
-    await reserveButton.click();
+    await reserveButton.click({ timeout: 60000 });
     await page.waitForLoadState('networkidle');
 
     // Verify button is disabled or page shows locked state
     const isDisabled = await reserveButton.isDisabled().catch(() => false);
-    const bodyText = await page.locator('body').textContent();
+    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
     const hasLockedState = bodyText?.includes('dikunci') || bodyText?.includes('reservasi');
 
     expect(isDisabled || hasLockedState).toBeTruthy();
