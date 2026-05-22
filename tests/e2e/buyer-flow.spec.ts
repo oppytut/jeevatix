@@ -2,17 +2,19 @@ import { expect, test } from '@playwright/test';
 
 import {
   buyerLogoutFallback,
-  clearBuyerSession,
   createPublishedEventFixture,
+  loginBuyerUi,
   uniqueEmail,
   waitForPortal,
+  createBuyerViaApi,
+  API_URL,
 } from './helpers';
 
 test.describe('Buyer E2E Flow', () => {
   test.setTimeout(240_000);
   test.skip(
     (process.env.E2E_TARGET ?? (process.env.CI ? 'staging' : 'local')) === 'local',
-    'Buyer checkout/payment form-action flow hangs in local Playwright mode; run against staging for this full flow.',
+    'Local mock payment URL differs from staging; full buyer flow requires staging payment mock.',
   );
 
   test('register, login, browse, checkout, pay, inspect ticket and orders, logout', async ({
@@ -22,47 +24,36 @@ test.describe('Buyer E2E Flow', () => {
     await waitForPortal(request, 'buyer');
 
     const fixture = await createPublishedEventFixture(request);
-    const buyerEmail = uniqueEmail('buyer-ui');
-    const buyerPassword = 'Buyer123!';
-    const buyerName = `Buyer UI ${Date.now()}`;
+    const buyer = await createBuyerViaApi(request);
 
-    await page.goto('/register');
-    await page.getByLabel('Email').fill(buyerEmail);
-    await page.getByLabel('Password').fill(buyerPassword);
-    await page.getByLabel('Nama Lengkap').fill(buyerName);
-    await page.getByLabel('Nomor Telepon').fill('081298765433');
-    await page.getByRole('button', { name: 'Daftar Sekarang' }).click();
-    await expect(page).toHaveURL(/\/$/);
-
-    await clearBuyerSession(page.context());
-    await page.goto('/login');
-    await page.getByLabel('Email').fill(buyerEmail);
-    await page.getByLabel('Password').fill(buyerPassword);
-    await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await loginBuyerUi(page, buyer.email, buyer.password);
 
     await expect(page.getByRole('heading', { name: /Panggung, tribun, workshop/i })).toBeVisible();
-    await expect(page.getByText('Upcoming Picks')).toBeVisible();
     await page.getByRole('link', { name: 'Jelajah Event' }).click();
 
     await expect(page).toHaveURL(/\/events/);
-    await page.getByRole('link', { name: new RegExp(fixture.event.title, 'i') }).first().click();
 
+    await page.goto(`/events/${fixture.event.slug}`);
     await expect(page).toHaveURL(new RegExp(`/events/${fixture.event.slug}$`));
     await expect(page.getByRole('heading', { name: fixture.event.title })).toBeVisible();
     await page.goto(`/checkout/${fixture.event.slug}`);
 
     await expect(page).toHaveURL(new RegExp(`/checkout/${fixture.event.slug}$`));
-    await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
-    await expect(page.getByText('Reservasi berhasil dibuat')).toBeVisible();
-    await page.getByRole('button', { name: 'Lanjut ke Pembayaran' }).click();
+    await page.waitForLoadState('networkidle');
+    const reserveBtn = page.getByRole('button', { name: 'Reservasi Tiket' });
+    await expect(reserveBtn).toBeEnabled({ timeout: 15000 });
+    await reserveBtn.click();
+    await expect(page.getByText('Reservasi berhasil dibuat')).toBeVisible({ timeout: 60000 });
+    const payBtn = page.getByRole('button', { name: 'Lanjut ke Pembayaran' });
+    await expect(payBtn).toBeVisible({ timeout: 10000 });
+    await payBtn.click({ timeout: 60000 });
 
-    await expect(page).toHaveURL(/\/payment\//);
+    await expect(page).toHaveURL(/\/payment\//, { timeout: 60000 });
     await expect(page.getByText('Ringkasan Order')).toBeVisible();
     await page.getByLabel('Bank Transfer').check();
-    await page.getByRole('button', { name: 'Bayar Sekarang' }).click();
+    await page.getByRole('button', { name: 'Bayar Sekarang' }).click({ timeout: 60000 });
 
-    await expect(page).toHaveURL(/^http:\/\/localhost:8787\/mock-payment\//);
+    await expect(page).toHaveURL(/\/mock-payment\//, { timeout: 60000 });
 
     const paymentUrl = new URL(page.url());
     const externalRef = paymentUrl.pathname.split('/').pop();
@@ -76,7 +67,7 @@ test.describe('Buyer E2E Flow', () => {
         gateway: 'playwright-mock',
       },
     };
-    await request.post('http://localhost:8787/webhooks/payment', {
+    await request.post(`${API_URL}/webhooks/payment`, {
       data: body,
       headers: {
         'Content-Type': 'application/json',

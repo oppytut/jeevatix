@@ -10,10 +10,7 @@ import {
 
 test.describe('Reservation Flow', () => {
   test.describe.configure({ mode: 'serial' });
-  test.skip(
-    (process.env.E2E_TARGET ?? (process.env.CI ? 'staging' : 'local')) === 'local',
-    'SvelteKit checkout form actions hang in local Playwright mode; run against staging for this flow.',
-  );
+
 
   let buyerEmail: string;
   let buyerPassword: string;
