@@ -146,10 +146,11 @@
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           <div class="space-y-2">
             <div class="flex items-center justify-between text-xs font-medium text-slate-500">
-              <span>Minimum</span>
+              <label for="price_min">Minimum</label>
               <span>Rp {Number(data.filters.priceMin || 0).toLocaleString('id-ID')}</span>
             </div>
             <input
+              id="price_min"
               class="h-2 w-full cursor-pointer accent-orange-500"
               type="range"
               min={data.priceBounds.min}
@@ -161,7 +162,7 @@
           </div>
           <div class="space-y-2">
             <div class="flex items-center justify-between text-xs font-medium text-slate-500">
-              <span>Maksimum</span>
+              <label for="price_max">Maksimum</label>
               <span
                 >Rp {Number(data.filters.priceMax || data.priceBounds.max).toLocaleString(
                   'id-ID',
@@ -169,6 +170,7 @@
               >
             </div>
             <input
+              id="price_max"
               class="h-2 w-full cursor-pointer accent-sky-500"
               type="range"
               min={data.priceBounds.min}

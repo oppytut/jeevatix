@@ -120,9 +120,9 @@
       <section
         class="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:p-6"
       >
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+        <h2 class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
           Tentang Event
-        </p>
+        </h2>
         <div class="mt-4 space-y-4 text-base leading-8 text-slate-700">
           {#each descriptionParagraphs(data.event.description) as paragraph (paragraph)}
             <p>{paragraph}</p>
@@ -133,9 +133,9 @@
       <section
         class="rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:p-6"
       >
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+        <h2 class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
           Lokasi & Jadwal
-        </p>
+        </h2>
         <div class="mt-5 grid gap-5 lg:grid-cols-2">
           <div class="space-y-4 rounded-[1.5rem] bg-slate-50 p-5">
             <div class="flex items-start gap-3">
@@ -183,7 +183,7 @@
       </section>
     </div>
 
-    <aside class="space-y-6">
+    <div class="space-y-6" role="region" aria-label="Informasi tiket dan penyelenggara">
       <section
         class="rounded-[2rem] border border-white/80 bg-white/92 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-6"
       >
@@ -291,6 +291,6 @@
           </div>
         </div>
       </section>
-    </aside>
+    </div>
   </div>
 </section>

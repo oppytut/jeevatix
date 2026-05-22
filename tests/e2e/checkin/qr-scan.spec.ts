@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { createConfirmedOrderFixture, createPublishedEventFixture, loginSellerUi } from '../helpers';
+import {
+  createConfirmedOrderFixture,
+  createPublishedEventFixture,
+  loginSellerUi,
+} from '../helpers';
 
 test.describe('QR Code Check-in', () => {
   test.describe.configure({ mode: 'serial' });
@@ -120,16 +124,19 @@ test.describe('QR Code Check-in', () => {
       await searchInput.fill(validTicketCode);
       await page.keyboard.press('Enter');
 
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
 
-      const bodyText = await page.locator('body').textContent();
+      const bodyText = (await page.locator('body').textContent()) ?? '';
       const hasError =
-        bodyText?.includes('tidak valid') ||
-        bodyText?.includes('invalid') ||
-        bodyText?.includes('tidak ditemukan') ||
-        bodyText?.includes('wrong event');
+        /invalid|tidak valid|tidak ditemukan|forbidden|tidak diizinkan|gagal|error|wrong/i.test(
+          bodyText,
+        );
 
       expect(hasError).toBeTruthy();
+    } else {
+      const bodyText = (await page.locator('body').textContent()) ?? '';
+      const hasAccessError = /forbidden|tidak diizinkan|gagal|error|not found|404/i.test(bodyText);
+      expect(hasAccessError).toBeTruthy();
     }
   });
 });

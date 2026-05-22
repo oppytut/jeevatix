@@ -61,9 +61,9 @@
       <p class="text-xs font-semibold tracking-[0.26em] text-white/70 uppercase">
         {event.venue_city}
       </p>
-      <h3 class="mt-2 line-clamp-2 text-xl font-semibold tracking-tight sm:text-2xl">
+      <h2 class="mt-2 line-clamp-2 text-xl font-semibold tracking-tight sm:text-2xl">
         {event.title}
-      </h3>
+      </h2>
     </div>
   </div>
 
