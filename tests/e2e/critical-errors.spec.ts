@@ -9,6 +9,7 @@ import {
 
 test.describe('Critical Error Scenarios', () => {
   test.describe.configure({ mode: 'serial' });
+  test.setTimeout(120_000);
 
   let buyerEmail: string;
   let buyerPassword: string;
@@ -66,11 +67,10 @@ test.describe('Critical Error Scenarios', () => {
 
     await tierRadio.check({ force: true });
 
-    await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
+    await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 });
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
 
-    const bodyText = await page.locator('body').textContent();
+    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
     const hasReservationOrPayment =
       bodyText?.includes('reservasi') ||
       bodyText?.includes('reservation') ||

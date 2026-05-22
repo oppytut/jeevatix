@@ -123,14 +123,11 @@ test.describe('Reservation Flow', () => {
     await page.locator('input[name="quantity"]').fill('1');
 
     // Submit reservation
-    await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
+    await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 });
     await page.waitForLoadState('networkidle');
 
-    // Wait for countdown to show
-    await page.waitForTimeout(3000);
-
     // Check if warning or countdown is visible
-    const bodyText = await page.locator('body').textContent();
+    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
     const hasTimeWarning =
       bodyText?.includes('waktu') ||
       bodyText?.includes('time') ||

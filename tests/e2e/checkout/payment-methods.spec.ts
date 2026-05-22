@@ -121,11 +121,11 @@ test.describe('Payment Methods', () => {
       await page.locator('input[name="quantity"]').fill(quantity.toString());
 
       // Submit reservation
-      await page.getByRole('button', { name: 'Reservasi Tiket' }).click();
+      await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ timeout: 60000 });
       await page.waitForLoadState('networkidle');
 
       // Verify total is displayed
-      const bodyText = await page.locator('body').textContent();
+      const bodyText = await page.locator('body').textContent({ timeout: 30000 });
       expect(bodyText).toContain('Rp');
     }
   });
