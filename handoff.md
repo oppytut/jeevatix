@@ -2,7 +2,7 @@
 title: Handoff Progress
 last_updated: 2026-05-22
 status: Active
-phase: Form-action hang resolved — 72 passed / 6 skipped / 0 failed locally
+phase: Form-action hang resolved — 73 passed / 5 skipped / 0 failed locally
 ---
 
 # Handoff Progress
@@ -39,6 +39,8 @@ Goal: investigate dan fix ~27 tests yang skip di local mode karena "SvelteKit fo
 **Verification (final run 2026-05-22):**
 
 - `pnpm run test:e2e:local` (full suite: accessibility + checkin + auth + checkout + critical + buyer) → **72 passed, 6 skipped, 0 failed** (~6.4m).
+- `pnpm run test:e2e:local -- --project=buyer tests/e2e/buyer-flow.spec.ts` → **1 passed** (buyer full E2E flow: login→browse→checkout→reserve→pay→tickets→orders→logout).
+- Combined: **73 passed, 5 skipped, 0 failed**.
 - `pnpm --filter @jeevatix/api exec tsc --noEmit` → clean.
 - `pnpm exec turbo run lint --filter=buyer --filter=@jeevatix/api` → 0 error.
 - Prettier check → clean.
@@ -48,13 +50,12 @@ Goal: investigate dan fix ~27 tests yang skip di local mode karena "SvelteKit fo
 | Run | Pass | Skip | Fail |
 |---|---|---|---|
 | Baseline (sebelum session ini) | ~23 (a11y+checkin only) | ~27 (form-action) | 0 |
-| Setelah IPv6 fix + test isolation | **72** | **6** | **0** |
+| Setelah IPv6 fix + test isolation | **73** | **5** | **0** |
 
-**6 remaining skips (all intentional):**
+**5 remaining skips (all intentional):**
 
 | Test | Reason |
 |---|---|
-| buyer-flow | Mock payment URL mismatch (staging uses external mock gateway) |
 | concurrent reservation | Dual native form POSTs too slow for local DO emulation |
 | network errors | `context.route()` can't intercept server-side fetch |
 | 2× auth redirect | Pre-existing form redirect assertion issue |
@@ -69,11 +70,10 @@ Goal: investigate dan fix ~27 tests yang skip di local mode karena "SvelteKit fo
 
 ### 🎯 Next Step (untuk session berikutnya)
 
-1. **Unblock buyer-flow locally** — rewrite mock payment URL di payment `+page.server.ts` saat local mode, atau adjust test assertion untuk handle kedua URL pattern. ~15 menit.
-2. **Fix auth redirect skips** (3 tests) — auth login/register form redirect assertion. Mungkin perlu adjust test expectation atau use `waitForURL` pattern.
-3. **Seller event create — fetch categories dari API** — hilangkan `fallbackCategoryOptions` hardcode. 30 menit.
-4. **P0 Hyperdrive** — masih blocked di Cloudflare paid Workers plan + account access.
-5. **Optional: startup race condition** — tambah health check wait di webServer config untuk seller portal.
+1. **Fix auth redirect skips** (3 tests, ~1 jam) — auth login/register form redirect assertion. Adjust test expectations atau use `waitForURL` pattern. Ini 3 dari 5 remaining skips.
+2. **Seller event create — fetch categories dari API** — hilangkan `fallbackCategoryOptions` hardcode. 30 menit.
+3. **P0 Hyperdrive** — masih blocked di Cloudflare paid Workers plan + account access.
+4. **Optional: startup race condition** — tambah health check wait di webServer config untuk seller portal.
 
 **What changed (10 files):**
 
