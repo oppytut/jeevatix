@@ -551,6 +551,7 @@ const env: Record<string, unknown> = {
   PARTYKIT_HOST: process.env.PARTYKIT_HOST,
   PARTY_SECRET: process.env.PARTY_SECRET,
   UPLOAD_PUBLIC_URL: process.env.UPLOAD_PUBLIC_URL,
+  PLAYWRIGHT_E2E: process.env.PLAYWRIGHT_E2E,
 };
 
 env.TICKET_RESERVER = new LocalDurableObjectNamespace(env, TicketReserver);
@@ -633,6 +634,18 @@ const server = createServer(async (nodeRequest, nodeResponse) => {
         'content-type': file.contentType ?? 'application/octet-stream',
       });
       nodeResponse.end(await readFile(file.path));
+      return;
+    }
+
+    if (url.pathname.startsWith('/mock-payment/')) {
+      const externalRef = url.pathname.slice('/mock-payment/'.length);
+      nodeResponse.writeHead(200, { 'content-type': 'text/html' });
+      nodeResponse.end(
+        `<!DOCTYPE html><html><head><title>Mock Payment</title></head>` +
+          `<body><h1>Mock Payment Gateway</h1>` +
+          `<p>External Ref: ${externalRef}</p>` +
+          `<p>Status: pending</p></body></html>`,
+      );
       return;
     }
 

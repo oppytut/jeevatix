@@ -183,7 +183,7 @@ function toHex(buffer: ArrayBuffer) {
   );
 }
 
-async function signPaymentWebhookPayload(rawBody: string) {
+export async function signPaymentWebhookPayload(rawBody: string) {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw',

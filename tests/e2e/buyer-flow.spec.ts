@@ -4,18 +4,14 @@ import {
   buyerLogoutFallback,
   createPublishedEventFixture,
   loginBuyerUi,
-  uniqueEmail,
   waitForPortal,
   createBuyerViaApi,
   API_URL,
+  signPaymentWebhookPayload,
 } from './helpers';
 
 test.describe('Buyer E2E Flow', () => {
   test.setTimeout(240_000);
-  test.skip(
-    (process.env.E2E_TARGET ?? (process.env.CI ? 'staging' : 'local')) === 'local',
-    'Local mock payment URL differs from staging; full buyer flow requires staging payment mock.',
-  );
 
   test('register, login, browse, checkout, pay, inspect ticket and orders, logout', async ({
     page,
@@ -67,19 +63,28 @@ test.describe('Buyer E2E Flow', () => {
         gateway: 'playwright-mock',
       },
     };
+    const rawBody = JSON.stringify(body);
+    const signature = await signPaymentWebhookPayload(rawBody);
     await request.post(`${API_URL}/webhooks/payment`, {
       data: body,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'x-payment-signature': 'mock-signature',
+        'x-payment-signature': signature,
       },
     });
 
     await page.goto('/tickets');
+    await page.waitForLoadState('networkidle');
     await expect(page.getByText('Daftar tiket buyer')).toBeVisible();
-    const ticketSection = page.locator('section', { hasText: fixture.event.title }).first();
-    await expect(ticketSection).toBeVisible();
+    let ticketSection = page.locator('section', { hasText: fixture.event.title }).first();
+    for (let attempt = 0; attempt < 5 && !(await ticketSection.isVisible().catch(() => false)); attempt++) {
+      await page.waitForTimeout(2000);
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+      ticketSection = page.locator('section', { hasText: fixture.event.title }).first();
+    }
+    await expect(ticketSection).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(500);
     await ticketSection.locator('button').last().click({ force: true });
     await expect(page).toHaveURL(/\/tickets\//);

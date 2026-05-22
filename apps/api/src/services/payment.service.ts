@@ -234,8 +234,14 @@ function buildExternalRef() {
   return `PAY-${year}${month}${day}-${getRandomToken(8).toUpperCase()}`;
 }
 
-function buildMockPaymentUrl(externalRef: string, method: InitiatePaymentInput['method']) {
-  const url = new URL(`https://payments.mock.jeevatix.id/pay/${externalRef}`);
+function buildMockPaymentUrl(externalRef: string, method: InitiatePaymentInput['method'], env?: PaymentServiceEnv) {
+  const isLocal = (env as Record<string, unknown>)?.PLAYWRIGHT_E2E === '1';
+
+  const base = isLocal
+    ? `http://127.0.0.1:8787/mock-payment/${externalRef}`
+    : `https://payments.mock.jeevatix.id/pay/${externalRef}`;
+
+  const url = new URL(base);
   url.searchParams.set('method', method);
 
   return url.toString();
@@ -488,7 +494,7 @@ export const paymentService = {
       order.payment.status === 'failed' || !order.payment.externalRef
         ? buildExternalRef()
         : order.payment.externalRef;
-    const paymentUrl = buildMockPaymentUrl(externalRef, input.method);
+    const paymentUrl = buildMockPaymentUrl(externalRef, input.method, env);
 
     const [updatedPayment] = await database
       .update(payments)
