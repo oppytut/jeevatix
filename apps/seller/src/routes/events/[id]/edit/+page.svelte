@@ -115,13 +115,7 @@
     { id: 5, label: 'Review', icon: Check },
   ] as const;
 
-  const fallbackCategoryOptions: CategoryOption[] = [
-    { id: 1, name: 'Musik', slug: 'musik' },
-    { id: 2, name: 'Olahraga', slug: 'olahraga' },
-    { id: 3, name: 'Workshop', slug: 'workshop' },
-    { id: 4, name: 'Konser', slug: 'konser' },
-    { id: 5, name: 'Festival', slug: 'festival' },
-  ];
+  let categoryOptions = $state<CategoryOption[]>([]);
 
   const eventId = $derived(page.params.id);
 
@@ -290,12 +284,13 @@
   function populateForm(detail: SellerEventDetail) {
     eventDetail = detail;
 
-    const mergedCategoryOptions = [...fallbackCategoryOptions];
+    const mergedCategoryOptions = [...categoryOptions];
     for (const category of detail.categories) {
       if (!mergedCategoryOptions.some((option) => option.id === category.id)) {
         mergedCategoryOptions.push(category);
       }
     }
+    categoryOptions = mergedCategoryOptions;
 
     form = {
       title: detail.title,
@@ -450,6 +445,12 @@
   const totalQuota = $derived(form.tiers.reduce((sum, tier) => sum + Number(tier.quota || 0), 0));
 
   onMount(async () => {
+    try {
+      const categories = await apiGet<CategoryOption[]>('/categories', { requiresAuth: false });
+      categoryOptions = categories;
+    } catch {
+      categoryOptions = [];
+    }
     await loadEventDetail();
   });
 </script>
@@ -579,7 +580,7 @@
                 </p>
               </div>
               <div class="flex flex-wrap gap-2">
-                {#each fallbackCategoryOptions as category (category.id)}
+                {#each categoryOptions as category (category.id)}
                   <button
                     class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-slate-200 bg-white text-slate-600 hover:text-slate-900'}`}
                     onclick={() => toggleCategory(category.id)}

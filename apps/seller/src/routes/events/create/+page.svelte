@@ -14,9 +14,10 @@
     Ticket,
     Trash2,
   } from '@lucide/svelte';
+  import { onMount } from 'svelte';
   import { Button, Card, Input, Toast } from '@jeevatix/ui';
 
-  import { ApiError, apiPost } from '$lib/api';
+  import { ApiError, apiGet, apiPost } from '$lib/api';
 
   type CategoryOption = {
     id: number;
@@ -78,13 +79,8 @@
     { id: 5, label: 'Review', icon: Check },
   ] as const;
 
-  const fallbackCategoryOptions: CategoryOption[] = [
-    { id: 1, name: 'Musik', slug: 'musik' },
-    { id: 2, name: 'Olahraga', slug: 'olahraga' },
-    { id: 3, name: 'Workshop', slug: 'workshop' },
-    { id: 4, name: 'Konser', slug: 'konser' },
-    { id: 5, name: 'Festival', slug: 'festival' },
-  ];
+  let categoryOptions = $state<CategoryOption[]>([]);
+  let isCategoriesLoading = $state(true);
 
   let currentStep = $state(1);
   let isSubmitting = $state(false);
@@ -337,6 +333,17 @@
   const soldPotential = $derived(
     form.tiers.reduce((sum, tier) => sum + Number(tier.quota || 0), 0),
   );
+
+  onMount(async () => {
+    try {
+      const categories = await apiGet<CategoryOption[]>('/categories', { requiresAuth: false });
+      categoryOptions = categories;
+    } catch {
+      categoryOptions = [];
+    } finally {
+      isCategoriesLoading = false;
+    }
+  });
 </script>
 
 <svelte:head>
@@ -440,23 +447,23 @@
           </div>
 
           <div class="space-y-3">
-            <div>
-              <p class="text-sm font-medium text-slate-700">Kategori</p>
-              <p class="mt-1 text-sm text-slate-500">
-                Endpoint kategori seller belum tersedia sebelum T-5.1, jadi opsi ini mengikuti seed
-                kategori proyek saat ini.
-              </p>
-            </div>
+            <p class="text-sm font-medium text-slate-700">Kategori</p>
             <div class="flex flex-wrap gap-2">
-              {#each fallbackCategoryOptions as category (category.id)}
-                <button
-                  class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-slate-200 bg-white text-slate-600 hover:text-slate-900'}`}
-                  onclick={() => toggleCategory(category.id)}
-                  type="button"
-                >
-                  {category.name}
-                </button>
-              {/each}
+              {#if isCategoriesLoading}
+                <span class="text-sm text-slate-500">Memuat kategori...</span>
+              {:else if categoryOptions.length === 0}
+                <span class="text-sm text-slate-500">Gagal memuat kategori.</span>
+              {:else}
+                {#each categoryOptions as category (category.id)}
+                  <button
+                    class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-slate-200 bg-white text-slate-600 hover:text-slate-900'}`}
+                    onclick={() => toggleCategory(category.id)}
+                    type="button"
+                  >
+                    {category.name}
+                  </button>
+                {/each}
+              {/if}
             </div>
           </div>
         </div>
