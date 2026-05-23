@@ -63,7 +63,7 @@ test.describe('Buyer Profile Edit', () => {
       return;
     }
 
-    const nameInput = page.locator('#full-name');
+    const nameInput = page.locator('#full_name');
     const isVisible = await nameInput.isVisible().catch(() => false);
     if (!isVisible) {
       test.skip(true, 'Profile name input not visible');
@@ -148,7 +148,7 @@ test.describe('Buyer Profile Edit', () => {
       return;
     }
 
-    const nameInput = page.locator('#full-name');
+    const nameInput = page.locator('#full_name');
     const isVisible = await nameInput.isVisible().catch(() => false);
     if (!isVisible) {
       test.skip(true, 'Profile name input not visible');
