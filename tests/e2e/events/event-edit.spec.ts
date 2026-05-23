@@ -51,7 +51,7 @@ test.describe('Event Edit Flow', () => {
     await page.goto(`/events/${eventId}/edit`);
     await page.waitForLoadState('networkidle');
 
-    const titleInput = page.locator('#event-title');
+    const titleInput = page.locator('#title');
     const isVisible = await titleInput.isVisible().catch(() => false);
     if (!isVisible) {
       test.skip(true, 'Event edit page did not load title input');
@@ -71,7 +71,7 @@ test.describe('Event Edit Flow', () => {
     await page.goto(`/events/${eventId}/edit`);
     await page.waitForLoadState('networkidle');
 
-    const titleInput = page.locator('#event-title');
+    const titleInput = page.locator('#title');
     const isVisible = await titleInput.isVisible().catch(() => false);
     if (!isVisible) {
       test.skip(true, 'Event edit page did not load');
@@ -82,7 +82,7 @@ test.describe('Event Edit Flow', () => {
     await titleInput.clear();
     await titleInput.fill(newTitle);
 
-    const descInput = page.locator('#event-description');
+    const descInput = page.locator('#description');
     await descInput.clear();
     await descInput.fill('Updated description for E2E test');
 
@@ -133,7 +133,7 @@ test.describe('Event Edit Flow', () => {
     await page.goto(`/events/${eventId}/edit`);
     await page.waitForLoadState('networkidle');
 
-    const titleInput = page.locator('#event-title');
+    const titleInput = page.locator('#title');
     const isVisible = await titleInput.isVisible().catch(() => false);
     if (!isVisible) {
       test.skip(true, 'Event edit page did not load');
@@ -192,7 +192,7 @@ test.describe('Event Edit Flow', () => {
     await page.goto(`/events/${eventId}/edit`);
     await page.waitForLoadState('networkidle');
 
-    const titleInput = page.locator('#event-title');
+    const titleInput = page.locator('#title');
     const isVisible = await titleInput.isVisible().catch(() => false);
     if (!isVisible) {
       test.skip(true, 'Event edit page did not load');
