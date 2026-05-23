@@ -77,22 +77,19 @@ test.describe('Payment Methods', () => {
 
     await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ noWaitAfter: true });
 
-    const reservationIndicator = page.locator('text=/[Rr]eservasi|dikunci|countdown|bayar|payment/');
-    const appeared = await reservationIndicator.first().waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
+    // Wait for the countdown timer text that only appears after successful reservation
+    const countdownIndicator = page.getByText('Waktu Tersisa');
+    const appeared = await countdownIndicator.waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
 
     if (!appeared && page.url().includes('/checkout/')) {
       test.skip(true, 'SvelteKit form action did not complete — known local limitation');
       return;
     }
 
-    const bodyText = await page.locator('body').textContent({ timeout: 5000 }).catch(() => '');
+    // Verify reservation state: countdown visible OR "Lanjut ke Pembayaran" button present
     const hasReservationState =
-      bodyText?.includes('reservasi') ||
-      bodyText?.includes('Reservasi') ||
-      bodyText?.includes('dikunci') ||
-      bodyText?.includes('countdown') ||
-      bodyText?.includes('bayar') ||
-      bodyText?.includes('payment') ||
+      (await countdownIndicator.isVisible().catch(() => false)) ||
+      (await page.getByRole('button', { name: 'Lanjut ke Pembayaran' }).isVisible().catch(() => false)) ||
       !page.url().includes('/checkout/');
 
     expect(hasReservationState).toBeTruthy();
