@@ -53,7 +53,7 @@ test.describe('Admin Authentication', () => {
 
       const redirected = await page.waitForURL(/\/login/, { timeout: 10000 }).then(() => true).catch(() => false);
       if (!redirected) {
-        test.skip(true, 'Admin logout does not clear session in local mode (pre-existing limitation)');
+        test.skip(true, 'Logout cookie deletion race condition in local SvelteKit dev mode');
         return;
       }
       expect(page.url()).toContain('/login');

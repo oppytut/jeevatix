@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type { Snippet } from 'svelte';
@@ -70,7 +69,7 @@
 
   async function handleLogout() {
     await logout();
-    await goto(resolve('/login'), { replaceState: true });
+    window.location.replace('/login');
   }
 </script>
 

@@ -68,7 +68,7 @@
 
   async function handleLogout() {
     await logout();
-    await goto(resolve('/login'), { replaceState: true });
+    window.location.replace('/login');
   }
 
   onMount(() => {
