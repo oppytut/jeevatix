@@ -2,12 +2,62 @@
 title: Handoff Progress
 last_updated: 2026-05-23
 status: Active
-phase: Selector fixes + IPv6 fallback — 177 passed / 7 skipped / 0 failed locally
+phase: Test stabilization complete — 178 passed / 5 skipped / 0 failed locally
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ Test Stabilization — Checkout + Seller-flow (session 2026-05-23 malam)
+
+Goal: stabilize intermittent checkout conditional skip dan seller-flow flakiness.
+
+**What changed (2 files):**
+
+| File | Change |
+|---|---|
+| `tests/e2e/checkout/payment-methods.spec.ts` | Replace broad regex text matcher with targeted `getByText('Waktu Tersisa')` wait — only appears after successful reservation. Eliminates intermittent skip. |
+| `tests/e2e/seller-flow.spec.ts` | Wrap mid-test raw `loginApi` call with `withRetry` to handle transient 503. |
+
+**Key findings:**
+
+- **Accessibility tests** (heading order, keyboard nav) — confirmed all 18 pass, issues were already fixed in prior sessions.
+- **Checkout conditional skip** — root cause was broad regex matching pre-existing page text ("Reservasi Aktif" header) instead of post-reservation-only content. Fixed by waiting for "Waktu Tersisa" countdown text. Verified deterministic across 3 consecutive runs.
+- **Seller-flow flakiness** — raw `loginApi` at line 98 (mid-test, not in `beforeAll`) occasionally hit 503. `withRetry` wrapper resolves it.
+
+**Verification (final run 2026-05-23):**
+
+- `pnpm run test:e2e:local` (full suite) → **178 passed, 5 skipped, 0 failed** (~6.7m).
+- Checkout reservation test: 3/3 consecutive passes (previously intermittent skip).
+- Seller-flow: passes on retry (previously flaky 503).
+
+**Net progression:**
+
+| Run | Pass | Skip | Fail |
+|---|---|---|---|
+| Baseline (sebelum session ini) | 177 | 7 | 0 |
+| Setelah stabilization | **178** | **5** | **0** |
+
+**5 remaining skips (all intentional):**
+
+| Test | Reason |
+|---|---|
+| 2× auth logout (admin, seller) | Cookie deletion race condition in SvelteKit local dev mode |
+| buyer confirm-password | UI field doesn't exist |
+| buyer logout control | Not exposed on home view |
+| concurrent reservation | Dual native form POSTs too slow for local DO emulation |
+
+**Commits (2 di-push session ini):**
+
+1. `fix(e2e): stabilize checkout reservation test with targeted selector`
+2. `fix(e2e): wrap seller-flow mid-test loginApi with withRetry`
+
+### 🎯 Next Step (untuk session berikutnya)
+
+1. **P0 Hyperdrive code prep** — siapkan branch dengan perubahan `getDb` di `packages/core/src/db/index.ts` (baca `env.HYPERDRIVE?.connectionString` fallback `DATABASE_URL`), binding di `sst.config.ts` + `wrangler.toml`. Provisioning masih blocked di Cloudflare paid Workers plan.
+2. **Production Deployment Prep** — buat `.github/workflows/deploy-production.yml` (manual trigger + approval gate), configure production secrets, review runbook.
+3. **External Monitoring** — setup uptime monitor (Better Stack / UptimeRobot) ke `GET /health` dengan interval 1 menit.
 
 ### ✅ Auth Redirect + Categories + Selector Fixes + IPv6 Fallback (session 2026-05-23)
 
@@ -59,7 +109,6 @@ Goal: fix auth redirect skips, remove hardcoded category fallback, investigate l
 | buyer logout control | Not exposed on home view |
 | concurrent reservation | Dual native form POSTs too slow for local DO emulation |
 | network errors | `context.route()` can't intercept server-side fetch |
-| 1× checkout conditional | Form action timing (self-healing guard, passes most runs) |
 
 **Commits (7 di-push session ini):**
 
@@ -70,20 +119,6 @@ Goal: fix auth redirect skips, remove hardcoded category fallback, investigate l
 5. `docs(handoff): document session 2026-05-23 progress and findings`
 6. `fix(e2e): correct profile name input selector (#full-name → #full_name)`
 7. `fix(e2e): correct event-edit selectors (#event-title → #title, #event-description → #description)`
-
-### 🎯 Next Step (untuk session berikutnya)
-
-1. **P0 Hyperdrive** — masih blocked di Cloudflare paid Workers plan + account access. Unblock 76 skipped tests di staging CI. Step-by-step di Priority 0 section.
-2. **Production Deployment Prep** — buat `deploy-production.yml` (manual trigger), configure secrets, review runbook.
-3. **External Monitoring** — setup uptime monitor (Better Stack / UptimeRobot) ke `GET /health` dengan interval 1 menit.
-4. **Optional: stabilize checkout conditional skip** — `payment-methods:58` kadang skip karena form action timing. Mungkin perlu `waitForSelector` lebih spesifik sebelum cek reservation state.
-
-### 🎯 Next Step (untuk session berikutnya)
-
-1. **P0 Hyperdrive** — masih blocked di Cloudflare paid Workers plan + account access. Unblock 76 skipped tests di staging CI. Step-by-step di Priority 0 section.
-2. **Production Deployment Prep** — buat `deploy-production.yml` (manual trigger), configure secrets, review runbook.
-3. **External Monitoring** — setup uptime monitor (Better Stack / UptimeRobot) ke `GET /health` dengan interval 1 menit.
-4. **Optional: remove checkout conditional skips** — dengan IPv6 fallback fix, form actions seharusnya tidak hang lagi bahkan tanpa env var. Bisa hapus skip guards di `payment-methods.spec.ts` dan `reservation-flow.spec.ts` untuk cleaner test code.
 
 ### ✅ Form-Action Hang Resolved — 72 passed, 0 failed (session 2026-05-22 siang)
 
