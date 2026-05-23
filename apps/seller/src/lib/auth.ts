@@ -6,10 +6,10 @@ import { PUBLIC_API_BASE_URL } from '$env/static/public';
 // Use custom domain for server-side (Worker-to-Worker) communication.
 // Same-account workers.dev routing returns 404 when called from another Worker,
 // while custom domain (Cloudflare Route) resolves correctly.
-const INTERNAL_API_URL = dev ? 'http://localhost:8787' : 'https://api.jeevatix.my.id';
+const INTERNAL_API_URL = dev ? 'http://127.0.0.1:8787' : 'https://api.jeevatix.my.id';
 
 export const API_BASE_URL =
-  PUBLIC_API_BASE_URL || (dev ? 'http://localhost:8787' : 'https://api.jeevatix.com');
+  PUBLIC_API_BASE_URL || (dev ? 'http://127.0.0.1:8787' : 'https://api.jeevatix.com');
 
 export class ApiError extends Error {
   constructor(
