@@ -2,18 +2,18 @@
 title: Handoff Progress
 last_updated: 2026-05-23
 status: Active
-phase: Auth + categories + IPv6 fallback — 171 passed / 13 skipped / 0 failed locally
+phase: Selector fixes + IPv6 fallback — 177 passed / 7 skipped / 0 failed locally
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
 
-### ✅ Auth Redirect + Categories + IPv6 Fallback (session 2026-05-23)
+### ✅ Auth Redirect + Categories + Selector Fixes + IPv6 Fallback (session 2026-05-23)
 
-Goal: fix auth redirect skips, remove hardcoded category fallback, investigate logout redirect, dan harden IPv6 fix di portal dev fallbacks.
+Goal: fix auth redirect skips, remove hardcoded category fallback, investigate logout redirect, harden IPv6 fix di portal dev fallbacks, dan fix selector drift di profile + event-edit tests.
 
-**What changed (9 files):**
+**What changed (12 files):**
 
 | File | Change |
 |---|---|
@@ -27,18 +27,20 @@ Goal: fix auth redirect skips, remove hardcoded category fallback, investigate l
 | `apps/buyer/src/lib/auth.ts` | Dev fallback `localhost:8787` → `127.0.0.1:8787` to prevent IPv6 hang in server-side fetch. |
 | `apps/admin/src/lib/http.ts` | Same IPv6 fallback fix. |
 | `apps/seller/src/lib/auth.ts` | Same IPv6 fallback fix (both `API_BASE_URL` and `INTERNAL_API_URL`). |
+| `tests/e2e/buyer/profile.spec.ts` | Fix selector `#full-name` → `#full_name` (1 test unblocked). |
+| `tests/e2e/events/event-edit.spec.ts` | Fix selectors `#event-title` → `#title`, `#event-description` → `#description` (4 tests unblocked from cascade). |
 
 **Key findings:**
 
 - **Auth login redirect** worked fine locally after IPv6 fix — the old skip guards were unnecessary. Replaced with `waitForURL((url) => !url.pathname.includes('/login'))`.
 - **Auth logout redirect** is a genuine race condition: `cookies.delete()` in SvelteKit server endpoint response isn't reliably processed by browser before next navigation. `window.location.replace` is better than `goto()` but still flaky under parallel test load. Graceful skip is the correct approach.
+- **Selector drift** was the cause of 5 silent skips: profile page uses `#full_name` (underscore), event edit uses `#title`/`#description` (no prefix). Tests had stale selectors from an earlier UI iteration.
 - **Accessibility tests** (heading order, keyboard nav) all pass without changes — issues were fixed in prior sessions.
-- **Checkin wrong-event assertion** already passes — regex was broadened previously.
 - **Portal dev fallbacks** still used `localhost` which causes IPv6 hang for `pnpm run dev` without explicit `PUBLIC_API_BASE_URL`. Fixed to `127.0.0.1`.
 
 **Verification (final run 2026-05-23):**
 
-- `pnpm run test:e2e:local` (full suite) → **171 passed, 13 skipped, 0 failed** (~7.0m).
+- `pnpm run test:e2e:local` (full suite) → **177 passed, 7 skipped, 0 failed** (~7.0m).
 - `pnpm exec turbo run lint --filter=buyer --filter=admin --filter=seller --filter=@jeevatix/api` → 0 error.
 
 **Net progression:**
@@ -46,11 +48,9 @@ Goal: fix auth redirect skips, remove hardcoded category fallback, investigate l
 | Run | Pass | Skip | Fail |
 |---|---|---|---|
 | Baseline (sebelum session ini) | 171 | 13 | 0 |
-| Setelah auth + categories + IPv6 fix | **171** | **13** | **0** |
+| Setelah semua fixes | **177** | **7** | **0** |
 
-Note: pass/skip count unchanged karena E2E suite sudah menggunakan `PUBLIC_API_BASE_URL` dari `.env.e2e.local`. Perubahan ini memperbaiki developer experience saat `pnpm run dev` tanpa env var eksplisit.
-
-**13 remaining skips (all intentional):**
+**7 remaining skips (all intentional):**
 
 | Test | Reason |
 |---|---|
@@ -59,14 +59,24 @@ Note: pass/skip count unchanged karena E2E suite sudah menggunakan `PUBLIC_API_B
 | buyer logout control | Not exposed on home view |
 | concurrent reservation | Dual native form POSTs too slow for local DO emulation |
 | network errors | `context.route()` can't intercept server-side fetch |
-| ~7× checkout conditional | Only skip if form action fails (self-healing guards) |
+| 1× checkout conditional | Form action timing (self-healing guard, passes most runs) |
 
-**Commits (5 di-push session ini):**
+**Commits (7 di-push session ini):**
 
 1. `fix(e2e): replace auth redirect skip guards with waitForURL pattern`
 2. `feat(seller): fetch categories from API instead of hardcoded fallback`
 3. `fix(auth): use window.location.replace for logout redirect`
 4. `fix(portals): use 127.0.0.1 instead of localhost in dev API fallback`
+5. `docs(handoff): document session 2026-05-23 progress and findings`
+6. `fix(e2e): correct profile name input selector (#full-name → #full_name)`
+7. `fix(e2e): correct event-edit selectors (#event-title → #title, #event-description → #description)`
+
+### 🎯 Next Step (untuk session berikutnya)
+
+1. **P0 Hyperdrive** — masih blocked di Cloudflare paid Workers plan + account access. Unblock 76 skipped tests di staging CI. Step-by-step di Priority 0 section.
+2. **Production Deployment Prep** — buat `deploy-production.yml` (manual trigger), configure secrets, review runbook.
+3. **External Monitoring** — setup uptime monitor (Better Stack / UptimeRobot) ke `GET /health` dengan interval 1 menit.
+4. **Optional: stabilize checkout conditional skip** — `payment-methods:58` kadang skip karena form action timing. Mungkin perlu `waitForSelector` lebih spesifik sebelum cek reservation state.
 
 ### 🎯 Next Step (untuk session berikutnya)
 

@@ -76,9 +76,16 @@ test.describe('Payment Methods', () => {
     }
 
     await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ noWaitAfter: true });
-    await page.waitForTimeout(5000);
 
-    const bodyText = await page.locator('body').textContent({ timeout: 10000 }).catch(() => '');
+    const reservationIndicator = page.locator('text=/[Rr]eservasi|dikunci|countdown|bayar|payment/');
+    const appeared = await reservationIndicator.first().waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
+
+    if (!appeared && page.url().includes('/checkout/')) {
+      test.skip(true, 'SvelteKit form action did not complete — known local limitation');
+      return;
+    }
+
+    const bodyText = await page.locator('body').textContent({ timeout: 5000 }).catch(() => '');
     const hasReservationState =
       bodyText?.includes('reservasi') ||
       bodyText?.includes('Reservasi') ||
@@ -87,11 +94,6 @@ test.describe('Payment Methods', () => {
       bodyText?.includes('bayar') ||
       bodyText?.includes('payment') ||
       !page.url().includes('/checkout/');
-
-    if (!hasReservationState) {
-      test.skip(true, 'SvelteKit form action did not complete — known local limitation');
-      return;
-    }
 
     expect(hasReservationState).toBeTruthy();
   });
