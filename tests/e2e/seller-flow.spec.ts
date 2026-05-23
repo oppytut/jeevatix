@@ -7,6 +7,7 @@ import {
   publishEventAsAdmin,
   uniqueEmail,
   waitForPortal,
+  withRetry,
 } from './helpers';
 
 test.describe('Seller E2E Flow', () => {
@@ -95,7 +96,7 @@ test.describe('Seller E2E Flow', () => {
     await expect(page.getByText(eventTitle).first()).toBeVisible();
 
     await publishEventAsAdmin(request, eventId!);
-    const sellerSession = await loginApi(request, sellerEmail, sellerPassword);
+    const sellerSession = await withRetry(() => loginApi(request, sellerEmail, sellerPassword));
     const orderFixture = await createConfirmedOrderFixture(request, eventId!, sellerSession.access_token);
 
     await page.goto('/orders');
