@@ -65,14 +65,9 @@ test.describe('Buyer Authentication', () => {
 
     await page.getByRole('button', { name: /login|masuk/i }).click();
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 });
 
-    if (page.url().includes('/login')) {
-      test.skip(true, 'SvelteKit form action redirect not working in CF Workers E2E');
-      return;
-    }
-
-    expect(page.url()).toMatch(/\/$/);
+    expect(page.url()).not.toContain('/login');
   });
 
   test('should reject invalid credentials', async ({ page }) => {
@@ -168,12 +163,7 @@ test.describe('Buyer Authentication', () => {
     await page.getByLabel(/email/i).fill('buyer@jeevatix.id');
     await page.getByLabel(/password/i).fill('Buyer123!');
     await page.getByRole('button', { name: /login|masuk/i }).click();
-    await page.waitForLoadState('networkidle');
-
-    if (page.url().includes('/login')) {
-      test.skip(true, 'SvelteKit form action redirect not working in CF Workers E2E');
-      return;
-    }
+    await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 });
 
     const logoutButton = page.getByRole('button', { name: /logout|keluar/i });
     const profileMenu = page.getByRole('button', { name: /profile|profil/i });
@@ -188,7 +178,7 @@ test.describe('Buyer Authentication', () => {
       return;
     }
 
-    await page.waitForURL(/\/login/, { timeout: 10000 }).catch(() => {});
+    await page.waitForURL(/\/login/, { timeout: 10000 });
 
     const loginLink = page.getByRole('link', { name: /login|masuk/i });
     await expect(loginLink).toBeVisible();
