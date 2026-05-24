@@ -22,6 +22,7 @@ test.describe('Seller Order Management', () => {
   let fixtureReady = false;
 
   test.beforeAll(async ({ request }) => {
+    test.setTimeout(180_000);
     try {
       await withRetry(async () => {
         const seller = await createSellerViaApi(request);
