@@ -1,0 +1,118 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy-production" to confirm'
+        required: true
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "deploy-production" ]; then
+            echo "❌ Confirmation failed. Type 'deploy-production' to proceed."
+            exit 1
+          fi
+          echo "✅ Confirmation accepted"
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: jeevatix
+          POSTGRES_PASSWORD: jeevatix
+          POSTGRES_DB: jeevatix_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      PUBLIC_API_BASE_URL: ${{ vars.PRODUCTION_API_URL || 'https://api.jeevatix.com' }}
+      PUBLIC_PARTYKIT_HOST: ${{ vars.PUBLIC_PARTYKIT_HOST }}
+      DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
+      JWT_SECRET: vitest-ci-secret
+      PAYMENT_WEBHOOK_SECRET: vitest-ci-webhook-secret
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run format:check
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run validate:load-test-safety
+      - name: Setup test database
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          echo "JWT_SECRET=$JWT_SECRET" >> .env
+          echo "PAYMENT_WEBHOOK_SECRET=$PAYMENT_WEBHOOK_SECRET" >> .env
+          pnpm --filter @jeevatix/core run db:push
+      - run: pnpm run test
+      - run: pnpm run build
+      - name: Validate frontend bundles do not target localhost API
+        run: |
+          if rg -n "http://localhost:8787" apps/admin/.svelte-kit apps/buyer/.svelte-kit apps/seller/.svelte-kit; then
+            echo "Frontend build artifacts still point to localhost API"
+            exit 1
+          fi
+      - run: pnpm run deploy --stage production
+        env:
+          APP_ENVIRONMENT: production
+          APP_VERSION: ${{ github.sha }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_DEFAULT_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.PRODUCTION_JWT_SECRET }}
+          PAYMENT_WEBHOOK_SECRET: ${{ secrets.PRODUCTION_PAYMENT_WEBHOOK_SECRET }}
+          EMAIL_API_KEY: ${{ secrets.EMAIL_API_KEY }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          UPLOAD_PUBLIC_URL: ${{ vars.PRODUCTION_UPLOAD_PUBLIC_URL }}
+          PARTY_SECRET: ${{ secrets.PARTY_SECRET }}
+          PARTYKIT_HOST: ${{ vars.PARTYKIT_HOST }}
+          TICKET_RESERVER_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          TICKET_RESERVER_DB_MAX_CONNECTIONS: ${{ vars.TICKET_RESERVER_DB_MAX_CONNECTIONS }}
+          R2_BUCKET_NAME: ${{ vars.PRODUCTION_R2_BUCKET_NAME }}
+          RESERVATION_CLEANUP_QUEUE_NAME: ${{ vars.PRODUCTION_RESERVATION_CLEANUP_QUEUE_NAME }}
+          PRODUCTION_API_DOMAIN: ${{ vars.PRODUCTION_API_DOMAIN }}
+          PRODUCTION_BUYER_DOMAIN: ${{ vars.PRODUCTION_BUYER_DOMAIN }}
+          PRODUCTION_ADMIN_DOMAIN: ${{ vars.PRODUCTION_ADMIN_DOMAIN }}
+          PRODUCTION_SELLER_DOMAIN: ${{ vars.PRODUCTION_SELLER_DOMAIN }}
+          CORS_ALLOWED_ORIGINS: ${{ vars.PRODUCTION_CORS_ALLOWED_ORIGINS }}
+      - name: Smoke Test
+        run: |
+          API_URL="${{ vars.PRODUCTION_API_URL || 'https://api.jeevatix.com' }}"
+          health_payload="$(curl -fsS "$API_URL/health")"
+          HEALTH_PAYLOAD="$health_payload" node - <<'EOF'
+          const payload = JSON.parse(process.env.HEALTH_PAYLOAD ?? '{}');
+
+          if (payload.status !== 'ok' || !payload.timestamp || !payload.version) {
+            console.error('Unexpected health payload:', payload);
+            process.exit(1);
+          }
+
+          if (payload.environment !== 'production') {
+            console.error('Expected production environment, got:', payload.environment);
+            process.exit(1);
+          }
+          EOF
+          echo "✅ Production API health check passed"
+          echo "Version deployed: ${{ github.sha }}"
