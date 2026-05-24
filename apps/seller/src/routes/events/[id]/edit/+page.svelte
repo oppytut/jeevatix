@@ -323,8 +323,6 @@
         sale_end_at: toDateTimeLocal(tier.sale_end_at),
       })),
     };
-
-    fallbackCategoryOptions.splice(0, fallbackCategoryOptions.length, ...mergedCategoryOptions);
   }
 
   function validateStep(step: number) {
