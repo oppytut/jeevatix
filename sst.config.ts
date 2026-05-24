@@ -162,14 +162,9 @@ function createApiEnvironment() {
     APP_ENVIRONMENT: stage,
     APP_VERSION: buildAppVersion(),
     DATABASE_URL: requireEnv('DATABASE_URL'),
-    // DB_DISABLE_CACHE=1 forces postgres-js to open a fresh connection per request
-    // instead of caching pools across requests in the same Worker isolate. Cached
-    // connections become stale (Neon kills idle conns ~5 min) and postgres-js does
-    // not auto-detect this, so the next request hits a dead handle and returns 500.
-    // Live test 2026-05-14: removing this flag took /auth/register from 0% to 30% 500.
-    // Real fix is Cloudflare Hyperdrive (edge pooling). Until that is provisioned,
-    // this flag stays.
-    DB_DISABLE_CACHE: '1',
+    // DB_DISABLE_CACHE removed 2026-05-24: VPS PostgreSQL does not kill idle
+    // connections (unlike Neon serverless), so cached postgres-js clients stay
+    // valid across requests. Connection caching is now safe and reduces latency.
     JWT_SECRET: requireEnv('JWT_SECRET'),
     PAYMENT_WEBHOOK_SECRET: requireEnv('PAYMENT_WEBHOOK_SECRET'),
     EMAIL_API_KEY: requireEnv('EMAIL_API_KEY'),
