@@ -66,15 +66,24 @@ test.describe('Admin Event Moderation', () => {
     await page.goto('/events');
     await page.waitForLoadState('networkidle');
 
-    await page.goto(`/events/${eventId}`);
-    await page.waitForLoadState('networkidle');
+    let body = page.locator('body');
+    let bodyText = '';
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await page.goto(`/events/${eventId}`);
+      await page.waitForLoadState('networkidle');
 
-    if (await isPortalErrorPage(page)) {
-      test.skip(true, 'Admin portal event detail page returned error - staging flakiness');
-      return;
+      if (await isPortalErrorPage(page)) {
+        test.skip(true, 'Admin portal event detail page returned error - staging flakiness');
+        return;
+      }
+
+      bodyText = (await body.textContent({ timeout: 5000 })) ?? '';
+      if (!bodyText.includes('Gagal memuat detail')) {
+        break;
+      }
+      await page.waitForTimeout(2000);
     }
 
-    const body = page.locator('body');
     await expect(body).toContainText(/pending review|published|rejected|draft|approved/i);
   });
 

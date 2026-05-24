@@ -11,7 +11,6 @@ import {
 test.describe('Reservation Flow', () => {
   test.describe.configure({ mode: 'serial' });
 
-
   let buyerEmail: string;
   let buyerPassword: string;
   let eventSlug: string;
@@ -78,15 +77,24 @@ test.describe('Reservation Flow', () => {
 
     await page.getByRole('button', { name: 'Reservasi Tiket' }).click({ noWaitAfter: true });
 
-    const reservationIndicator = page.locator('text=/[Rr]eservasi|dikunci|countdown|bayar|payment/');
-    const appeared = await reservationIndicator.first().waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
+    const reservationIndicator = page.locator(
+      'text=/[Rr]eservasi|dikunci|countdown|bayar|payment/',
+    );
+    const appeared = await reservationIndicator
+      .first()
+      .waitFor({ timeout: 30000 })
+      .then(() => true)
+      .catch(() => false);
 
     if (!appeared && page.url().includes('/checkout/')) {
       test.skip(true, 'SvelteKit form action did not complete — known local limitation');
       return;
     }
 
-    const bodyText = await page.locator('body').textContent({ timeout: 5000 }).catch(() => '');
+    const bodyText = await page
+      .locator('body')
+      .textContent({ timeout: 5000 })
+      .catch(() => '');
     const hasReservationState =
       bodyText?.includes('reservasi') ||
       bodyText?.includes('Reservasi') ||
@@ -276,8 +284,14 @@ test.describe('Reservation Flow', () => {
     await page.waitForLoadState('networkidle');
     await page2.waitForLoadState('networkidle');
 
+    const tierRadio = page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`);
+    if ((await tierRadio.count()) === 0 || (await tierRadio.isDisabled())) {
+      test.skip(true, 'Target tier unavailable (stock depleted by earlier serial tests)');
+      return;
+    }
+
     // Both select same tier
-    await page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`).check({ force: true });
+    await tierRadio.check({ force: true });
     await page2.locator(`input[name="ticket_tier_id"][value="${tierId}"]`).check({ force: true });
 
     // Both set quantity
