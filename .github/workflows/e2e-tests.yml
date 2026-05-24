@@ -17,6 +17,7 @@ jobs:
     env:
       E2E_TARGET: staging
       CI: "true"
+      PAYMENT_WEBHOOK_SECRET: ${{ secrets.PAYMENT_WEBHOOK_SECRET }}
     
     steps:
       - uses: actions/checkout@v4
