@@ -234,7 +234,11 @@ function buildExternalRef() {
   return `PAY-${year}${month}${day}-${getRandomToken(8).toUpperCase()}`;
 }
 
-function buildMockPaymentUrl(externalRef: string, method: InitiatePaymentInput['method'], env?: PaymentServiceEnv) {
+function buildMockPaymentUrl(
+  externalRef: string,
+  method: InitiatePaymentInput['method'],
+  env?: PaymentServiceEnv,
+) {
   const isLocal = (env as Record<string, unknown>)?.PLAYWRIGHT_E2E === '1';
 
   const base = isLocal
