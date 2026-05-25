@@ -17,25 +17,12 @@ import {
 } from '../../services/seller-profile.service';
 import { EventServiceError, eventService } from '../../services/event.service';
 import { messageResponseSchema } from '../../schemas/auth.schema';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('seller'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -304,7 +291,7 @@ const deleteSellerEventRoute = createRoute({
 
 app.openapi(listSellerEventsRoute, async (c) => {
   const query = c.req.valid('query');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -318,7 +305,7 @@ app.openapi(listSellerEventsRoute, async (c) => {
 
 app.openapi(createSellerEventRoute, async (c) => {
   const body = c.req.valid('json');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -332,7 +319,7 @@ app.openapi(createSellerEventRoute, async (c) => {
 
 app.openapi(getSellerEventRoute, async (c) => {
   const params = c.req.valid('param');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -347,7 +334,7 @@ app.openapi(getSellerEventRoute, async (c) => {
 app.openapi(updateSellerEventRoute, async (c) => {
   const params = c.req.valid('param');
   const body = c.req.valid('json');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -361,7 +348,7 @@ app.openapi(updateSellerEventRoute, async (c) => {
 
 app.openapi(submitSellerEventRoute, async (c) => {
   const params = c.req.valid('param');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -375,7 +362,7 @@ app.openapi(submitSellerEventRoute, async (c) => {
 
 app.openapi(deleteSellerEventRoute, async (c) => {
   const params = c.req.valid('param');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);

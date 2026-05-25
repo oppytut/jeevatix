@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 import {
   sellerProfileErrorResponseSchema,
   sellerProfileResponseSchema,
@@ -16,20 +17,6 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('seller'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -154,10 +141,7 @@ const updateSellerProfileRoute = createRoute({
 
 app.openapi(getSellerProfileRoute, async (c) => {
   try {
-    const result = await sellerProfileService.getProfile(
-      c.var.user.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await sellerProfileService.getProfile(c.var.user.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -172,7 +156,7 @@ app.openapi(updateSellerProfileRoute, async (c) => {
     const result = await sellerProfileService.updateProfile(
       c.var.user.id,
       body,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);

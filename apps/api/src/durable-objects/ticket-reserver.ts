@@ -8,6 +8,8 @@ const RESERVATION_TTL_MINUTES = 10;
 
 type TicketReserverEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
+  DISABLE_HYPERDRIVE?: string;
   TICKET_RESERVER_DATABASE_URL?: string;
   TICKET_RESERVER_DB_MAX_CONNECTIONS?: string;
   PARTYKIT_HOST?: string;
@@ -161,8 +163,17 @@ function getProcessEnv(key: string) {
   ).process?.env?.[key];
 }
 
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl ?? getProcessEnv('DATABASE_URL');
+function getDatabaseUrl(env: TicketReserverEnv) {
+  const hyperdriveDisabled =
+    env.DISABLE_HYPERDRIVE === '1' || getProcessEnv('DISABLE_HYPERDRIVE') === '1';
+  const hyperdriveUrl = hyperdriveDisabled ? undefined : env.Hyperdrive?.connectionString;
+
+  return (
+    env.TICKET_RESERVER_DATABASE_URL ??
+    hyperdriveUrl ??
+    env.DATABASE_URL ??
+    getProcessEnv('DATABASE_URL')
+  );
 }
 
 function getMaxConnections(rawValue?: string) {
@@ -335,7 +346,7 @@ export class TicketReserver extends DurableObjectBase {
 
   private getDatabase() {
     const database = getDb(
-      getDatabaseUrl(this.env.TICKET_RESERVER_DATABASE_URL ?? this.env.DATABASE_URL),
+      getDatabaseUrl(this.env),
       getMaxConnections(this.env.TICKET_RESERVER_DB_MAX_CONNECTIONS),
     );
 

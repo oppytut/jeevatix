@@ -18,6 +18,7 @@ import {
   verifyEmailSchema,
 } from '../schemas/auth.schema';
 import { AuthServiceError, authService } from '../services/auth.service';
+import { resolveDatabaseUrl } from '../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
@@ -55,7 +56,7 @@ app.get('/verify-email', async (c) => {
   }
 
   try {
-    const result = await authService.verifyEmail(token, secret, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await authService.verifyEmail(token, secret, resolveDatabaseUrl(c.env));
     return c.html(renderVerifyEmailPage(result.message, true), 200);
   } catch (error) {
     if (error instanceof AuthServiceError) {
@@ -78,10 +79,6 @@ function getProcessEnv(key: string) {
 
 function getJwtSecret(envSecret?: string) {
   return envSecret || getProcessEnv('JWT_SECRET');
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
 }
 
 function getBooleanFlag(value?: string) {
@@ -673,7 +670,7 @@ app.openapi(registerRoute, async (c) => {
     const result = await authService.register(
       body,
       secret,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
       getAuthFlowOptions(c),
     );
     return c.json({ success: true, data: result }, 201);
@@ -694,7 +691,7 @@ app.openapi(registerSellerRoute, async (c) => {
     const result = await authService.registerSeller(
       body,
       secret,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
       getAuthFlowOptions(c),
     );
     return c.json({ success: true, data: result }, 201);
@@ -712,7 +709,7 @@ app.openapi(loginRoute, async (c) => {
     }
 
     const body = c.req.valid('json');
-    const result = await authService.login(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await authService.login(body, secret, resolveDatabaseUrl(c.env));
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;
@@ -728,7 +725,7 @@ app.openapi(refreshRoute, async (c) => {
     }
 
     const body = c.req.valid('json');
-    const result = await authService.refresh(body, secret, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await authService.refresh(body, secret, resolveDatabaseUrl(c.env));
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;
@@ -747,7 +744,7 @@ app.openapi(forgotPasswordRoute, async (c) => {
     const result = await authService.forgotPassword(
       body,
       secret,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
       getAuthFlowOptions(c),
     );
     return c.json({ success: true, data: result }, 200);
@@ -765,11 +762,7 @@ app.openapi(resetPasswordRoute, async (c) => {
     }
 
     const body = c.req.valid('json');
-    const result = await authService.resetPassword(
-      body,
-      secret,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await authService.resetPassword(body, secret, resolveDatabaseUrl(c.env));
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;
@@ -785,11 +778,7 @@ app.openapi(verifyEmailRoute, async (c) => {
     }
 
     const body = c.req.valid('json');
-    const result = await authService.verifyEmail(
-      body.token,
-      secret,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await authService.verifyEmail(body.token, secret, resolveDatabaseUrl(c.env));
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;
@@ -805,11 +794,7 @@ app.openapi(logoutRoute, async (c) => {
     }
 
     const body = c.req.valid('json');
-    const result = await authService.logout(
-      body.refresh_token,
-      secret,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await authService.logout(body.refresh_token, secret, resolveDatabaseUrl(c.env));
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;

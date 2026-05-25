@@ -10,24 +10,11 @@ import {
   userProfileResponseSchema,
 } from '../schemas/user.schema';
 import { UserServiceError, userService } from '../services/user.service';
+import { resolveDatabaseUrl } from '../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -181,7 +168,7 @@ const changePasswordRoute = createRoute({
 
 app.openapi(getMeRoute, async (c) => {
   try {
-    const result = await userService.getMe(c.var.user.id, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await userService.getMe(c.var.user.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -193,11 +180,7 @@ app.openapi(updateProfileRoute, async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const result = await userService.updateProfile(
-      c.var.user.id,
-      body,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await userService.updateProfile(c.var.user.id, body, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -209,11 +192,7 @@ app.openapi(changePasswordRoute, async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const result = await userService.changePassword(
-      c.var.user.id,
-      body,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await userService.changePassword(c.var.user.id, body, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

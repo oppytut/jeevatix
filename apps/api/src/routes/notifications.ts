@@ -16,26 +16,13 @@ import {
   notificationResponseSchema,
 } from '../schemas/notification.schema';
 import { NotificationServiceError, notificationService } from '../services/notification.service';
+import { resolveDatabaseUrl } from '../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 const adminApp = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 adminApp.use('*', authMiddleware, roleMiddleware('admin'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -225,7 +212,7 @@ app.openapi(listNotificationsRoute, async (c) => {
     const result = await notificationService.listForUser(
       c.var.user.id,
       query,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
@@ -238,7 +225,7 @@ app.openapi(markAllReadRoute, async (c) => {
   try {
     const result = await notificationService.markAllAsRead(
       c.var.user.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);
@@ -254,7 +241,7 @@ app.openapi(markReadRoute, async (c) => {
     const result = await notificationService.markAsRead(
       c.var.user.id,
       params.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);
@@ -267,7 +254,7 @@ adminApp.openapi(broadcastNotificationsRoute, async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const result = await notificationService.broadcast(body, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await notificationService.broadcast(body, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -279,7 +266,7 @@ adminApp.openapi(adminListNotificationsRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await notificationService.listAdmin(query, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await notificationService.listAdmin(query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {

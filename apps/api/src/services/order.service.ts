@@ -8,6 +8,7 @@ import type {
   OrderListItem,
 } from '../schemas/order.schema';
 import { logErrorWithContext } from '../lib/observability';
+import { resolveDatabaseUrl } from '../lib/database-url';
 import {
   cacheReservationTicketTier,
   OrderReservationServiceError,
@@ -21,6 +22,7 @@ const { events, orderItems, orders, payments, reservations, ticketTiers, tickets
 
 type OrderServiceEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
   TICKET_RESERVER?: DurableObjectNamespace;
 };
 
@@ -238,7 +240,7 @@ function buildCreatedOrderDetail(input: {
 }
 
 async function expirePendingOrder(env: OrderServiceEnv, orderId: string) {
-  const database = getDatabase(env.DATABASE_URL);
+  const database = getDatabase(resolveDatabaseUrl(env));
   const order = await database.query.orders.findFirst({
     where: eq(orders.id, orderId),
     columns: {
@@ -442,7 +444,7 @@ export const orderService = {
   ): Promise<OrderDetail> {
     const startedAt = Date.now();
     const steps: TimedStep[] = [];
-    const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
+    const databaseUrl = resolveDatabaseUrl(env);
     const database = getDatabase(databaseUrl);
     let createdOrder: {
       reservation: OrderCreationReservationRecord;
@@ -726,7 +728,7 @@ export const orderService = {
       totalPages: number;
     };
   }> {
-    const database = getDatabase(env.DATABASE_URL);
+    const database = getDatabase(resolveDatabaseUrl(env));
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const offset = (page - 1) * limit;
@@ -826,7 +828,7 @@ export const orderService = {
   ): Promise<OrderDetail> {
     await expirePendingOrder(env, orderId);
 
-    const database = getDatabase(env.DATABASE_URL);
+    const database = getDatabase(resolveDatabaseUrl(env));
     const order = await database.query.orders.findFirst({
       where: eq(orders.id, orderId),
       columns: {

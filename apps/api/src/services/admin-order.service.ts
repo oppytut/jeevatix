@@ -8,11 +8,13 @@ import type {
 } from '../schemas/admin.schema';
 import { notificationService } from './notification.service';
 import { OrderReservationServiceError, releaseReservation } from './order-reservation.service';
+import { resolveDatabaseUrl } from '../lib/database-url';
 
 const { orderItems, orders, payments, ticketTiers, tickets, users } = schema;
 
 type AdminOrderServiceEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
   TICKET_RESERVER?: DurableObjectNamespace;
 };
 
@@ -458,7 +460,7 @@ export const adminOrderService = {
   },
 
   async cancelOrder(id: string, env: AdminOrderServiceEnv) {
-    const database = getDatabase(env.DATABASE_URL);
+    const database = getDatabase(resolveDatabaseUrl(env));
     const order = await database.query.orders.findFirst({
       where: eq(orders.id, id),
       columns: {
@@ -527,7 +529,7 @@ export const adminOrderService = {
         order_id: id,
         action: 'cancel',
       },
-      env.DATABASE_URL,
+      resolveDatabaseUrl(env),
     );
 
     return {

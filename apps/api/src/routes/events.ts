@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 
+import { resolveDatabaseUrl } from '../lib/database-url';
 import {
   listEventsQuerySchema,
   publicCategoriesResponseSchema,
@@ -12,23 +13,10 @@ import {
   publicEventsListResponseSchema,
 } from '../schemas/public-event.schema';
 import { logErrorWithContext } from '../lib/observability';
+import type { AuthEnv } from '../middleware/auth';
 import { PublicEventServiceError, publicEventService } from '../services/public-event.service';
 
-const app = new OpenAPIHono();
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
+const app = new OpenAPIHono<AuthEnv>();
 
 function jsonError(code: string, message: string) {
   return {
@@ -202,7 +190,7 @@ const listCategoryEventsRoute = createRoute({
 
 app.openapi(listEventsRoute, async (c) => {
   const query = c.req.valid('query');
-  const databaseUrl = getDatabaseUrl();
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const result = await publicEventService.listEvents(query, databaseUrl);
@@ -213,7 +201,7 @@ app.openapi(listEventsRoute, async (c) => {
 });
 
 app.openapi(listFeaturedEventsRoute, async (c) => {
-  const databaseUrl = getDatabaseUrl();
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const data = await publicEventService.listFeatured(databaseUrl);
@@ -237,7 +225,7 @@ app.openapi(listFeaturedEventsRoute, async (c) => {
 
 app.openapi(getEventBySlugRoute, async (c) => {
   const params = c.req.valid('param');
-  const databaseUrl = getDatabaseUrl();
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const result = await publicEventService.getBySlug(params.slug, databaseUrl);
@@ -248,7 +236,7 @@ app.openapi(getEventBySlugRoute, async (c) => {
 });
 
 app.openapi(listCategoriesRoute, async (c) => {
-  const databaseUrl = getDatabaseUrl();
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const result = await publicEventService.listCategories(databaseUrl);
@@ -261,7 +249,7 @@ app.openapi(listCategoriesRoute, async (c) => {
 app.openapi(listCategoryEventsRoute, async (c) => {
   const params = c.req.valid('param');
   const query = c.req.valid('query');
-  const databaseUrl = getDatabaseUrl();
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const result = await publicEventService.listByCategory(params.slug, query, databaseUrl);

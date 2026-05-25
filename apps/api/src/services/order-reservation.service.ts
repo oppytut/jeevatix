@@ -1,10 +1,12 @@
 import { getDb, schema } from '@jeevatix/core';
 import { eq } from 'drizzle-orm';
+import { resolveDatabaseUrl } from '../lib/database-url';
 
 const { reservations } = schema;
 
 type OrderReservationEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
   TICKET_RESERVER?: DurableObjectNamespace;
 };
 
@@ -234,7 +236,7 @@ export async function releaseReservation(
     });
   }
 
-  const database = getDatabase(env.DATABASE_URL);
+  const database = getDatabase(resolveDatabaseUrl(env));
   const reservation = await database.query.reservations.findFirst({
     where: eq(reservations.id, reservationId),
     columns: {
@@ -274,7 +276,7 @@ export async function confirmReservation(env: OrderReservationEnv, reservationId
     });
   }
 
-  const database = getDatabase(env.DATABASE_URL);
+  const database = getDatabase(resolveDatabaseUrl(env));
   const reservation = await database.query.reservations.findFirst({
     where: eq(reservations.id, reservationId),
     columns: {

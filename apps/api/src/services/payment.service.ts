@@ -14,6 +14,7 @@ import {
   releaseReservation,
 } from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
+import { resolveDatabaseUrl } from '../lib/database-url';
 import type {
   InitiatePaymentInput,
   InitiatePaymentPayload,
@@ -25,6 +26,7 @@ const { orders, payments, reservations } = schema;
 
 type PaymentServiceEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
   PAYMENT_WEBHOOK_SECRET?: string;
   EMAIL_API_KEY?: string;
   EMAIL_FROM?: string;
@@ -282,7 +284,7 @@ async function markOrderExpiredIfNeeded(
     return;
   }
 
-  const database = getDatabase(env.DATABASE_URL);
+  const database = getDatabase(resolveDatabaseUrl(env));
 
   if (order.reservationId) {
     try {
@@ -324,7 +326,7 @@ async function enqueuePostPaymentEffects(
   env: PaymentServiceEnv,
   payload: SuccessfulPaymentFulfillmentPayload,
 ) {
-  const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
+  const databaseUrl = resolveDatabaseUrl(env);
   const emailService = createEmailService({
     EMAIL_API_KEY: env.EMAIL_API_KEY,
     EMAIL_FROM: env.EMAIL_FROM,
@@ -454,7 +456,7 @@ export const paymentService = {
     orderId: string,
     input: InitiatePaymentInput,
   ): Promise<InitiatePaymentPayload> {
-    const database = getDatabase(env.DATABASE_URL);
+    const database = getDatabase(resolveDatabaseUrl(env));
     const order = await database.query.orders.findFirst({
       where: eq(orders.id, orderId),
       columns: {
@@ -547,7 +549,7 @@ export const paymentService = {
       durationMs: Date.now() - signatureStartedAt,
     });
 
-    const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
+    const databaseUrl = resolveDatabaseUrl(env);
     const database = getDatabase(databaseUrl);
     const paidAt = body.paid_at ? new Date(body.paid_at) : new Date();
 

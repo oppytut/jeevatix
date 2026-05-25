@@ -4,6 +4,7 @@ import type { Context } from 'hono';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
 import { sellerDashboardResponseSchema } from '../../schemas/seller-dashboard.schema';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 import {
   SellerDashboardServiceError,
   sellerDashboardService,
@@ -17,20 +18,6 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('seller'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -125,7 +112,7 @@ const getSellerDashboardRoute = createRoute({
 });
 
 app.openapi(getSellerDashboardRoute, async (c) => {
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
