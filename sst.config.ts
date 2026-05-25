@@ -163,10 +163,6 @@ function createApiEnvironment() {
     APP_ENVIRONMENT: stage,
     APP_VERSION: buildAppVersion(),
     DATABASE_URL: requireEnv('DATABASE_URL'),
-    // DB_DISABLE_CACHE=1: Worker isolates are ephemeral and may share cached
-    // postgres-js clients across requests in unpredictable ways. Fresh connection
-    // per request is safest regardless of DB backend (Neon or VPS).
-    DB_DISABLE_CACHE: '1',
     JWT_SECRET: requireEnv('JWT_SECRET'),
     PAYMENT_WEBHOOK_SECRET: requireEnv('PAYMENT_WEBHOOK_SECRET'),
     EMAIL_API_KEY: requireEnv('EMAIL_API_KEY'),
