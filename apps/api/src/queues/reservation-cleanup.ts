@@ -1,6 +1,7 @@
 import { getDb, schema } from '@jeevatix/core';
 import { and, eq, gt, gte, lte, sql } from 'drizzle-orm';
 
+import { resolveDatabaseUrl } from '../lib/database-url';
 import { notificationService } from '../services/notification.service';
 
 const { events, notifications, orderItems, orders, reservations, ticketTiers } = schema;
@@ -12,6 +13,8 @@ export type ReservationCleanupMessage = {
 
 export type ReservationCleanupEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
+  DISABLE_HYPERDRIVE?: string;
   TICKET_RESERVER?: DurableObjectNamespace;
   RESERVATION_CLEANUP_QUEUE?: Queue<ReservationCleanupMessage>;
 };
@@ -28,18 +31,8 @@ type TicketReserverStateResponse =
       message?: string;
     };
 
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
 function getDatabase(env: ReservationCleanupEnv) {
-  const database = getDb(env.DATABASE_URL ?? getProcessEnv('DATABASE_URL'));
+  const database = getDb(resolveDatabaseUrl(env));
 
   if (!database) {
     throw new Error('DATABASE_UNAVAILABLE');
@@ -165,7 +158,7 @@ async function sendPaymentReminders(env: ReservationCleanupEnv) {
         event_title: reservation.ticketTier.event?.title ?? null,
         expires_at: reservation.expiresAt.toISOString(),
       },
-      env.DATABASE_URL ?? getProcessEnv('DATABASE_URL'),
+      resolveDatabaseUrl(env),
     );
 
     sent += 1;
@@ -227,7 +220,7 @@ async function sendEventReminders(env: ReservationCleanupEnv) {
         event_id: order.eventId,
         start_at: order.eventStartAt.toISOString(),
       },
-      env.DATABASE_URL ?? getProcessEnv('DATABASE_URL'),
+      resolveDatabaseUrl(env),
     );
 
     sent += 1;
@@ -282,7 +275,7 @@ export async function cleanupExpiredReservations(env: ReservationCleanupEnv) {
             event_id: reservation.ticketTier.event?.id ?? null,
             expired_at: reservation.expiresAt.toISOString(),
           },
-          env.DATABASE_URL ?? getProcessEnv('DATABASE_URL'),
+          resolveDatabaseUrl(env),
         );
       }
 

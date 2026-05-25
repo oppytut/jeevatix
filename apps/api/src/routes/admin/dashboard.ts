@@ -4,6 +4,7 @@ import type { Context } from 'hono';
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
 import { adminDashboardResponseSchema } from '../../schemas/admin-dashboard.schema';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 import {
   AdminDashboardServiceError,
   adminDashboardService,
@@ -12,20 +13,6 @@ import {
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware, roleMiddleware('admin'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -88,7 +75,7 @@ const getAdminDashboardRoute = createRoute({
 
 app.openapi(getAdminDashboardRoute, async (c) => {
   try {
-    const result = await adminDashboardService.getDashboard(getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminDashboardService.getDashboard(resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../../middleware/auth';
 import { errorResponseSchema } from '../../schemas/auth.schema';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 import {
   adminPaymentDetailResponseSchema,
   adminPaymentIdParamSchema,
@@ -19,20 +20,6 @@ import {
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware, roleMiddleware('admin'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -208,10 +195,7 @@ app.openapi(listPaymentsRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await adminPaymentService.listPayments(
-      query,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await adminPaymentService.listPayments(query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -223,10 +207,7 @@ app.openapi(getPaymentDetailRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminPaymentService.getPaymentDetail(
-      params.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await adminPaymentService.getPaymentDetail(params.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

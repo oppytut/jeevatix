@@ -14,11 +14,13 @@ import {
   releaseReservation,
 } from './order-reservation.service';
 import { generateTickets } from './ticket-generator';
+import { resolveDatabaseUrl } from '../lib/database-url';
 
 const { orderItems, orders, payments, reservations, ticketTiers, tickets, users } = schema;
 
 type AdminPaymentServiceEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
   TICKET_RESERVER?: DurableObjectNamespace;
 };
 
@@ -379,7 +381,7 @@ export const adminPaymentService = {
     input: UpdateAdminPaymentStatusInput,
     env: AdminPaymentServiceEnv,
   ) {
-    const database = getDatabase(env.DATABASE_URL);
+    const database = getDatabase(resolveDatabaseUrl(env));
     const payment = await database.query.payments.findFirst({
       where: eq(payments.id, id),
       with: {
@@ -491,7 +493,7 @@ export const adminPaymentService = {
       }
 
       if (payment.order.tickets.length === 0) {
-        await generateTickets(payment.orderId, env.DATABASE_URL);
+        await generateTickets(payment.orderId, resolveDatabaseUrl(env));
       }
 
       await Promise.all([
@@ -504,7 +506,7 @@ export const adminPaymentService = {
             order_id: payment.orderId,
             payment_id: payment.id,
           },
-          env.DATABASE_URL,
+          resolveDatabaseUrl(env),
         ),
         sellerUserId
           ? notificationService.sendNotification(
@@ -517,7 +519,7 @@ export const adminPaymentService = {
                 payment_id: payment.id,
                 event_id: primaryEvent?.id,
               },
-              env.DATABASE_URL,
+              resolveDatabaseUrl(env),
             )
           : Promise.resolve(),
       ]);
@@ -563,7 +565,7 @@ export const adminPaymentService = {
           order_id: payment.orderId,
           payment_id: payment.id,
         },
-        env.DATABASE_URL,
+        resolveDatabaseUrl(env),
       );
 
       return {
@@ -614,7 +616,7 @@ export const adminPaymentService = {
         order_id: payment.orderId,
         payment_id: payment.id,
       },
-      env.DATABASE_URL,
+      resolveDatabaseUrl(env),
     );
 
     return {

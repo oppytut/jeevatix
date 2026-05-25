@@ -13,6 +13,8 @@ type AuthBindings = {
   APP_VERSION?: string;
   JWT_SECRET: string;
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
+  DISABLE_HYPERDRIVE?: string;
   PARTYKIT_HOST?: string;
   PARTY_SECRET?: string;
   TICKET_RESERVER: DurableObjectNamespace;

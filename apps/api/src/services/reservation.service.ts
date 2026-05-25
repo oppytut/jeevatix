@@ -9,11 +9,13 @@ import type {
   ReservationStatePayload,
 } from '../schemas/reservation.schema';
 import type { AdminReservationItem, AdminReservationListQuery } from '../schemas/admin.schema';
+import { resolveDatabaseUrl } from '../lib/database-url';
 
 const { events, orderItems, orders, reservations, ticketTiers, users } = schema;
 
 type ReservationServiceEnv = {
   DATABASE_URL?: string;
+  Hyperdrive?: Hyperdrive;
   TICKET_RESERVER?: DurableObjectNamespace;
 };
 
@@ -505,7 +507,7 @@ export const reservationService = {
   ): Promise<ReservationCreatePayload> {
     const startedAt = profile?.enabled ? Date.now() : 0;
     const steps: TimedStep[] = [];
-    const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
+    const databaseUrl = resolveDatabaseUrl(env);
     const eligibilityStartedAt = profile?.enabled ? Date.now() : 0;
     const eligibilityProfile: ReservationEligibilityProfile | undefined = profile?.enabled
       ? {}
@@ -792,7 +794,7 @@ export const reservationService = {
     userId: string,
     reservationId: string,
   ): Promise<ReservationStatePayload> {
-    const databaseUrl = env.DATABASE_URL ?? getProcessEnv('DATABASE_URL');
+    const databaseUrl = resolveDatabaseUrl(env);
     const database = getDatabase(databaseUrl);
     const reservation = await database.query.reservations.findFirst({
       where: eq(reservations.id, reservationId),

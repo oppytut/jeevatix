@@ -10,6 +10,7 @@ import {
   sellerOrdersListResponseSchema,
 } from '../../schemas/seller-order.schema';
 import { SellerOrderServiceError, sellerOrderService } from '../../services/seller-order.service';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 import {
   SellerProfileServiceError,
   sellerProfileService,
@@ -19,20 +20,6 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('seller'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -146,7 +133,7 @@ const getSellerOrderDetailRoute = createRoute({
 
 app.openapi(listSellerOrdersRoute, async (c) => {
   const query = c.req.valid('query');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -160,7 +147,7 @@ app.openapi(listSellerOrdersRoute, async (c) => {
 
 app.openapi(getSellerOrderDetailRoute, async (c) => {
   const params = c.req.valid('param');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);

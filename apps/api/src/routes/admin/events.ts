@@ -12,24 +12,11 @@ import {
   updateAdminEventStatusSchema,
 } from '../../schemas/admin.schema';
 import { AdminEventServiceError, adminEventService } from '../../services/admin-event.service';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware, roleMiddleware('admin'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -172,7 +159,7 @@ app.openapi(listEventsRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await adminEventService.listEvents(query, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminEventService.listEvents(query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -184,10 +171,7 @@ app.openapi(getEventDetailRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminEventService.getEventDetail(
-      params.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await adminEventService.getEventDetail(params.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -204,7 +188,7 @@ app.openapi(updateEventStatusRoute, async (c) => {
       params.id,
       body,
       c.var.user.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);

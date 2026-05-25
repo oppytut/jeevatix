@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 
+import { resolveDatabaseUrl } from '../lib/database-url';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
 import { errorResponseSchema } from '../schemas/auth.schema';
 import {
@@ -108,7 +109,7 @@ app.openapi(listTicketsRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await ticketService.listTickets(c.var.user.id, query, c.env.DATABASE_URL);
+    const result = await ticketService.listTickets(c.var.user.id, query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -123,7 +124,7 @@ app.openapi(getTicketDetailRoute, async (c) => {
     const result = await ticketService.getTicketDetail(
       c.var.user.id,
       params.id,
-      c.env.DATABASE_URL,
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);

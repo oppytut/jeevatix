@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
+import { resolveDatabaseUrl } from '../lib/database-url';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
 import { createRateLimitMiddleware } from '../middleware/rate-limit';
 import { errorResponseSchema } from '../schemas/auth.schema';
@@ -302,7 +303,7 @@ app.openapi(getReservationRoute, async (c) => {
     const result = await reservationService.getReservation(
       c.var.user.id,
       params.id,
-      c.env.DATABASE_URL,
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);
@@ -327,7 +328,7 @@ adminApp.openapi(listAdminReservationsRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await reservationService.listAdmin(query, c.env.DATABASE_URL);
+    const result = await reservationService.listAdmin(query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: { reservations: result.data }, meta: result.meta }, 200);
   } catch (error) {

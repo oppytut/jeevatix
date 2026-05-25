@@ -49,6 +49,7 @@ type WorkerBinding = {
   type: string;
   className?: string;
   scriptName?: string;
+  id?: string;
 };
 type WorkerTransformArgs = cloudflare.WorkersScriptArgs;
 
@@ -210,6 +211,64 @@ function createApiEnvironment() {
   return environment;
 }
 
+function getHyperdriveConfigName() {
+  return process.env.HYPERDRIVE_CONFIG_NAME ?? `jeevatix-${getStage()}-hyperdrive`;
+}
+
+function shouldProvisionHyperdrive() {
+  if (process.env.DISABLE_HYPERDRIVE === '1') {
+    return false;
+  }
+
+  return isStagingStage() || isProductionStage();
+}
+
+type ParsedOrigin = {
+  scheme: 'postgres';
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+};
+
+function parseDatabaseUrlForHyperdrive(databaseUrl: string): ParsedOrigin {
+  let parsed: URL;
+
+  try {
+    parsed = new URL(databaseUrl);
+  } catch {
+    throw new Error('DATABASE_URL is not a valid URL; cannot derive Hyperdrive origin.');
+  }
+
+  if (parsed.protocol !== 'postgres:' && parsed.protocol !== 'postgresql:') {
+    throw new Error(
+      `DATABASE_URL must use postgres:// or postgresql:// scheme (got ${parsed.protocol}).`,
+    );
+  }
+
+  const host = parsed.hostname;
+  const port = Number.parseInt(parsed.port || '5432', 10);
+  const user = decodeURIComponent(parsed.username);
+  const password = decodeURIComponent(parsed.password);
+  const database = parsed.pathname.replace(/^\//, '');
+
+  if (!host || !user || !password || !database) {
+    throw new Error(
+      'DATABASE_URL must include host, username, password, and database for Hyperdrive provisioning.',
+    );
+  }
+
+  return {
+    scheme: 'postgres',
+    host,
+    port,
+    user,
+    password,
+    database,
+  };
+}
+
 function createDurableObjectBindings(durableObjectScriptName?: string): WorkerBinding[] {
   return [
     {
@@ -234,6 +293,7 @@ function applyApiWorkerTransform(
     durableObjectScriptName?: string;
     includeDurableObjects?: boolean;
     configureMigrations?: boolean;
+    hyperdriveId?: $util.Input<string>;
   },
 ) {
   args.scriptName = options.scriptName;
@@ -255,6 +315,19 @@ function applyApiWorkerTransform(
       ? []
       : createDurableObjectBindings(options.durableObjectScriptName)),
   ]);
+
+  if (options.hyperdriveId) {
+    args.bindings = $output([args.bindings, options.hyperdriveId]).apply(
+      ([bindings, hyperdriveId]) => [
+        ...(bindings as WorkerBinding[]),
+        {
+          name: 'Hyperdrive',
+          type: 'hyperdrive',
+          id: hyperdriveId,
+        },
+      ],
+    );
+  }
 
   if (options.configureMigrations && !shouldSkipDurableObjectMigrations()) {
     args.migrations = {
@@ -321,6 +394,15 @@ export default $config({
       },
     });
 
+    const hyperdrive = shouldProvisionHyperdrive()
+      ? new cloudflare.HyperdriveConfig('Hyperdrive', {
+          accountId: requireEnv('CLOUDFLARE_ACCOUNT_ID'),
+          name: getHyperdriveConfigName(),
+          origin: parseDatabaseUrlForHyperdrive(requireEnv('DATABASE_URL')),
+        })
+      : undefined;
+    const hyperdriveId = hyperdrive?.id;
+
     const api = new sst.cloudflare.Worker('Api', {
       handler: 'apps/api/src/index.ts',
       environment: apiEnvironment,
@@ -332,6 +414,7 @@ export default $config({
           applyApiWorkerTransform(args, {
             scriptName: apiScriptName,
             configureMigrations: true,
+            hyperdriveId,
           });
         },
       },
@@ -346,6 +429,7 @@ export default $config({
             applyApiWorkerTransform(args, {
               scriptName: reservationCleanupConsumerScriptName,
               durableObjectScriptName: apiScriptName,
+              hyperdriveId,
             });
           },
         },
@@ -375,6 +459,7 @@ export default $config({
                 scriptName: reservationCleanupCronScriptName,
                 includeDurableObjects: false,
                 durableObjectScriptName: apiScriptName,
+                hyperdriveId,
               });
             },
           },

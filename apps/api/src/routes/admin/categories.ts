@@ -12,24 +12,11 @@ import {
   updateCategorySchema,
 } from '../../schemas/category.schema';
 import { CategoryServiceError, categoryService } from '../../services/category.service';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware, roleMiddleware('admin'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -302,7 +289,7 @@ const deleteCategoryRoute = createRoute({
 
 app.openapi(listCategoriesRoute, async (c) => {
   try {
-    const result = await categoryService.listAdmin(getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await categoryService.listAdmin(resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -314,7 +301,7 @@ app.openapi(createCategoryRoute, async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const result = await categoryService.create(body, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await categoryService.create(body, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 201);
   } catch (error) {
@@ -327,11 +314,7 @@ app.openapi(updateCategoryRoute, async (c) => {
   const body = c.req.valid('json');
 
   try {
-    const result = await categoryService.update(
-      params.id,
-      body,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await categoryService.update(params.id, body, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -343,7 +326,7 @@ app.openapi(deleteCategoryRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await categoryService.remove(params.id, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await categoryService.remove(params.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

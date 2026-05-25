@@ -11,24 +11,11 @@ import {
   adminOrdersListResponseSchema,
 } from '../../schemas/admin.schema';
 import { AdminOrderServiceError, adminOrderService } from '../../services/admin-order.service';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware, roleMiddleware('admin'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -240,7 +227,7 @@ app.openapi(listOrdersRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await adminOrderService.listOrders(query, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminOrderService.listOrders(query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -252,10 +239,7 @@ app.openapi(getOrderDetailRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminOrderService.getOrderDetail(
-      params.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await adminOrderService.getOrderDetail(params.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -267,10 +251,7 @@ app.openapi(refundOrderRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminOrderService.refundOrder(
-      params.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await adminOrderService.refundOrder(params.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {

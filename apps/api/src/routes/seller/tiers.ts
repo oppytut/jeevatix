@@ -17,25 +17,12 @@ import {
   sellerProfileService,
 } from '../../services/seller-profile.service';
 import { TierServiceError, tierService } from '../../services/tier.service';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('seller'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -226,7 +213,7 @@ const deleteTierRoute = createRoute({
 
 app.openapi(listTiersRoute, async (c) => {
   const params = c.req.valid('param');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -241,7 +228,7 @@ app.openapi(listTiersRoute, async (c) => {
 app.openapi(createTierRoute, async (c) => {
   const params = c.req.valid('param');
   const body = c.req.valid('json');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -256,7 +243,7 @@ app.openapi(createTierRoute, async (c) => {
 app.openapi(updateTierRoute, async (c) => {
   const params = c.req.valid('param');
   const body = c.req.valid('json');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);
@@ -276,7 +263,7 @@ app.openapi(updateTierRoute, async (c) => {
 
 app.openapi(deleteTierRoute, async (c) => {
   const params = c.req.valid('param');
-  const databaseUrl = getDatabaseUrl(c.env.DATABASE_URL);
+  const databaseUrl = resolveDatabaseUrl(c.env);
 
   try {
     const sellerProfileId = await resolveSellerProfileId(c.var.user.id, databaseUrl);

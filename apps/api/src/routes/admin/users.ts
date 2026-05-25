@@ -17,24 +17,11 @@ import {
   verifySellerSchema,
 } from '../../schemas/admin-user.schema';
 import { AdminUserServiceError, adminUserService } from '../../services/admin-user.service';
+import { resolveDatabaseUrl } from '../../lib/database-url';
 
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware, roleMiddleware('admin'));
-
-function getProcessEnv(key: string) {
-  return (
-    globalThis as typeof globalThis & {
-      process?: {
-        env?: Record<string, string | undefined>;
-      };
-    }
-  ).process?.env?.[key];
-}
-
-function getDatabaseUrl(envDatabaseUrl?: string) {
-  return envDatabaseUrl || getProcessEnv('DATABASE_URL');
-}
 
 function jsonError(code: string, message: string) {
   return {
@@ -364,7 +351,7 @@ app.openapi(listUsersRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await adminUserService.listUsers(query, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminUserService.listUsers(query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -376,10 +363,7 @@ app.openapi(getUserDetailRoute, async (c) => {
   const params = c.req.valid('param');
 
   try {
-    const result = await adminUserService.getUserDetail(
-      params.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
-    );
+    const result = await adminUserService.getUserDetail(params.id, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
@@ -397,7 +381,7 @@ app.openapi(updateUserStatusRoute, async (c) => {
       params.id,
       body,
       adminUser.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);
@@ -410,7 +394,7 @@ app.openapi(listSellersRoute, async (c) => {
   const query = c.req.valid('query');
 
   try {
-    const result = await adminUserService.listSellers(query, getDatabaseUrl(c.env.DATABASE_URL));
+    const result = await adminUserService.listSellers(query, resolveDatabaseUrl(c.env));
 
     return c.json({ success: true, data: result.data, meta: result.meta }, 200);
   } catch (error) {
@@ -428,7 +412,7 @@ app.openapi(verifySellerRoute, async (c) => {
       params.id,
       body,
       adminUser.id,
-      getDatabaseUrl(c.env.DATABASE_URL),
+      resolveDatabaseUrl(c.env),
     );
 
     return c.json({ success: true, data: result }, 200);
