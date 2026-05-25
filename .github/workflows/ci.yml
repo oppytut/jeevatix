@@ -7,9 +7,28 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: jeevatix
+          POSTGRES_PASSWORD: jeevatix
+          POSTGRES_DB: jeevatix_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     env:
       PUBLIC_API_BASE_URL: https://api.jeevatix.com
       PUBLIC_PARTYKIT_HOST: ${{ vars.PUBLIC_PARTYKIT_HOST }}
+      DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
+      JWT_SECRET: vitest-ci-secret
+      PAYMENT_WEBHOOK_SECRET: vitest-ci-webhook-secret
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -22,6 +41,12 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run typecheck
       - run: pnpm run validate:load-test-safety
+      - name: Setup test database
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          echo "JWT_SECRET=$JWT_SECRET" >> .env
+          echo "PAYMENT_WEBHOOK_SECRET=$PAYMENT_WEBHOOK_SECRET" >> .env
+          pnpm --filter @jeevatix/core run db:push
       - run: pnpm run test
       - run: pnpm run build
       - name: Validate frontend bundles do not target localhost API
