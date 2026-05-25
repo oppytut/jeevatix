@@ -2,12 +2,148 @@
 title: Handoff Progress
 last_updated: 2026-05-25
 status: Active
-phase: VPS PostgreSQL migration + Workers Paid + E2E hardening — 29 passed / 56 skipped / 3 failed (CI staging)
+phase: Cloudflare Hyperdrive live di staging + Let's Encrypt TLS + DB password rotation
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ Cloudflare Hyperdrive + Let's Encrypt + DB Resolver Migration (session 2026-05-25)
+
+Goal: provision Cloudflare Hyperdrive untuk eliminate per-request TCP/TLS handshake ke origin, route semua DB reads via single resolver, migrate VPS Postgres dari snakeoil cert ke Let's Encrypt agar Hyperdrive dapat verify origin via WebPKI.
+
+**Outcome:** Hyperdrive live di staging. Latency warm DB queries turun ~5x (500ms cold → 110ms warm dengan pool reuse).
+
+**Major changes (commit `1b0dfbe`):**
+
+| Layer                                             | Change                                                                                                                                                                                                    |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/api/src/lib/database-url.ts` (NEW)          | `resolveDatabaseUrl(env)` helper. Precedence: `env.Hyperdrive.connectionString` → `env.DATABASE_URL` → `process.env.DATABASE_URL`. Plus `DISABLE_HYPERDRIVE=1` runtime kill-switch                        |
+| 16 route files                                    | Removed duplicated local `getDatabaseUrl` defs, all replaced with `resolveDatabaseUrl(c.env)`                                                                                                             |
+| 6 transactional services                          | `payment`, `order`, `reservation`, `order-reservation`, `admin-payment`, `admin-order` — env type + Hyperdrive support                                                                                    |
+| `apps/api/src/queues/reservation-cleanup.ts`      | Env type + 4 call sites migrated                                                                                                                                                                          |
+| `apps/api/src/durable-objects/ticket-reserver.ts` | Env type + Hyperdrive in fallback chain (DO retains `TICKET_RESERVER_DATABASE_URL` override)                                                                                                              |
+| `sst.config.ts`                                   | Provision `cloudflare.HyperdriveConfig('Hyperdrive')` for staging+production. Bind to api + queue consumer + cron worker. Optional `mtls` config via `HYPERDRIVE_CA_CERT_ID` (currently unused — LE path) |
+| `.github/workflows/deploy{,-production}.yml`      | Wire `HYPERDRIVE_CA_CERT_ID` + `HYPERDRIVE_SSLMODE` env vars (escape hatch, currently unused)                                                                                                             |
+
+**VPS infrastructure changes (manual, di-execute via SSH selama session):**
+
+| Item               | Change                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Certbot            | Installed `certbot 4.0.0` (Debian package). Auto-renewal timer active (next run Mon 19:14 UTC)                                 |
+| DNS                | A record `db.jeevatix.my.id` → `168.144.140.206` (DNS only, NOT proxied — required untuk certbot HTTP-01)                      |
+| Let's Encrypt cert | Issued via `certbot certonly --standalone -d db.jeevatix.my.id`. Email: ariefna95@gmail.com. Expires 2026-08-23                |
+| Postgres TLS       | `ssl_cert_file = /etc/postgresql/ssl/server.crt` + `ssl_key_file = /etc/postgresql/ssl/server.key` (LE files copied)           |
+| `pg_hba.conf`      | Currently `host` (TLS optional). Tested `hostssl` tapi reverted — Worker postgres-js connect plain TCP, ditolak oleh `hostssl` |
+| Auto-renewal hook  | `/etc/letsencrypt/renewal-hooks/deploy/postgres-reload.sh` — copy fullchain+privkey ke Postgres SSL dir, reload postgresql     |
+| Password rotation  | Role `jeevatix_staging` password rotated to 32-char random. **Password tersimpan di password manager user.**                   |
+
+**GH secrets updated (3):**
+
+- `DATABASE_URL` → `postgresql://jeevatix_staging:<NEW>@db.jeevatix.my.id:5432/jeevatix_staging`
+- `TICKET_RESERVER_DATABASE_URL` → same
+- `STAGING_DATABASE_URL` → same
+
+**Cloudflare API token:**
+
+Token user existing di-update tambah permissions:
+
+- `Hyperdrive Configs:Edit` (untuk SST provision Hyperdrive)
+- `SSL and Certificates:Edit` (untuk wrangler cert upload — tidak terpakai akhirnya, lihat lessons learned)
+
+**Deploy verification (post-merge):**
+
+- Staging API health: `https://api.jeevatix.my.id/health` → `status: ok`, version `1b0dfbe`
+- Login test: `POST /auth/login` returns access_token (DB query path works via Hyperdrive)
+- Hyperdrive warm-up profile (10 sequential `GET /categories`):
+  ```
+  500ms, 845ms, 651ms (cold)
+  110ms, 539ms, 446ms (transitional)
+  108ms, 123ms, 107ms, 128ms (warm — pool reuse)
+  ```
+
+**Lessons learned (penting untuk session berikutnya):**
+
+1. **Snakeoil cert TIDAK bisa di-upload ke Cloudflare sebagai CA cert.** Endpoint `/accounts/.../mtls_certificates` reject leaf cert (`CA:FALSE` di BasicConstraints, plus SAN hanya hostname VPS). Jalur cepat malah jadi sulit. Let's Encrypt jadi path tercepat (~30 min vs upload yang gagal).
+2. **postgres-js client di Worker tidak set TLS by default.** Worker connect plain TCP ke port 5432. Hyperdrive endpoint sendiri yang manage TLS ke origin via WebPKI verification. Worker code TIDAK perlu set `ssl: 'require'`. Kalau enforce `hostssl` di pg_hba, semua Worker connection ditolak.
+3. **Hyperdrive warm-up takes ~3 requests.** First request ~500ms (cold pool), drops ke ~110ms after pool warm. Saat war ticket, expect first user delayed but subsequent bursts fast.
+4. **Don't rotate DB password tanpa coordinated deploy.** Saya rotate password sebelum deploy → existing Worker pakai password lama → staging broken ~50 min sampai re-deploy. Future password rotation: rotate IN deploy hook, atau dual-credential window.
+5. **Token CF butuh banyak permission.** Untuk Hyperdrive: `Workers Scripts:Edit`, `Hyperdrive Configs:Edit`, `SSL and Certificates:Edit`, `Account Settings:Read`. Bukan sekadar `Workers:Edit`.
+
+**Files tersisa (perlu cleanup user):**
+
+| File                                     | Status                                                       |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| `/tmp/opencode/jeevatix/db-password.txt` | **Save ke password manager dulu**, kemudian `rm`             |
+| `/tmp/opencode/jeevatix/vps-ca.crt`      | Tidak terpakai (snakeoil cert path di-abandon). Aman dihapus |
+| `/tmp/opencode/jeevatix/upload-ca.sh`    | Legacy script untuk Path A. Aman dihapus                     |
+
+**Files repo yang perlu update (low priority):**
+
+- `.env.staging` line 2 — masih reference Neon URL lama (`@ep-steep-paper-a1t7qaap.ap-southeast-1.aws.neon.tech`). Update ke `db.jeevatix.my.id` kalau pernah deploy manual dari local.
+
+### 🎯 Next Step (untuk session berikutnya)
+
+#### P0: Stability Watch + Drop `DB_DISABLE_CACHE` (15 menit, setelah 24h stable)
+
+Hyperdrive sudah manage pool. Worker isolate cache redundant. Drop flag setelah 24-48h stability proven.
+
+```ts
+// sst.config.ts createApiEnvironment() — remove this line:
+DB_DISABLE_CACHE: '1',
+```
+
+Verify post-deploy: smoke test sustained traffic (~50 req), expect mean latency drop lebih jauh dari 110ms.
+
+#### P0: Production Deployment Prep (2-3 jam, butuh user input)
+
+Stack staging + Hyperdrive proven. Ready untuk replicate ke production.
+
+**Blockers butuh keputusan user:**
+
+| Item                       | Decision Needed                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------ |
+| Domain                     | Beli `jeevatix.com`? Pakai `jeevatix.id`? Subdomain `jeevatix.my.id`? Workers.dev sementara?     |
+| Production DB host         | VPS sama (`168.144.140.206`) atau VPS terpisah? Same host = simpel + cost lebih, isolation lemah |
+| Soft launch vs full launch | Buka untuk semua, atau invite-only dulu?                                                         |
+
+**Setelah keputusan:**
+
+1. **Production DB setup di VPS** (15 min):
+   - `CREATE DATABASE jeevatix_production;`
+   - `CREATE USER jeevatix_production WITH PASSWORD '<strong>';`
+   - `GRANT ALL PRIVILEGES ON DATABASE jeevatix_production TO jeevatix_production;`
+   - Push schema via `drizzle-kit push --force`. JANGAN seed.
+   - **PENTING**: Config production juga butuh subdomain TLS (e.g. `db.jeevatix.com` atau reuse `db.jeevatix.my.id`). Apply same Let's Encrypt pattern.
+2. **Generate production secrets** (15 min):
+   - `PRODUCTION_DATABASE_URL` (pakai hostname TLS, bukan IP)
+   - `PRODUCTION_JWT_SECRET` (generate fresh, beda dari staging)
+   - `PRODUCTION_PAYMENT_WEBHOOK_SECRET`
+3. **Configure GH secrets/variables** untuk production stage
+4. **Cloudflare DNS production** — DNS records + Worker routes
+5. **Manual deploy + smoke test**:
+   ```bash
+   gh workflow run deploy-production.yml -f confirm=deploy-production
+   ```
+6. **External monitoring** — Better Stack/UptimeRobot ke `/health` interval 1 menit
+
+#### P1: Re-enable hostssl Setelah Code Audit (1 jam, optional security hardening)
+
+Saat ini `pg_hba.conf` pakai `host` (TLS optional). Worker connect plain TCP. Defense-in-depth lebih baik kalau force TLS. Tapi butuh investigate dulu apakah `postgres-js({ssl:'require'})` work dengan Hyperdrive endpoint. 2 path:
+
+- **Path A**: Add `ssl: 'require'` ke `createDb()` di `packages/core/src/db/index.ts`. Test apakah Worker masih konek via Hyperdrive. Kalau works, re-enable `hostssl` di VPS.
+- **Path B**: Investigate apakah Hyperdrive endpoint expose TLS ke Worker (kalau ya, postgres-js akan auto-detect). Set `pg_hba` `hostssl` saja tanpa code change.
+
+Defer sampai stability + production prep done.
+
+#### P2: Investigate 3 E2E Fail (3-5 jam, optional)
+
+3 fail lama dari handoff baseline (`buyer/order-detail:60`, `buyer/ticket-detail:54`, `seller/order-management:62`). Environmental — non-reproducible from local. Worth diagnose kalau real users hit similar pattern di production.
+
+#### P3: Update `.env.staging` (5 min)
+
+Line 2 masih reference Neon URL lama. Update ke VPS hostname URL kalau pernah deploy manual dari local.
 
 ### ✅ Infrastructure Migration + E2E Hardening (session 2026-05-24 → 2026-05-25)
 
