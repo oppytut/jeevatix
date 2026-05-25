@@ -65,14 +65,9 @@ test.describe('Seller Order Management', () => {
       return;
     }
     await page.goto('/orders');
-    await page.waitForLoadState('networkidle');
 
-    // Verify order list page loads
-    const bodyText = await page.textContent('body');
-    expect(bodyText).toBeTruthy();
-
-    // Verify order appears in list
-    expect(bodyText).toContain(orderNumber);
+    // Page fetches orders via onMount (CSR) — wait for actual data, not networkidle
+    await expect(page.locator(`text=${orderNumber}`)).toBeVisible({ timeout: 15_000 });
   });
 
   test('should navigate to order detail', async ({ page }) => {
@@ -81,12 +76,7 @@ test.describe('Seller Order Management', () => {
       return;
     }
     await page.goto(`/orders/${orderId}`);
-    await page.waitForLoadState('networkidle');
-
-    // Verify order detail page loads with order number
-    const bodyText = await page.textContent('body');
-    expect(bodyText).toBeTruthy();
-    expect(bodyText).toContain(orderNumber);
+    await expect(page.locator(`text=${orderNumber}`)).toBeVisible({ timeout: 15_000 });
   });
 
   test('should display buyer information in order detail', async ({ page }) => {
@@ -95,14 +85,11 @@ test.describe('Seller Order Management', () => {
       return;
     }
     await page.goto(`/orders/${orderId}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator(`text=${orderNumber}`)).toBeVisible({ timeout: 15_000 });
 
-    // Verify buyer info is visible
     const bodyText = await page.textContent('body');
     expect(bodyText).toBeTruthy();
-
-    // Check for buyer name or email
-    const hasBuyerInfo = bodyText.includes(buyerFullName) || bodyText.includes(buyerEmail);
+    const hasBuyerInfo = bodyText!.includes(buyerFullName) || bodyText!.includes(buyerEmail);
     expect(hasBuyerInfo).toBeTruthy();
   });
 
@@ -112,18 +99,15 @@ test.describe('Seller Order Management', () => {
       return;
     }
     await page.goto(`/orders/${orderId}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator(`text=${orderNumber}`)).toBeVisible({ timeout: 15_000 });
 
-    // Verify payment info is visible
     const bodyText = await page.textContent('body');
     expect(bodyText).toBeTruthy();
-
-    // Check for payment-related text (status or method)
     const hasPaymentInfo =
-      bodyText.includes('confirmed') ||
-      bodyText.includes('success') ||
-      bodyText.includes('bank_transfer') ||
-      bodyText.includes('Rp');
+      bodyText!.includes('confirmed') ||
+      bodyText!.includes('success') ||
+      bodyText!.includes('bank_transfer') ||
+      bodyText!.includes('Rp');
     expect(hasPaymentInfo).toBeTruthy();
   });
 });
