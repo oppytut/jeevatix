@@ -223,6 +223,33 @@ function shouldProvisionHyperdrive() {
   return isStagingStage() || isProductionStage();
 }
 
+type HyperdriveMtlsConfig = {
+  caCertificateId: string;
+  sslmode: 'verify-ca' | 'verify-full';
+};
+
+function getHyperdriveMtlsConfig(): HyperdriveMtlsConfig | undefined {
+  const caCertificateId = maybeEnv('HYPERDRIVE_CA_CERT_ID');
+
+  if (!caCertificateId) {
+    return undefined;
+  }
+
+  const sslmodeRaw = maybeEnv('HYPERDRIVE_SSLMODE') ?? 'verify-ca';
+
+  if (sslmodeRaw !== 'verify-ca' && sslmodeRaw !== 'verify-full') {
+    throw new Error(
+      `HYPERDRIVE_SSLMODE must be 'verify-ca' or 'verify-full' (got '${sslmodeRaw}'). ` +
+        `Use 'verify-ca' for self-signed origins (e.g. snakeoil cert).`,
+    );
+  }
+
+  return {
+    caCertificateId,
+    sslmode: sslmodeRaw,
+  };
+}
+
 type ParsedOrigin = {
   scheme: 'postgres';
   host: string;
@@ -399,6 +426,7 @@ export default $config({
           accountId: requireEnv('CLOUDFLARE_ACCOUNT_ID'),
           name: getHyperdriveConfigName(),
           origin: parseDatabaseUrlForHyperdrive(requireEnv('DATABASE_URL')),
+          mtls: getHyperdriveMtlsConfig(),
         })
       : undefined;
     const hyperdriveId = hyperdrive?.id;

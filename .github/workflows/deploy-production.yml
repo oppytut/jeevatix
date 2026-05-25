@@ -97,6 +97,8 @@ jobs:
           PRODUCTION_ADMIN_DOMAIN: ${{ vars.PRODUCTION_ADMIN_DOMAIN }}
           PRODUCTION_SELLER_DOMAIN: ${{ vars.PRODUCTION_SELLER_DOMAIN }}
           CORS_ALLOWED_ORIGINS: ${{ vars.PRODUCTION_CORS_ALLOWED_ORIGINS }}
+          HYPERDRIVE_CA_CERT_ID: ${{ secrets.PRODUCTION_HYPERDRIVE_CA_CERT_ID }}
+          HYPERDRIVE_SSLMODE: ${{ vars.PRODUCTION_HYPERDRIVE_SSLMODE }}
       - name: Smoke Test
         run: |
           API_URL="${{ vars.PRODUCTION_API_URL || 'https://api.jeevatix.com' }}"
