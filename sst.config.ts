@@ -192,6 +192,12 @@ function createApiEnvironment() {
   );
   if (isStagingStage()) {
     environment.PLAYWRIGHT_E2E = '1';
+    // Disable in-memory Worker isolate caches to eliminate cross-request
+    // state leakage as a source of E2E flakiness. Module-level Maps in auth
+    // middleware and reservation routing service can hold entries across
+    // requests within a reused isolate. Production keeps them for perf.
+    environment.AUTH_TOKEN_CACHE_MAX_ENTRIES = '0';
+    environment.ORDER_RESERVATION_ROUTING_CACHE_MAX_ENTRIES = '0';
     environment.AUTH_EXPOSE_DEBUG_TOKENS = '1';
   }
   setOptionalEnvironmentValue(environment, 'PARTY_SECRET', maybeEnv('PARTY_SECRET'));
