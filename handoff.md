@@ -79,30 +79,124 @@ Production deploy needs different setup since production workers.dev URLs not ye
 
 ### 🎯 Next Step (untuk session berikutnya)
 
-**Resume context:** Step 1 + Step 3 dari handoff lama selesai (PR #7). Canary blind spot juga selesai (PR #8). Staging stack dengan real guardrail. Production deploy prep adalah prioritas terbesar berikutnya.
+**Resume context:** Step 1 + Step 3 dari handoff lama selesai (PR #7). Canary blind spot juga selesai (PR #8). Staging stack dengan real guardrail. User akan continue dengan **stacked plan di session opencode lain** — silakan eksekusi sesuai phase di bawah.
 
 **Current commits di main:**
-- `5bfcb40` — fix(ci): canary uses workers.dev URLs to bypass CF block (#8)
-- `7583013`, `caae772` — diagnostic commits (clean, throwaway workflow already removed)
-- `40c7866` — handoff doc update for env var refactor + canary
-- `67abf7b` — feat: configurable INTERNAL_API_URL + post-deploy SSR canary (#7)
+
+- `0dbe256` — handoff doc update for canary real coverage
+- `5bfcb40` — fix(ci): canary uses workers.dev URLs (#8)
+- `7583013`, `caae772` — diagnostic commits (workflow already removed)
+- `40c7866` — handoff doc update for env var refactor
+- `67abf7b` — feat: configurable INTERNAL_API_URL + canary (#7)
 
 **Verified working setelah deploy `5bfcb40`:**
+
 - Deploy workflow green
-- Canary 5/5 PASS dengan REAL coverage:
-  - GET `/health` API workers.dev → 200
-  - GET `/login` 3 portal workers.dev → 200
-  - POST `/login` seller workers.dev → 200 (real SSR W2W exercised)
+- Canary 5/5 PASS dengan REAL coverage (workers.dev URLs + Origin header for POST)
+- POST `/login` workers.dev seller actually exercises SSR W2W path
 
-#### Step 1 (P0, ~15 menit, di luar repo) — Pasang external uptime monitor
+#### 🚀 Stacked Plan untuk Session Berikutnya (~2-3 jam total, sequenced)
 
-Tetap penting walaupun canary CI sekarang real coverage. Kenapa:
+User punya banyak waktu, decide untuk eksekusi 4 phase berurutan. Phase 1 + 2 + (conditional) 3 + (optional) 4.
 
-- Canary hanya jalan setelah deploy. Kalau staging mati di tengah hari, canary tidak detect.
-- Canary uses workers.dev URLs. Custom-domain breakage (DNS, SSL cert, Worker route binding) tidak akan terlihat di canary.
-- Production akan butuh monitoring continuous setelah live.
+##### Phase 1 (~45 menit, P0) — Production Prep Scaffolding
+
+Goal: pre-position semua artefak agar production deploy execution turun dari 2-3 jam → 30-60 menit saat keputusan user (domain, DB host, launch strategy) tiba.
+
+Yang bisa dikerjakan tanpa keputusan user:
+
+1. **Audit `PRODUCTION_RELEASE_RUNBOOK.md`** (5.1KB existing file, lihat `/home/debian/project/jeevatix/PRODUCTION_RELEASE_RUNBOOK.md`):
+   - Cek apakah masih akurat dengan stack sekarang (Hyperdrive sudah live, INTERNAL_API_URL env var sudah ada, canary sudah real coverage)
+   - Update step-step yang sudah berubah
+   - Tambah section "Post-deploy: capture workers.dev URLs and set GH vars untuk canary"
+2. **Buat `PRODUCTION_PREDEPLOY_CHECKLIST.md` baru**:
+   - Checklist semua env vars to set di GH secrets/vars
+   - Secrets to generate (PRODUCTION_DATABASE_URL, PRODUCTION_JWT_SECRET, PRODUCTION_PAYMENT_WEBHOOK_SECRET)
+   - DNS records yang perlu di-setup
+   - Cloudflare zone configuration
+   - Production DB role/database creation steps di VPS
+3. **Audit `.github/workflows/deploy-production.yml`**:
+   - Pastikan semua env yang dibutuhkan SST sudah wired (Hyperdrive, INTERNAL_API_URL, Worker bindings)
+   - Bandingkan dengan `deploy.yml` (staging) untuk parity check
+4. **Draft `scripts/generate-production-secrets.sh`**:
+   - Script yang output format ready-to-paste ke GH secrets via `gh secret set`
+   - Generate JWT secret + payment webhook secret pakai `openssl rand -hex 32`
+   - Comment menjelaskan langkah manual untuk DATABASE_URL (butuh password VPS)
+5. **Verify production stage di `sst.config.ts`**:
+   - Cek tidak ada hardcoded staging value
+   - Confirm conditional logic untuk staging vs production sudah bersih
+
+Stop condition: pre-deploy checklist file lengkap, runbook update, deploy workflow audited, secrets script ready.
+
+##### Phase 2 (~30 menit, P3 investigation) — Buyer `/events` 404 di workers.dev
+
+Goal: pure investigation untuk closure E2E pre-existing 404 mystery. Document finding only, jangan fix kecuali simple.
+
+Background: GET `https://jeevatix-staging-buyer.ariefna95.workers.dev/events` return 404. GET `/`, `/login` di same Worker return 200. Custom domain `jeevatix.my.id/events` return 200.
+
+Hipotesis to test:
+
+1. SvelteKit route resolution dengan workers.dev host header
+2. `apps/buyer/src/hooks.server.ts` punya redirect/canonical URL logic
+3. SvelteKit `prerender` config exclude `/events`
+4. Worker route binding spesifik di `sst.config.ts`
+5. SvelteKit `+page.server.ts` di `/events` punya host check
+
+Tools: read source files, test variant requests dengan different headers, capture findings.
+
+Output:
+
+- Document root cause di handoff sebagai "known finding"
+- Kalau root cause simple (e.g., tambah `prerender = false`), bisa langsung fix
+- Kalau complex (framework limitation), document only
+
+Stop condition: root cause documented atau confirmed not investigatable without deeper SvelteKit knowledge.
+
+##### Phase 3 (~30-60 menit, conditional, P3) — E2E Migration ke workers.dev
+
+**Hanya jalankan kalau Phase 2 finding shows easy fix.** Kalau Phase 2 reveal complex framework limitation, skip phase ini, document only.
+
+Goal: hapus `403|404` graceful skip pattern, restore strict E2E assertions, switch test target dari custom domain ke workers.dev.
+
+Action:
+
+1. Apply fix dari Phase 2 (kalau ada)
+2. Update `tests/e2e/buyer/order-detail.spec.ts` dan `tests/e2e/buyer/ticket-detail.spec.ts`:
+   - Hapus `403|404` graceful skip pattern (7 occurrence total)
+   - Restore strict `expect(...).toContainText(...)` assertions
+3. Migrate test target di `playwright.config.ts` atau test setup:
+   - Update base URLs ke workers.dev untuk affected tests
+   - Atau update env var `E2E_TARGET=staging` untuk swap URLs
+4. Verify lokal: `pnpm exec playwright test tests/e2e/buyer/order-detail.spec.ts tests/e2e/buyer/ticket-detail.spec.ts` pass
+5. Open PR + verify CI green
+
+Risk: workers.dev URLs bypass custom-domain layer. Custom-domain DNS/SSL/Worker route binding issues tidak akan ke-catch oleh E2E. Document tradeoff di PR description.
+
+Stop condition: 3 affected tests strict assertion + green di CI, atau document finding dan skip migration.
+
+##### Phase 4 (~15 menit, optional, P3) — Quick Security Health Check
+
+Goal: opportunistic security audit, document findings.
+
+Action:
+
+1. Run `depwire_security_scan` (graph-aware) untuk catch low-hanging vulnerabilities
+2. `pnpm audit` untuk dependency CVE check
+3. Document critical/high findings di `SECURITY_FINDINGS.md` atau handoff
+4. **Tidak auto-fix** — biarkan user decide prioritas
+
+Stop condition: scan complete, findings documented, severity-ranked.
+
+#### Step 1 (P0, ~15 menit, di luar repo, butuh user) — Pasang external uptime monitor
+
+Tetap penting walaupun canary CI sekarang real coverage:
+
+- Canary hanya jalan setelah deploy, tidak detect mid-day outage
+- Canary uses workers.dev URLs, custom-domain breakage tidak terlihat
+- Production akan butuh continuous monitoring
 
 Action: setup Better Stack atau UptimeRobot (free tier):
+
 - `https://api.jeevatix.my.id/health` — interval 1 menit
 - `https://jeevatix.my.id/events` — interval 5 menit
 - `https://seller.jeevatix.my.id/login` — interval 5 menit
@@ -112,33 +206,34 @@ Action: setup Better Stack atau UptimeRobot (free tier):
 
 Stop condition: dashboard monitor hijau semua endpoint.
 
-#### Step 2 (P0, ~2-3 jam, butuh keputusan user) — Production deployment prep
+#### Step 2 (P0, ~30-60 menit setelah Phase 1 done, butuh keputusan user) — Production deployment execution
+
+Setelah Phase 1 scaffolding selesai dan keputusan user keluar, eksekusi production deploy turun jadi cepat.
 
 3 keputusan masih open:
 
 | Item | Recommendation |
-|---|---|
+| --- | --- |
 | Domain | Subdomain `jeevatix.my.id` dulu untuk soft launch |
 | Production DB host | VPS yang sama (`168.144.140.206`) dulu |
 | Launch strategy | Invite-only / soft launch dulu |
 
-Setelah keputusan keluar, langkah:
+Setelah keputusan tiba:
 
-1. VPS: `CREATE DATABASE jeevatix_production` + role + GRANT. Push schema via `drizzle-kit push --force`. **Jangan seed.**
-2. Generate secret production baru:
-   - `PRODUCTION_DATABASE_URL`
-   - `PRODUCTION_JWT_SECRET`
-   - `PRODUCTION_PAYMENT_WEBHOOK_SECRET`
-3. Configure GitHub production secrets/vars (lihat `.github/workflows/deploy-production.yml`).
-4. **PENTING:** Set `PRODUCTION_INTERNAL_API_URL` GH var ke production workers.dev URL.
-5. Cloudflare DNS production + Worker routes.
+1. Follow `PRODUCTION_PREDEPLOY_CHECKLIST.md` (baru di Phase 1)
+2. Run `scripts/generate-production-secrets.sh` (baru di Phase 1) untuk generate secrets
+3. Set semua GH secrets/vars per checklist
+4. VPS: `CREATE DATABASE jeevatix_production` + role + GRANT, push schema, **jangan seed**
+5. Cloudflare DNS production + Worker routes
 6. Manual deploy:
+
    ```bash
    gh workflow run deploy-production.yml -f confirm=deploy-production
    ```
-7. **Setelah first deploy success:** capture workers.dev URLs dari deploy output, set 4 GH vars: `PRODUCTION_API_WORKERS_DEV_URL`, `PRODUCTION_BUYER_WORKERS_DEV_URL`, `PRODUCTION_SELLER_WORKERS_DEV_URL`, `PRODUCTION_ADMIN_WORKERS_DEV_URL`. Next deploy will run canary fully.
-8. Smoke test full path: `/health`, login, category/event, checkout reservation happy path (lihat `PRODUCTION_RELEASE_RUNBOOK.md`).
-9. Watch 24-48 jam dengan uptime monitor + Cloudflare logs.
+
+7. **Setelah first deploy success:** capture workers.dev URLs dari deploy output, set 4 GH vars: `PRODUCTION_API_WORKERS_DEV_URL`, `PRODUCTION_BUYER_WORKERS_DEV_URL`, `PRODUCTION_SELLER_WORKERS_DEV_URL`, `PRODUCTION_ADMIN_WORKERS_DEV_URL`
+8. Smoke test (lihat `PRODUCTION_RELEASE_RUNBOOK.md` updated di Phase 1)
+9. Watch 24-48 jam dengan uptime monitor + Cloudflare logs
 
 Stop condition: production live, smoke green, monitor stable.
 
@@ -157,7 +252,8 @@ Sama dengan handoff sebelumnya. Tidak berubah.
 3. **`PRODUCTION_INTERNAL_API_URL` GH var WAJIB di-set sebelum production deploy.**
 4. **Canary CI sekarang real coverage.** Kalau canary fail dengan 5xx, treat as P0 — kemungkinan same-zone W2W regression atau Worker binding issue.
 5. **Production canary memerlukan 2 deploy.** First deploy: skip canary (URLs unknown). Capture URLs from output. Set vars. Next deploy: canary runs fully.
-6. **E2E pre-existing 404 issue** kemungkinan bisa di-fix dengan migrate test runner ke workers.dev URLs juga. Tapi defer — graceful skip pattern sudah cukup.
+6. **Phase 3 (E2E migration) conditional.** Tidak commit ke migration kecuali Phase 2 finding shows easy fix. Existing graceful skip pattern adalah valid mitigation.
+7. **Phase 4 security scan: document only, jangan auto-fix.** User decide prioritas berdasarkan findings.
 
 ---
 
