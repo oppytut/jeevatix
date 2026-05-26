@@ -159,6 +159,17 @@ gh variable list --env staging | grep INTERNAL_API_URL
 
 Kalau `STAGING_INTERNAL_API_URL` belum ada → set dulu (seharusnya `https://jeevatix-staging-api.ariefna95.workers.dev`), atau staging deploy auto-trigger akan fail dengan error di plan time.
 
+**UPDATE 2026-05-26 21:13 UTC — Pre-push check DONE, push aman.**
+
+Verified state:
+
+- Repo TIDAK punya GH environments `staging` / `production` (HTTP 404 pada `gh variable list --env <name>`).
+- Workflow `deploy.yml:85` pakai inline literal fallback: `${{ vars.STAGING_INTERNAL_API_URL || 'https://jeevatix-staging-api.ariefna95.workers.dev' }}`. Saat `STAGING_INTERNAL_API_URL` repo-var tidak ada → expression resolves ke string literal → SST receives non-empty → Track B guard NOT triggered → staging deploy lewat. **Push staging aman.**
+- Workflow `deploy-production.yml:102` pakai `${{ vars.PRODUCTION_INTERNAL_API_URL || '' }}`. Empty fallback → Track B guard **akan** throw at SST plan time kalau production deploy tanpa set var ini. Behavior intended (defense-in-depth working as designed).
+- Repo-level vars yang ter-set (verified `gh variable list`): `STAGING_*_DOMAIN` (4), `CLOUDFLARE_ACCOUNT_ID`, `CORS_ALLOWED_ORIGINS`, `EMAIL_FROM`, `R2_BUCKET_NAME`, `UPLOAD_PUBLIC_URL`. Tidak ada `STAGING_INTERNAL_API_URL` atau `STAGING_*_WORKERS_DEV_URL` — semua mengandalkan inline literal fallback di workflow.
+
+**Conclusion**: push 6 unpushed commits aman, akan trigger staging deploy auto, canary akan run real coverage. **Tidak ada blocker.**
+
 **Saran sequenced** (priority order):
 
 1. Verifikasi staging GH var → push ke origin → smoke test Track B di staging
