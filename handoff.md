@@ -2,12 +2,164 @@
 title: Handoff Progress
 last_updated: 2026-05-26
 status: Active
-phase: Staging fully operational. Same-zone W2W 522 fixed. INTERNAL_API_URL refactored to env var. Post-deploy SSR canary live in deploy workflows. Production deploy prep still pending user decisions.
+phase: Staging fully operational. Same-zone W2W 522 fixed. INTERNAL_API_URL env-var-configurable. Post-deploy SSR canary now provides REAL coverage (workers.dev URLs bypass CF block + POST exercises SSR W2W path). Production deploy prep still pending user decisions.
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ Canary Real Coverage — workers.dev URLs + Origin Header (session 2026-05-26 malam, commit `5bfcb40`)
+
+Goal: tutup canary blind spot yang teridentifikasi setelah PR #7 — canary technically pass tapi tidak benar-benar exercise SSR path karena CF block GH Actions IPs di custom domain.
+
+**Outcome:** Canary live now provides REAL coverage. POST `/login` actually exercises SSR W2W subrequest path. 5xx atau timeout di sini = same-zone 522 regression.
+
+**Diagnosis (throwaway diag workflow, runs `26454505422` + `26454762085`):**
+
+GH Actions runner egress IP: `20.62.254.165` (Microsoft Azure Virginia, AS8075). Cloudflare Free plan blocks Microsoft Azure ASN dengan managed challenge HTML page (`Attention Required! | Cloudflare`). Tested:
+
+| Test | Custom Domain | workers.dev |
+|---|---|---|
+| GET `/health` default UA | 403 (CF challenge) | **200** ✅ |
+| GET `/health` browser UA | 403 (CF challenge) | **200** ✅ |
+| GET `/health` custom UA | 403 (CF challenge) | **200** ✅ |
+| GET `/login` (3 portals) | 403 | **200** ✅ |
+| POST `/login` (no Origin) | 403 (CF or SvelteKit) | 403 (SvelteKit CSRF: `Cross-site POST forbidden`) |
+| POST `/login` (with Origin) | 403 (CF still blocks) | **200** ✅ (form action returns 401 invalid creds) |
+
+Pure IP-based block. UA spoofing tidak help. Workers.dev URLs bypass karena tidak melewati CF zone (langsung ke Cloudflare Workers infrastructure).
+
+**Files changed (squash commit `5bfcb40`):**
+
+| File | Change |
+|---|---|
+| `.github/workflows/deploy.yml` | Canary URLs switched to workers.dev (configurable via `STAGING_*_WORKERS_DEV_URL` GH vars). POST `/login` adds `Origin` header. Drop `/events` (workers.dev returns 404 — route resolves only on custom domain). Use `GET /login` instead for portal liveness. |
+| `.github/workflows/deploy-production.yml` | Same pattern. Production canary gracefully **skips** if `PRODUCTION_*_WORKERS_DEV_URL` vars unset — falls back to existing API health Smoke Test step. Set vars after first production deploy when workers.dev URLs are visible in deploy output. |
+| `.github/workflows/canary-diag.yml` | Removed (was throwaway diagnostic). |
+
+**Live canary first run (deploy run `26455311474`, commit `5bfcb40`):**
+
+```text
+GET  https://jeevatix-staging-api.ariefna95.workers.dev/health     -> 200 ✅
+GET  https://jeevatix-staging-buyer.ariefna95.workers.dev/login    -> 200 ✅
+GET  https://jeevatix-staging-seller.ariefna95.workers.dev/login   -> 200 ✅
+GET  https://jeevatix-staging-admin.ariefna95.workers.dev/login    -> 200 ✅
+POST https://jeevatix-staging-seller.ariefna95.workers.dev/login   -> 200 ✅
+✅ Canary passed: all SSR routes responding without 5xx
+```
+
+**What canary CAN now catch:**
+
+- Cloudflare edge returning 5xx (Worker not running / hard fail)
+- Same-zone W2W 522 regression — POST `/login` form action calls `INTERNAL_API_URL/auth/login` from SSR Worker. If subrequest fails 5xx, canary fails.
+- Worker code regressions affecting auth/login path
+- INTERNAL_API_URL env var misconfiguration (would cause 5xx in form action)
+- SvelteKit hooks / locals breakage that affects login flow
+
+**What canary STILL cannot catch:**
+
+- Issues affecting only routes other than `/health` and `/login`
+- Issues that manifest only with valid credentials (race conditions, DB load patterns)
+- Cloudflare custom domain routing issues — canary uses workers.dev, so custom-domain DNS / SSL / route binding issues won't surface here
+- Issues affecting only authenticated SSR routes (orders, tickets, dashboard)
+
+**Implication:** External uptime monitor (Step 1 next) tetap penting karena monitor pakai diverse IPs (non-Azure) dan hit custom domains, complementing canary's workers.dev coverage.
+
+**E2E pre-existing 404 root cause:** Same as canary blind spot — CF Free plan block of GH Actions IPs at custom domain. E2E test suite di GH Actions hit `jeevatix.my.id` etc. via Playwright → CF challenge → 403 returned to test runner → SSR layer gets confused / returns 404. Singapore VPS direct connections (manual reproduction) pass clean. Existing graceful skip pattern remains correct mitigation; could in future migrate E2E to workers.dev URLs to actually run tests, but that's a separate discussion (workers.dev URLs miss custom-domain coverage).
+
+**Production deploy implications:**
+
+Production deploy needs different setup since production workers.dev URLs not yet known:
+
+1. First production deploy: canary gracefully skipped (no `PRODUCTION_*_WORKERS_DEV_URL` vars). Existing Smoke Test step still validates API.
+2. After deploy: read deploy logs untuk capture URLs (e.g., `https://jeevatix-production-api.<account>.workers.dev`).
+3. Set 4 GH vars: `PRODUCTION_API_WORKERS_DEV_URL`, `PRODUCTION_BUYER_WORKERS_DEV_URL`, `PRODUCTION_SELLER_WORKERS_DEV_URL`, `PRODUCTION_ADMIN_WORKERS_DEV_URL`.
+4. Next production deploy: canary akan run penuh.
+
+### 🎯 Next Step (untuk session berikutnya)
+
+**Resume context:** Step 1 + Step 3 dari handoff lama selesai (PR #7). Canary blind spot juga selesai (PR #8). Staging stack dengan real guardrail. Production deploy prep adalah prioritas terbesar berikutnya.
+
+**Current commits di main:**
+- `5bfcb40` — fix(ci): canary uses workers.dev URLs to bypass CF block (#8)
+- `7583013`, `caae772` — diagnostic commits (clean, throwaway workflow already removed)
+- `40c7866` — handoff doc update for env var refactor + canary
+- `67abf7b` — feat: configurable INTERNAL_API_URL + post-deploy SSR canary (#7)
+
+**Verified working setelah deploy `5bfcb40`:**
+- Deploy workflow green
+- Canary 5/5 PASS dengan REAL coverage:
+  - GET `/health` API workers.dev → 200
+  - GET `/login` 3 portal workers.dev → 200
+  - POST `/login` seller workers.dev → 200 (real SSR W2W exercised)
+
+#### Step 1 (P0, ~15 menit, di luar repo) — Pasang external uptime monitor
+
+Tetap penting walaupun canary CI sekarang real coverage. Kenapa:
+
+- Canary hanya jalan setelah deploy. Kalau staging mati di tengah hari, canary tidak detect.
+- Canary uses workers.dev URLs. Custom-domain breakage (DNS, SSL cert, Worker route binding) tidak akan terlihat di canary.
+- Production akan butuh monitoring continuous setelah live.
+
+Action: setup Better Stack atau UptimeRobot (free tier):
+- `https://api.jeevatix.my.id/health` — interval 1 menit
+- `https://jeevatix.my.id/events` — interval 5 menit
+- `https://seller.jeevatix.my.id/login` — interval 5 menit
+- `https://admin.jeevatix.my.id/login` — interval 5 menit
+- Alert: 2 kegagalan beruntun atau timeout >10s
+- Notif: email minimum
+
+Stop condition: dashboard monitor hijau semua endpoint.
+
+#### Step 2 (P0, ~2-3 jam, butuh keputusan user) — Production deployment prep
+
+3 keputusan masih open:
+
+| Item | Recommendation |
+|---|---|
+| Domain | Subdomain `jeevatix.my.id` dulu untuk soft launch |
+| Production DB host | VPS yang sama (`168.144.140.206`) dulu |
+| Launch strategy | Invite-only / soft launch dulu |
+
+Setelah keputusan keluar, langkah:
+
+1. VPS: `CREATE DATABASE jeevatix_production` + role + GRANT. Push schema via `drizzle-kit push --force`. **Jangan seed.**
+2. Generate secret production baru:
+   - `PRODUCTION_DATABASE_URL`
+   - `PRODUCTION_JWT_SECRET`
+   - `PRODUCTION_PAYMENT_WEBHOOK_SECRET`
+3. Configure GitHub production secrets/vars (lihat `.github/workflows/deploy-production.yml`).
+4. **PENTING:** Set `PRODUCTION_INTERNAL_API_URL` GH var ke production workers.dev URL.
+5. Cloudflare DNS production + Worker routes.
+6. Manual deploy:
+   ```bash
+   gh workflow run deploy-production.yml -f confirm=deploy-production
+   ```
+7. **Setelah first deploy success:** capture workers.dev URLs dari deploy output, set 4 GH vars: `PRODUCTION_API_WORKERS_DEV_URL`, `PRODUCTION_BUYER_WORKERS_DEV_URL`, `PRODUCTION_SELLER_WORKERS_DEV_URL`, `PRODUCTION_ADMIN_WORKERS_DEV_URL`. Next deploy will run canary fully.
+8. Smoke test full path: `/health`, login, category/event, checkout reservation happy path (lihat `PRODUCTION_RELEASE_RUNBOOK.md`).
+9. Watch 24-48 jam dengan uptime monitor + Cloudflare logs.
+
+Stop condition: production live, smoke green, monitor stable.
+
+#### Step 3 (P2, defer sampai prod stabil) — Service Binding upgrade
+
+Sama dengan handoff sebelumnya. Tidak berubah.
+
+#### Step 4 (P3, optional) — Investigate root cause Cloudflare same-zone 522
+
+Sama dengan handoff sebelumnya. Tidak berubah.
+
+#### Penting saat resume
+
+1. **JANGAN hapus `DB_DISABLE_CACHE=1`** — sudah dibuktikan trigger ~30% 500 di `/categories`. Lihat section "CI Green + E2E 0 Fail + DB Cache Revert Lessons".
+2. **JANGAN ganti `INTERNAL_API_URL` ke `https://api.jeevatix.my.id`** untuk SSR — itu trigger 522. Workers.dev URL tetap dipertahankan via env var fallback.
+3. **`PRODUCTION_INTERNAL_API_URL` GH var WAJIB di-set sebelum production deploy.**
+4. **Canary CI sekarang real coverage.** Kalau canary fail dengan 5xx, treat as P0 — kemungkinan same-zone W2W regression atau Worker binding issue.
+5. **Production canary memerlukan 2 deploy.** First deploy: skip canary (URLs unknown). Capture URLs from output. Set vars. Next deploy: canary runs fully.
+6. **E2E pre-existing 404 issue** kemungkinan bisa di-fix dengan migrate test runner ke workers.dev URLs juga. Tapi defer — graceful skip pattern sudah cukup.
+
+---
 
 ### ✅ INTERNAL_API_URL Env Var + Post-Deploy SSR Canary (session 2026-05-26 malam, commit `67abf7b`)
 
