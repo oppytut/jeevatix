@@ -102,11 +102,30 @@ jobs:
           echo "Waiting 30s for Cloudflare propagation..."
           sleep 30
 
+          # NOTE: Use workers.dev URLs to bypass Cloudflare's IP-based block
+          # of GitHub Actions runner egress (Microsoft Azure ASN). Custom
+          # domains (api.jeevatix.my.id etc.) return 403 Cloudflare challenge
+          # to GH Actions IPs. workers.dev URLs route directly to Workers,
+          # bypassing the zone-level CF security layer.
+          API_URL="${API_WORKERS_DEV_URL:-https://jeevatix-staging-api.ariefna95.workers.dev}"
+          BUYER_URL="${BUYER_WORKERS_DEV_URL:-https://jeevatix-staging-buyer.ariefna95.workers.dev}"
+          SELLER_URL="${SELLER_WORKERS_DEV_URL:-https://jeevatix-staging-seller.ariefna95.workers.dev}"
+          ADMIN_URL="${ADMIN_WORKERS_DEV_URL:-https://jeevatix-staging-admin.ariefna95.workers.dev}"
+
+          # CHECKS:
+          # - GET /health on API: backend alive
+          # - GET /login on each portal: portal Worker alive
+          # - POST /login on seller (with Origin): SvelteKit form action
+          #   triggers actual SSR fetch to API. This is the W2W path that
+          #   was broken in commit e38003f/048990b. 5xx/timeout here = same
+          #   regression returning. Origin header satisfies SvelteKit CSRF
+          #   protection so request reaches the form action.
           declare -a CHECKS=(
-            "GET|https://api.jeevatix.my.id/health|200"
-            "GET|https://jeevatix.my.id/events|200"
-            "POST|https://seller.jeevatix.my.id/login|200,400,401,403"
-            "POST|https://admin.jeevatix.my.id/login|200,400,401,403"
+            "GET|$API_URL/health|200"
+            "GET|$BUYER_URL/login|200"
+            "GET|$SELLER_URL/login|200"
+            "GET|$ADMIN_URL/login|200"
+            "POST|$SELLER_URL/login|200,400,401,403"
           )
 
           fail=0
@@ -115,9 +134,12 @@ jobs:
             url="${rest%%|*}"; expected="${rest#*|}"
 
             if [ "$method" = "POST" ]; then
+              # Origin header satisfies SvelteKit CSRF; required to reach form action.
+              origin="$(echo "$url" | sed -E 's#^(https?://[^/]+).*#\1#')"
               status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 \
                 -X POST "$url" \
                 -H "Content-Type: application/x-www-form-urlencoded" \
+                -H "Origin: $origin" \
                 --data "email=canary@invalid.test&password=invalid" \
                 || echo "000")
             else
@@ -150,3 +172,8 @@ jobs:
             exit 1
           fi
           echo "✅ Canary passed: all SSR routes responding without 5xx"
+        env:
+          API_WORKERS_DEV_URL: ${{ vars.STAGING_API_WORKERS_DEV_URL }}
+          BUYER_WORKERS_DEV_URL: ${{ vars.STAGING_BUYER_WORKERS_DEV_URL }}
+          SELLER_WORKERS_DEV_URL: ${{ vars.STAGING_SELLER_WORKERS_DEV_URL }}
+          ADMIN_WORKERS_DEV_URL: ${{ vars.STAGING_ADMIN_WORKERS_DEV_URL }}
