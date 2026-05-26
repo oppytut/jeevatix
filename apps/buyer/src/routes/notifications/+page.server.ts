@@ -9,10 +9,15 @@ function requireBuyerSession(locals: App.Locals) {
   }
 }
 
-async function loadNotifications(fetchFn: typeof fetch, cookies: import('@sveltejs/kit').Cookies) {
+async function loadNotifications(
+  fetchFn: typeof fetch,
+  cookies: import('@sveltejs/kit').Cookies,
+  accessToken?: string | null,
+) {
   return apiGet<BuyerNotificationsPayload>('/notifications', {
     fetchFn,
     cookies,
+    accessToken,
   });
 }
 
@@ -27,7 +32,7 @@ export const load = (async ({ fetch, cookies, locals }) => {
   requireBuyerSession(locals);
 
   try {
-    return await loadNotifications(fetch, cookies);
+    return await loadNotifications(fetch, cookies, locals.buyerAccessToken);
   } catch (error) {
     await handleAuthFailure(error, cookies);
     throw error;

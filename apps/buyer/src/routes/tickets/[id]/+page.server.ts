@@ -16,6 +16,7 @@ export const load = (async ({ fetch, cookies, locals, params }) => {
     const ticket = await apiGet<BuyerTicketDetail>(`/tickets/${params.id}`, {
       fetchFn: fetch,
       cookies,
+      accessToken: locals.buyerAccessToken,
     });
 
     return { ticket };

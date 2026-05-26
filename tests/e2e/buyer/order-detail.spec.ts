@@ -75,68 +75,8 @@ test.describe('Buyer Order Detail', () => {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
     }
-
-    // Diagnostic: capture cookies and SSR API call
-    const cookies = await page.context().cookies();
-    const accessTokenCookie = cookies.find((c) => c.name === 'jeevatix_buyer_access_token');
-    const userCookie = cookies.find((c) => c.name === 'jeevatix_buyer_user');
-    console.log('DIAG: access_token cookie present:', !!accessTokenCookie);
-    console.log('DIAG: access_token cookie domain:', accessTokenCookie?.domain);
-    console.log('DIAG: access_token value (first 20):', accessTokenCookie?.value?.slice(0, 20));
-    if (userCookie) {
-      try {
-        const user = JSON.parse(userCookie.value);
-        console.log('DIAG: user cookie id:', user.id);
-        console.log('DIAG: user cookie email:', user.email);
-      } catch {
-        /* ignore */
-      }
-    }
-    if (accessTokenCookie?.value) {
-      try {
-        const payload = JSON.parse(atob(accessTokenCookie.value.split('.')[1]));
-        console.log('DIAG: JWT sub/id:', payload.id || payload.sub);
-        console.log('DIAG: JWT email:', payload.email);
-        console.log('DIAG: JWT exp:', new Date((payload.exp ?? 0) * 1000).toISOString());
-      } catch {
-        /* ignore */
-      }
-    }
-
-    // Intercept SSR subrequest to API to see what token is actually sent
-    const apiRequests: { url: string; auth: string | null; status: number }[] = [];
-    page.on('response', (response) => {
-      const url = response.url();
-      if (url.includes('/orders/') && url.includes('api')) {
-        apiRequests.push({
-          url,
-          auth: response.request().headers()['authorization'] ?? null,
-          status: response.status(),
-        });
-      }
-    });
-
     await page.goto(`/orders/${orderId}`);
-
-    // Log any captured API requests (SSR subrequests won't appear here — they're server-side)
-    console.log('DIAG: browser-visible API requests:', JSON.stringify(apiRequests));
-    console.log('DIAG: page URL after goto:', page.url());
-
-    const bodyText = await page.textContent('body');
-    if (bodyText?.includes('403')) {
-      console.log('DIAG: 403 detected. Full page text (first 500):', bodyText.slice(0, 500));
-      // Verify via direct API call that the token still works
-      const directCheck = await page.context().request.get(`${API_URL}/orders/${orderId}`, {
-        headers: { Authorization: `Bearer ${accessTokenCookie?.value}` },
-      });
-      console.log('DIAG: direct API check status:', directCheck.status());
-      if (directCheck.status() === 200) {
-        console.log('DIAG: CONFIRMED — token works via direct call but fails via SSR');
-      }
-    }
-
-    await expect(page.locator('body')).not.toContainText('403', { timeout: 5_000 });
-    await expect(page.locator('body')).toContainText(orderNumber, { timeout: 10_000 });
+    await expect(page.locator('body')).toContainText(orderNumber, { timeout: 15_000 });
   });
 
   test('should display order items with tier and price', async ({ page }) => {

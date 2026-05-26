@@ -347,6 +347,7 @@ type RequestOptions = {
   retryOnUnauthorized?: boolean;
   fetchFn: typeof fetch;
   cookies?: Cookies;
+  accessToken?: string | null;
 };
 
 function isFormDataBody(value: unknown): value is FormData {
@@ -363,19 +364,23 @@ async function parseJsonSafe<T>(response: Response): Promise<T | null> {
   return (await response.json()) as T;
 }
 
-async function buildAuthHeaders(requiresAuth: boolean, cookies?: Cookies) {
+async function buildAuthHeaders(
+  requiresAuth: boolean,
+  cookies?: Cookies,
+  accessToken?: string | null,
+) {
   if (!requiresAuth) {
     return {};
   }
 
-  const accessToken = cookies?.get(BUYER_ACCESS_TOKEN_COOKIE);
+  const token = accessToken || cookies?.get(BUYER_ACCESS_TOKEN_COOKIE);
 
-  if (!accessToken) {
+  if (!token) {
     throw new ApiError('Authentication required.', 401, 'UNAUTHORIZED');
   }
 
   return {
-    Authorization: `Bearer ${accessToken}`,
+    Authorization: `Bearer ${token}`,
   };
 }
 
@@ -396,9 +401,10 @@ async function requestResponse<T, TMeta = unknown>(
     retryOnUnauthorized = true,
     fetchFn,
     cookies,
+    accessToken,
   } = options;
 
-  const authHeaders = await buildAuthHeaders(requiresAuth, cookies);
+  const authHeaders = await buildAuthHeaders(requiresAuth, cookies, accessToken);
   const requestHeaders = new Headers(headers);
 
   requestHeaders.set('Accept', 'application/json');

@@ -16,6 +16,7 @@ export const load = (async ({ fetch, cookies, locals, params }) => {
     const order = await apiGet<OrderDetail>(`/orders/${params.id}`, {
       fetchFn: fetch,
       cookies,
+      accessToken: locals.buyerAccessToken,
     });
 
     return { order };
