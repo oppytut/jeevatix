@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 
 import {
-  API_BASE_URL,
+  INTERNAL_API_URL,
   clearAuthSession,
   refreshSession,
   shouldRefreshAccessToken,
@@ -50,7 +50,7 @@ async function parseJsonSafe<T>(response: Response) {
 }
 
 async function fetchDashboard(fetch: typeof globalThis.fetch, accessToken: string) {
-  const response = await fetch(`${API_BASE_URL}/seller/dashboard`, {
+  const response = await fetch(`${INTERNAL_API_URL}/seller/dashboard`, {
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${accessToken}`,

@@ -1,7 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 
 import { clearAuthSession, refreshSession, shouldRefreshAccessToken } from '$lib/auth';
-import { API_BASE_URL } from '$lib/http';
+import { INTERNAL_API_URL } from '$lib/http';
 
 type AdminDashboard = {
   total_users: number;
@@ -62,7 +62,7 @@ async function parseJsonSafe<T>(response: Response) {
 }
 
 async function fetchDashboard(fetch: typeof globalThis.fetch, accessToken: string) {
-  const response = await fetch(`${API_BASE_URL}/admin/dashboard`, {
+  const response = await fetch(`${INTERNAL_API_URL}/admin/dashboard`, {
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${accessToken}`,

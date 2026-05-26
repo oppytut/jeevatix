@@ -2,7 +2,7 @@ import type { Cookies } from '@sveltejs/kit';
 
 import { browser, dev } from '$app/environment';
 
-import { API_BASE_URL, ApiError } from '$lib/http';
+import { ApiError, INTERNAL_API_URL } from '$lib/http';
 
 export const ADMIN_ACCESS_TOKEN_COOKIE = 'jeevatix_admin_access_token';
 export const ADMIN_REFRESH_TOKEN_COOKIE = 'jeevatix_admin_refresh_token';
@@ -233,7 +233,7 @@ export async function login(
   email: string,
   password: string,
 ) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/login`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ export async function refreshSession(fetchFn: typeof fetch, cookies: Cookies) {
     return null;
   }
 
-  const response = await fetchFn(`${API_BASE_URL}/auth/refresh`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -287,7 +287,7 @@ export async function logoutSession(fetchFn: typeof fetch, cookies: Cookies) {
 
   try {
     if (refreshToken) {
-      await fetchFn(`${API_BASE_URL}/auth/logout`, {
+      await fetchFn(`${INTERNAL_API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

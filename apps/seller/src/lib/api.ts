@@ -3,6 +3,7 @@ import { browser } from '$app/environment';
 import {
   ApiError,
   API_BASE_URL,
+  INTERNAL_API_URL,
   clearClientSessionState,
   ensureFreshAccessToken,
   refreshBrowserSession,
@@ -84,7 +85,9 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
+
+  const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: requestHeaders,
     body: body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
@@ -137,7 +140,9 @@ async function requestResponse<T, TMeta = unknown>(
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
+
+  const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: requestHeaders,
     body: body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),

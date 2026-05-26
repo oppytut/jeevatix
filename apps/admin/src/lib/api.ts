@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 
 import { clearClientSessionState, ensureFreshAccessToken, refreshBrowserSession } from '$lib/auth';
-import { API_BASE_URL, ApiError } from '$lib/http';
+import { API_BASE_URL, ApiError, INTERNAL_API_URL } from '$lib/http';
 
 type ApiErrorPayload = {
   code: string;
@@ -75,7 +75,9 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
+
+  const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
@@ -128,7 +130,9 @@ async function requestEnvelope<T, TMeta = undefined>(
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
+
+  const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
