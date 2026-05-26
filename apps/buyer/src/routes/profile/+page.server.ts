@@ -28,6 +28,7 @@ export const load = (async ({ fetch, cookies, locals }) => {
     const profile = await apiGet<BuyerAuthUser>('/users/me', {
       fetchFn: fetch,
       cookies,
+      accessToken: locals.buyerAccessToken,
     });
 
     return { profile };

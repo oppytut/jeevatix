@@ -33,6 +33,7 @@ export const load = (async ({ fetch, cookies, locals, url }) => {
       {
         fetchFn: fetch,
         cookies,
+        accessToken: locals.buyerAccessToken,
       },
     );
 
