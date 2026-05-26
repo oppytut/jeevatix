@@ -3,6 +3,14 @@ import type { Cookies } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
+// Server-side (Worker-to-Worker) URL bypasses same-zone routing issues.
+// Buyer Worker at apex domain (jeevatix.my.id) cannot fetch api.jeevatix.my.id
+// via custom domain due to Cloudflare same-zone 522 error. Use workers.dev URL
+// which routes correctly across Workers in the same account.
+export const INTERNAL_API_URL = dev
+  ? 'http://127.0.0.1:8787'
+  : 'https://jeevatix-staging-api.ariefna95.workers.dev';
+
 export const API_BASE_URL =
   PUBLIC_API_BASE_URL || (dev ? 'http://127.0.0.1:8787' : 'https://api.jeevatix.com');
 
@@ -163,7 +171,7 @@ export async function login(
   email: string,
   password: string,
 ) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/login`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -180,7 +188,7 @@ export async function login(
 }
 
 export async function register(fetchFn: typeof fetch, cookies: Cookies, input: RegisterInput) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/register`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -201,7 +209,7 @@ export async function logout(fetchFn: typeof fetch, cookies: Cookies) {
 
   try {
     if (refreshToken) {
-      await fetchFn(`${API_BASE_URL}/auth/logout`, {
+      await fetchFn(`${INTERNAL_API_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +230,7 @@ export async function refreshSession(fetchFn: typeof fetch, cookies: Cookies) {
     return null;
   }
 
-  const response = await fetchFn(`${API_BASE_URL}/auth/refresh`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -249,7 +257,7 @@ export async function refreshSession(fetchFn: typeof fetch, cookies: Cookies) {
 }
 
 export async function forgotPassword(fetchFn: typeof fetch, email: string) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/forgot-password`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/forgot-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -263,7 +271,7 @@ export async function forgotPassword(fetchFn: typeof fetch, email: string) {
 }
 
 export async function resetPassword(fetchFn: typeof fetch, token: string, password: string) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/reset-password`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/reset-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -277,7 +285,7 @@ export async function resetPassword(fetchFn: typeof fetch, token: string, passwo
 }
 
 export async function verifyEmail(fetchFn: typeof fetch, token: string) {
-  const response = await fetchFn(`${API_BASE_URL}/auth/verify-email`, {
+  const response = await fetchFn(`${INTERNAL_API_URL}/auth/verify-email`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

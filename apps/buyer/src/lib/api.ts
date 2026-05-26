@@ -1,9 +1,12 @@
 import type { Cookies } from '@sveltejs/kit';
 
+import { browser } from '$app/environment';
+
 import {
   API_BASE_URL,
   ApiError,
   BUYER_ACCESS_TOKEN_COOKIE,
+  INTERNAL_API_URL,
   clearAuthSession,
   refreshSession,
 } from '$lib/auth';
@@ -417,7 +420,9 @@ async function requestResponse<T, TMeta = unknown>(
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const response = await fetchFn(`${API_BASE_URL}${path}`, {
+  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
+
+  const response = await fetchFn(`${baseUrl}${path}`, {
     method,
     headers: requestHeaders,
     body: body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
