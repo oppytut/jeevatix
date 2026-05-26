@@ -1,61 +1,34 @@
 name: Canary Diagnostic
-
 on:
   workflow_dispatch:
-
 jobs:
   diag:
     runs-on: ubuntu-latest
     steps:
-      - name: Diagnose 403 from GH Actions IP
+      - name: Verify workers.dev URLs from GH Actions
         run: |
-          echo "=== Runner egress IP ==="
-          curl -fsS --max-time 5 https://ifconfig.me; echo
-          curl -fsS --max-time 5 "https://ipinfo.io" 2>/dev/null | head -8
-
+          echo "=== Test workers.dev URLs (bypass CF zone) ==="
+          for url in \
+            https://jeevatix-staging-api.ariefna95.workers.dev/health \
+            https://jeevatix-staging-buyer.ariefna95.workers.dev/events \
+            https://jeevatix-staging-seller.ariefna95.workers.dev/login \
+            https://jeevatix-staging-admin.ariefna95.workers.dev/login; do
+            status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 15 "$url")
+            echo "GET $url -> $status"
+          done
           echo ""
-          echo "=== T1: GET /health, default curl (no UA) ==="
-          curl -sS -o /dev/null -D - --max-time 15 \
-            "https://api.jeevatix.my.id/health" 2>&1 | head -10 || true
-
-          echo ""
-          echo "=== T2: GET /health, browser-like UA ==="
-          curl -sS -o /dev/null -D - --max-time 15 \
-            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-            "https://api.jeevatix.my.id/health" 2>&1 | head -10 || true
-
-          echo ""
-          echo "=== T3: GET /health, jeevatix-canary UA ==="
-          curl -sS -o /dev/null -D - --max-time 15 \
-            -A "jeevatix-canary/1.0" \
-            "https://api.jeevatix.my.id/health" 2>&1 | head -10 || true
-
-          echo ""
-          echo "=== T4: GET /health, full body inspection ==="
-          curl -sS -o /tmp/body.txt -D /tmp/headers.txt --max-time 15 \
-            "https://api.jeevatix.my.id/health" 2>&1
-          echo "--- Status: $(head -1 /tmp/headers.txt) ---"
-          echo "--- Headers (first 25 lines) ---"
-          head -25 /tmp/headers.txt
-          echo "--- Body (first 30 lines) ---"
-          head -30 /tmp/body.txt
-          echo "--- Body length: $(wc -c < /tmp/body.txt) bytes ---"
-
-          echo ""
-          echo "=== T5: GET /events, browser-like UA ==="
-          curl -sS -o /dev/null -D - --max-time 15 \
-            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
-            "https://jeevatix.my.id/events" 2>&1 | head -10 || true
-
-          echo ""
-          echo "=== T6: POST /login WITH Origin header ==="
-          curl -sS -o /tmp/post-body.txt -D /tmp/post-headers.txt --max-time 15 \
-            -X POST "https://seller.jeevatix.my.id/login" \
+          echo "=== Test POST seller login workers.dev with Origin ==="
+          status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 15 \
+            -X POST "https://jeevatix-staging-seller.ariefna95.workers.dev/login" \
             -H "Content-Type: application/x-www-form-urlencoded" \
-            -H "Origin: https://seller.jeevatix.my.id" \
-            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
-            --data "email=canary@invalid.test&password=invalid" 2>&1
-          echo "--- Status: $(head -1 /tmp/post-headers.txt) ---"
-          head -10 /tmp/post-headers.txt
-          echo "--- Body ---"
-          head -10 /tmp/post-body.txt
+            -H "Origin: https://jeevatix-staging-seller.ariefna95.workers.dev" \
+            --data "email=canary@invalid.test&password=invalid")
+          echo "POST seller workers.dev (Origin) -> $status"
+          echo ""
+          echo "=== Test POST seller login workers.dev WITHOUT Origin ==="
+          status=$(curl -sS -o /tmp/b.txt -w "%{http_code}" --max-time 15 \
+            -X POST "https://jeevatix-staging-seller.ariefna95.workers.dev/login" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data "email=canary@invalid.test&password=invalid")
+          echo "POST seller workers.dev (no Origin) -> $status"
+          echo "Body: $(head -c 100 /tmp/b.txt)"
