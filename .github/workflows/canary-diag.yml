@@ -1,0 +1,61 @@
+name: Canary Diagnostic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Diagnose 403 from GH Actions IP
+        run: |
+          echo "=== Runner egress IP ==="
+          curl -fsS --max-time 5 https://ifconfig.me; echo
+          curl -fsS --max-time 5 "https://ipinfo.io" 2>/dev/null | head -8
+
+          echo ""
+          echo "=== T1: GET /health, default curl (no UA) ==="
+          curl -sS -o /dev/null -D - --max-time 15 \
+            "https://api.jeevatix.my.id/health" 2>&1 | head -10 || true
+
+          echo ""
+          echo "=== T2: GET /health, browser-like UA ==="
+          curl -sS -o /dev/null -D - --max-time 15 \
+            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            "https://api.jeevatix.my.id/health" 2>&1 | head -10 || true
+
+          echo ""
+          echo "=== T3: GET /health, jeevatix-canary UA ==="
+          curl -sS -o /dev/null -D - --max-time 15 \
+            -A "jeevatix-canary/1.0" \
+            "https://api.jeevatix.my.id/health" 2>&1 | head -10 || true
+
+          echo ""
+          echo "=== T4: GET /health, full body inspection ==="
+          curl -sS -o /tmp/body.txt -D /tmp/headers.txt --max-time 15 \
+            "https://api.jeevatix.my.id/health" 2>&1
+          echo "--- Status: $(head -1 /tmp/headers.txt) ---"
+          echo "--- Headers (first 25 lines) ---"
+          head -25 /tmp/headers.txt
+          echo "--- Body (first 30 lines) ---"
+          head -30 /tmp/body.txt
+          echo "--- Body length: $(wc -c < /tmp/body.txt) bytes ---"
+
+          echo ""
+          echo "=== T5: GET /events, browser-like UA ==="
+          curl -sS -o /dev/null -D - --max-time 15 \
+            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+            "https://jeevatix.my.id/events" 2>&1 | head -10 || true
+
+          echo ""
+          echo "=== T6: POST /login WITH Origin header ==="
+          curl -sS -o /tmp/post-body.txt -D /tmp/post-headers.txt --max-time 15 \
+            -X POST "https://seller.jeevatix.my.id/login" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -H "Origin: https://seller.jeevatix.my.id" \
+            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+            --data "email=canary@invalid.test&password=invalid" 2>&1
+          echo "--- Status: $(head -1 /tmp/post-headers.txt) ---"
+          head -10 /tmp/post-headers.txt
+          echo "--- Body ---"
+          head -10 /tmp/post-body.txt
