@@ -120,56 +120,162 @@ Buyer fix deployed pertama (commit `e38003f`), confirmed `/events` works. Admin 
 
 ### 🎯 Next Step (untuk session berikutnya)
 
-#### P0: External uptime monitoring (15 menit, BELUM dikerjakan)
+**Resume context:** Last session (2026-05-26 sore) menyelesaikan same-zone W2W 522 fix di semua 3 portal. Staging fully operational. User akan continue dari session opencode lain.
 
-Sangat critical sekarang. Bug 522 ini latent berbulan-bulan tanpa terdeteksi. Pasang monitor untuk catch regresi serupa.
+**Current commits di main:**
+- `e38003f` — buyer fix (workers.dev SSR URL)
+- `048990b` — admin + seller fix (workers.dev SSR URL)
+- `9bb05df` (atau later) — handoff doc update
 
-Endpoint minimal monitor:
-- `https://api.jeevatix.my.id/health` (1 menit interval) — backend health
-- `https://jeevatix.my.id/events` (5 menit interval) — buyer SSR canary
-- `https://seller.jeevatix.my.id/login` (5 menit interval) — seller portal canary
-- `https://admin.jeevatix.my.id/login` (5 menit interval) — admin portal canary
+**Verified working sebelum hand-off:**
+- `GET https://jeevatix.my.id/events` → 200 (sustained 5/5)
+- `POST https://seller.jeevatix.my.id/login` → 303 → `/`
+- `POST https://admin.jeevatix.my.id/login` → 303 → `/`
+- Buyer/seller/admin dashboard SSR (authed) → 200
 
-Tool: Better Stack atau UptimeRobot (free tier OK). Alert: 2 consecutive failure atau timeout >10s, notif email minimal.
+#### Urutan kerja yang disarankan
 
-#### P0: SSR smoke test ke E2E suite
+##### Step 1 (P0, ~30 menit) — Tambah SSR canary ke deploy workflow
 
-Tambah pre-existing E2E atau standalone CI step:
+Goal: catch regresi 522/5xx instan setelah deploy. Bug 522 hari ini latent berbulan-bulan, harus ada gate.
 
-```bash
-for url in \
-  https://jeevatix.my.id/events \
-  https://jeevatix.my.id/events/test-slug \
-  https://seller.jeevatix.my.id/login \
-  https://admin.jeevatix.my.id/login \
-  https://api.jeevatix.my.id/health; do
-  curl -fsS -o /dev/null "$url" || exit 1
-done
-```
+Action:
+1. Edit `.github/workflows/deploy.yml`. Setelah step `pnpm run deploy --stage staging`, tambah step baru `Post-deploy SSR canary`:
 
-Failed → block deploy. Catch regresi same-zone W2W kalau muncul lagi.
+   ```yaml
+   - name: Post-deploy SSR canary
+     run: |
+       set -e
+       sleep 30  # tunggu propagasi
+       for url in \
+         https://api.jeevatix.my.id/health \
+         https://jeevatix.my.id/events \
+         https://seller.jeevatix.my.id/login \
+         https://admin.jeevatix.my.id/login; do
+         status=$(curl -fsS -o /dev/null -w "%{http_code}" --max-time 30 "$url" || echo "000")
+         echo "$url -> $status"
+         if [ "$status" -ge 500 ] || [ "$status" = "000" ]; then
+           echo "FAIL: $url returned $status"
+           exit 1
+         fi
+       done
+   ```
 
-#### P1: Production deployment prep (handoff lama, masih pending)
+2. Pertimbangkan juga apply ke `.github/workflows/deploy-production.yml` saat production deploy disiapkan.
 
-Masih blocked oleh 3 keputusan user (lihat section sebelumnya). Tambah sekarang: **production `INTERNAL_API_URL` perlu di-hardcode atau di-env-var saat production deploy**. Default production workers.dev URL akan berbeda dari staging.
+3. Trigger workflow ulang untuk verifikasi step baru jalan dan green.
 
-#### P2: Refactor `INTERNAL_API_URL` jadi env var
+Stop condition: deploy workflow berakhir dengan canary step pass.
 
-Sekarang hardcoded — fragile untuk production. Lebih baik:
+##### Step 2 (P0, di luar repo, ~15 menit) — Pasang external uptime monitor
 
-- Tambah `PUBLIC_INTERNAL_API_URL` build-time env var (atau pakai pendekatan lain yang resolve di build)
-- Default fallback ke workers.dev pattern per stage
-- Wire dari `.github/workflows/deploy.yml` + `.github/workflows/deploy-production.yml`
+Goal: deteksi regresi setelah deploy lewat (kalau monitor di CI saja, kita tidak tahu kalau staging mati di tengah hari).
 
-#### P2: Service Binding sebagai proper long-term fix
+Action (manual, butuh akun):
+1. Daftar Better Stack atau UptimeRobot (free tier).
+2. Buat 4 monitor:
+   - `https://api.jeevatix.my.id/health` — interval 1 menit
+   - `https://jeevatix.my.id/events` — interval 5 menit
+   - `https://seller.jeevatix.my.id/login` — interval 5 menit
+   - `https://admin.jeevatix.my.id/login` — interval 5 menit
+3. Alert rule: 2 kegagalan beruntun atau timeout >10s.
+4. Notif: email minimum.
 
-Ganti workers.dev fetch dengan Cloudflare Service Binding (zero network hop, no DNS, no routing risk). Butuh:
+Stop condition: dashboard monitor menunjukkan semua endpoint hijau.
 
-- Tambah `link: [api]` ke buyer/admin worker resource di `sst.config.ts` (seller sudah punya)
-- Refactor SSR fetch layer untuk pakai `env.API.fetch()` instead of `fetch(url)`
-- SvelteKit adapter compatibility check
+##### Step 3 (P1, ~1 jam) — Refactor `INTERNAL_API_URL` jadi env var
 
-Defer sampai production stabil. Workers.dev URL sudah cukup reliable untuk staging + soft launch.
+Goal: hilangkan hardcode workers.dev URL agar production deploy nanti tidak butuh source change.
+
+Pendekatan:
+1. Tambah build-time env var, contohnya `PUBLIC_INTERNAL_API_URL` — di-bake oleh SvelteKit saat build, sama mekanisme dengan `PUBLIC_API_BASE_URL`.
+2. Update tiga file:
+   - `apps/buyer/src/lib/auth.ts`
+   - `apps/seller/src/lib/auth.ts`
+   - `apps/admin/src/lib/http.ts`
+
+   Pattern:
+   ```ts
+   import { PUBLIC_INTERNAL_API_URL, PUBLIC_API_BASE_URL } from '$env/static/public';
+
+   export const INTERNAL_API_URL =
+     PUBLIC_INTERNAL_API_URL ||
+     (dev ? 'http://127.0.0.1:8787' : 'https://jeevatix-staging-api.ariefna95.workers.dev');
+   ```
+
+3. Wire env var di `.github/workflows/deploy.yml`:
+   ```yaml
+   env:
+     PUBLIC_API_BASE_URL: https://api.jeevatix.my.id
+     PUBLIC_INTERNAL_API_URL: https://jeevatix-staging-api.ariefna95.workers.dev
+   ```
+4. Untuk `.github/workflows/deploy-production.yml`, set ke production workers.dev URL nanti.
+5. Verify: build artefak (`apps/*/.svelte-kit/output/server/chunks/auth.js` atau `http.js`) berisi URL yang benar.
+6. Deploy + canary pass.
+
+Stop condition: 3 portal berfungsi normal, server bundle berisi URL dari env var, no source code yang di-hardcode workers.dev URL.
+
+##### Step 4 (P0/P1, ~2-3 jam, butuh keputusan user) — Production deployment prep
+
+3 keputusan user yang masih open:
+
+| Item | Recommendation |
+|---|---|
+| Domain | Subdomain `jeevatix.my.id` dulu untuk soft launch |
+| Production DB host | VPS yang sama (`168.144.140.206`) dulu, split nanti |
+| Launch strategy | Invite-only / soft launch dulu |
+
+Setelah keputusan:
+1. VPS: `CREATE DATABASE jeevatix_production` + role + GRANT. Push schema via `drizzle-kit push --force`. **Jangan seed.**
+2. Generate secret production baru:
+   - `PRODUCTION_DATABASE_URL`
+   - `PRODUCTION_JWT_SECRET`
+   - `PRODUCTION_PAYMENT_WEBHOOK_SECRET`
+3. Configure GitHub production secrets/vars (lihat `.github/workflows/deploy-production.yml`).
+4. Set `PUBLIC_INTERNAL_API_URL` production ke production workers.dev URL.
+5. Cloudflare DNS production + Worker routes.
+6. Manual deploy:
+   ```bash
+   gh workflow run deploy-production.yml -f confirm=deploy-production
+   ```
+7. Smoke test full path:
+   - `/health`
+   - buyer login + register
+   - category/event listing (`/events`)
+   - seller/admin login + dashboard
+   - checkout reservation happy path (lihat `PRODUCTION_RELEASE_RUNBOOK.md`)
+8. Watch 24-48 jam dengan uptime monitor + Cloudflare logs.
+
+Stop condition: production live, smoke test green, monitor stable.
+
+##### Step 5 (P2, ~2-3 jam, defer sampai production stabil) — Service Binding upgrade
+
+Goal: hilangkan network hop dan dependency ke workers.dev URL. Long-term proper fix.
+
+Action:
+1. Tambah `link: [api]` ke buyer + admin worker di `sst.config.ts` (seller sudah punya).
+2. Refactor SSR fetch layer pakai `env.API.fetch()` alih-alih `fetch(url)`.
+3. SvelteKit adapter compatibility check — perlu cara akses Worker bindings dari SSR `+page.server.ts`.
+4. Migrate satu portal dulu (misal buyer) sebagai proof, baru rollout ke admin + seller.
+
+Stop condition: 3 portal SSR fetch ke API tanpa network hop, workers.dev URL fallback bisa di-remove.
+
+##### Step 6 (P2/P3, optional) — Investigate root cause Cloudflare same-zone 522
+
+Bukan blocker. Tapi worth dipahami:
+- Apakah ada Cloudflare setting yang bisa enable same-zone Worker-to-Worker subrequest?
+- Apakah ini bug yang Cloudflare akan resolve sendiri?
+- Apakah konfigurasi Worker route kita ada masalah (misal route pattern overlap)?
+
+Kalau ketemu root cause Cloudflare-side, bisa kembali pakai custom domain untuk SSR (lebih clean, tidak bergantung workers.dev URL).
+
+#### Penting saat resume
+
+1. **JANGAN hapus `DB_DISABLE_CACHE=1`** — sudah dibuktikan trigger ~30% 500 di `/categories`. Lihat section "CI Green + E2E 0 Fail + DB Cache Revert Lessons" untuk detail.
+2. **JANGAN ganti `INTERNAL_API_URL` ke `https://api.jeevatix.my.id`** untuk SSR — itu yang trigger 522. Workers.dev URL sengaja dipertahankan.
+3. **Apex `jeevatix.my.id` bukan satu-satunya yang vulnerable.** Subdomain→subdomain (seller→api, admin→api) juga 522 di same-zone Cloudflare. Pattern fix harus konsisten di 3 portal.
+4. **Comment di source code lama bisa misleading.** Komentar `apps/seller/src/lib/auth.ts` lama mengatakan "use custom domain because workers.dev returns 404" — itu sudah diperbarui untuk reflect situasi sekarang. Jangan revert.
+
 
 ---
 
