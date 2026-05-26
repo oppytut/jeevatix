@@ -2,12 +2,89 @@
 title: Handoff Progress
 last_updated: 2026-05-26
 status: Active
-phase: Production prep scaffolding DONE. Defense-in-depth hardening LANDED (staging fallback eliminated). Security baseline documented. Staging fully operational. 5 commits ahead origin/main, unpushed. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
+phase: Track B hardening LIVE in CI (verified canary 5/5 PASS post-deploy 26480441876). Hono P0 bump landed. Production prep scaffolding DONE. Security baseline documented. Staging fully operational. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ Track B CI Fix + Hono P0 Bump (session 2026-05-26 23:00 UTC, commits `8e5f...`..tip)
+
+Goal: push 7 unpushed commits, verify Track B works in real CI, apply P0 hono bump.
+
+**3 commits landed (pushed to origin/main):**
+
+```
+69c90e3   chore(deps): bump hono to ^4.12.23 (closes 11 advisories)
+bf1a248   fix(ci): pass INTERNAL_API_URL + PUBLIC_* through turbo build/typecheck
+472b153   fix(ci): set INTERNAL_API_URL at top-level workflow env
+```
+
+**Story:**
+
+Push of the 7 staged commits triggered staging deploy run `26475696379`. Build FAILED with `Error: INTERNAL_API_URL is required in non-dev runtime` thrown from `resolveInternalApiUrl()` at SvelteKit `analyse` postbuild step.
+
+Root cause: Track B guard in `apps/{buyer,seller,admin}/src/lib/{auth,http}.ts` evaluates at module load. SvelteKit `analyse` loads SSR chunks in Node.js (where `dev=false`) before deploy step runs. Pre-push check missed this — `INTERNAL_API_URL` was only set at the deploy step env block, not at top-level workflow env that build inherits.
+
+Fix in two steps:
+
+1. **`fix(ci): set INTERNAL_API_URL at top-level workflow env`** — hoisted `INTERNAL_API_URL` to top-level `env:` in both `deploy.yml` and `deploy-production.yml`. Re-deploy still failed with same error.
+
+2. **`fix(ci): pass INTERNAL_API_URL + PUBLIC_* through turbo build/typecheck`** — Turbo strict env mode requires explicit declaration. Added `INTERNAL_API_URL`, `PUBLIC_API_BASE_URL`, `PUBLIC_PARTYKIT_HOST` to `turbo.json` `build` and `typecheck` task `env` lists. Re-deploy succeeded.
+
+**Verified live (deploy run `26480441876`, commit bf1a248 before hono bump):**
+
+```
+GET  https://jeevatix-staging-api.ariefna95.workers.dev/health     -> 200 ✅
+GET  https://jeevatix-staging-buyer.ariefna95.workers.dev/login    -> 200 ✅
+GET  https://jeevatix-staging-seller.ariefna95.workers.dev/login   -> 200 ✅
+GET  https://jeevatix-staging-admin.ariefna95.workers.dev/login    -> 200 ✅
+POST https://jeevatix-staging-seller.ariefna95.workers.dev/login   -> 200 ✅
+✅ Canary passed: all SSR routes responding without 5xx
+```
+
+Track B hardening is now battle-tested in CI. Future deploy without `INTERNAL_API_URL` configured will hard-fail at build step (no silent staging fallback).
+
+**Hono P0 bump (commit `69c90e3`):**
+
+`pnpm update hono` in `apps/api` + `packages/core`. Resolved `4.12.9 → 4.12.23`.
+
+```
+pnpm audit --prod before: 19 advisories (3H, 15M, 1L)
+pnpm audit --prod after:  8 advisories (3H, 5M)
+```
+
+11 advisories closed. Remaining 8 mostly from `partykit > miniflare > ws@8.18.0` and other transitive deps not directly under our control.
+
+Verified: typecheck 8/8, lint 8/8, build 4/4 green locally. Live deploy run `26480652183` post-bump: 17/17 steps green, canary 5/5 PASS.
+
+**Stacked plan status update:**
+
+| Phase                                       | Status                    | Notes                                          |
+| ------------------------------------------- | ------------------------- | ---------------------------------------------- |
+| Phase 1 — Production Prep Scaffolding       | ✅ DONE                   | All 5 deliverables committed                   |
+| Phase 1.5 — Defense-in-Depth Hardening      | ✅ DONE + VERIFIED IN CI  | Build hard-fail confirmed, canary 5/5 live     |
+| Phase 2 — Buyer `/events` 404 investigation | ⏳ Pending                | Next priority for research                     |
+| Phase 3 — E2E Migration                     | ⏳ Conditional on Phase 2 | Skip if complex                                |
+| Phase 4 — Security Health Check             | ✅ DONE + P0 APPLIED      | Hono bump merged, 11 advisories closed         |
+| Step 1 — External uptime monitor            | ⏳ Pending user action    | Better Stack / UptimeRobot                     |
+| Step 2 — Production deploy execution        | 🚫 Blocked                | 3 user decisions pending                       |
+
+**Saran langkah sesi berikutnya (priority order):**
+
+1. Phase 2 investigation (buyer `/events` 404 di workers.dev) — delegate ke `deep` agent
+2. Apply HIGH fixes ke `deploy-production.yml` (audit di `.tmp/deploy-production-audit.md` — file mungkin sudah di-cleanup, regenerate jika perlu)
+3. User: pasang external uptime monitor untuk staging
+4. (Eventually, butuh user decisions) Step 2: production deploy execution
+
+**Lessons:**
+
+1. **Module-load guards** require env vars in build environment, not just runtime. SvelteKit `analyse` postbuild evaluates server modules in Node before deploy.
+2. **Turbo strict env mode**: env vars MUST be declared in `turbo.json` task `env` list to pass through to subprocesses. Workflow top-level env alone is not enough.
+3. **Pre-push check verification is fragile** — checking variable presence in workflow source isn't enough; the variable must be in scope at every subprocess boundary (workflow → turbo → vite/svelte build).
+
+---
 
 ### ✅ Phase 1 Scaffolding + Track B Hardening + Track D Security (session 2026-05-26 malam, commits `dd6b288`..`502c4e2`)
 
