@@ -2,12 +2,82 @@
 title: Handoff Progress
 last_updated: 2026-05-26
 status: Active
-phase: Staging fully operational. Same-zone W2W 522 fixed. INTERNAL_API_URL env-var-configurable. Post-deploy SSR canary now provides REAL coverage (workers.dev URLs bypass CF block + POST exercises SSR W2W path). Production deploy prep still pending user decisions.
+phase: Production prep scaffolding DONE. Defense-in-depth hardening LANDED (staging fallback eliminated). Security baseline documented. Staging fully operational. 5 commits ahead origin/main, unpushed. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
 ---
 
 # Handoff Progress
 
 ## 🚀 Status Terkini
+
+### ✅ Phase 1 Scaffolding + Track B Hardening + Track D Security (session 2026-05-26 malam, commits `dd6b288`..`502c4e2`)
+
+Goal: pre-position production deploy artefak, eliminate staging-data-leak time-bomb, document security baseline.
+
+**5 commits landed (unpushed, main ahead 5):**
+
+```
+502c4e2 docs(security): document findings from opportunistic Track D scan
+62f756d fix(security): drop staging fallback in portal SSR + sst guard
+b1e3594 feat(scripts): add generate-production-secrets helper
+4c3ed1b docs(release): refresh production runbook + add predeploy checklist
+dd6b288 chore: gitignore .tmp/ and .depwire/ scratch dirs
+```
+
+**Track A — Phase 1 Scaffolding (committed):**
+
+| Deliverable                  | File                                     | Notes                                                                                                                                           |
+| ---------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Production runbook (updated) | `PRODUCTION_RELEASE_RUNBOOK.md`          | 5.1K → 14K. Synced to Hyperdrive + INTERNAL_API_URL + canary. New sections: first-deploy caveats, workers.dev URL capture, rollback NON-actions |
+| Predeploy checklist (new)    | `PRODUCTION_PREDEPLOY_CHECKLIST.md`      | 76 checkboxes, 10 sections. Gate on 3 user decisions. Exhaustive secrets/vars list cross-checked against workflow                               |
+| Secrets generator (new)      | `scripts/generate-production-secrets.sh` | Executable, `--dry-run` verified. Auto-gen JWT + webhook secret, manual stanzas for 7 others                                                    |
+| Audit: sst.config.ts         | `.tmp/sst-config-production-audit.md`    | Critical=2, Medium=3, Low=2, OK=8. File itself clean; risks from missing GH vars                                                                |
+| Audit: deploy-production.yml | `.tmp/deploy-production-audit.md`        | HIGH=2, MEDIUM=2, LOW=4. Smoke Test URL precedence + INTERNAL_API_URL empty fallback                                                            |
+
+**Track B — Defense-in-Depth Hardening (BEHAVIOURAL CHANGE, commit `62f756d`):**
+
+Sebelumnya: portal lib (buyer/seller/admin) punya hardcoded `INTERNAL_API_URL_FALLBACK_PROD` pointing ke staging workers.dev URL. Deploy production tanpa `PRODUCTION_INTERNAL_API_URL` GH var → SSR silently route ke staging API. No error, just wrong data.
+
+Sekarang:
+
+- `INTERNAL_API_URL_FALLBACK_PROD` constant **dihapus** dari 3 portal lib
+- Diganti `resolveInternalApiUrl()` yang **throw di module load** kalau env var kosong di non-dev
+- `sst.config.ts` `createPortalEnvironment()` **throw di SST plan time** kalau `INTERNAL_API_URL` empty untuk staging/production stage
+
+**Impact**: deploy tanpa env var sekarang hard-fail dengan error message yang tell operator exactly which GH var to set. Bukan silent regression lagi.
+
+**Verification**: typecheck 0 errors (8/8), lint 0 errors (8/8), prettier clean.
+
+**PENTING untuk sesi berikutnya**: sebelum push ke origin, verifikasi `STAGING_INTERNAL_API_URL` GH var sudah ter-set. Kalau belum → staging deploy akan fail karena guard baru. Cek: `gh variable list --env staging | grep INTERNAL_API_URL`.
+
+**Track D — Security Baseline (commit `502c4e2`):**
+
+| Source                  | Critical   | High | Moderate | Low |
+| ----------------------- | ---------- | ---- | -------- | --- |
+| `pnpm audit --prod`     | 0          | 3    | 15       | 1   |
+| `depwire_security_scan` | 8 (all FP) | 40   | 55       | 6   |
+
+Headline: **0 critical CVE di production deps.** 12 dari 19 advisory close dengan 1 bump: `hono@4.12.9 → ^4.12.18`.
+
+Rekomendasi P0: bump hono (low effort, closes 12 advisories). Detail di `SECURITY_FINDINGS.md`.
+
+**Stacked plan status update:**
+
+| Phase                                       | Status                    | Notes                            |
+| ------------------------------------------- | ------------------------- | -------------------------------- |
+| Phase 1 — Production Prep Scaffolding       | ✅ DONE                   | All 5 deliverables committed     |
+| Phase 2 — Buyer `/events` 404 investigation | ⏳ Pending                | Next priority for research       |
+| Phase 3 — E2E Migration                     | ⏳ Conditional on Phase 2 | Skip if complex                  |
+| Phase 4 — Security Health Check             | ✅ DONE                   | `SECURITY_FINDINGS.md` committed |
+| Step 1 — External uptime monitor            | ⏳ Pending user action    | Better Stack / UptimeRobot       |
+| Step 2 — Production deploy execution        | 🚫 Blocked                | 3 user decisions pending         |
+
+**Saran langkah sesi berikutnya (priority order):**
+
+1. Push ke origin (setelah verifikasi staging GH var) → trigger staging deploy → smoke test Track B hardening
+2. Apply P0 hono bump (`4.12.9 → ^4.12.18`, closes 12 advisories)
+3. Phase 2 investigation (buyer `/events` 404 di workers.dev)
+4. Apply HIGH fixes ke `deploy-production.yml` (Smoke Test URL precedence)
+5. User: pasang external uptime monitor untuk staging
 
 ### ✅ Canary Real Coverage — workers.dev URLs + Origin Header (session 2026-05-26 malam, commit `5bfcb40`)
 
@@ -19,24 +89,24 @@ Goal: tutup canary blind spot yang teridentifikasi setelah PR #7 — canary tech
 
 GH Actions runner egress IP: `20.62.254.165` (Microsoft Azure Virginia, AS8075). Cloudflare Free plan blocks Microsoft Azure ASN dengan managed challenge HTML page (`Attention Required! | Cloudflare`). Tested:
 
-| Test | Custom Domain | workers.dev |
-|---|---|---|
-| GET `/health` default UA | 403 (CF challenge) | **200** ✅ |
-| GET `/health` browser UA | 403 (CF challenge) | **200** ✅ |
-| GET `/health` custom UA | 403 (CF challenge) | **200** ✅ |
-| GET `/login` (3 portals) | 403 | **200** ✅ |
-| POST `/login` (no Origin) | 403 (CF or SvelteKit) | 403 (SvelteKit CSRF: `Cross-site POST forbidden`) |
+| Test                        | Custom Domain         | workers.dev                                        |
+| --------------------------- | --------------------- | -------------------------------------------------- |
+| GET `/health` default UA    | 403 (CF challenge)    | **200** ✅                                         |
+| GET `/health` browser UA    | 403 (CF challenge)    | **200** ✅                                         |
+| GET `/health` custom UA     | 403 (CF challenge)    | **200** ✅                                         |
+| GET `/login` (3 portals)    | 403                   | **200** ✅                                         |
+| POST `/login` (no Origin)   | 403 (CF or SvelteKit) | 403 (SvelteKit CSRF: `Cross-site POST forbidden`)  |
 | POST `/login` (with Origin) | 403 (CF still blocks) | **200** ✅ (form action returns 401 invalid creds) |
 
 Pure IP-based block. UA spoofing tidak help. Workers.dev URLs bypass karena tidak melewati CF zone (langsung ke Cloudflare Workers infrastructure).
 
 **Files changed (squash commit `5bfcb40`):**
 
-| File | Change |
-|---|---|
-| `.github/workflows/deploy.yml` | Canary URLs switched to workers.dev (configurable via `STAGING_*_WORKERS_DEV_URL` GH vars). POST `/login` adds `Origin` header. Drop `/events` (workers.dev returns 404 — route resolves only on custom domain). Use `GET /login` instead for portal liveness. |
-| `.github/workflows/deploy-production.yml` | Same pattern. Production canary gracefully **skips** if `PRODUCTION_*_WORKERS_DEV_URL` vars unset — falls back to existing API health Smoke Test step. Set vars after first production deploy when workers.dev URLs are visible in deploy output. |
-| `.github/workflows/canary-diag.yml` | Removed (was throwaway diagnostic). |
+| File                                      | Change                                                                                                                                                                                                                                                         |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/deploy.yml`            | Canary URLs switched to workers.dev (configurable via `STAGING_*_WORKERS_DEV_URL` GH vars). POST `/login` adds `Origin` header. Drop `/events` (workers.dev returns 404 — route resolves only on custom domain). Use `GET /login` instead for portal liveness. |
+| `.github/workflows/deploy-production.yml` | Same pattern. Production canary gracefully **skips** if `PRODUCTION_*_WORKERS_DEV_URL` vars unset — falls back to existing API health Smoke Test step. Set vars after first production deploy when workers.dev URLs are visible in deploy output.              |
+| `.github/workflows/canary-diag.yml`       | Removed (was throwaway diagnostic).                                                                                                                                                                                                                            |
 
 **Live canary first run (deploy run `26455311474`, commit `5bfcb40`):**
 
@@ -79,9 +149,34 @@ Production deploy needs different setup since production workers.dev URLs not ye
 
 ### 🎯 Next Step (untuk session berikutnya)
 
-**Resume context:** Step 1 + Step 3 dari handoff lama selesai (PR #7). Canary blind spot juga selesai (PR #8). Staging stack dengan real guardrail. User akan continue dengan **stacked plan di session opencode lain** — silakan eksekusi sesuai phase di bawah.
+**Resume context:** Phase 1 + 1.5 + 4 dari stacked plan SUDAH DONE di session 2026-05-26 malam (5 commits, unpushed, main ahead 5). Production prep scaffolding lengkap, defense-in-depth hardening landed, security baseline documented. Phase 2 + 3 belum dikerjakan. Production deploy execution masih blocked 3 user decisions.
 
-**Current commits di main:**
+**PRE-PUSH CHECK (penting)**: Track B menambah hard-fail di `sst.config.ts` kalau `INTERNAL_API_URL` empty untuk staging/production. Sebelum push:
+
+```bash
+gh variable list --env staging | grep INTERNAL_API_URL
+```
+
+Kalau `STAGING_INTERNAL_API_URL` belum ada → set dulu (seharusnya `https://jeevatix-staging-api.ariefna95.workers.dev`), atau staging deploy auto-trigger akan fail dengan error di plan time.
+
+**Saran sequenced** (priority order):
+
+1. Verifikasi staging GH var → push ke origin → smoke test Track B di staging
+2. Apply P0 hono bump (`pnpm update hono` di api + core, typecheck + test + build, commit)
+3. Phase 2 investigation (buyer `/events` 404 di workers.dev) — delegate ke `deep` agent
+4. Apply HIGH fixes ke `deploy-production.yml` (audit di `.tmp/deploy-production-audit.md`)
+5. User: pasang external uptime monitor (Step 1)
+6. (Eventually, butuh user decisions) Step 2: production deploy execution
+
+**Current commits di main (unpushed, ahead 5):**
+
+- `502c4e2` — docs(security): document findings from opportunistic Track D scan
+- `62f756d` — fix(security): drop staging fallback in portal SSR + sst guard
+- `b1e3594` — feat(scripts): add generate-production-secrets helper
+- `4c3ed1b` — docs(release): refresh production runbook + add predeploy checklist
+- `dd6b288` — chore: gitignore .tmp/ and .depwire/ scratch dirs
+
+**Older session commits:**
 
 - `0dbe256` — handoff doc update for canary real coverage
 - `5bfcb40` — fix(ci): canary uses workers.dev URLs (#8)
@@ -89,44 +184,28 @@ Production deploy needs different setup since production workers.dev URLs not ye
 - `40c7866` — handoff doc update for env var refactor
 - `67abf7b` — feat: configurable INTERNAL_API_URL + canary (#7)
 
-**Verified working setelah deploy `5bfcb40`:**
+**Verified working setelah deploy `5bfcb40` (last staging deploy):**
 
 - Deploy workflow green
 - Canary 5/5 PASS dengan REAL coverage (workers.dev URLs + Origin header for POST)
 - POST `/login` workers.dev seller actually exercises SSR W2W path
 
+**NOT verified yet (will be verified on next push to main):**
+
+- Track B hardening behavior in real CI deploy
+- `STAGING_INTERNAL_API_URL` GH var presence (assumed, NOT confirmed)
+
 #### 🚀 Stacked Plan untuk Session Berikutnya (~2-3 jam total, sequenced)
 
 User punya banyak waktu, decide untuk eksekusi 4 phase berurutan. Phase 1 + 2 + (conditional) 3 + (optional) 4.
 
-##### Phase 1 (~45 menit, P0) — Production Prep Scaffolding
+##### Phase 1 (~45 menit, P0) — Production Prep Scaffolding — ✅ DONE (commit `dd6b288`..`b1e3594`)
 
-Goal: pre-position semua artefak agar production deploy execution turun dari 2-3 jam → 30-60 menit saat keputusan user (domain, DB host, launch strategy) tiba.
+Semua 5 deliverable committed. Detail di "Status Terkini" section atas.
 
-Yang bisa dikerjakan tanpa keputusan user:
+##### Phase 1.5 (tambahan, P0) — Defense-in-Depth Hardening — ✅ DONE (commit `62f756d`)
 
-1. **Audit `PRODUCTION_RELEASE_RUNBOOK.md`** (5.1KB existing file, lihat `/home/debian/project/jeevatix/PRODUCTION_RELEASE_RUNBOOK.md`):
-   - Cek apakah masih akurat dengan stack sekarang (Hyperdrive sudah live, INTERNAL_API_URL env var sudah ada, canary sudah real coverage)
-   - Update step-step yang sudah berubah
-   - Tambah section "Post-deploy: capture workers.dev URLs and set GH vars untuk canary"
-2. **Buat `PRODUCTION_PREDEPLOY_CHECKLIST.md` baru**:
-   - Checklist semua env vars to set di GH secrets/vars
-   - Secrets to generate (PRODUCTION_DATABASE_URL, PRODUCTION_JWT_SECRET, PRODUCTION_PAYMENT_WEBHOOK_SECRET)
-   - DNS records yang perlu di-setup
-   - Cloudflare zone configuration
-   - Production DB role/database creation steps di VPS
-3. **Audit `.github/workflows/deploy-production.yml`**:
-   - Pastikan semua env yang dibutuhkan SST sudah wired (Hyperdrive, INTERNAL_API_URL, Worker bindings)
-   - Bandingkan dengan `deploy.yml` (staging) untuk parity check
-4. **Draft `scripts/generate-production-secrets.sh`**:
-   - Script yang output format ready-to-paste ke GH secrets via `gh secret set`
-   - Generate JWT secret + payment webhook secret pakai `openssl rand -hex 32`
-   - Comment menjelaskan langkah manual untuk DATABASE_URL (butuh password VPS)
-5. **Verify production stage di `sst.config.ts`**:
-   - Cek tidak ada hardcoded staging value
-   - Confirm conditional logic untuk staging vs production sudah bersih
-
-Stop condition: pre-deploy checklist file lengkap, runbook update, deploy workflow audited, secrets script ready.
+Eliminasi staging-data-leak time-bomb. Detail di "Status Terkini" section atas. **BEHAVIOURAL CHANGE**: deploy tanpa `INTERNAL_API_URL` sekarang hard-fail (sebelumnya silent fallback ke staging API).
 
 ##### Phase 2 (~30 menit, P3 investigation) — Buyer `/events` 404 di workers.dev
 
@@ -174,18 +253,9 @@ Risk: workers.dev URLs bypass custom-domain layer. Custom-domain DNS/SSL/Worker 
 
 Stop condition: 3 affected tests strict assertion + green di CI, atau document finding dan skip migration.
 
-##### Phase 4 (~15 menit, optional, P3) — Quick Security Health Check
+##### Phase 4 (~15 menit, optional, P3) — Quick Security Health Check — ✅ DONE (commit `502c4e2`)
 
-Goal: opportunistic security audit, document findings.
-
-Action:
-
-1. Run `depwire_security_scan` (graph-aware) untuk catch low-hanging vulnerabilities
-2. `pnpm audit` untuk dependency CVE check
-3. Document critical/high findings di `SECURITY_FINDINGS.md` atau handoff
-4. **Tidak auto-fix** — biarkan user decide prioritas
-
-Stop condition: scan complete, findings documented, severity-ranked.
+Hasil di `SECURITY_FINDINGS.md`. Headline: 0 critical CVE in prod deps. P0 rekomendasi: bump `hono@4.12.9 → ^4.12.18` (closes 12 advisories).
 
 #### Step 1 (P0, ~15 menit, di luar repo, butuh user) — Pasang external uptime monitor
 
@@ -212,11 +282,11 @@ Setelah Phase 1 scaffolding selesai dan keputusan user keluar, eksekusi producti
 
 3 keputusan masih open:
 
-| Item | Recommendation |
-| --- | --- |
-| Domain | Subdomain `jeevatix.my.id` dulu untuk soft launch |
-| Production DB host | VPS yang sama (`168.144.140.206`) dulu |
-| Launch strategy | Invite-only / soft launch dulu |
+| Item               | Recommendation                                    |
+| ------------------ | ------------------------------------------------- |
+| Domain             | Subdomain `jeevatix.my.id` dulu untuk soft launch |
+| Production DB host | VPS yang sama (`168.144.140.206`) dulu            |
+| Launch strategy    | Invite-only / soft launch dulu                    |
 
 Setelah keputusan tiba:
 
@@ -265,16 +335,16 @@ Goal: tutup gap monitoring (Step 1 handoff) + refactor hardcoded workers.dev URL
 
 **Files changed (squash commit `67abf7b`, 8 files):**
 
-| File | Change |
-| --- | --- |
-| `apps/buyer/src/lib/auth.ts` | Replace hardcoded `INTERNAL_API_URL` constant with `process.env.INTERNAL_API_URL` lookup + fallback to staging workers.dev URL |
-| `apps/seller/src/lib/auth.ts` | Same pattern |
-| `apps/admin/src/lib/http.ts` | Same pattern |
-| `sst.config.ts` | Add `createPortalEnvironment()` helper; inject `INTERNAL_API_URL` env into buyer/admin/seller Worker bindings |
-| `.github/workflows/deploy.yml` | Wire `INTERNAL_API_URL` env var (default: staging workers.dev URL); add `Post-deploy SSR canary` step (4 routes) |
-| `.github/workflows/deploy-production.yml` | Same wiring + canary; production URLs configurable via GH vars |
-| `tests/e2e/buyer/order-detail.spec.ts` | Extend graceful skip pattern from `403` to `403\|404` for pre-existing CI environmental regression |
-| `tests/e2e/buyer/ticket-detail.spec.ts` | Same |
+| File                                      | Change                                                                                                                         |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/buyer/src/lib/auth.ts`              | Replace hardcoded `INTERNAL_API_URL` constant with `process.env.INTERNAL_API_URL` lookup + fallback to staging workers.dev URL |
+| `apps/seller/src/lib/auth.ts`             | Same pattern                                                                                                                   |
+| `apps/admin/src/lib/http.ts`              | Same pattern                                                                                                                   |
+| `sst.config.ts`                           | Add `createPortalEnvironment()` helper; inject `INTERNAL_API_URL` env into buyer/admin/seller Worker bindings                  |
+| `.github/workflows/deploy.yml`            | Wire `INTERNAL_API_URL` env var (default: staging workers.dev URL); add `Post-deploy SSR canary` step (4 routes)               |
+| `.github/workflows/deploy-production.yml` | Same wiring + canary; production URLs configurable via GH vars                                                                 |
+| `tests/e2e/buyer/order-detail.spec.ts`    | Extend graceful skip pattern from `403` to `403\|404` for pre-existing CI environmental regression                             |
+| `tests/e2e/buyer/ticket-detail.spec.ts`   | Same                                                                                                                           |
 
 **Implementation note — `process.env` vs `$env/dynamic/private`:**
 
@@ -295,11 +365,13 @@ POST https://admin.jeevatix.my.id/login        -> 403  ✅
 Cloudflare returns **403 to GitHub Actions runner egress IPs** before the request reaches Worker code. Canary technically passes (no 5xx), but it does NOT actually exercise the SSR fetch path that needs validation. This explains the long-running E2E mystery (handoff lines 610-635): GH Actions IPs are filtered/challenged at Cloudflare edge, while Singapore VPS direct connections pass through cleanly.
 
 What canary CAN catch:
+
 - Cloudflare edge returning 522 (Worker not running, hard fail)
 - DNS routing broken
 - Workers.dev fallback URL serving 5xx
 
 What canary CANNOT catch:
+
 - Same-zone W2W 522 happening _inside_ SSR subrequest (because outer request never reaches Worker)
 - Worker code regressions
 - Database/Hyperdrive issues that only manifest under real traffic
@@ -321,6 +393,7 @@ Buyer order/ticket detail tests were failing in CI with `404 Request failed` (vs
 **Resume context:** Step 1 + Step 3 dari handoff lama selesai. Production deploy prep adalah prioritas terbesar berikutnya, masih blocked oleh 3 keputusan user. External uptime monitor jadi lebih penting karena canary CI ada blind spot terhadap CF WAF/edge filtering of GH Actions IPs.
 
 **Current commits di main:**
+
 - `67abf7b` — feat: configurable INTERNAL_API_URL + post-deploy SSR canary (squash of #7)
 - `262c749` — handoff resume guide
 - `192dbc2` — handoff W2W fix doc
@@ -328,6 +401,7 @@ Buyer order/ticket detail tests were failing in CI with `404 Request failed` (vs
 - `e38003f` — buyer W2W fix
 
 **Verified working setelah deploy `67abf7b`:**
+
 - Deploy workflow green end-to-end (lint/typecheck/test/build/deploy/smoke/canary)
 - Canary pass (technical) — but 403 from CF edge, not actual SSR fetch validation
 - API health endpoint up via direct curl: works (per previous handoff baseline)
@@ -338,6 +412,7 @@ Buyer order/ticket detail tests were failing in CI with `404 Request failed` (vs
 **Lebih penting dari sebelumnya** karena CI canary punya blind spot terhadap CF edge filtering GH Actions IPs.
 
 Action: setup Better Stack atau UptimeRobot (free tier):
+
 - `https://api.jeevatix.my.id/health` — interval 1 menit
 - `https://jeevatix.my.id/events` — interval 5 menit
 - `https://seller.jeevatix.my.id/login` — interval 5 menit
@@ -353,11 +428,11 @@ Stop condition: dashboard monitor hijau semua endpoint.
 
 3 keputusan masih open (sama dengan session sebelumnya):
 
-| Item | Recommendation |
-|---|---|
-| Domain | Subdomain `jeevatix.my.id` dulu untuk soft launch |
-| Production DB host | VPS yang sama (`168.144.140.206`) dulu |
-| Launch strategy | Invite-only / soft launch dulu |
+| Item               | Recommendation                                    |
+| ------------------ | ------------------------------------------------- |
+| Domain             | Subdomain `jeevatix.my.id` dulu untuk soft launch |
+| Production DB host | VPS yang sama (`168.144.140.206`) dulu            |
+| Launch strategy    | Invite-only / soft launch dulu                    |
 
 Setelah keputusan keluar:
 
@@ -384,11 +459,13 @@ Stop condition: production live, smoke green, monitor stable.
 Kedua issue likely root cause sama: Cloudflare edge filtering GH Actions runner IPs (different rate-limit / WAF / bot-detection profile).
 
 Hipotesis untuk validate:
+
 - Run canary via `wget` instead of `curl` (different User-Agent profile)
 - Add explicit `User-Agent` header yang menyerupai browser
 - Check Cloudflare Bot Management settings — apakah ada rule yang block GH Actions IPs
 
 Kalau hipotesis confirmed, opsi:
+
 - Skip canary CI step (gunakan external uptime monitor saja)
 - Atau tambah custom `User-Agent` ke canary curl untuk bypass filter
 - Document issue di security policy karena ini CF behavior yang intentional
@@ -501,13 +578,13 @@ Commit `048990b` — admin + seller:
 
 **Verification (post-deploy 2026-05-26):**
 
-| Test | Before | After |
-| --- | --- | --- |
-| `GET https://jeevatix.my.id/events` | 522 (100%) | 200 (5/5 sustained) |
-| `POST https://seller.jeevatix.my.id/login` form action | 522 | 303 → `/` |
-| `POST https://admin.jeevatix.my.id/login` form action | 522 (assumed) | 303 → `/` |
-| `GET https://seller.jeevatix.my.id/` (dashboard, authed) | 522 (assumed) | 200 |
-| `GET https://admin.jeevatix.my.id/` (dashboard, authed) | 522 (assumed) | 200 |
+| Test                                                     | Before        | After               |
+| -------------------------------------------------------- | ------------- | ------------------- |
+| `GET https://jeevatix.my.id/events`                      | 522 (100%)    | 200 (5/5 sustained) |
+| `POST https://seller.jeevatix.my.id/login` form action   | 522           | 303 → `/`           |
+| `POST https://admin.jeevatix.my.id/login` form action    | 522 (assumed) | 303 → `/`           |
+| `GET https://seller.jeevatix.my.id/` (dashboard, authed) | 522 (assumed) | 200                 |
+| `GET https://admin.jeevatix.my.id/` (dashboard, authed)  | 522 (assumed) | 200                 |
 
 Buyer fix deployed pertama (commit `e38003f`), confirmed `/events` works. Admin + seller fix kedua (commit `048990b`), confirmed login + dashboard SSR works.
 
@@ -527,11 +604,13 @@ Buyer fix deployed pertama (commit `e38003f`), confirmed `/events` works. Admin 
 **Resume context:** Last session (2026-05-26 sore) menyelesaikan same-zone W2W 522 fix di semua 3 portal. Staging fully operational. User akan continue dari session opencode lain.
 
 **Current commits di main:**
+
 - `e38003f` — buyer fix (workers.dev SSR URL)
 - `048990b` — admin + seller fix (workers.dev SSR URL)
 - `9bb05df` (atau later) — handoff doc update
 
 **Verified working sebelum hand-off:**
+
 - `GET https://jeevatix.my.id/events` → 200 (sustained 5/5)
 - `POST https://seller.jeevatix.my.id/login` → 303 → `/`
 - `POST https://admin.jeevatix.my.id/login` → 303 → `/`
@@ -544,6 +623,7 @@ Buyer fix deployed pertama (commit `e38003f`), confirmed `/events` works. Admin 
 Goal: catch regresi 522/5xx instan setelah deploy. Bug 522 hari ini latent berbulan-bulan, harus ada gate.
 
 Action:
+
 1. Edit `.github/workflows/deploy.yml`. Setelah step `pnpm run deploy --stage staging`, tambah step baru `Post-deploy SSR canary`:
 
    ```yaml
@@ -576,6 +656,7 @@ Stop condition: deploy workflow berakhir dengan canary step pass.
 Goal: deteksi regresi setelah deploy lewat (kalau monitor di CI saja, kita tidak tahu kalau staging mati di tengah hari).
 
 Action (manual, butuh akun):
+
 1. Daftar Better Stack atau UptimeRobot (free tier).
 2. Buat 4 monitor:
    - `https://api.jeevatix.my.id/health` — interval 1 menit
@@ -592,6 +673,7 @@ Stop condition: dashboard monitor menunjukkan semua endpoint hijau.
 Goal: hilangkan hardcode workers.dev URL agar production deploy nanti tidak butuh source change.
 
 Pendekatan:
+
 1. Tambah build-time env var, contohnya `PUBLIC_INTERNAL_API_URL` — di-bake oleh SvelteKit saat build, sama mekanisme dengan `PUBLIC_API_BASE_URL`.
 2. Update tiga file:
    - `apps/buyer/src/lib/auth.ts`
@@ -599,6 +681,7 @@ Pendekatan:
    - `apps/admin/src/lib/http.ts`
 
    Pattern:
+
    ```ts
    import { PUBLIC_INTERNAL_API_URL, PUBLIC_API_BASE_URL } from '$env/static/public';
 
@@ -623,13 +706,14 @@ Stop condition: 3 portal berfungsi normal, server bundle berisi URL dari env var
 
 3 keputusan user yang masih open:
 
-| Item | Recommendation |
-|---|---|
-| Domain | Subdomain `jeevatix.my.id` dulu untuk soft launch |
+| Item               | Recommendation                                      |
+| ------------------ | --------------------------------------------------- |
+| Domain             | Subdomain `jeevatix.my.id` dulu untuk soft launch   |
 | Production DB host | VPS yang sama (`168.144.140.206`) dulu, split nanti |
-| Launch strategy | Invite-only / soft launch dulu |
+| Launch strategy    | Invite-only / soft launch dulu                      |
 
 Setelah keputusan:
+
 1. VPS: `CREATE DATABASE jeevatix_production` + role + GRANT. Push schema via `drizzle-kit push --force`. **Jangan seed.**
 2. Generate secret production baru:
    - `PRODUCTION_DATABASE_URL`
@@ -657,6 +741,7 @@ Stop condition: production live, smoke test green, monitor stable.
 Goal: hilangkan network hop dan dependency ke workers.dev URL. Long-term proper fix.
 
 Action:
+
 1. Tambah `link: [api]` ke buyer + admin worker di `sst.config.ts` (seller sudah punya).
 2. Refactor SSR fetch layer pakai `env.API.fetch()` alih-alih `fetch(url)`.
 3. SvelteKit adapter compatibility check — perlu cara akses Worker bindings dari SSR `+page.server.ts`.
@@ -667,6 +752,7 @@ Stop condition: 3 portal SSR fetch ke API tanpa network hop, workers.dev URL fal
 ##### Step 6 (P2/P3, optional) — Investigate root cause Cloudflare same-zone 522
 
 Bukan blocker. Tapi worth dipahami:
+
 - Apakah ada Cloudflare setting yang bisa enable same-zone Worker-to-Worker subrequest?
 - Apakah ini bug yang Cloudflare akan resolve sendiri?
 - Apakah konfigurasi Worker route kita ada masalah (misal route pattern overlap)?
@@ -679,7 +765,6 @@ Kalau ketemu root cause Cloudflare-side, bisa kembali pakai custom domain untuk 
 2. **JANGAN ganti `INTERNAL_API_URL` ke `https://api.jeevatix.my.id`** untuk SSR — itu yang trigger 522. Workers.dev URL sengaja dipertahankan.
 3. **Apex `jeevatix.my.id` bukan satu-satunya yang vulnerable.** Subdomain→subdomain (seller→api, admin→api) juga 522 di same-zone Cloudflare. Pattern fix harus konsisten di 3 portal.
 4. **Comment di source code lama bisa misleading.** Komentar `apps/seller/src/lib/auth.ts` lama mengatakan "use custom domain because workers.dev returns 404" — itu sudah diperbarui untuk reflect situasi sekarang. Jangan revert.
-
 
 ---
 
