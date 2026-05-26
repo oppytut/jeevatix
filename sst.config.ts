@@ -378,8 +378,19 @@ function applyPortalWorkerTransform(args: WorkerTransformArgs, scriptName: strin
 }
 
 function createPortalEnvironment() {
+  const internalApiUrl = maybeEnv('INTERNAL_API_URL');
+
+  if (!internalApiUrl && (isStagingStage() || isProductionStage())) {
+    throw new Error(
+      `INTERNAL_API_URL is required for stage "${getStage()}". ` +
+        'Set the corresponding GitHub variable (PRODUCTION_INTERNAL_API_URL ' +
+        'or STAGING_INTERNAL_API_URL) before deploying. ' +
+        'Empty value would cause portal SSR to fail at runtime.',
+    );
+  }
+
   const environment: Record<string, string> = {
-    INTERNAL_API_URL: maybeEnv('INTERNAL_API_URL') ?? '',
+    INTERNAL_API_URL: internalApiUrl ?? '',
   };
 
   return environment;
