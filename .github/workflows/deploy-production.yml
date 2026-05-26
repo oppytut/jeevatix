@@ -99,6 +99,7 @@ jobs:
           CORS_ALLOWED_ORIGINS: ${{ vars.PRODUCTION_CORS_ALLOWED_ORIGINS }}
           HYPERDRIVE_CA_CERT_ID: ${{ secrets.PRODUCTION_HYPERDRIVE_CA_CERT_ID }}
           HYPERDRIVE_SSLMODE: ${{ vars.PRODUCTION_HYPERDRIVE_SSLMODE }}
+          INTERNAL_API_URL: ${{ vars.PRODUCTION_INTERNAL_API_URL || '' }}
       - name: Smoke Test
         run: |
           API_URL="${{ vars.PRODUCTION_API_URL || 'https://api.jeevatix.com' }}"
@@ -118,3 +119,62 @@ jobs:
           EOF
           echo "✅ Production API health check passed"
           echo "Version deployed: ${{ github.sha }}"
+      - name: Post-deploy SSR canary
+        run: |
+          set -e
+          echo "Waiting 30s for Cloudflare propagation..."
+          sleep 30
+
+          API_URL="${{ vars.PRODUCTION_API_URL || 'https://api.jeevatix.com' }}"
+          BUYER_URL="${{ vars.PRODUCTION_BUYER_URL || 'https://jeevatix.com' }}"
+          SELLER_URL="${{ vars.PRODUCTION_SELLER_URL || 'https://seller.jeevatix.com' }}"
+          ADMIN_URL="${{ vars.PRODUCTION_ADMIN_URL || 'https://admin.jeevatix.com' }}"
+
+          declare -a CHECKS=(
+            "GET|$API_URL/health|200"
+            "GET|$BUYER_URL/events|200"
+            "POST|$SELLER_URL/login|200,400,401,403"
+            "POST|$ADMIN_URL/login|200,400,401,403"
+          )
+
+          fail=0
+          for spec in "${CHECKS[@]}"; do
+            method="${spec%%|*}"; rest="${spec#*|}"
+            url="${rest%%|*}"; expected="${rest#*|}"
+
+            if [ "$method" = "POST" ]; then
+              status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 \
+                -X POST "$url" \
+                -H "Content-Type: application/x-www-form-urlencoded" \
+                --data "email=canary@invalid.test&password=invalid" \
+                || echo "000")
+            else
+              status=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 "$url" || echo "000")
+            fi
+
+            echo "$method $url -> $status (expected: $expected)"
+
+            if [ "$status" = "000" ] || [ "$status" -ge 500 ]; then
+              echo "  ❌ FAIL: 5xx or timeout indicates SSR/W2W routing broken"
+              fail=1
+              continue
+            fi
+
+            ok=0
+            IFS=',' read -ra exp_arr <<< "$expected"
+            for code in "${exp_arr[@]}"; do
+              if [ "$status" = "$code" ]; then ok=1; break; fi
+            done
+
+            if [ $ok -eq 0 ]; then
+              echo "  ⚠️  Unexpected status (not 5xx, but not in expected set)"
+            else
+              echo "  ✅ OK"
+            fi
+          done
+
+          if [ $fail -ne 0 ]; then
+            echo "Canary failed. Recent same-zone W2W 522 fix may have regressed."
+            exit 1
+          fi
+          echo "✅ Canary passed: all SSR routes responding without 5xx"

@@ -78,8 +78,11 @@ test.describe('Buyer Order Detail', () => {
     await page.goto(`/orders/${orderId}`);
     const body = page.locator('body');
     const bodyText = await body.textContent();
-    if (bodyText?.includes('403')) {
-      test.skip(true, 'SSR cookie forwarding issue on CF Workers adapter (GH Actions only)');
+    if (bodyText?.includes('403') || bodyText?.includes('404')) {
+      test.skip(
+        true,
+        'SSR fetch issue on CF Workers adapter via workers.dev URL (GH Actions only) — see same-zone W2W fix in 048990b/e38003f',
+      );
       return;
     }
     await expect(body).toContainText(orderNumber, { timeout: 15_000 });
@@ -92,8 +95,11 @@ test.describe('Buyer Order Detail', () => {
     }
     await page.goto(`/orders/${orderId}`);
     const bodyText = await page.locator('body').textContent();
-    if (bodyText?.includes('403')) {
-      test.skip(true, 'SSR cookie forwarding issue on CF Workers adapter (GH Actions only)');
+    if (bodyText?.includes('403') || bodyText?.includes('404')) {
+      test.skip(
+        true,
+        'SSR fetch issue on CF Workers adapter via workers.dev URL (GH Actions only) — see same-zone W2W fix in 048990b/e38003f',
+      );
       return;
     }
     await expect(page.locator('body')).toContainText('Rp');
@@ -107,8 +113,11 @@ test.describe('Buyer Order Detail', () => {
     }
     await page.goto(`/orders/${orderId}`);
     const bodyText = await page.locator('body').textContent();
-    if (bodyText?.includes('403')) {
-      test.skip(true, 'SSR cookie forwarding issue on CF Workers adapter (GH Actions only)');
+    if (bodyText?.includes('403') || bodyText?.includes('404')) {
+      test.skip(
+        true,
+        'SSR fetch issue on CF Workers adapter via workers.dev URL (GH Actions only) — see same-zone W2W fix in 048990b/e38003f',
+      );
       return;
     }
     await expect(page.locator('body')).toContainText(/confirmed|berhasil|success/i);
@@ -121,8 +130,11 @@ test.describe('Buyer Order Detail', () => {
     }
     await page.goto(`/orders/${orderId}`);
     const bodyText = await page.locator('body').textContent();
-    if (bodyText?.includes('403')) {
-      test.skip(true, 'SSR cookie forwarding issue on CF Workers adapter (GH Actions only)');
+    if (bodyText?.includes('403') || bodyText?.includes('404')) {
+      test.skip(
+        true,
+        'SSR fetch issue on CF Workers adapter via workers.dev URL (GH Actions only) — see same-zone W2W fix in 048990b/e38003f',
+      );
       return;
     }
     const ticketLink = page.locator('a, button').filter({

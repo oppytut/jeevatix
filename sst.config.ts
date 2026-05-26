@@ -377,6 +377,14 @@ function applyPortalWorkerTransform(args: WorkerTransformArgs, scriptName: strin
   args.compatibilityFlags = portalCompatibilityFlags;
 }
 
+function createPortalEnvironment() {
+  const environment: Record<string, string> = {
+    INTERNAL_API_URL: maybeEnv('INTERNAL_API_URL') ?? '',
+  };
+
+  return environment;
+}
+
 export default $config({
   app(input) {
     const stage = configuredStage ?? input?.stage ?? 'development';
@@ -503,6 +511,7 @@ export default $config({
       assets: {
         directory: 'apps/buyer/.svelte-kit/cloudflare',
       },
+      environment: createPortalEnvironment(),
       url: !usesCustomDomains(),
       domain: deployedDomains?.buyer,
       transform: {
@@ -517,6 +526,7 @@ export default $config({
       assets: {
         directory: 'apps/admin/.svelte-kit/cloudflare',
       },
+      environment: createPortalEnvironment(),
       url: !usesCustomDomains(),
       domain: deployedDomains?.admin,
       transform: {
@@ -541,6 +551,7 @@ export default $config({
           },
         ],
       },
+      environment: createPortalEnvironment(),
       url: !usesCustomDomains(),
       domain: deployedDomains?.seller,
       link: [api],
