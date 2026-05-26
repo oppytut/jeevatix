@@ -46,6 +46,12 @@ jobs:
       DATABASE_URL: postgresql://jeevatix:jeevatix@localhost:5432/jeevatix_test
       JWT_SECRET: vitest-ci-secret
       PAYMENT_WEBHOOK_SECRET: vitest-ci-webhook-secret
+      # SvelteKit `analyse` postbuild loads SSR chunks in Node, where the
+      # Track B guard in apps/{buyer,seller,admin}/src/lib/{auth,http}.ts
+      # evaluates at module load. Without INTERNAL_API_URL the guard throws
+      # and the build fails before deploy. Empty fallback retained: production
+      # deploy without PRODUCTION_INTERNAL_API_URL set is intended hard-fail.
+      INTERNAL_API_URL: ${{ vars.PRODUCTION_INTERNAL_API_URL || '' }}
 
     steps:
       - uses: actions/checkout@v4
