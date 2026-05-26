@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "build/**", ".svelte-kit/**"]
+      "outputs": ["dist/**", "build/**", ".svelte-kit/**"],
+      "env": ["INTERNAL_API_URL", "PUBLIC_API_BASE_URL", "PUBLIC_PARTYKIT_HOST"]
     },
     "dev": {
       "cache": false,
@@ -25,7 +26,8 @@
       "env": ["DATABASE_URL", "JWT_SECRET", "PAYMENT_WEBHOOK_SECRET"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^typecheck"],
+      "env": ["INTERNAL_API_URL", "PUBLIC_API_BASE_URL", "PUBLIC_PARTYKIT_HOST"]
     }
   }
 }
