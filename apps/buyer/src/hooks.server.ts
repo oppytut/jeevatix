@@ -11,7 +11,9 @@ import { setApiBinding } from '$lib/api-binding';
 export const handle: Handle = async ({ event, resolve }) => {
   const env = event.platform?.env;
   if (env) {
-    const keys = Object.keys(env).filter((k) => typeof (env as Record<string, unknown>)[k] === 'object');
+    const keys = Object.keys(env).filter(
+      (k) => typeof (env as Record<string, unknown>)[k] === 'object',
+    );
     console.log('[Service Binding Debug] env object keys:', keys);
   }
   setApiBinding(env?.Api);
