@@ -8,12 +8,21 @@
 </script>
 
 <svelte:head>
-  <title>Jeevatix Buyer</title>
+  <title>Jeevatix — Platform Tiket Event Indonesia</title>
   <meta
     name="description"
-    content="Portal pembeli Jeevatix untuk menemukan dan membeli tiket event."
+    content="Temukan dan beli tiket event musik, festival, workshop, dan lainnya di seluruh Indonesia."
   />
   <link rel="icon" href={favicon} />
+  <meta property="og:site_name" content="Jeevatix" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Jeevatix — Platform Tiket Event Indonesia" />
+  <meta
+    property="og:description"
+    content="Temukan dan beli tiket event musik, festival, workshop, dan lainnya di seluruh Indonesia."
+  />
+  <meta property="og:image" content="https://jeevatix.my.id/og-default.png" />
+  <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
 <div class="bg-background text-foreground min-h-screen">

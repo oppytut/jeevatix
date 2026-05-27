@@ -11,10 +11,16 @@
 </script>
 
 <svelte:head>
-  <title>Explore Events | Jeevatix</title>
+  <title>Semua Event — Jeevatix</title>
   <meta
     name="description"
-    content="Cari event publik Jeevatix berdasarkan kategori, kota, tanggal, dan rentang harga."
+    content="Jelajahi semua event yang tersedia di Jeevatix. Musik, festival, workshop, seminar, dan lainnya."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Semua Event — Jeevatix" />
+  <meta
+    property="og:description"
+    content="Jelajahi semua event yang tersedia di Jeevatix. Musik, festival, workshop, seminar, dan lainnya."
   />
 </svelte:head>
 

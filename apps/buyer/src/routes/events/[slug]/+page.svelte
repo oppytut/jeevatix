@@ -33,7 +33,19 @@
   <title>{data.event.title} | Jeevatix</title>
   <meta
     name="description"
-    content={data.event.description ?? `Detail event ${data.event.title} di Jeevatix.`}
+    content={data.event.description?.slice(0, 160) ??
+      `Detail event ${data.event.title} di Jeevatix.`}
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={`${data.event.title} | Jeevatix`} />
+  <meta
+    property="og:description"
+    content={data.event.description?.slice(0, 160) ??
+      `Detail event ${data.event.title} di Jeevatix.`}
+  />
+  <meta
+    property="og:image"
+    content={data.event.banner_url ?? 'https://jeevatix.my.id/og-default.png'}
   />
 </svelte:head>
 
