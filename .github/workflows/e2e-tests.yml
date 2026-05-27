@@ -75,3 +75,13 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+      - name: Reset staging DB to clean demo state
+        if: always()
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          pnpm --filter @jeevatix/core exec tsx src/db/reset-staging.ts
+          pnpm --filter @jeevatix/core run db:push
+          pnpm --filter @jeevatix/core exec tsx src/db/seed-staging.ts
