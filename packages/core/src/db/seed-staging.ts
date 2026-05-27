@@ -37,7 +37,35 @@ const categorySeeds = [
   { name: 'Teater', slug: 'teater', icon: 'drama' },
 ] as const;
 
-const eventSeeds = [
+type EventSeed = {
+  title: string;
+  slug: string;
+  description: string;
+  venueName: string;
+  venueAddress: string;
+  venueCity: string;
+  venueLatitude: string;
+  venueLongitude: string;
+  startAt: Date;
+  endAt: Date;
+  saleStartAt: Date;
+  saleEndAt: Date;
+  bannerUrl: string;
+  status: 'published';
+  maxTicketsPerOrder: number;
+  isFeatured: boolean;
+  categorySlugs: readonly string[];
+  images: readonly { imageUrl: string; sortOrder: number }[];
+  tiers: readonly {
+    name: string;
+    description: string;
+    price: string;
+    quota: number;
+    sortOrder: number;
+  }[];
+};
+
+const eventSeeds: EventSeed[] = [
   {
     title: 'Jakarta Night Festival 2026',
     slug: 'jakarta-night-festival-2026',
@@ -418,6 +446,204 @@ const eventSeeds = [
   },
 ] as const;
 
+const secondSellerEventSeeds: EventSeed[] = [
+  {
+    title: 'Wayang Digital Experience',
+    slug: 'wayang-digital-experience',
+    description:
+      'Pertunjukan wayang kulit yang dipadukan dengan teknologi projection mapping dan musik elektronik. Kolaborasi seniman tradisional dan digital artist menciptakan pengalaman imersif yang memukau.',
+    venueName: 'Taman Budaya Yogyakarta',
+    venueAddress: 'Jl. Sriwedani No.1, Ngupasan, Gondomanan, Yogyakarta',
+    venueCity: 'Yogyakarta',
+    venueLatitude: '-7.7956000',
+    venueLongitude: '110.3695000',
+    startAt: new Date('2026-07-25T19:30:00+07:00'),
+    endAt: new Date('2026-07-25T22:00:00+07:00'),
+    saleStartAt: new Date('2026-06-01T10:00:00+07:00'),
+    saleEndAt: new Date('2026-07-25T18:00:00+07:00'),
+    bannerUrl:
+      'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=1200&q=80',
+    status: 'published' as const,
+    maxTicketsPerOrder: 4,
+    isFeatured: true,
+    categorySlugs: ['teater', 'pameran'] as const,
+    images: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=1200&q=80',
+        sortOrder: 0,
+      },
+    ],
+    tiers: [
+      {
+        name: 'Reguler',
+        description: 'Akses pertunjukan utama.',
+        price: '150000.00',
+        quota: 200,
+        sortOrder: 0,
+      },
+      {
+        name: 'Premium',
+        description: 'Tempat duduk depan dengan meet & greet dalang.',
+        price: '350000.00',
+        quota: 50,
+        sortOrder: 1,
+      },
+    ],
+  },
+  {
+    title: 'Bali Wellness Retreat 2026',
+    slug: 'bali-wellness-retreat-2026',
+    description:
+      'Retreat kesehatan holistik selama sehari penuh di Ubud. Program mencakup yoga sunrise, meditasi sound healing, workshop jamu tradisional, dan sesi konsultasi nutrisi bersama praktisi berpengalaman.',
+    venueName: 'Yoga Barn Ubud',
+    venueAddress: 'Jl. Hanoman, Pengosekan, Ubud, Gianyar, Bali',
+    venueCity: 'Bali',
+    venueLatitude: '-8.5250000',
+    venueLongitude: '115.2625000',
+    startAt: new Date('2026-08-10T06:00:00+08:00'),
+    endAt: new Date('2026-08-10T17:00:00+08:00'),
+    saleStartAt: new Date('2026-06-15T10:00:00+08:00'),
+    saleEndAt: new Date('2026-08-09T23:59:00+08:00'),
+    bannerUrl:
+      'https://images.unsplash.com/photo-1545389336-cf090694435e?auto=format&fit=crop&w=1200&q=80',
+    status: 'published' as const,
+    maxTicketsPerOrder: 2,
+    isFeatured: false,
+    categorySlugs: ['workshop', 'seminar'] as const,
+    images: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80',
+        sortOrder: 0,
+      },
+    ],
+    tiers: [
+      {
+        name: 'Full Day Pass',
+        description: 'Akses semua sesi dari pagi hingga sore.',
+        price: '850000.00',
+        quota: 40,
+        sortOrder: 0,
+      },
+      {
+        name: 'Half Day (Pagi)',
+        description: 'Yoga sunrise + meditasi + brunch sehat.',
+        price: '450000.00',
+        quota: 60,
+        sortOrder: 1,
+      },
+    ],
+  },
+  {
+    title: 'Nusantara Food Festival',
+    slug: 'nusantara-food-festival',
+    description:
+      'Festival kuliner nusantara terbesar di Jawa Timur. Lebih dari 100 booth kuliner dari 34 provinsi, demo masak chef ternama, kompetisi memasak, dan pertunjukan musik tradisional.',
+    venueName: 'Grand City Convex',
+    venueAddress: 'Jl. Walikota Mustajab, Ketabang, Genteng, Surabaya',
+    venueCity: 'Surabaya',
+    venueLatitude: '-7.2650000',
+    venueLongitude: '112.7500000',
+    startAt: new Date('2026-09-05T10:00:00+07:00'),
+    endAt: new Date('2026-09-07T21:00:00+07:00'),
+    saleStartAt: new Date('2026-07-01T10:00:00+07:00'),
+    saleEndAt: new Date('2026-09-05T09:00:00+07:00'),
+    bannerUrl:
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80',
+    status: 'published' as const,
+    maxTicketsPerOrder: 6,
+    isFeatured: true,
+    categorySlugs: ['festival'] as const,
+    images: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80',
+        sortOrder: 0,
+      },
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1200&q=80',
+        sortOrder: 1,
+      },
+    ],
+    tiers: [
+      {
+        name: 'Daily Pass',
+        description: 'Akses 1 hari festival + voucher makan Rp50.000.',
+        price: '75000.00',
+        quota: 1000,
+        sortOrder: 0,
+      },
+      {
+        name: '3-Day Pass',
+        description: 'Akses 3 hari penuh + voucher makan Rp150.000.',
+        price: '180000.00',
+        quota: 300,
+        sortOrder: 1,
+      },
+      {
+        name: 'VIP Foodie',
+        description: 'Akses 3 hari + private chef table + cooking class.',
+        price: '500000.00',
+        quota: 50,
+        sortOrder: 2,
+      },
+    ],
+  },
+  {
+    title: 'Gamelan Electronica Night',
+    slug: 'gamelan-electronica-night',
+    description:
+      'Eksperimen musik yang memadukan gamelan Jawa dengan beat elektronik kontemporer. Kolaborasi antara maestro gamelan dan DJ internasional dalam satu panggung spektakuler.',
+    venueName: 'Lawang Sewu',
+    venueAddress: 'Jl. Pemuda, Sekayu, Semarang Tengah, Semarang',
+    venueCity: 'Semarang',
+    venueLatitude: '-6.9839000',
+    venueLongitude: '110.4103000',
+    startAt: new Date('2026-10-18T20:00:00+07:00'),
+    endAt: new Date('2026-10-19T01:00:00+07:00'),
+    saleStartAt: new Date('2026-08-01T10:00:00+07:00'),
+    saleEndAt: new Date('2026-10-18T19:00:00+07:00'),
+    bannerUrl:
+      'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=1200&q=80',
+    status: 'published' as const,
+    maxTicketsPerOrder: 4,
+    isFeatured: true,
+    categorySlugs: ['musik', 'konser'] as const,
+    images: [
+      {
+        imageUrl:
+          'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80',
+        sortOrder: 0,
+      },
+    ],
+    tiers: [
+      {
+        name: 'Standing',
+        description: 'Area berdiri dengan akses dance floor.',
+        price: '200000.00',
+        quota: 400,
+        sortOrder: 0,
+      },
+      {
+        name: 'Seated',
+        description: 'Kursi tribun dengan view panggung optimal.',
+        price: '350000.00',
+        quota: 150,
+        sortOrder: 1,
+      },
+      {
+        name: 'Backstage Experience',
+        description: 'Akses backstage + soundcheck + foto bersama artis.',
+        price: '750000.00',
+        quota: 30,
+        sortOrder: 2,
+      },
+    ],
+  },
+] as const;
+
 async function ensureAdminUser() {
   const existingAdmin = await db.query.users.findFirst({
     where: eq(users.email, 'admin@jeevatix.id'),
@@ -444,6 +670,33 @@ async function ensureAdminUser() {
 
   console.log('✓ Created admin user: admin@jeevatix.id');
   return adminUser;
+}
+
+async function ensureBuyerUser() {
+  const existingBuyer = await db.query.users.findFirst({
+    where: eq(users.email, 'buyer@jeevatix.id'),
+  });
+
+  if (existingBuyer) {
+    console.log('✓ Buyer user already exists');
+    return existingBuyer;
+  }
+
+  const passwordHash = await bcrypt.hash('Buyer123!', 10);
+  const [buyerUser] = await db
+    .insert(users)
+    .values({
+      email: 'buyer@jeevatix.id',
+      passwordHash,
+      fullName: 'Rina Wijaya',
+      role: 'buyer',
+      status: 'active',
+      emailVerifiedAt: new Date(),
+    })
+    .returning();
+
+  console.log('✓ Created buyer user: buyer@jeevatix.id');
+  return buyerUser;
 }
 
 async function ensureCategories() {
@@ -521,6 +774,60 @@ async function ensureSeller(adminUserId: string) {
   return sellerProfile;
 }
 
+async function ensureSecondSeller(adminUserId: string) {
+  const existingSeller = await db.query.users.findFirst({
+    where: eq(users.email, 'seller2@jeevatix.id'),
+  });
+
+  let sellerUser = existingSeller;
+  if (!sellerUser) {
+    const passwordHash = await bcrypt.hash('Seller123!', 10);
+    [sellerUser] = await db
+      .insert(users)
+      .values({
+        email: 'seller2@jeevatix.id',
+        passwordHash,
+        fullName: 'Dimas Prasetyo',
+        phone: '081377889900',
+        role: 'seller',
+        status: 'active',
+        emailVerifiedAt: new Date(),
+      })
+      .returning();
+    console.log('✓ Created seller user: seller2@jeevatix.id');
+  }
+
+  const existingProfile = await db.query.sellerProfiles.findFirst({
+    where: eq(sellerProfiles.userId, sellerUser.id),
+  });
+
+  if (existingProfile) {
+    console.log('✓ Second seller profile already exists');
+    return existingProfile;
+  }
+
+  const [sellerProfile] = await db
+    .insert(sellerProfiles)
+    .values({
+      userId: sellerUser.id,
+      orgName: 'Nusantara Events',
+      orgDescription:
+        'Penyelenggara event budaya dan tradisional Nusantara. Menghadirkan pengalaman seni, kuliner, dan wellness yang menghubungkan warisan leluhur dengan inovasi modern.',
+      logoUrl:
+        'https://images.unsplash.com/photo-1545987796-200677ee1011?auto=format&fit=crop&w=400&q=80',
+      bankName: 'Bank Mandiri',
+      bankAccountNumber: '1300012345678',
+      bankAccountHolder: 'PT Nusantara Events Indonesia',
+      isVerified: true,
+      verifiedAt: new Date(),
+      verifiedBy: adminUserId,
+    })
+    .returning();
+
+  console.log('✓ Created seller profile: Nusantara Events');
+  return sellerProfile;
+}
+
 async function ensureEventCategory(eventId: string, categoryId: number) {
   const existingRelation = await db.query.eventCategories.findFirst({
     where: and(eq(eventCategories.eventId, eventId), eq(eventCategories.categoryId, categoryId)),
@@ -568,8 +875,12 @@ async function ensureTicketTier(
   }
 }
 
-async function ensureEvents(sellerProfileId: string, categoryMap: Map<string, number>) {
-  for (const eventSeed of eventSeeds) {
+async function ensureEvents(
+  sellerProfileId: string,
+  categoryMap: Map<string, number>,
+  seedData: EventSeed[],
+) {
+  for (const eventSeed of seedData) {
     let eventRecord = await db.query.events.findFirst({
       where: eq(events.slug, eventSeed.slug),
     });
@@ -625,18 +936,26 @@ async function main() {
   console.log('🌱 Starting staging seed...\n');
 
   const adminUser = await ensureAdminUser();
+  const buyerUser = await ensureBuyerUser();
   const categoryMap = await ensureCategories();
   const sellerProfile = await ensureSeller(adminUser.id);
+  const secondSellerProfile = await ensureSecondSeller(adminUser.id);
 
-  console.log('\n📅 Seeding events...');
-  await ensureEvents(sellerProfile.id, categoryMap);
+  console.log('\n📅 Seeding events (Seller 1)...');
+  await ensureEvents(sellerProfile.id, categoryMap, eventSeeds);
+
+  console.log('\n📅 Seeding events (Seller 2)...');
+  await ensureEvents(secondSellerProfile.id, categoryMap, secondSellerEventSeeds);
 
   console.log('\n✅ Staging seed completed successfully!');
   console.log('\n📊 Summary:');
   console.log(`   - Categories: ${categoryMap.size}`);
-  console.log(`   - Events: ${eventSeeds.length}`);
+  console.log(`   - Events (Seller 1): ${eventSeeds.length}`);
+  console.log(`   - Events (Seller 2): ${secondSellerEventSeeds.length}`);
   console.log(`   - Admin: admin@jeevatix.id (password: Admin123!)`);
-  console.log(`   - Seller: seller@jeevatix.id (password: Seller123!)`);
+  console.log(`   - Seller 1: seller@jeevatix.id (password: Seller123!)`);
+  console.log(`   - Seller 2: seller2@jeevatix.id (password: Seller123!)`);
+  console.log(`   - Buyer: ${buyerUser.email} (password: Buyer123!)`);
 }
 
 try {

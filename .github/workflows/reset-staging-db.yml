@@ -1,0 +1,42 @@
+name: Reset Staging DB
+
+on:
+  workflow_dispatch:
+
+jobs:
+  reset-and-seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Reset database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          pnpm --filter @jeevatix/core exec tsx src/db/reset-staging.ts
+
+      - name: Push schema
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          pnpm --filter @jeevatix/core run db:push
+
+      - name: Seed demo data
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          pnpm --filter @jeevatix/core exec tsx src/db/seed-staging.ts
