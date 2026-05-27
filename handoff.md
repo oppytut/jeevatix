@@ -2,7 +2,7 @@
 title: Handoff Progress
 last_updated: 2026-05-27
 status: Active
-phase: Service Binding migration COMPLETE — both W2W bugs eliminated. Track B hardening LIVE. Hono P0 bump landed. All portals verified on workers.dev + custom domain. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
+phase: Service Binding migration COMPLETE — both W2W bugs eliminated. Track B hardening LIVE. Hono P0 bump landed. External uptime monitor LIVE (Better Stack, 4 endpoints). All portals verified on workers.dev + custom domain. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
 ---
 
 # Handoff Progress
