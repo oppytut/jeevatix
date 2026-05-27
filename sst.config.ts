@@ -525,6 +525,7 @@ export default $config({
       environment: createPortalEnvironment(),
       url: !usesCustomDomains(),
       domain: deployedDomains?.buyer,
+      link: [api],
       transform: {
         worker(args) {
           applyPortalWorkerTransform(args, buyerScriptName);
@@ -540,6 +541,7 @@ export default $config({
       environment: createPortalEnvironment(),
       url: !usesCustomDomains(),
       domain: deployedDomains?.admin,
+      link: [api],
       transform: {
         worker(args) {
           applyPortalWorkerTransform(args, adminScriptName);

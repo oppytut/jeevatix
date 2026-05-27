@@ -1,6 +1,11 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
+  interface Env {
+    API: { fetch: typeof globalThis.fetch };
+    INTERNAL_API_URL?: string;
+  }
+
   namespace App {
     interface Platform {
       env: Env;

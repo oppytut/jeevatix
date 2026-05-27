@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 
+import { getApiBinding } from '$lib/api-binding';
 import { clearClientSessionState, ensureFreshAccessToken, refreshBrowserSession } from '$lib/auth';
 import { API_BASE_URL, ApiError, INTERNAL_API_URL } from '$lib/http';
 
@@ -75,13 +76,24 @@ async function request<T>(method: string, path: string, options: RequestOptions 
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
-
-  const response = await fetch(`${baseUrl}${path}`, {
+  const requestInit: RequestInit = {
     method,
     headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
-  });
+  };
+
+  let response: Response;
+
+  if (browser) {
+    response = await fetch(`${API_BASE_URL}${path}`, requestInit);
+  } else {
+    const binding = getApiBinding();
+    if (binding) {
+      response = await binding.fetch(new Request(`https://api${path}`, requestInit));
+    } else {
+      response = await fetch(`${INTERNAL_API_URL}${path}`, requestInit);
+    }
+  }
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && browser) {
     const refreshedAccessToken = await refreshBrowserSession();
@@ -130,13 +142,24 @@ async function requestEnvelope<T, TMeta = undefined>(
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
-
-  const response = await fetch(`${baseUrl}${path}`, {
+  const requestInit: RequestInit = {
     method,
     headers: requestHeaders,
     body: body ? JSON.stringify(body) : undefined,
-  });
+  };
+
+  let response: Response;
+
+  if (browser) {
+    response = await fetch(`${API_BASE_URL}${path}`, requestInit);
+  } else {
+    const binding = getApiBinding();
+    if (binding) {
+      response = await binding.fetch(new Request(`https://api${path}`, requestInit));
+    } else {
+      response = await fetch(`${INTERNAL_API_URL}${path}`, requestInit);
+    }
+  }
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && browser) {
     const refreshedAccessToken = await refreshBrowserSession();

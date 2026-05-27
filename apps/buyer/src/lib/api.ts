@@ -2,6 +2,7 @@ import type { Cookies } from '@sveltejs/kit';
 
 import { browser } from '$app/environment';
 
+import { getApiBinding } from '$lib/api-binding';
 import {
   API_BASE_URL,
   ApiError,
@@ -420,13 +421,24 @@ async function requestResponse<T, TMeta = unknown>(
     requestHeaders.set('Content-Type', 'application/json');
   }
 
-  const baseUrl = browser ? API_BASE_URL : INTERNAL_API_URL;
-
-  const response = await fetchFn(`${baseUrl}${path}`, {
+  const requestInit: RequestInit = {
     method,
     headers: requestHeaders,
     body: body === undefined ? undefined : isFormDataBody(body) ? body : JSON.stringify(body),
-  });
+  };
+
+  let response: Response;
+
+  if (browser) {
+    response = await fetchFn(`${API_BASE_URL}${path}`, requestInit);
+  } else {
+    const binding = getApiBinding();
+    if (binding) {
+      response = await binding.fetch(new Request(`https://api${path}`, requestInit));
+    } else {
+      response = await fetchFn(`${INTERNAL_API_URL}${path}`, requestInit);
+    }
+  }
 
   if (response.status === 401 && requiresAuth && retryOnUnauthorized && cookies) {
     const refreshedAccessToken = await refreshSession(fetchFn, cookies);
