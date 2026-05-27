@@ -1,0 +1,16 @@
+{
+  "name": "Jeevatix",
+  "short_name": "Jeevatix",
+  "description": "Platform Tiket Event Indonesia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffaf3",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

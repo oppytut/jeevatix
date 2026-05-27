@@ -14,6 +14,8 @@
     content="Temukan dan beli tiket event musik, festival, workshop, dan lainnya di seluruh Indonesia."
   />
   <link rel="icon" href={favicon} />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#f97316" />
   <meta property="og:site_name" content="Jeevatix" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Jeevatix — Platform Tiket Event Indonesia" />
