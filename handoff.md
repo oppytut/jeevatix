@@ -1,8 +1,8 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-26
+last_updated: 2026-05-27
 status: Active
-phase: Track B hardening LIVE in CI (verified canary 5/5 PASS post-deploy 26480441876). Hono P0 bump landed. Production prep scaffolding DONE. Security baseline documented. Staging fully operational. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
+phase: Track B hardening LIVE in CI (canary 5/5 PASS). Hono P0 bump landed. Phase 2 root cause IDENTIFIED (workers.dev→workers.dev W2W silent fail, production unaffected). Production prep scaffolding DONE. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
 ---
 
 # Handoff Progress
@@ -83,6 +83,55 @@ Verified: typecheck 8/8, lint 8/8, build 4/4 green locally. Live deploy run `264
 1. **Module-load guards** require env vars in build environment, not just runtime. SvelteKit `analyse` postbuild evaluates server modules in Node before deploy.
 2. **Turbo strict env mode**: env vars MUST be declared in `turbo.json` task `env` list to pass through to subprocesses. Workflow top-level env alone is not enough.
 3. **Pre-push check verification is fragile** — checking variable presence in workflow source isn't enough; the variable must be in scope at every subprocess boundary (workflow → turbo → vite/svelte build).
+
+---
+
+### 🔍 Phase 2 Finding — Buyer `/events` 404 Root Cause Identified (session 2026-05-27 00:50 UTC)
+
+Goal: investigate the long-standing `/events` 404 mystery on workers.dev URL.
+
+**Outcome:** Root cause **CONFIRMED**. Same-zone W2W routing also fails for workers.dev → workers.dev subrequests (silent failure). Different manifestation than custom-domain → custom-domain 522, but same class of issue. Fix is non-trivial. Documented as known limitation.
+
+**Diagnostic evidence:**
+
+```
+GET https://jeevatix-staging-buyer.ariefna95.workers.dev/events  → 404 (SvelteKit page error)
+GET https://jeevatix-staging-buyer.ariefna95.workers.dev/        → 200 (silent fallback)
+GET https://jeevatix-staging-buyer.ariefna95.workers.dev/login   → 200 (no SSR API fetch)
+
+Homepage SSR data on workers.dev:    upcomingEvents:[]              (empty, fallback from catch)
+Homepage SSR data on custom domain:  upcomingEvents:[{id:"..."}]    (real data)
+```
+
+**The 404 is NOT a SvelteKit route miss.** Response includes `x-sveltekit-page: true` header. Page resolves correctly, then the `+page.server.ts` `load` function throws `error(404, 'Request failed')` at line 224-226 because the upstream API fetch fails. Homepage has the SAME failure mode, but its catch block returns empty arrays instead of re-throwing — so user sees empty UI instead of 404.
+
+**Why upstream fails:** Buyer Worker SSR makes subrequest to `INTERNAL_API_URL` = `https://jeevatix-staging-api.ariefna95.workers.dev`. Both workers.dev URLs resolve through Cloudflare Workers infrastructure, but the W2W subrequest somehow fails silently when both source and target are workers.dev hosts in this configuration.
+
+Pattern across host combinations:
+
+| Source            | Target            | Result                           |
+| ----------------- | ----------------- | -------------------------------- |
+| custom domain     | custom domain     | 522 (same-zone W2W bug)          |
+| custom domain     | workers.dev       | ✅ works (current Track B fix)   |
+| workers.dev       | workers.dev       | ❌ silent fetch failure (NEW)    |
+
+**Scope clarification:**
+
+- **Production user traffic is NOT affected.** Real users hit `jeevatix.my.id` (custom domain). Track B fix routes their SSR subrequests via workers.dev API URL. That path is custom domain → workers.dev which works.
+- **CI canary is partially blind.** Canary uses workers.dev URLs for both source and target. It tests `GET /login` and `POST /login` which don't make SSR API subrequests. Canary doesn't catch this issue. It would only manifest if canary tested `/events` or any route with SSR API fetch.
+- **E2E baseline justified.** The 404 graceful skip in `tests/e2e/buyer/order-detail.spec.ts` and similar is correct mitigation since the underlying issue is infrastructure, not application bug. Migrating E2E to workers.dev URLs would surface the same 404 pattern.
+
+**Fix options (none trivial):**
+
+1. **Service Binding** (proper fix) — eliminate network hop entirely. Cloudflare Service Binding in SST config makes the API Worker callable as `env.API.fetch()` from buyer Worker. Bypasses all DNS/edge routing. Long-term plan.
+2. **Host-aware INTERNAL_API_URL** — detect incoming request host in SSR; if workers.dev, use custom domain API URL instead. Reintroduces same-zone risk for that edge case.
+3. **Document as known limitation** — current choice. Production unaffected, canary remains useful for what it does test.
+
+**Phase 3 implication:** E2E migration to workers.dev (originally proposed in handoff line 245-265) should NOT be done. The graceful skip pattern is correct. Consider this conditional path **closed**.
+
+**Action taken:** Investigation only. No code change. Documented finding here.
+
+**Next step recommendation:** Step 5 in older handoff (Service Binding upgrade) is now P1 instead of P2 — it's the only proper fix for both 522 (custom→custom) and silent-fail (workers.dev→workers.dev). Defer until production stable, but plan for it.
 
 ---
 
