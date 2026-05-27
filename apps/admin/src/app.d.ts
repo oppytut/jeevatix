@@ -2,7 +2,7 @@
 // for information about these interfaces
 declare global {
   interface Env {
-    API: { fetch: typeof globalThis.fetch };
+    Api: { fetch: typeof globalThis.fetch };
     INTERNAL_API_URL?: string;
   }
 

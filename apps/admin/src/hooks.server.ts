@@ -9,7 +9,7 @@ import {
 import { setApiBinding } from '$lib/api-binding';
 
 export const handle: Handle = async ({ event, resolve }) => {
-  setApiBinding(event.platform?.env?.API);
+  setApiBinding(event.platform?.env?.Api);
 
   event.locals.adminAccessToken = event.cookies.get(ADMIN_ACCESS_TOKEN_COOKIE) ?? null;
   event.locals.adminRefreshToken = event.cookies.get(ADMIN_REFRESH_TOKEN_COOKIE) ?? null;
