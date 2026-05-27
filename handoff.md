@@ -2,7 +2,7 @@
 title: Handoff Progress
 last_updated: 2026-05-27
 status: Active
-phase: Track B hardening LIVE in CI (canary 5/5 PASS). Hono P0 bump landed. Phase 2 root cause IDENTIFIED (workers.dev→workers.dev W2W silent fail, production unaffected). Production prep scaffolding DONE. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
+phase: Service Binding migration COMPLETE — both W2W bugs eliminated. Track B hardening LIVE. Hono P0 bump landed. All portals verified on workers.dev + custom domain. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
 ---
 
 # Handoff Progress
@@ -131,7 +131,65 @@ Pattern across host combinations:
 
 **Action taken:** Investigation only. No code change. Documented finding here.
 
-**Next step recommendation:** Step 5 in older handoff (Service Binding upgrade) is now P1 instead of P2 — it's the only proper fix for both 522 (custom→custom) and silent-fail (workers.dev→workers.dev). Defer until production stable, but plan for it.
+**Next step recommendation:** ~~Step 5 in older handoff (Service Binding upgrade) is now P1 instead of P2~~ **DONE** — see section below.
+
+---
+
+### ✅ Service Binding Migration — W2W Bugs Eliminated (session 2026-05-27 01:00-01:45 UTC)
+
+Goal: eliminate both Cloudflare W2W routing bugs by migrating SSR API fetch from HTTP network hop to in-process Service Binding dispatch.
+
+**Commits landed (pushed to origin/main):**
+
+```
+feat: migrate SSR API fetch to Cloudflare Service Binding
+fix: use correct Service Binding name (Api) + add debug log
+style: format buyer hooks.server.ts
+fix: remove debug log from buyer hooks, fix CI typecheck
+```
+
+**Architecture:**
+
+```
+hooks.server.ts  →  setApiBinding(event.platform?.env?.Api)
+api-binding.ts   →  module-scoped get/set (not .server.ts to avoid SvelteKit import guard)
+api.ts           →  server branch: getApiBinding()?.fetch() || fallback to HTTP
+sst.config.ts    →  link: [api] on all 3 portals (creates CF Service Binding)
+app.d.ts         →  Env.Api typed as { fetch: typeof globalThis.fetch }
+```
+
+**Key design decisions:**
+
+1. Module-scoped binding store (`api-binding.ts`) instead of `.server.ts` — SvelteKit's import guard statically rejects `.server.ts` imports from client-reachable modules, even through dynamic `import()`.
+2. SST `link: [api]` auto-creates Service Binding with name matching resource constructor arg (`Api`, not `API`).
+3. Fallback to `INTERNAL_API_URL` HTTP fetch when binding unavailable (local dev without wrangler).
+4. Zero call-site changes — binding injected per-request in hooks, consumed transparently in api.ts.
+
+**Verified live (deploy run `26485541685`):**
+
+```
+GET https://jeevatix-staging-buyer.ariefna95.workers.dev/events   → 200 ✅ (was 404)
+GET https://jeevatix-staging-buyer.ariefna95.workers.dev/         → 200 ✅ (upcomingEvents: real data, was [])
+GET https://jeevatix-staging-seller.ariefna95.workers.dev/login   → 200 ✅
+GET https://jeevatix-staging-admin.ariefna95.workers.dev/login    → 200 ✅
+GET https://jeevatix.my.id/events                                 → 200 ✅ (custom domain still works)
+```
+
+**W2W bug status — ALL RESOLVED:**
+
+| Source            | Target            | Before              | After                    |
+| ----------------- | ----------------- | ------------------- | ------------------------ |
+| custom domain     | custom domain     | 522 (same-zone)     | N/A (Service Binding)    |
+| workers.dev       | workers.dev       | silent fetch fail    | ✅ Service Binding       |
+| custom domain     | workers.dev       | ✅ worked (Track B) | ✅ Service Binding       |
+
+**Impact:**
+
+- `/events` 404 on workers.dev: **FIXED**
+- Homepage empty data on workers.dev: **FIXED**
+- E2E tests on workers.dev: now viable (Phase 3 re-opened if desired)
+- `INTERNAL_API_URL` env var: still needed for build-time (Track B guard) but no longer used at runtime when binding available
+- Performance: zero network hop for SSR API calls (in-process dispatch)
 
 ---
 
