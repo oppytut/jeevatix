@@ -25,13 +25,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
+
+      - uses: pnpm/action-setup@v4
+
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
         
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
