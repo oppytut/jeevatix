@@ -4,6 +4,7 @@ export { default as Card } from './lib/components/ui/Card.svelte';
 export { default as DataTable } from './lib/components/ui/DataTable.svelte';
 export { default as Input } from './lib/components/ui/Input.svelte';
 export { default as Modal } from './lib/components/ui/Modal.svelte';
+export { default as Skeleton } from './lib/components/ui/Skeleton.svelte';
 export { default as Toast } from './lib/components/ui/Toast.svelte';
 export { cn } from './lib/utils';
 export {
