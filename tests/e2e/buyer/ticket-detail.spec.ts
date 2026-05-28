@@ -70,14 +70,6 @@ test.describe('Buyer Ticket Detail', () => {
       return;
     }
     await page.goto('/tickets');
-    const bodyText = await page.locator('body').textContent();
-    if (bodyText?.includes('403') || bodyText?.includes('404')) {
-      test.skip(
-        true,
-        'SSR fetch issue on CF Workers adapter via workers.dev URL (GH Actions only) — see same-zone W2W fix in 048990b/e38003f',
-      );
-      return;
-    }
     await expect(page.locator('body')).toContainText(/tiket|ticket/i, { timeout: 10_000 });
   });
 
@@ -87,14 +79,6 @@ test.describe('Buyer Ticket Detail', () => {
       return;
     }
     await page.goto(`/tickets/${ticketId}`);
-    const bodyText = await page.locator('body').textContent();
-    if (bodyText?.includes('403') || bodyText?.includes('404')) {
-      test.skip(
-        true,
-        'SSR fetch issue on CF Workers adapter via workers.dev URL (GH Actions only) — see same-zone W2W fix in 048990b/e38003f',
-      );
-      return;
-    }
     await expect(page.locator('body')).toContainText(ticketCode, { timeout: 10_000 });
   });
 
@@ -104,14 +88,6 @@ test.describe('Buyer Ticket Detail', () => {
       return;
     }
     await page.goto(`/tickets/${ticketId}`);
-    const bodyText = await page.locator('body').textContent();
-    if (bodyText?.includes('403') || bodyText?.includes('404')) {
-      test.skip(
-        true,
-        'SSR fetch issue on CF Workers adapter via workers.dev URL (GH Actions only) — see same-zone W2W fix in 048990b/e38003f',
-      );
-      return;
-    }
     const qrImage = page.locator('img[alt*="QR"], img[alt*="qr"]');
     await expect(qrImage).toBeVisible({ timeout: 10_000 });
 
