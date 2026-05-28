@@ -2,16 +2,16 @@
 title: Handoff Progress
 last_updated: 2026-05-28
 status: Active
-phase: UI/UX overhaul + brand polish + E2E hardening complete. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
+phase: UI/UX overhaul + brand polish + perf optimization complete. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**UI/UX OVERHAUL + BRAND POLISH + E2E HARDENING COMPLETE. STAGING CLEAN.**
+**UI/UX + BRAND + PERF COMPLETE. 28 DELIVERABLES. STAGING CLEAN.**
 
 Only user decisions block production launch.
 
-### What's Done (Session 2026-05-28 ~22:00 UTC — Brand, Polish & E2E)
+### What's Done (Session 2026-05-28 ~22:00-23:00 UTC — Brand, Polish, E2E & Perf)
 
 | # | Deliverable | Status |
 |---|---|---|
@@ -24,6 +24,8 @@ Only user decisions block production launch.
 | 26 | **Wire Select** ke 3 seller filter dropdowns (tiers + orders) | ✅ |
 | 27 | **OG meta + manifest** — seller/admin portals (og:image, theme-color, twitter:card, manifest.webmanifest) | ✅ |
 | 28 | **E2E W2W skip removal** — 7 graceful skip blocks removed (Service Binding now active) | ✅ |
+| 29 | **Performance: lazy loading** — `loading="lazy" decoding="async"` on 15 images across all portals | ✅ |
+| 30 | **Performance: QR code splitting** — dynamic `import('qrcode')` on ticket detail (reduces buyer bundle) | ✅ |
 
 **E2E Result: 58 passed, 0 failed, 31 skipped** (was 38 skipped)
 
@@ -55,13 +57,13 @@ Only user decisions block production launch.
 
 | # | Task | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
-| 1 | **Performance audit** — bundle size, lazy loading, code splitting | 1-2h | Speed | Analyze imports, identify heavy chunks |
-| 2 | **Accessibility audit** — ARIA labels, focus management, contrast | 1-2h | A11y | Buyer public pages priority |
-| 3 | **Error boundary polish** — custom error pages styling refresh | 30 min | UX | Match new design token system |
-| 4 | **OG image upgrade** — add text rendering ("Jeevatix" + tagline) | 30 min | Social sharing | Needs image library (sharp/resvg) |
-| 5 | **Seller event wizard UX** — improve multi-step form flow | 2-3h | Seller experience | Wizard steps, validation feedback |
-| 6 | **Buyer search/filter UX** — improve event discovery filters | 1-2h | Buyer experience | Better filter UI, URL state sync |
-| 7 | **Admin bulk actions** — select multiple items for batch operations | 2h | Admin efficiency | DataTable checkbox + bulk action bar |
+| 1 | **Accessibility audit** — ARIA labels, focus management, contrast | 1-2h | A11y | Buyer public pages priority |
+| 2 | **Error boundary polish** — custom error pages styling refresh | 30 min | UX | Match new design token system |
+| 3 | **Seller event wizard UX** — improve multi-step form flow | 2-3h | Seller experience | Wizard steps, validation feedback |
+| 4 | **Buyer search/filter UX** — improve event discovery filters | 1-2h | Buyer experience | Better filter UI, URL state sync |
+| 5 | **Admin bulk actions** — select multiple items for batch operations | 2h | Admin efficiency | DataTable checkbox + bulk action bar |
+| 6 | **Skeleton loading states** — add route-level skeleton for slow SSR pages | 1h | Perceived speed | Especially event detail, order list |
+| 7 | **Form validation UX** — inline error messages, field-level feedback | 1-2h | UX | Buyer checkout, seller event create |
 
 ### Production Launch — 3 Decisions Needed (BLOCKING)
 
