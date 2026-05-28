@@ -11,7 +11,7 @@
 </script>
 
 <div class={cn('space-y-4', className)}>
-  {#each Array(rows) as _}
+  {#each Array(rows) as _, i (i)}
     <div class="space-y-2">
       <Skeleton class="h-4 w-3/4" />
       <Skeleton class="h-4 w-1/2" />
