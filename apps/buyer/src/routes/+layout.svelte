@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
   import { navigating } from '$app/stores';
   import './layout.css';
@@ -6,8 +7,28 @@
   import favicon from '$lib/assets/favicon.svg';
   import { Menu, X } from '@lucide/svelte';
 
+  import { apiGet } from '$lib/api';
+
   let { data, children }: import('./$types').LayoutProps = $props();
   let mobileMenuOpen = $state(false);
+  let unreadCount = $state(0);
+
+  async function fetchUnreadCount() {
+    if (!browser || !data.currentUser) return;
+    try {
+      const result = await apiGet<{ notifications: unknown[]; unread_count: number }>(
+        '/notifications?limit=1',
+        { requiresAuth: true },
+      );
+      unreadCount = result.unread_count;
+    } catch {
+      // Silently fail — badge is non-critical
+    }
+  }
+
+  $effect(() => {
+    fetchUnreadCount();
+  });
 </script>
 
 <svelte:head>
@@ -59,8 +80,11 @@
           <a class="hover:text-foreground transition" href={resolve('/')}>Beranda</a>
           <a class="hover:text-foreground transition" href={resolve('/events')}>Explore</a>
           {#if data.currentUser}
-            <a class="hover:text-foreground transition" href={resolve('/notifications')}
-              >Notifikasi</a
+            <a class="hover:text-foreground relative transition" href={resolve('/notifications')}
+              >Notifikasi{#if unreadCount > 0}<span
+                  class="absolute -top-1.5 -right-2.5 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white"
+                  >{unreadCount > 9 ? '9+' : unreadCount}</span
+                >{/if}</a
             >
             <a class="hover:text-foreground transition" href={resolve('/profile')}>Profil</a>
           {:else}
@@ -123,9 +147,13 @@
           >
           {#if data.currentUser}
             <a
-              class="text-foreground hover:bg-muted rounded-xl px-4 py-2.5 text-sm font-medium transition"
+              class="text-foreground hover:bg-muted relative rounded-xl px-4 py-2.5 text-sm font-medium transition"
               href={resolve('/notifications')}
-              onclick={() => (mobileMenuOpen = false)}>Notifikasi</a
+              onclick={() => (mobileMenuOpen = false)}
+              >Notifikasi{#if unreadCount > 0}<span
+                  class="ml-2 inline-flex size-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white"
+                  >{unreadCount > 9 ? '9+' : unreadCount}</span
+                >{/if}</a
             >
             <a
               class="text-foreground hover:bg-muted rounded-xl px-4 py-2.5 text-sm font-medium transition"
