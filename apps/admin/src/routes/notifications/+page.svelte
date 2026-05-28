@@ -250,14 +250,14 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-5 rounded-[2rem] border border-slate-200/80 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="flex flex-col gap-5 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A14</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A14</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
         Notifications
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
         Audit semua notifikasi platform dan kirim broadcast operasional ke buyer atau seller aktif.
       </p>
     </div>
@@ -292,12 +292,12 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      class="rounded-[1.75rem] border border-border bg-card/90"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500">Total notifikasi</p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{meta.total}</p>
+          <p class="text-sm text-muted-foreground">Total notifikasi</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{meta.total}</p>
         </div>
         <div class="bg-jeevatix-50 text-jeevatix-700 rounded-2xl p-3">
           <Bell class="size-6" />
@@ -307,12 +307,12 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      class="rounded-[1.75rem] border border-border bg-card/90"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500">Unread di hasil</p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{unreadCount}</p>
+          <p class="text-sm text-muted-foreground">Unread di hasil</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{unreadCount}</p>
         </div>
         <div class="bg-sea-50 text-sea-700 rounded-2xl p-3">
           <Megaphone class="size-6" />
@@ -322,14 +322,14 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      class="rounded-[1.75rem] border border-border bg-card/90"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500">Halaman aktif</p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{meta.page}</p>
+          <p class="text-sm text-muted-foreground">Halaman aktif</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{meta.page}</p>
         </div>
-        <div class="rounded-2xl bg-slate-100 p-3 text-slate-700">
+        <div class="rounded-2xl bg-muted p-3 text-foreground">
           <RefreshCw class="size-6" />
         </div>
       </div>
@@ -339,7 +339,7 @@
   <Card
     title="Filter notifikasi"
     description="Telusuri judul, isi, atau penerima notifikasi, lalu kombinasikan dengan tipe dan role target."
-    class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+    class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
   >
     <form
       class="grid gap-4 lg:grid-cols-[1.6fr_1fr_1fr_auto]"
@@ -349,7 +349,7 @@
       }}
     >
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="notification-search"
+        <label class="text-sm font-medium text-foreground" for="notification-search"
           >Cari notifikasi</label
         >
         <Input
@@ -360,11 +360,11 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="notification-type">Tipe</label>
+        <label class="text-sm font-medium text-foreground" for="notification-type">Tipe</label>
         <select
           id="notification-type"
           bind:value={typeFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-slate-300 bg-white px-4 text-sm text-slate-900 shadow-sm transition outline-none focus:ring-2"
+          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-border bg-card px-4 text-sm text-foreground shadow-sm transition outline-none focus:ring-2"
         >
           {#each typeOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
@@ -373,11 +373,11 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="notification-role">Role</label>
+        <label class="text-sm font-medium text-foreground" for="notification-role">Role</label>
         <select
           id="notification-role"
           bind:value={roleFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-slate-300 bg-white px-4 text-sm text-slate-900 shadow-sm transition outline-none focus:ring-2"
+          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-border bg-card px-4 text-sm text-foreground shadow-sm transition outline-none focus:ring-2"
         >
           {#each roleOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
@@ -403,13 +403,13 @@
   <Card
     title="Timeline notifikasi"
     description="Daftar notifikasi lintas platform untuk audit operasional dan komunikasi sistem."
-    class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+    class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
   >
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
           <div
-            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+            class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"
           ></div>
         {/each}
       </div>
@@ -425,8 +425,8 @@
           {@const notification = row as AdminNotificationItem}
           {#if column.key === 'title'}
             <div class="space-y-1">
-              <p class="font-semibold text-slate-950">{notification.title}</p>
-              <p class="max-w-md text-sm leading-6 text-slate-600">{notification.body}</p>
+              <p class="font-semibold text-foreground">{notification.title}</p>
+              <p class="max-w-md text-sm leading-6 text-muted-foreground">{notification.body}</p>
             </div>
           {:else if column.key === 'statusLabel'}
             <Badge variant={notification.isRead ? 'neutral' : 'warning'}>
@@ -443,8 +443,8 @@
 
     {#snippet footer()}
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-slate-500">
-          Menampilkan <span class="font-semibold text-slate-900">{notifications.length}</span> dari {meta.total}
+        <p class="text-sm text-muted-foreground">
+          Menampilkan <span class="font-semibold text-foreground">{notifications.length}</span> dari {meta.total}
           notifikasi.
         </p>
         <div class="flex items-center gap-3">
@@ -456,7 +456,7 @@
           >
             Sebelumnya
           </Button>
-          <span class="text-sm font-medium text-slate-600"
+          <span class="text-sm font-medium text-muted-foreground"
             >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
           >
           <Button
@@ -483,7 +483,7 @@
   >
     <form class="space-y-5" onsubmit={submitBroadcast}>
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="broadcast-title">Judul</label>
+        <label class="text-sm font-medium text-foreground" for="broadcast-title">Judul</label>
         <Input
           id="broadcast-title"
           bind:value={broadcastForm.title}
@@ -493,11 +493,11 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="broadcast-target-role">Target</label>
+        <label class="text-sm font-medium text-foreground" for="broadcast-target-role">Target</label>
         <select
           id="broadcast-target-role"
           bind:value={broadcastForm.targetRole}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-slate-300 bg-white px-4 text-sm text-slate-900 shadow-sm transition outline-none focus:ring-2"
+          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-border bg-card px-4 text-sm text-foreground shadow-sm transition outline-none focus:ring-2"
         >
           {#each broadcastRoleOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
@@ -506,11 +506,11 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="broadcast-body">Isi broadcast</label>
+        <label class="text-sm font-medium text-foreground" for="broadcast-body">Isi broadcast</label>
         <textarea
           id="broadcast-body"
           bind:value={broadcastForm.body}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 min-h-36 w-full rounded-[1.5rem] border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition outline-none focus:ring-2"
+          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 min-h-36 w-full rounded-[1.5rem] border border-border bg-card px-4 py-3 text-sm text-foreground shadow-sm transition outline-none focus:ring-2"
           placeholder="Tuliskan pengumuman yang akan dikirim ke target terpilih"
           required
         ></textarea>

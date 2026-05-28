@@ -20,13 +20,13 @@
   <div
     class="rounded-[2.25rem] border border-white/80 bg-[linear-gradient(135deg,#fff8ef_0%,#eef8ff_100%)] p-7 shadow-[0_26px_80px_rgba(15,23,42,0.08)] sm:p-9"
   >
-    <p class="text-sm font-semibold tracking-[0.28em] text-slate-500 uppercase">
+    <p class="text-sm font-semibold tracking-[0.28em] text-muted-foreground uppercase">
       Category Spotlight
     </p>
-    <h1 class="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
+    <h1 class="mt-3 text-4xl font-semibold tracking-tight text-foreground">
       {data.currentCategory.name}
     </h1>
-    <p class="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+    <p class="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
       Menampilkan event publik aktif untuk kategori ini. Gunakan explore page untuk filter yang
       lebih detail berdasarkan kota, tanggal, dan harga.
     </p>
@@ -39,8 +39,8 @@
         class={cn(
           'inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition',
           category.slug === data.currentCategory.slug
-            ? 'border-slate-950 bg-slate-950 text-white'
-            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-950',
+            ? 'border-foreground bg-foreground text-background'
+            : 'border-border bg-card text-foreground hover:border-border hover:text-foreground',
         )}
       >
         {category.name}
@@ -55,17 +55,17 @@
       {/each}
     </div>
   {:else}
-    <div class="rounded-[2rem] border border-dashed border-slate-200 bg-white/80 p-10 text-center">
-      <h2 class="text-2xl font-semibold tracking-tight text-slate-950">
+    <div class="rounded-[2rem] border border-dashed border-border bg-card/80 p-10 text-center">
+      <h2 class="text-2xl font-semibold tracking-tight text-foreground">
         Belum ada event untuk kategori ini
       </h2>
-      <p class="mt-3 text-sm leading-7 text-slate-600">
+      <p class="mt-3 text-sm leading-7 text-muted-foreground">
         Kategori ini belum memiliki event published atau ongoing. Coba kategori lain atau kembali ke
         explore page.
       </p>
       <a
         href={resolve('/events')}
-        class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-slate-950"
+        class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition hover:text-foreground"
       >
         Buka explore page
         <ArrowRight class="size-4" />

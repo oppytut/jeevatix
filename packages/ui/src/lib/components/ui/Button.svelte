@@ -8,15 +8,15 @@
   type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
   const baseClass =
-    'inline-flex items-center justify-center rounded-full text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-jeevatix-300';
+    'inline-flex items-center justify-center rounded-full text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
   const variantClasses: Record<ButtonVariant, string> = {
     default:
       'bg-jeevatix-600 px-5 py-2.5 text-white shadow-[var(--shadow-float)] hover:bg-jeevatix-700',
     outline:
-      'border border-slate-300 bg-white px-5 py-2.5 text-slate-900 hover:border-jeevatix-300 hover:bg-jeevatix-50',
+      'border border-border bg-card px-5 py-2.5 text-foreground hover:border-jeevatix-300 hover:bg-jeevatix-50',
     secondary: 'bg-sea-700 px-5 py-2.5 text-white hover:bg-sea-800',
-    ghost: 'px-4 py-2.5 text-slate-700 hover:bg-slate-100',
+    ghost: 'px-4 py-2.5 text-muted-foreground hover:bg-muted',
   };
 
   const sizeClasses: Record<ButtonSize, string> = {

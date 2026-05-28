@@ -18,12 +18,12 @@
       <div
         class="mx-auto flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-orange-500/10 to-amber-500/10"
       >
-        <span class="text-5xl font-black text-slate-900">{status}</span>
+        <span class="text-5xl font-black text-foreground">{status}</span>
       </div>
 
       <div class="space-y-2">
-        <h1 class="text-3xl font-bold tracking-tight text-slate-950">{message}</h1>
-        <p class="text-sm text-slate-600">
+        <h1 class="text-3xl font-bold tracking-tight text-foreground">{message}</h1>
+        <p class="text-sm text-muted-foreground">
           {#if status === 404}
             Halaman yang Anda cari tidak ada atau telah dipindahkan.
           {:else if status === 500}

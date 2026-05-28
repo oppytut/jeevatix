@@ -219,12 +219,12 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-5 rounded-[2rem] border border-slate-200/80 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="flex flex-col gap-5 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A15</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Reservations</h1>
-      <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A15</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Reservations</h1>
+      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
         Monitor reservasi tiket lintas event untuk mendeteksi lock inventory yang masih aktif atau
         macet.
       </p>
@@ -256,12 +256,12 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      class="rounded-[1.75rem] border border-border bg-card/90"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500">Total reservasi</p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{meta.total}</p>
+          <p class="text-sm text-muted-foreground">Total reservasi</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{meta.total}</p>
         </div>
         <div class="bg-jeevatix-50 text-jeevatix-700 rounded-2xl p-3">
           <Clock3 class="size-6" />
@@ -271,12 +271,12 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      class="rounded-[1.75rem] border border-border bg-card/90"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500">Active di hasil</p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{activeCount}</p>
+          <p class="text-sm text-muted-foreground">Active di hasil</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{activeCount}</p>
         </div>
         <div class="bg-sea-50 text-sea-700 rounded-2xl p-3">
           <TicketCheck class="size-6" />
@@ -286,14 +286,14 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+      class="rounded-[1.75rem] border border-border bg-card/90"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-slate-500">Qty di hasil</p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{quantityCount}</p>
+          <p class="text-sm text-muted-foreground">Qty di hasil</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{quantityCount}</p>
         </div>
-        <div class="rounded-2xl bg-slate-100 p-3 text-slate-700">
+        <div class="rounded-2xl bg-muted p-3 text-foreground">
           <RefreshCw class="size-6" />
         </div>
       </div>
@@ -303,7 +303,7 @@
   <Card
     title="Filter reservasi"
     description="Cari buyer, event, atau tier untuk menemukan reservation lock yang perlu dimonitor."
-    class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+    class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
   >
     <form
       class="grid gap-4 lg:grid-cols-[1.8fr_1fr_auto]"
@@ -313,7 +313,7 @@
       }}
     >
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="reservation-search"
+        <label class="text-sm font-medium text-foreground" for="reservation-search"
           >Cari reservasi</label
         >
         <Input
@@ -324,11 +324,11 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="reservation-status">Status</label>
+        <label class="text-sm font-medium text-foreground" for="reservation-status">Status</label>
         <select
           id="reservation-status"
           bind:value={statusFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-slate-300 bg-white px-4 text-sm text-slate-900 shadow-sm transition outline-none focus:ring-2"
+          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-border bg-card px-4 text-sm text-foreground shadow-sm transition outline-none focus:ring-2"
         >
           {#each statusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
@@ -354,13 +354,13 @@
   <Card
     title="Daftar reservasi"
     description="Fokus pada reservation aktif yang hampir kedaluwarsa atau terjebak pada tier yang sold out."
-    class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+    class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
   >
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
           <div
-            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+            class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"
           ></div>
         {/each}
       </div>
@@ -376,7 +376,7 @@
           {@const reservation = row as AdminReservationItem}
           {#if column.key === 'tierLabel'}
             <div class="space-y-1">
-              <p class="font-semibold text-slate-950">{reservation.ticketTier.name}</p>
+              <p class="font-semibold text-foreground">{reservation.ticketTier.name}</p>
               <Badge variant={getTierVariant(reservation.ticketTier.status)}>
                 {reservation.ticketTier.status}
               </Badge>
@@ -392,8 +392,8 @@
 
     {#snippet footer()}
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-slate-500">
-          Menampilkan <span class="font-semibold text-slate-900">{reservations.length}</span> dari {meta.total}
+        <p class="text-sm text-muted-foreground">
+          Menampilkan <span class="font-semibold text-foreground">{reservations.length}</span> dari {meta.total}
           reservasi.
         </p>
         <div class="flex items-center gap-3">
@@ -405,7 +405,7 @@
           >
             Sebelumnya
           </Button>
-          <span class="text-sm font-medium text-slate-600"
+          <span class="text-sm font-medium text-muted-foreground"
             >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
           >
           <Button

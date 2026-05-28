@@ -8,7 +8,7 @@
   const badgeClasses: Record<BadgeVariant, string> = {
     default: 'bg-jeevatix-100 text-jeevatix-700',
     success: 'bg-sea-100 text-sea-700',
-    neutral: 'bg-slate-100 text-slate-600',
+    neutral: 'bg-muted text-muted-foreground',
     warning: 'bg-amber-100 text-amber-700',
   };
 

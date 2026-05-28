@@ -19,7 +19,7 @@
       case 'confirmed':
         return 'bg-emerald-100 text-emerald-700';
       case 'expired':
-        return 'bg-slate-200 text-slate-700';
+        return 'bg-muted text-foreground';
       case 'cancelled':
         return 'bg-rose-100 text-rose-700';
       case 'refunded':
@@ -69,19 +69,19 @@
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">Order Detail</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">Order Detail</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {data.order.order_number}
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Detail transaksi untuk {data.order.event_title}, termasuk item pembelian, status order,
           dan informasi pembayaran.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
             Status Order
           </p>
           <p
@@ -90,11 +90,11 @@
             {data.order.status}
           </p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
             Tanggal Order
           </p>
-          <p class="mt-2 text-sm font-medium text-slate-900">
+          <p class="mt-2 text-sm font-medium text-foreground">
             {formatLongDateTime(data.order.created_at)}
           </p>
         </div>
@@ -105,14 +105,14 @@
   <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
     <div class="space-y-6">
       <Card
-        class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+            <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
               Order Summary
             </p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
               Ringkasan transaksi
             </h2>
           </div>
@@ -124,19 +124,19 @@
         </div>
 
         <div class="mt-8 grid gap-4 md:grid-cols-2">
-          <div class="rounded-[1.5rem] bg-slate-50 p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">Event</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{data.order.event_title}</p>
-            <p class="mt-1 text-sm text-slate-600">Order ID {data.order.id}</p>
+          <div class="rounded-[1.5rem] bg-muted p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">Event</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{data.order.event_title}</p>
+            <p class="mt-1 text-sm text-muted-foreground">Order ID {data.order.id}</p>
           </div>
-          <div class="rounded-[1.5rem] bg-slate-50 p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">
+          <div class="rounded-[1.5rem] bg-muted p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
               Batas Bayar
             </p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">
+            <p class="mt-2 text-lg font-semibold text-foreground">
               {formatLongDateTime(data.order.expires_at)}
             </p>
-            <p class="mt-1 text-sm text-slate-600">
+            <p class="mt-1 text-sm text-muted-foreground">
               {data.order.confirmed_at
                 ? `Dikonfirmasi ${formatLongDateTime(data.order.confirmed_at)}`
                 : 'Menunggu pembayaran atau pembaruan status.'}
@@ -146,15 +146,15 @@
 
         <div class="mt-8 space-y-4">
           {#each data.order.items as item (item.id)}
-            <div class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
+            <div class="rounded-[1.75rem] border border-border bg-muted p-5">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p class="text-lg font-semibold text-slate-950">{item.tier_name}</p>
-                  <p class="mt-1 text-sm text-slate-600">
+                  <p class="text-lg font-semibold text-foreground">{item.tier_name}</p>
+                  <p class="mt-1 text-sm text-muted-foreground">
                     {item.quantity} tiket x {formatCurrency(item.unit_price)}
                   </p>
                 </div>
-                <p class="text-xl font-semibold text-slate-950">{formatCurrency(item.subtotal)}</p>
+                <p class="text-xl font-semibold text-foreground">{formatCurrency(item.subtotal)}</p>
               </div>
             </div>
           {/each}
@@ -162,14 +162,14 @@
       </Card>
 
       <Card
-        class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+            <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
               Payment Info
             </p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
               Informasi pembayaran
             </h2>
           </div>
@@ -179,13 +179,13 @@
         </div>
 
         <div class="mt-8 grid gap-4 md:grid-cols-2">
-          <div class="rounded-[1.5rem] bg-slate-50 p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">Metode</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{data.order.payment.method}</p>
-            <p class="mt-1 text-sm text-slate-600">Payment ID {data.order.payment.id}</p>
+          <div class="rounded-[1.5rem] bg-muted p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">Metode</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{data.order.payment.method}</p>
+            <p class="mt-1 text-sm text-muted-foreground">Payment ID {data.order.payment.id}</p>
           </div>
-          <div class="rounded-[1.5rem] bg-slate-50 p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">
+          <div class="rounded-[1.5rem] bg-muted p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
               Status Bayar
             </p>
             <p
@@ -193,7 +193,7 @@
             >
               {data.order.payment.status}
             </p>
-            <p class="mt-2 text-sm text-slate-600">
+            <p class="mt-2 text-sm text-muted-foreground">
               {data.order.payment.paid_at
                 ? `Dibayar ${formatLongDateTime(data.order.payment.paid_at)}`
                 : 'Belum ada pembayaran yang tercatat.'}
@@ -205,34 +205,34 @@
 
     <div class="space-y-6">
       <Card
-        class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
           Total Pembayaran
         </p>
         <div class="mt-5 space-y-4">
           <div
-            class="flex items-start gap-3 rounded-[1.5rem] bg-slate-50 p-4 text-sm text-slate-600"
+            class="flex items-start gap-3 rounded-[1.5rem] bg-muted p-4 text-sm text-muted-foreground"
           >
             <CalendarDays class="mt-0.5 size-4 text-orange-600" />
             <div>
-              <p class="font-medium text-slate-900">Order dibuat</p>
+              <p class="font-medium text-foreground">Order dibuat</p>
               <p class="mt-1">{formatLongDateTime(data.order.created_at)}</p>
             </div>
           </div>
 
-          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-4">
-            <div class="flex items-center justify-between text-sm text-slate-600">
+          <div class="rounded-[1.5rem] border border-border bg-card p-4">
+            <div class="flex items-center justify-between text-sm text-muted-foreground">
               <span>Subtotal</span>
               <span>{formatCurrency(data.order.total_amount - data.order.service_fee)}</span>
             </div>
-            <div class="mt-3 flex items-center justify-between text-sm text-slate-600">
+            <div class="mt-3 flex items-center justify-between text-sm text-muted-foreground">
               <span>Service Fee</span>
               <span>{formatCurrency(data.order.service_fee)}</span>
             </div>
-            <div class="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
-              <span class="text-base font-medium text-slate-900">Grand Total</span>
-              <span class="text-2xl font-semibold text-slate-950"
+            <div class="mt-4 flex items-center justify-between border-t border-border pt-4">
+              <span class="text-base font-medium text-foreground">Grand Total</span>
+              <span class="text-2xl font-semibold text-foreground"
                 >{formatCurrency(data.order.total_amount)}</span
               >
             </div>
@@ -241,9 +241,9 @@
       </Card>
 
       <Card
-        class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
           Aksi Berikutnya
         </p>
 
@@ -256,7 +256,7 @@
               Bayar Sekarang
               <Wallet class="size-4" />
             </Button>
-            <p class="text-sm leading-6 text-slate-600">
+            <p class="text-sm leading-6 text-muted-foreground">
               Order masih menunggu pembayaran. Lanjutkan ke halaman payment untuk menyelesaikan
               transaksi.
             </p>
@@ -265,13 +265,13 @@
               Lihat Tiket Saya
               <Ticket class="size-4" />
             </Button>
-            <p class="text-sm leading-6 text-slate-600">
+            <p class="text-sm leading-6 text-muted-foreground">
               Order sudah terkonfirmasi. Buka halaman tiket untuk menampilkan QR code dan detail
               tiket event Anda.
             </p>
           {:else}
             <div
-              class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-600"
+              class="rounded-[1.5rem] border border-dashed border-border bg-muted px-4 py-4 text-sm leading-6 text-muted-foreground"
             >
               Order ini tidak memerlukan aksi tambahan saat ini. Anda tetap bisa meninjau detail
               transaksi kapan saja.

@@ -275,14 +275,14 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-4 rounded-[2rem] border border-slate-200/80 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="flex flex-col gap-4 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A10</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A10</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
         Detail pesanan
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
         Audit status order, pembayaran, tiket terbit, dan jalankan intervensi administratif bila
         dibutuhkan.
       </p>
@@ -326,7 +326,7 @@
   {#if isLoading}
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {#each Array.from({ length: 4 }) as _, index (index)}
-        <div class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"></div>
+        <div class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"></div>
       {/each}
     </div>
   {:else if orderDetail}
@@ -334,9 +334,9 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Status order</p>
+        <p class="text-sm text-muted-foreground">Status order</p>
         <div class="mt-3">
           <Badge variant={getOrderVariant(orderDetail.status)}
             >{formatOrderStatus(orderDetail.status)}</Badge
@@ -346,9 +346,9 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Status pembayaran</p>
+        <p class="text-sm text-muted-foreground">Status pembayaran</p>
         <div class="mt-3">
           <Badge variant={getPaymentVariant(orderDetail.payment.status)}>
             {formatPaymentStatus(orderDetail.payment.status)}
@@ -358,20 +358,20 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Nilai transaksi</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">
+        <p class="text-sm text-muted-foreground">Nilai transaksi</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">
           {formatCurrency(orderDetail.totalAmount)}
         </p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Jumlah tiket</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{totalTickets}</p>
+        <p class="text-sm text-muted-foreground">Jumlah tiket</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">{totalTickets}</p>
       </Card>
     </div>
 
@@ -379,50 +379,50 @@
       <Card
         title="Ringkasan transaksi"
         description="Konteks utama order, event yang dibeli, dan detail buyer."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="grid gap-6 md:grid-cols-2">
           <div>
-            <p class="text-sm text-slate-500">Order number</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{orderDetail.orderNumber}</p>
+            <p class="text-sm text-muted-foreground">Order number</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{orderDetail.orderNumber}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Reservation ID</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Reservation ID</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {orderDetail.reservationId ?? ' - '}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Buyer</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{orderDetail.buyer.fullName}</p>
-            <p class="mt-1 text-sm text-slate-600">{orderDetail.buyer.email}</p>
+            <p class="text-sm text-muted-foreground">Buyer</p>
+            <p class="mt-2 text-base font-medium text-foreground">{orderDetail.buyer.fullName}</p>
+            <p class="mt-1 text-sm text-muted-foreground">{orderDetail.buyer.email}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Event</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{orderDetail.event.title}</p>
-            <p class="mt-1 text-sm text-slate-600">{orderDetail.event.venueCity}</p>
+            <p class="text-sm text-muted-foreground">Event</p>
+            <p class="mt-2 text-base font-medium text-foreground">{orderDetail.event.title}</p>
+            <p class="mt-1 text-sm text-muted-foreground">{orderDetail.event.venueCity}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Dibuat</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Dibuat</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatDate(orderDetail.createdAt)}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Confirmed at</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Confirmed at</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatDate(orderDetail.confirmedAt)}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Expires at</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Expires at</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatDate(orderDetail.expiresAt)}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Service fee</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Service fee</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatCurrency(orderDetail.serviceFee)}
             </p>
           </div>
@@ -432,33 +432,33 @@
       <Card
         title="Aksi admin"
         description="Refund hanya untuk order confirmed dan paid. Cancel hanya untuk order yang belum sukses dibayar."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="space-y-4">
           <button
             type="button"
-            class="w-full rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 px-4 py-4 text-left transition hover:border-slate-300 hover:bg-white"
+            class="w-full rounded-[1.5rem] border border-border bg-muted/80 px-4 py-4 text-left transition hover:border-border hover:bg-card"
             onclick={() => requestAction('refund')}
           >
             <div class="flex items-center justify-between gap-3">
-              <p class="font-semibold text-slate-950">Refund order</p>
-              <RotateCcw class="size-5 text-slate-500" />
+              <p class="font-semibold text-foreground">Refund order</p>
+              <RotateCcw class="size-5 text-muted-foreground" />
             </div>
-            <p class="mt-2 text-sm leading-6 text-slate-600">
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
               Gunakan ketika pembayaran sudah sukses dan transaksi harus dikembalikan.
             </p>
           </button>
 
           <button
             type="button"
-            class="w-full rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 px-4 py-4 text-left transition hover:border-slate-300 hover:bg-white"
+            class="w-full rounded-[1.5rem] border border-border bg-muted/80 px-4 py-4 text-left transition hover:border-border hover:bg-card"
             onclick={() => requestAction('cancel')}
           >
             <div class="flex items-center justify-between gap-3">
-              <p class="font-semibold text-slate-950">Cancel order</p>
-              <Ban class="size-5 text-slate-500" />
+              <p class="font-semibold text-foreground">Cancel order</p>
+              <Ban class="size-5 text-muted-foreground" />
             </div>
-            <p class="mt-2 text-sm leading-6 text-slate-600">
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
               Gunakan untuk order yang masih pending, expired, atau gagal dibayar.
             </p>
           </button>
@@ -470,28 +470,28 @@
       <Card
         title="Pembayaran"
         description="Status payment record yang terhubung dengan order ini."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="grid gap-5 md:grid-cols-2">
           <div>
-            <p class="text-sm text-slate-500">Payment ID</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{orderDetail.payment.id}</p>
+            <p class="text-sm text-muted-foreground">Payment ID</p>
+            <p class="mt-2 text-base font-medium text-foreground">{orderDetail.payment.id}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Metode</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Metode</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatPaymentMethod(orderDetail.payment.method)}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">External ref</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">External ref</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {orderDetail.payment.externalRef ?? ' - '}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Paid at</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Paid at</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatDate(orderDetail.payment.paidAt)}
             </p>
           </div>
@@ -501,19 +501,19 @@
       <Card
         title="Item pesanan"
         description="Komposisi tier tiket yang dibeli di transaksi ini."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="space-y-3">
           {#each orderDetail.items as item (item.id)}
-            <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4">
+            <div class="rounded-[1.5rem] border border-border bg-muted/80 p-4">
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="font-semibold text-slate-950">{item.tierName}</p>
-                  <p class="mt-1 text-sm text-slate-500">
+                  <p class="font-semibold text-foreground">{item.tierName}</p>
+                  <p class="mt-1 text-sm text-muted-foreground">
                     Qty {item.quantity} x {formatCurrency(item.unitPrice)}
                   </p>
                 </div>
-                <p class="font-semibold text-slate-950">{formatCurrency(item.subtotal)}</p>
+                <p class="font-semibold text-foreground">{formatCurrency(item.subtotal)}</p>
               </div>
             </div>
           {/each}
@@ -524,29 +524,29 @@
     <Card
       title="Tiket terbit"
       description="Status akhir tiket hasil order ini, termasuk tiket yang sudah check-in."
-      class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+      class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
     >
       <div class="grid gap-4 lg:grid-cols-2">
         {#if orderDetail.tickets.length > 0}
           {#each orderDetail.tickets as ticket (ticket.id)}
-            <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-5">
+            <div class="rounded-[1.5rem] border border-border bg-muted/80 p-5">
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="font-semibold text-slate-950">{ticket.ticketTierName}</p>
-                  <p class="mt-1 text-sm text-slate-500">{ticket.ticketCode}</p>
+                  <p class="font-semibold text-foreground">{ticket.ticketTierName}</p>
+                  <p class="mt-1 text-sm text-muted-foreground">{ticket.ticketCode}</p>
                 </div>
                 <Badge variant={getTicketVariant(ticket.status)}>{ticket.status}</Badge>
               </div>
               <div class="mt-4 grid gap-3 sm:grid-cols-2">
                 <div>
-                  <p class="text-sm text-slate-500">Issued at</p>
-                  <p class="mt-2 text-sm font-medium text-slate-900">
+                  <p class="text-sm text-muted-foreground">Issued at</p>
+                  <p class="mt-2 text-sm font-medium text-foreground">
                     {formatDate(ticket.issuedAt)}
                   </p>
                 </div>
                 <div>
-                  <p class="text-sm text-slate-500">Checked in</p>
-                  <p class="mt-2 text-sm font-medium text-slate-900">
+                  <p class="text-sm text-muted-foreground">Checked in</p>
+                  <p class="mt-2 text-sm font-medium text-foreground">
                     {formatDate(ticket.checkedInAt)}
                   </p>
                 </div>
@@ -554,7 +554,7 @@
             </div>
           {/each}
         {:else}
-          <p class="text-sm text-slate-500">Belum ada tiket terbit untuk order ini.</p>
+          <p class="text-sm text-muted-foreground">Belum ada tiket terbit untuk order ini.</p>
         {/if}
       </div>
     </Card>
@@ -572,7 +572,7 @@
   >
     <div class="space-y-6">
       <div
-        class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4 text-sm leading-6 text-slate-700"
+        class="rounded-[1.5rem] border border-border bg-muted/80 p-4 text-sm leading-6 text-foreground"
       >
         Anda akan menjalankan aksi
         <span class="font-semibold"> {pendingAction === 'refund' ? 'refund' : 'cancel'}</span>

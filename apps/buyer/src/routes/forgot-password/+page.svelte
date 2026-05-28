@@ -13,17 +13,17 @@
 
 <section class="mx-auto flex min-h-[calc(100vh-10rem)] max-w-3xl items-center py-6 lg:py-10">
   <Card
-    class="w-full rounded-[2rem] border border-white/80 bg-white/90 p-7 shadow-[0_26px_80px_rgba(15,23,42,0.10)] sm:p-9"
+    class="w-full rounded-[2rem] border border-border bg-card/90 p-7 shadow-[0_26px_80px_rgba(15,23,42,0.10)] sm:p-9"
   >
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-2">
-        <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">
+        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">
           Password Recovery
         </p>
-        <h1 class="text-3xl font-semibold tracking-tight text-slate-950">
+        <h1 class="text-3xl font-semibold tracking-tight text-foreground">
           Lupa password akun buyer?
         </h1>
-        <p class="text-sm leading-6 text-slate-600">
+        <p class="text-sm leading-6 text-muted-foreground">
           Masukkan email akun Anda. Jeevatix akan mengirim link reset untuk membuat password baru.
         </p>
       </div>
@@ -34,7 +34,7 @@
 
     <form class="mt-8 space-y-5" method="POST">
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="email">Email</label>
+        <label class="text-sm font-medium text-foreground" for="email">Email</label>
         <Input
           id="email"
           name="email"
@@ -67,7 +67,7 @@
     </form>
 
     {#snippet footer()}
-      <div class="flex items-center justify-between gap-4 text-sm text-slate-500">
+      <div class="flex items-center justify-between gap-4 text-sm text-muted-foreground">
         <p>Sudah ingat password Anda?</p>
         <a class="font-medium text-amber-700 hover:text-amber-800" href={resolve('/login')}
           >Kembali ke login</a

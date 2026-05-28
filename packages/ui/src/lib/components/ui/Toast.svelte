@@ -6,7 +6,7 @@
   type ToastVariant = 'default' | 'success' | 'warning';
 
   const toastClasses: Record<ToastVariant, string> = {
-    default: 'border-slate-200 bg-white text-slate-900',
+    default: 'border-border bg-card text-foreground',
     success: 'border-sea-200 bg-sea-50 text-sea-900',
     warning: 'border-amber-200 bg-amber-50 text-amber-900',
   };

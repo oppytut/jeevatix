@@ -245,15 +245,15 @@
 
 <section class="space-y-8">
   <div
-    class="rounded-[2rem] border border-slate-200/80 bg-white/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+    class="rounded-[2rem] border border-border bg-card/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">S6</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">S6</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Workspace event seller
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Lihat seluruh event milik Anda, filter berdasarkan status publikasi, dan lanjutkan ke
           halaman detail, edit, atau manajemen tier tiket.
         </p>
@@ -277,21 +277,21 @@
     </div>
 
     <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
-        <p class="text-sm text-slate-500">Total Event</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{summary.totalEvents}</p>
+      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
+        <p class="text-sm text-muted-foreground">Total Event</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.totalEvents}</p>
       </div>
-      <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
-        <p class="text-sm text-slate-500">Published / Ongoing</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{summary.liveEvents}</p>
+      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
+        <p class="text-sm text-muted-foreground">Published / Ongoing</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.liveEvents}</p>
       </div>
-      <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
-        <p class="text-sm text-slate-500">Total Kuota</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{summary.totalQuota}</p>
+      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
+        <p class="text-sm text-muted-foreground">Total Kuota</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.totalQuota}</p>
       </div>
-      <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
-        <p class="text-sm text-slate-500">Tiket Terjual</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{summary.totalSold}</p>
+      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
+        <p class="text-sm text-muted-foreground">Tiket Terjual</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.totalSold}</p>
       </div>
     </div>
   </div>
@@ -317,12 +317,12 @@
   <Card
     title="Daftar event"
     description="Status, jadwal, dan progres penjualan semua event seller ditampilkan di satu tabel kerja."
-    class="rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-sm"
+    class="rounded-[2rem] border border-border bg-card/95 shadow-sm"
   >
     <div class="mb-5 flex flex-wrap gap-2">
       {#each statusOptions as option (option.value)}
         <button
-          class={`rounded-full border px-4 py-2 text-sm font-medium transition ${selectedStatus === option.value ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-slate-200 bg-white text-slate-600 hover:text-slate-950'}`}
+          class={`rounded-full border px-4 py-2 text-sm font-medium transition ${selectedStatus === option.value ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-border bg-card text-muted-foreground hover:text-foreground'}`}
           onclick={() => changeStatusFilter(option.value)}
           type="button"
         >
@@ -335,7 +335,7 @@
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
           <div
-            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+            class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"
           ></div>
         {/each}
       </div>
@@ -353,8 +353,8 @@
           {@const event = (row as TableRow).original}
           {#if column.key === 'title'}
             <div class="space-y-1">
-              <p class="font-semibold text-slate-950">{event.title}</p>
-              <p class="text-xs text-slate-500">{event.venue_city}</p>
+              <p class="font-semibold text-foreground">{event.title}</p>
+              <p class="text-xs text-muted-foreground">{event.venue_city}</p>
             </div>
           {:else if column.key === 'status'}
             <Badge variant={getStatusBadgeVariant(event.status)}
@@ -362,17 +362,17 @@
             >
           {:else if column.key === 'schedule'}
             <div class="space-y-1 text-sm">
-              <p class="font-medium text-slate-800">
+              <p class="font-medium text-foreground">
                 {formatDateRange(event.start_at, event.end_at)}
               </p>
-              <p class="text-xs text-slate-500">
+              <p class="text-xs text-muted-foreground">
                 Jual: {formatDateRange(event.sale_start_at, event.sale_end_at)}
               </p>
             </div>
           {:else if column.key === 'soldSummary'}
             <div class="space-y-2 text-right">
-              <p class="font-semibold text-slate-950">{event.total_sold}/{event.total_quota}</p>
-              <div class="ml-auto h-2 w-28 overflow-hidden rounded-full bg-slate-100">
+              <p class="font-semibold text-foreground">{event.total_sold}/{event.total_quota}</p>
+              <div class="ml-auto h-2 w-28 overflow-hidden rounded-full bg-muted">
                 <div
                   class="bg-jeevatix-600 h-full rounded-full"
                   style={`width: ${event.total_quota === 0 ? 0 : Math.min(100, (event.total_sold / event.total_quota) * 100)}%`}
@@ -447,27 +447,27 @@
     <Card
       title="Next moves"
       description="Jalur kerja tercepat setelah event dibuat."
-      class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+      class="rounded-[2rem] border border-border bg-card/95"
     >
       <div class="grid gap-4 sm:grid-cols-3">
-        <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
+        <div class="rounded-[1.4rem] border border-border bg-muted/70 p-4">
           <CalendarDays class="text-jeevatix-600 size-5" />
-          <p class="mt-4 font-semibold text-slate-950">Lengkapi jadwal</p>
-          <p class="mt-2 text-sm leading-6 text-slate-600">
+          <p class="mt-4 font-semibold text-foreground">Lengkapi jadwal</p>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
             Pastikan sale window dan waktu event sinkron sebelum submit review.
           </p>
         </div>
-        <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
+        <div class="rounded-[1.4rem] border border-border bg-muted/70 p-4">
           <Ticket class="text-jeevatix-600 size-5" />
-          <p class="mt-4 font-semibold text-slate-950">Atur tier tiket</p>
-          <p class="mt-2 text-sm leading-6 text-slate-600">
+          <p class="mt-4 font-semibold text-foreground">Atur tier tiket</p>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
             Kelola harga, quota, dan urutan tier dari halaman khusus per event.
           </p>
         </div>
-        <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
+        <div class="rounded-[1.4rem] border border-border bg-muted/70 p-4">
           <Eye class="text-jeevatix-600 size-5" />
-          <p class="mt-4 font-semibold text-slate-950">Review detail</p>
-          <p class="mt-2 text-sm leading-6 text-slate-600">
+          <p class="mt-4 font-semibold text-foreground">Review detail</p>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
             Gunakan halaman detail untuk cek progress tier sebelum event masuk proses review.
           </p>
         </div>
@@ -477,22 +477,22 @@
     <Card
       title="Catatan status"
       description="Interpretasi cepat untuk badge event seller."
-      class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+      class="rounded-[2rem] border border-border bg-card/95"
     >
-      <div class="space-y-3 text-sm text-slate-600">
+      <div class="space-y-3 text-sm text-muted-foreground">
         <p>
-          <span class="font-semibold text-slate-900">Draft</span> berarti event masih aman untuk dihapus.
+          <span class="font-semibold text-foreground">Draft</span> berarti event masih aman untuk dihapus.
         </p>
         <p>
-          <span class="font-semibold text-slate-900">Pending Review</span> berarti event sedang menunggu
+          <span class="font-semibold text-foreground">Pending Review</span> berarti event sedang menunggu
           keputusan admin.
         </p>
         <p>
-          <span class="font-semibold text-slate-900">Rejected</span> berarti seller bisa revisi lalu submit
+          <span class="font-semibold text-foreground">Rejected</span> berarti seller bisa revisi lalu submit
           ulang lewat edit/detail page.
         </p>
         <p>
-          <span class="font-semibold text-slate-900">Published / Ongoing</span> berarti event sudah live
+          <span class="font-semibold text-foreground">Published / Ongoing</span> berarti event sudah live
           dan tidak boleh melakukan perubahan destruktif pada tier yang punya penjualan.
         </p>
       </div>

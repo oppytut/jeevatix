@@ -235,12 +235,12 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-4 rounded-[2rem] border border-slate-200/80 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="flex flex-col gap-4 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A4</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Detail user</h1>
-      <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A4</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Detail user</h1>
+      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
         Review identitas, aktivitas transaksi, dan profil seller sebelum melakukan tindakan status
         akun.
       </p>
@@ -284,7 +284,7 @@
   {#if isLoading}
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {#each Array.from({ length: 4 }) as _, index (index)}
-        <div class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"></div>
+        <div class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"></div>
       {/each}
     </div>
   {:else if user}
@@ -292,26 +292,26 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Status akun</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{formatStatus(user.status)}</p>
+        <p class="text-sm text-muted-foreground">Status akun</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">{formatStatus(user.status)}</p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Total order</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{user.orderCount}</p>
+        <p class="text-sm text-muted-foreground">Total order</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">{user.orderCount}</p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Total tiket</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{user.ticketCount}</p>
+        <p class="text-sm text-muted-foreground">Total tiket</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">{user.ticketCount}</p>
       </Card>
     </div>
 
@@ -319,34 +319,34 @@
       <Card
         title="Profil user"
         description="Identitas akun inti yang digunakan untuk autentikasi dan transaksi."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="grid gap-6 md:grid-cols-2">
           <div>
-            <p class="text-sm text-slate-500">Nama lengkap</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{user.fullName}</p>
+            <p class="text-sm text-muted-foreground">Nama lengkap</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{user.fullName}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Email</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{user.email}</p>
+            <p class="text-sm text-muted-foreground">Email</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{user.email}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Role</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatRole(user.role)}</p>
+            <p class="text-sm text-muted-foreground">Role</p>
+            <p class="mt-2 text-base font-medium text-foreground">{formatRole(user.role)}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Phone</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{user.phone ?? '—'}</p>
+            <p class="text-sm text-muted-foreground">Phone</p>
+            <p class="mt-2 text-base font-medium text-foreground">{user.phone ?? '—'}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Email verified</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Email verified</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatDate(user.emailVerifiedAt)}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Terdaftar</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{formatDate(user.createdAt)}</p>
+            <p class="text-sm text-muted-foreground">Terdaftar</p>
+            <p class="mt-2 text-base font-medium text-foreground">{formatDate(user.createdAt)}</p>
           </div>
         </div>
       </Card>
@@ -354,16 +354,16 @@
       <Card
         title="Aksi status"
         description="Gunakan aksi ini untuk membatasi, memblokir, atau memulihkan akses akun."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="space-y-3">
           {#each statusActions as action (action.status)}
             <div
-              class="flex items-center justify-between gap-4 rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 px-4 py-4"
+              class="flex items-center justify-between gap-4 rounded-[1.5rem] border border-border bg-muted/80 px-4 py-4"
             >
               <div class="space-y-1">
-                <p class="font-semibold text-slate-950">{action.label}</p>
-                <p class="text-sm leading-6 text-slate-600">{action.description}</p>
+                <p class="font-semibold text-foreground">{action.label}</p>
+                <p class="text-sm leading-6 text-muted-foreground">{action.description}</p>
               </div>
               <Button
                 variant={user.status === action.status ? 'secondary' : 'outline'}
@@ -390,30 +390,30 @@
       <Card
         title="Profil seller"
         description="Informasi organisasi dan event seller yang terkait dengan akun ini."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <div class="space-y-5 rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-5">
+          <div class="space-y-5 rounded-[1.5rem] border border-border bg-muted/80 p-5">
             <div>
-              <p class="text-sm text-slate-500">Organisasi</p>
-              <p class="mt-2 text-xl font-semibold text-slate-950">{user.sellerProfile.orgName}</p>
+              <p class="text-sm text-muted-foreground">Organisasi</p>
+              <p class="mt-2 text-xl font-semibold text-foreground">{user.sellerProfile.orgName}</p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Deskripsi</p>
-              <p class="mt-2 text-sm leading-6 text-slate-700">
+              <p class="text-sm text-muted-foreground">Deskripsi</p>
+              <p class="mt-2 text-sm leading-6 text-foreground">
                 {user.sellerProfile.orgDescription ?? 'Belum ada deskripsi organisasi.'}
               </p>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
               <div>
-                <p class="text-sm text-slate-500">Status verifikasi</p>
-                <p class="mt-2 text-base font-medium text-slate-900">
+                <p class="text-sm text-muted-foreground">Status verifikasi</p>
+                <p class="mt-2 text-base font-medium text-foreground">
                   {user.sellerProfile.isVerified ? 'Verified' : 'Pending'}
                 </p>
               </div>
               <div>
-                <p class="text-sm text-slate-500">Jumlah event</p>
-                <p class="mt-2 text-base font-medium text-slate-900">
+                <p class="text-sm text-muted-foreground">Jumlah event</p>
+                <p class="mt-2 text-base font-medium text-foreground">
                   {user.sellerProfile.eventCount}
                 </p>
               </div>
@@ -422,24 +422,24 @@
 
           <div class="space-y-4">
             <div>
-              <p class="text-sm font-semibold tracking-[0.24em] text-slate-500 uppercase">
+              <p class="text-sm font-semibold tracking-[0.24em] text-muted-foreground uppercase">
                 Event seller
               </p>
               <div class="mt-3 space-y-3">
                 {#if user.sellerProfile.events.length > 0}
                   {#each user.sellerProfile.events as event (event.id)}
-                    <div class="rounded-[1.5rem] border border-slate-200/80 bg-white px-4 py-4">
+                    <div class="rounded-[1.5rem] border border-border bg-card px-4 py-4">
                       <div
                         class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div>
-                          <p class="font-semibold text-slate-950">{event.title}</p>
-                          <p class="text-sm text-slate-600">
+                          <p class="font-semibold text-foreground">{event.title}</p>
+                          <p class="text-sm text-muted-foreground">
                             {event.venueCity} • {formatDate(event.startAt)}
                           </p>
                         </div>
                         <span
-                          class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-slate-700 uppercase"
+                          class="rounded-full bg-muted px-3 py-1 text-xs font-semibold tracking-[0.18em] text-foreground uppercase"
                           >{formatEventStatus(event.status)}</span
                         >
                       </div>
@@ -447,7 +447,7 @@
                   {/each}
                 {:else}
                   <div
-                    class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500"
+                    class="rounded-[1.5rem] border border-dashed border-border bg-muted px-4 py-6 text-sm text-muted-foreground"
                   >
                     Seller ini belum memiliki event terdaftar.
                   </div>

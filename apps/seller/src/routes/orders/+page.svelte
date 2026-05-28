@@ -222,15 +222,15 @@
 
 <section class="space-y-8">
   <div
-    class="rounded-[2rem] border border-slate-200/80 bg-white/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+    class="rounded-[2rem] border border-border bg-card/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">S11</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">S11</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Seller order board
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Monitor semua transaksi untuk event Anda, lihat buyer yang masuk, dan buka detail order
           untuk tindak lanjut operasional.
         </p>
@@ -268,28 +268,28 @@
 
   <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
     <Card title="Total Orders" description="Semua order yang cocok dengan filter aktif.">
-      <div class="flex items-center justify-between text-slate-950">
+      <div class="flex items-center justify-between text-foreground">
         <span class="text-3xl font-semibold">{summary.totalOrders}</span>
-        <ReceiptText class="size-5 text-slate-400" />
+        <ReceiptText class="size-5 text-muted-foreground/70" />
       </div>
     </Card>
 
     <Card title="Confirmed" description="Order dengan pembayaran sukses.">
-      <div class="flex items-center justify-between text-slate-950">
+      <div class="flex items-center justify-between text-foreground">
         <span class="text-3xl font-semibold">{summary.confirmedOrders}</span>
         <ShoppingBag class="size-5 text-emerald-500" />
       </div>
     </Card>
 
     <Card title="Pending" description="Order yang belum selesai dibayar.">
-      <div class="flex items-center justify-between text-slate-950">
+      <div class="flex items-center justify-between text-foreground">
         <span class="text-3xl font-semibold">{summary.pendingOrders}</span>
         <CalendarDays class="size-5 text-amber-500" />
       </div>
     </Card>
 
     <Card title="Revenue" description="Akumulasi nilai order confirmed di halaman ini.">
-      <div class="flex items-center justify-between text-slate-950">
+      <div class="flex items-center justify-between text-foreground">
         <span class="text-2xl font-semibold">{formatCurrency(summary.totalRevenue)}</span>
         <Wallet class="size-5 text-sky-500" />
       </div>
@@ -299,13 +299,13 @@
   <Card
     title="Filter orders"
     description="Saring daftar pesanan berdasarkan event yang Anda kelola dan status transaksi saat ini."
-    class="rounded-[2rem] border-slate-200 bg-white/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+    class="rounded-[2rem] border-border bg-card/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
   >
     <div class="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
-      <label class="space-y-2 text-sm font-medium text-slate-700">
+      <label class="space-y-2 text-sm font-medium text-foreground">
         <span>Event</span>
         <select
-          class="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 transition outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+          class="h-12 w-full rounded-2xl border border-border bg-card px-4 text-sm text-foreground transition outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           bind:value={selectedEventId}
         >
           <option value="all">Semua event</option>
@@ -315,10 +315,10 @@
         </select>
       </label>
 
-      <label class="space-y-2 text-sm font-medium text-slate-700">
+      <label class="space-y-2 text-sm font-medium text-foreground">
         <span>Status</span>
         <select
-          class="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-900 transition outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+          class="h-12 w-full rounded-2xl border border-border bg-card px-4 text-sm text-foreground transition outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
           bind:value={selectedStatus}
         >
           {#each statusOptions as option (option.value)}
@@ -339,19 +339,19 @@
   <Card
     title="Daftar pesanan"
     description="Klik satu baris untuk membuka detail order lengkap, buyer info, dan status pembayaran."
-    class="rounded-[2rem] border-slate-200 bg-white/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+    class="rounded-[2rem] border-border bg-card/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
   >
     {#if isLoading}
-      <div class="py-16 text-center text-sm text-slate-500">Memuat pesanan seller...</div>
+      <div class="py-16 text-center text-sm text-muted-foreground">Memuat pesanan seller...</div>
     {:else if orders.length === 0}
-      <div class="py-16 text-center text-sm text-slate-500">
+      <div class="py-16 text-center text-sm text-muted-foreground">
         Belum ada pesanan yang cocok dengan filter aktif.
       </div>
     {:else}
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <table class="min-w-full divide-y divide-border text-left text-sm">
           <thead>
-            <tr class="text-slate-500">
+            <tr class="text-muted-foreground">
               <th class="px-4 py-3 font-semibold">Order</th>
               <th class="px-4 py-3 font-semibold">Event</th>
               <th class="px-4 py-3 font-semibold">Buyer</th>
@@ -360,22 +360,22 @@
               <th class="px-4 py-3 font-semibold">Tanggal</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
+          <tbody class="divide-y divide-border">
             {#each orders as order (order.id)}
               <tr
-                class="cursor-pointer transition hover:bg-slate-50"
+                class="cursor-pointer transition hover:bg-muted"
                 onclick={() => openOrder(order.id)}
               >
                 <td class="px-4 py-4 align-top">
-                  <div class="font-semibold text-slate-950">{order.order_number}</div>
-                  <div class="mt-1 text-xs text-slate-500">Payment: {order.payment_status}</div>
+                  <div class="font-semibold text-foreground">{order.order_number}</div>
+                  <div class="mt-1 text-xs text-muted-foreground">Payment: {order.payment_status}</div>
                 </td>
-                <td class="px-4 py-4 align-top text-slate-700">{order.event_title}</td>
+                <td class="px-4 py-4 align-top text-foreground">{order.event_title}</td>
                 <td class="px-4 py-4 align-top">
-                  <div class="font-medium text-slate-900">{order.buyer_name}</div>
-                  <div class="mt-1 text-xs text-slate-500">{order.buyer_email}</div>
+                  <div class="font-medium text-foreground">{order.buyer_name}</div>
+                  <div class="mt-1 text-xs text-muted-foreground">{order.buyer_email}</div>
                 </td>
-                <td class="px-4 py-4 align-top font-medium text-slate-900"
+                <td class="px-4 py-4 align-top font-medium text-foreground"
                   >{formatCurrency(order.total_amount)}</td
                 >
                 <td class="px-4 py-4 align-top">
@@ -386,7 +386,7 @@
                     >
                   </div>
                 </td>
-                <td class="px-4 py-4 align-top text-slate-600">{formatDate(order.created_at)}</td>
+                <td class="px-4 py-4 align-top text-muted-foreground">{formatDate(order.created_at)}</td>
               </tr>
             {/each}
           </tbody>
@@ -395,9 +395,9 @@
     {/if}
 
     <div
-      class="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between"
+      class="mt-6 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between"
     >
-      <p class="text-sm text-slate-500">
+      <p class="text-sm text-muted-foreground">
         Page {meta.page} dari {Math.max(meta.totalPages, 1)} • Total {meta.total} order
       </p>
       <div class="flex items-center gap-3">

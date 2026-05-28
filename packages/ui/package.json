@@ -7,7 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./tailwind": "./src/lib/tailwind/index.ts",
-    "./styles.css": "./src/lib/styles/jeevatix.css"
+    "./styles/tokens.css": "./src/lib/styles/tokens.css"
   },
   "sideEffects": [
     "**/*.css"

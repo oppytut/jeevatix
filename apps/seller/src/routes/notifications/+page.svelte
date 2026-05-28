@@ -132,7 +132,7 @@
       case 'payment_reminder':
         return 'bg-amber-100 text-amber-700';
       default:
-        return 'bg-slate-200 text-slate-700';
+        return 'bg-muted text-foreground';
     }
   }
 
@@ -247,19 +247,19 @@
   >
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">S16</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">S16</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Semua update seller terkumpul di satu inbox.
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Cek pesanan baru, persetujuan event, reminder penting, dan tindak lanjut operasional tanpa
           keluar dari workspace seller.
         </p>
       </div>
 
-      <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-        <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Unread</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{unreadCount}</p>
+      <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
+        <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">Unread</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">{unreadCount}</p>
       </div>
     </div>
   </div>
@@ -283,12 +283,12 @@
   {/if}
 
   <Card
-    class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+    class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
   >
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Inbox</p>
-        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">Inbox</p>
+        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
           Pusat notifikasi seller
         </h2>
       </div>
@@ -317,23 +317,23 @@
     <div class="mt-8 space-y-4">
       {#if isLoading}
         <div
-          class="rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center text-sm text-slate-500"
+          class="rounded-[1.75rem] border border-dashed border-border bg-muted px-6 py-14 text-center text-sm text-muted-foreground"
         >
           Memuat notifikasi seller...
         </div>
       {:else if notifications.length === 0}
         <div
-          class="rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center"
+          class="rounded-[1.75rem] border border-dashed border-border bg-muted px-6 py-14 text-center"
         >
           <div
-            class="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+            class="mx-auto flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground"
           >
             <BellRing class="size-7" />
           </div>
-          <h3 class="mt-5 text-2xl font-semibold tracking-tight text-slate-950">
+          <h3 class="mt-5 text-2xl font-semibold tracking-tight text-foreground">
             Belum ada notifikasi
           </h3>
-          <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
+          <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
             Saat ada pesanan baru atau perubahan status event, notifikasinya akan muncul di halaman
             ini.
           </p>
@@ -344,7 +344,7 @@
 
           <button
             type="button"
-            class={`w-full rounded-[1.75rem] border p-5 text-left transition ${notification.is_read ? 'border-slate-200 bg-slate-50/80 hover:border-slate-300 hover:bg-slate-50' : 'border-sky-200 bg-sky-50/80 hover:border-sky-300 hover:bg-sky-50'}`}
+            class={`w-full rounded-[1.75rem] border p-5 text-left transition ${notification.is_read ? 'border-border bg-muted/80 hover:border-border hover:bg-muted' : 'border-sky-200 bg-sky-50/80 hover:border-sky-300 hover:bg-sky-50'}`}
             onclick={() => markRead(notification)}
             disabled={markingId === notification.id}
           >
@@ -359,7 +359,7 @@
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
-                      <h3 class="text-lg font-semibold text-slate-950">{notification.title}</h3>
+                      <h3 class="text-lg font-semibold text-foreground">{notification.title}</h3>
                       {#if !notification.is_read}
                         <span
                           class="rounded-full bg-sky-600 px-2.5 py-1 text-[0.7rem] font-semibold tracking-[0.2em] text-white uppercase"
@@ -368,14 +368,14 @@
                         </span>
                       {/if}
                     </div>
-                    <p class="mt-2 text-sm leading-7 text-slate-600">{notification.body}</p>
+                    <p class="mt-2 text-sm leading-7 text-muted-foreground">{notification.body}</p>
                   </div>
 
                   <div class="shrink-0 text-left sm:text-right">
-                    <p class="text-sm font-medium text-slate-900">
+                    <p class="text-sm font-medium text-foreground">
                       {formatRelativeTime(notification.created_at)}
                     </p>
-                    <p class="mt-1 text-xs text-slate-500">
+                    <p class="mt-1 text-xs text-muted-foreground">
                       {formatLongDateTime(notification.created_at)}
                     </p>
                   </div>
@@ -388,9 +388,9 @@
     </div>
 
     <div
-      class="mt-6 flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between"
+      class="mt-6 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between"
     >
-      <p class="text-sm text-slate-500">
+      <p class="text-sm text-muted-foreground">
         Page {meta.page} dari {Math.max(meta.totalPages, 1)} • Total {meta.total} notifikasi
       </p>
 

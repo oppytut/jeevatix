@@ -356,15 +356,15 @@
 
 <section class="space-y-8">
   <div
-    class="rounded-[2rem] border border-slate-200/80 bg-white/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+    class="rounded-[2rem] border border-border bg-card/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
   >
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">S7</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">S7</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Buat event baru
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Susun event dari info dasar sampai tier tiket dalam satu alur kerja seller. Event akan
           disimpan sebagai draft terlebih dulu.
         </p>
@@ -379,7 +379,7 @@
     <div class="mt-8 grid gap-3 md:grid-cols-5">
       {#each steps as step (step.id)}
         <button
-          class={`rounded-[1.5rem] border px-4 py-4 text-left transition ${currentStep === step.id ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : currentStep > step.id ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-50/70 text-slate-600'}`}
+          class={`rounded-[1.5rem] border px-4 py-4 text-left transition ${currentStep === step.id ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : currentStep > step.id ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-border bg-muted/70 text-muted-foreground'}`}
           onclick={() => {
             if (step.id <= currentStep || validateStep(currentStep)) {
               currentStep = step.id;
@@ -417,12 +417,12 @@
     <Card
       title={steps[currentStep - 1].label}
       description="Lengkapi informasi di tiap langkah sebelum lanjut ke review akhir."
-      class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+      class="rounded-[2rem] border border-border bg-card/95"
     >
       {#if currentStep === 1}
         <div class="space-y-5">
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="title">Title Event</label>
+            <label class="text-sm font-medium text-foreground" for="title">Title Event</label>
             <Input
               id="title"
               bind:value={form.title}
@@ -432,31 +432,31 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="description">Deskripsi</label>
+            <label class="text-sm font-medium text-foreground" for="description">Deskripsi</label>
             <textarea
               id="description"
               bind:value={form.description}
-              class="min-h-36 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-36 w-full rounded-[1.25rem] border border-border bg-card px-4 py-3 text-sm text-foreground transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Tuliskan konsep event, headline performer, dan pengalaman yang akan didapat pembeli tiket."
             ></textarea>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="venue-city">Kota Event</label>
+            <label class="text-sm font-medium text-foreground" for="venue-city">Kota Event</label>
             <Input id="venue-city" bind:value={form.venue_city} placeholder="Jakarta" required />
           </div>
 
           <div class="space-y-3">
-            <p class="text-sm font-medium text-slate-700">Kategori</p>
+            <p class="text-sm font-medium text-foreground">Kategori</p>
             <div class="flex flex-wrap gap-2">
               {#if isCategoriesLoading}
-                <span class="text-sm text-slate-500">Memuat kategori...</span>
+                <span class="text-sm text-muted-foreground">Memuat kategori...</span>
               {:else if categoryOptions.length === 0}
-                <span class="text-sm text-slate-500">Gagal memuat kategori.</span>
+                <span class="text-sm text-muted-foreground">Gagal memuat kategori.</span>
               {:else}
                 {#each categoryOptions as category (category.id)}
                   <button
-                    class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-slate-200 bg-white text-slate-600 hover:text-slate-900'}`}
+                    class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-border bg-card text-muted-foreground hover:text-foreground'}`}
                     onclick={() => toggleCategory(category.id)}
                     type="button"
                   >
@@ -470,7 +470,7 @@
       {:else if currentStep === 2}
         <div class="space-y-5">
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="venue-name">Venue Name</label>
+            <label class="text-sm font-medium text-foreground" for="venue-name">Venue Name</label>
             <Input
               id="venue-name"
               bind:value={form.venue_name}
@@ -480,25 +480,25 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="venue-address"
+            <label class="text-sm font-medium text-foreground" for="venue-address"
               >Venue Address</label
             >
             <textarea
               id="venue-address"
               bind:value={form.venue_address}
-              class="min-h-28 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-28 w-full rounded-[1.25rem] border border-border bg-card px-4 py-3 text-sm text-foreground transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Jl. Pintu Satu Senayan, Jakarta Pusat"
             ></textarea>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="venue-latitude">Latitude</label
+              <label class="text-sm font-medium text-foreground" for="venue-latitude">Latitude</label
               >
               <Input id="venue-latitude" bind:value={form.venue_latitude} placeholder="-6.2187" />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="venue-longitude"
+              <label class="text-sm font-medium text-foreground" for="venue-longitude"
                 >Longitude</label
               >
               <Input
@@ -511,15 +511,15 @@
 
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="start-at">Start At</label>
+              <label class="text-sm font-medium text-foreground" for="start-at">Start At</label>
               <Input id="start-at" type="datetime-local" bind:value={form.start_at} required />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="end-at">End At</label>
+              <label class="text-sm font-medium text-foreground" for="end-at">End At</label>
               <Input id="end-at" type="datetime-local" bind:value={form.end_at} required />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="sale-start">Sale Start</label>
+              <label class="text-sm font-medium text-foreground" for="sale-start">Sale Start</label>
               <Input
                 id="sale-start"
                 type="datetime-local"
@@ -528,13 +528,13 @@
               />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-slate-700" for="sale-end">Sale End</label>
+              <label class="text-sm font-medium text-foreground" for="sale-end">Sale End</label>
               <Input id="sale-end" type="datetime-local" bind:value={form.sale_end_at} required />
             </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="max-order"
+            <label class="text-sm font-medium text-foreground" for="max-order"
               >Max Tickets per Order</label
             >
             <Input
@@ -548,16 +548,16 @@
         </div>
       {:else if currentStep === 3}
         <div class="space-y-6">
-          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
+          <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-semibold text-slate-950">Banner Event</p>
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="font-semibold text-foreground">Banner Event</p>
+                <p class="mt-1 text-sm text-muted-foreground">
                   Unggah visual utama untuk kartu event dan halaman detail.
                 </p>
               </div>
               <label
-                class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex cursor-pointer items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition"
+                class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex cursor-pointer items-center rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition"
               >
                 {#if isUploadingBanner}
                   <LoaderCircle class="mr-2 size-4 animate-spin" />
@@ -584,23 +584,23 @@
               />
             {:else}
               <div
-                class="mt-5 flex h-52 items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white text-sm text-slate-500"
+                class="mt-5 flex h-52 items-center justify-center rounded-[1.4rem] border border-dashed border-border bg-card text-sm text-muted-foreground"
               >
                 Banner belum diunggah.
               </div>
             {/if}
           </div>
 
-          <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
+          <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="font-semibold text-slate-950">Galeri Event</p>
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="font-semibold text-foreground">Galeri Event</p>
+                <p class="mt-1 text-sm text-muted-foreground">
                   Tambahkan visual pendukung venue, performer, atau ambience event.
                 </p>
               </div>
               <label
-                class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex cursor-pointer items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition"
+                class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex cursor-pointer items-center rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition"
               >
                 {#if isUploadingGallery}
                   <LoaderCircle class="mr-2 size-4 animate-spin" />
@@ -623,14 +623,14 @@
             {#if form.images.length > 0}
               <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {#each form.images as image (image.clientId)}
-                  <div class="overflow-hidden rounded-[1.3rem] border border-slate-200 bg-white">
+                  <div class="overflow-hidden rounded-[1.3rem] border border-border bg-card">
                     <img
                       class="h-40 w-full object-cover"
                       src={image.image_url}
                       alt="Galeri event"
                     />
                     <div class="flex items-center justify-between px-4 py-3">
-                      <p class="text-xs font-medium tracking-[0.28em] text-slate-500 uppercase">
+                      <p class="text-xs font-medium tracking-[0.28em] text-muted-foreground uppercase">
                         Sort {image.sort_order}
                       </p>
                       <button
@@ -646,7 +646,7 @@
               </div>
             {:else}
               <div
-                class="mt-5 flex h-40 items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white text-sm text-slate-500"
+                class="mt-5 flex h-40 items-center justify-center rounded-[1.4rem] border border-dashed border-border bg-card text-sm text-muted-foreground"
               >
                 Belum ada galeri tambahan.
               </div>
@@ -657,8 +657,8 @@
         <div class="space-y-4">
           <div class="flex items-center justify-between gap-4">
             <div>
-              <p class="font-semibold text-slate-950">Tier tiket</p>
-              <p class="mt-1 text-sm text-slate-500">
+              <p class="font-semibold text-foreground">Tier tiket</p>
+              <p class="mt-1 text-sm text-muted-foreground">
                 Tambahkan semua tier yang akan muncul saat event mulai dijual.
               </p>
             </div>
@@ -669,11 +669,11 @@
           </div>
 
           {#each form.tiers as tier, index (tier.clientId)}
-            <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5">
+            <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="font-semibold text-slate-950">Tier {index + 1}</p>
-                  <p class="mt-1 text-sm text-slate-500">
+                  <p class="font-semibold text-foreground">Tier {index + 1}</p>
+                  <p class="mt-1 text-sm text-muted-foreground">
                     Urutan tampil akan mengikuti posisi tier di bawah ini.
                   </p>
                 </div>
@@ -691,7 +691,7 @@
               <div class="mt-5 grid gap-4 sm:grid-cols-2">
                 <div class="space-y-2 sm:col-span-2">
                   <label
-                    class="text-sm font-medium text-slate-700"
+                    class="text-sm font-medium text-foreground"
                     for={`tier-name-${tier.clientId}`}>Nama Tier</label
                   >
                   <Input
@@ -703,19 +703,19 @@
                 </div>
                 <div class="space-y-2 sm:col-span-2">
                   <label
-                    class="text-sm font-medium text-slate-700"
+                    class="text-sm font-medium text-foreground"
                     for={`tier-description-${tier.clientId}`}>Deskripsi</label
                   >
                   <textarea
                     id={`tier-description-${tier.clientId}`}
                     bind:value={tier.description}
-                    class="min-h-24 w-full rounded-[1.25rem] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    class="min-h-24 w-full rounded-[1.25rem] border border-border bg-card px-4 py-3 text-sm text-foreground transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
                     placeholder="Benefit, area duduk, atau akses khusus untuk tier ini."
                   ></textarea>
                 </div>
                 <div class="space-y-2">
                   <label
-                    class="text-sm font-medium text-slate-700"
+                    class="text-sm font-medium text-foreground"
                     for={`tier-price-${tier.clientId}`}>Harga</label
                   >
                   <Input
@@ -729,7 +729,7 @@
                 </div>
                 <div class="space-y-2">
                   <label
-                    class="text-sm font-medium text-slate-700"
+                    class="text-sm font-medium text-foreground"
                     for={`tier-quota-${tier.clientId}`}>Quota</label
                   >
                   <Input
@@ -743,7 +743,7 @@
                 </div>
                 <div class="space-y-2">
                   <label
-                    class="text-sm font-medium text-slate-700"
+                    class="text-sm font-medium text-foreground"
                     for={`tier-sale-start-${tier.clientId}`}>Sale Start Tier</label
                   >
                   <Input
@@ -754,7 +754,7 @@
                 </div>
                 <div class="space-y-2">
                   <label
-                    class="text-sm font-medium text-slate-700"
+                    class="text-sm font-medium text-foreground"
                     for={`tier-sale-end-${tier.clientId}`}>Sale End Tier</label
                   >
                   <Input
@@ -773,64 +773,64 @@
             <p class="text-sm font-semibold tracking-[0.28em] text-emerald-700 uppercase">
               Review Ringkas
             </p>
-            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-foreground">
               {form.title || 'Untitled Event'}
             </h2>
-            <p class="mt-2 text-sm leading-6 text-slate-600">
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
               {form.description || 'Belum ada deskripsi event.'}
             </p>
           </div>
 
           <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-[1.3rem] border border-slate-200 bg-slate-50/70 p-4">
-              <p class="text-sm text-slate-500">Kategori</p>
-              <p class="mt-3 text-lg font-semibold text-slate-950">{form.category_ids.length}</p>
+            <div class="rounded-[1.3rem] border border-border bg-muted/70 p-4">
+              <p class="text-sm text-muted-foreground">Kategori</p>
+              <p class="mt-3 text-lg font-semibold text-foreground">{form.category_ids.length}</p>
             </div>
-            <div class="rounded-[1.3rem] border border-slate-200 bg-slate-50/70 p-4">
-              <p class="text-sm text-slate-500">Tier</p>
-              <p class="mt-3 text-lg font-semibold text-slate-950">{form.tiers.length}</p>
+            <div class="rounded-[1.3rem] border border-border bg-muted/70 p-4">
+              <p class="text-sm text-muted-foreground">Tier</p>
+              <p class="mt-3 text-lg font-semibold text-foreground">{form.tiers.length}</p>
             </div>
-            <div class="rounded-[1.3rem] border border-slate-200 bg-slate-50/70 p-4">
-              <p class="text-sm text-slate-500">Potensi Kuota</p>
-              <p class="mt-3 text-lg font-semibold text-slate-950">{soldPotential}</p>
+            <div class="rounded-[1.3rem] border border-border bg-muted/70 p-4">
+              <p class="text-sm text-muted-foreground">Potensi Kuota</p>
+              <p class="mt-3 text-lg font-semibold text-foreground">{soldPotential}</p>
             </div>
-            <div class="rounded-[1.3rem] border border-slate-200 bg-slate-50/70 p-4">
-              <p class="text-sm text-slate-500">Galeri</p>
-              <p class="mt-3 text-lg font-semibold text-slate-950">{form.images.length}</p>
+            <div class="rounded-[1.3rem] border border-border bg-muted/70 p-4">
+              <p class="text-sm text-muted-foreground">Galeri</p>
+              <p class="mt-3 text-lg font-semibold text-foreground">{form.images.length}</p>
             </div>
           </div>
 
           <div class="grid gap-5 lg:grid-cols-2">
-            <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <p class="font-semibold text-slate-950">Lokasi & Waktu</p>
-              <div class="mt-4 space-y-2 text-sm text-slate-600">
+            <div class="rounded-[1.5rem] border border-border bg-card p-5">
+              <p class="font-semibold text-foreground">Lokasi & Waktu</p>
+              <div class="mt-4 space-y-2 text-sm text-muted-foreground">
                 <p>
-                  <span class="font-medium text-slate-900">Venue:</span>
+                  <span class="font-medium text-foreground">Venue:</span>
                   {form.venue_name || '—'}
                 </p>
                 <p>
-                  <span class="font-medium text-slate-900">Alamat:</span>
+                  <span class="font-medium text-foreground">Alamat:</span>
                   {form.venue_address || '—'}
                 </p>
                 <p>
-                  <span class="font-medium text-slate-900">Kota:</span>
+                  <span class="font-medium text-foreground">Kota:</span>
                   {form.venue_city || '—'}
                 </p>
-                <p><span class="font-medium text-slate-900">Start:</span> {form.start_at || '—'}</p>
-                <p><span class="font-medium text-slate-900">End:</span> {form.end_at || '—'}</p>
+                <p><span class="font-medium text-foreground">Start:</span> {form.start_at || '—'}</p>
+                <p><span class="font-medium text-foreground">End:</span> {form.end_at || '—'}</p>
               </div>
             </div>
 
-            <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <p class="font-semibold text-slate-950">Tier Preview</p>
+            <div class="rounded-[1.5rem] border border-border bg-card p-5">
+              <p class="font-semibold text-foreground">Tier Preview</p>
               <div class="mt-4 space-y-3">
                 {#each form.tiers as tier (tier.clientId)}
                   <div
-                    class="rounded-[1.1rem] border border-slate-200 bg-slate-50/70 p-4 text-sm text-slate-600"
+                    class="rounded-[1.1rem] border border-border bg-muted/70 p-4 text-sm text-muted-foreground"
                   >
                     <div class="flex items-center justify-between gap-4">
-                      <p class="font-semibold text-slate-950">{tier.name || 'Tier tanpa nama'}</p>
-                      <p class="font-medium text-slate-900">
+                      <p class="font-semibold text-foreground">{tier.name || 'Tier tanpa nama'}</p>
+                      <p class="font-medium text-foreground">
                         Rp {Number(tier.price || 0).toLocaleString('id-ID')}
                       </p>
                     </div>
@@ -876,9 +876,9 @@
       <Card
         title="Checklist create"
         description="Gunakan panel ini untuk memastikan data inti event tidak terlewat."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+        class="rounded-[2rem] border border-border bg-card/95"
       >
-        <div class="space-y-3 text-sm text-slate-600">
+        <div class="space-y-3 text-sm text-muted-foreground">
           <p class={form.title && form.category_ids.length > 0 ? 'text-emerald-700' : ''}>
             1. Info dasar dan kategori dipilih.
           </p>
@@ -899,26 +899,26 @@
       <Card
         title="Preview operasi"
         description="Ringkasan cepat untuk keputusan sebelum event disimpan."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+        class="rounded-[2rem] border border-border bg-card/95"
       >
-        <div class="space-y-4 text-sm text-slate-600">
-          <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50/70 p-4">
-            <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">
+        <div class="space-y-4 text-sm text-muted-foreground">
+          <div class="rounded-[1.2rem] border border-border bg-muted/70 p-4">
+            <p class="text-xs font-semibold tracking-[0.26em] text-muted-foreground uppercase">
               Status awal
             </p>
-            <p class="mt-2 text-base font-semibold text-slate-950">Draft</p>
+            <p class="mt-2 text-base font-semibold text-foreground">Draft</p>
           </div>
-          <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50/70 p-4">
-            <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">
+          <div class="rounded-[1.2rem] border border-border bg-muted/70 p-4">
+            <p class="text-xs font-semibold tracking-[0.26em] text-muted-foreground uppercase">
               Sale Window
             </p>
-            <p class="mt-2 text-base font-semibold text-slate-950">
+            <p class="mt-2 text-base font-semibold text-foreground">
               {form.sale_start_at || '—'} → {form.sale_end_at || '—'}
             </p>
           </div>
-          <div class="rounded-[1.2rem] border border-slate-200 bg-slate-50/70 p-4">
-            <p class="text-xs font-semibold tracking-[0.26em] text-slate-500 uppercase">Banner</p>
-            <p class="mt-2 text-base font-semibold text-slate-950">
+          <div class="rounded-[1.2rem] border border-border bg-muted/70 p-4">
+            <p class="text-xs font-semibold tracking-[0.26em] text-muted-foreground uppercase">Banner</p>
+            <p class="mt-2 text-base font-semibold text-foreground">
               {form.banner_url ? 'Ready' : 'Belum ada'}
             </p>
           </div>

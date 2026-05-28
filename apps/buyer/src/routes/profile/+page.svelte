@@ -63,23 +63,23 @@
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">Buyer Profile</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">Buyer Profile</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Rapikan profil untuk checkout yang lebih cepat.
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Perbarui identitas dasar akun Anda, simpan avatar yang mudah dikenali, dan pastikan
           password tetap aman.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/75 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Email</p>
-          <p class="mt-2 text-sm font-medium text-slate-900">{getProfile().email}</p>
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/75 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">Email</p>
+          <p class="mt-2 text-sm font-medium text-foreground">{getProfile().email}</p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/75 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Status</p>
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/75 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">Status</p>
           <p class="mt-2 inline-flex items-center gap-2 text-sm font-medium text-emerald-700">
             <ShieldCheck class="size-4" />
             {getProfile().status}
@@ -91,15 +91,15 @@
 
   <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
     <Card
-      class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+      class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
     >
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Profil</p>
-          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">Profil</p>
+          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
             Identitas akun buyer
           </h2>
-          <p class="mt-2 text-sm leading-6 text-slate-600">
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
             Data ini dipakai untuk pengenal akun dan komunikasi seputar transaksi Anda.
           </p>
         </div>
@@ -118,10 +118,10 @@
         enctype="multipart/form-data"
       >
         <div
-          class="flex flex-col gap-5 rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 sm:flex-row sm:items-center"
+          class="flex flex-col gap-5 rounded-[1.75rem] border border-border bg-muted p-5 sm:flex-row sm:items-center"
         >
           <div
-            class="flex size-24 items-center justify-center overflow-hidden rounded-[1.5rem] bg-[linear-gradient(135deg,#f97316,#facc15)] text-2xl font-semibold text-slate-950"
+            class="flex size-24 items-center justify-center overflow-hidden rounded-[1.5rem] bg-[linear-gradient(135deg,#f97316,#facc15)] text-2xl font-semibold text-foreground"
           >
             {#if getAvatarSrc()}
               <img
@@ -136,14 +136,14 @@
 
           <div class="min-w-0 flex-1 space-y-3">
             <div>
-              <p class="text-sm font-medium text-slate-900">Avatar akun</p>
-              <p class="mt-1 text-sm text-slate-600">
+              <p class="text-sm font-medium text-foreground">Avatar akun</p>
+              <p class="mt-1 text-sm text-muted-foreground">
                 Unggah JPG, PNG, atau WebP untuk memudahkan identifikasi akun buyer.
               </p>
             </div>
 
             <label
-              class="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:text-slate-950"
+              class="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition hover:border-border hover:text-foreground"
               for="avatar"
             >
               <Camera class="size-4" />
@@ -159,14 +159,14 @@
             />
 
             {#if selectedFileName}
-              <p class="truncate text-sm text-slate-500">File dipilih: {selectedFileName}</p>
+              <p class="truncate text-sm text-muted-foreground">File dipilih: {selectedFileName}</p>
             {/if}
           </div>
         </div>
 
         <div class="grid gap-5 sm:grid-cols-2">
           <div class="space-y-2 sm:col-span-2">
-            <label class="text-sm font-medium text-slate-700" for="full_name">Full Name</label>
+            <label class="text-sm font-medium text-foreground" for="full_name">Nama Lengkap</label>
             <Input
               id="full_name"
               name="full_name"
@@ -177,20 +177,20 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="email">Email</label>
+            <label class="text-sm font-medium text-foreground" for="email">Email</label>
             <div class="relative">
               <Mail
-                class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+                class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground/70"
               />
               <Input id="email" value={getProfile().email} class="pl-10" readonly disabled />
             </div>
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700" for="phone">Phone</label>
+            <label class="text-sm font-medium text-foreground" for="phone">Telepon</label>
             <div class="relative">
               <Phone
-                class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400"
+                class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground/70"
               />
               <Input
                 id="phone"
@@ -227,13 +227,13 @@
     </Card>
 
     <Card
-      class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+      class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
     >
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">Security</p>
-          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Ubah password</h2>
-          <p class="mt-2 text-sm leading-6 text-slate-600">
+          <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">Security</p>
+          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">Ubah password</h2>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
             Gunakan kombinasi password baru yang kuat untuk menjaga keamanan akun buyer Anda.
           </p>
         </div>
@@ -245,7 +245,7 @@
 
       <form class="mt-8 space-y-5" method="POST" action="?/changePassword">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="old_password">Old Password</label>
+          <label class="text-sm font-medium text-foreground" for="old_password">Password Lama</label>
           <Input
             id="old_password"
             name="old_password"
@@ -257,7 +257,7 @@
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="new_password">New Password</label>
+          <label class="text-sm font-medium text-foreground" for="new_password">Password Baru</label>
           <Input
             id="new_password"
             name="new_password"
@@ -269,8 +269,8 @@
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700" for="confirm_password"
-            >Confirm New Password</label
+          <label class="text-sm font-medium text-foreground" for="confirm_password"
+            >Konfirmasi Password Baru</label
           >
           <Input
             id="confirm_password"

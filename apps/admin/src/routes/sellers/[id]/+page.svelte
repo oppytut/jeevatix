@@ -227,14 +227,14 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-4 rounded-[2rem] border border-slate-200/80 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="flex flex-col gap-4 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A6</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A6</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
         Detail seller
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
         Verifikasi organisasi seller, audit data bank, dan review event yang sedang mereka kelola.
       </p>
     </div>
@@ -277,7 +277,7 @@
   {#if isLoading}
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {#each Array.from({ length: 4 }) as _, index (index)}
-        <div class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"></div>
+        <div class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"></div>
       {/each}
     </div>
   {:else if sellerUser?.sellerProfile}
@@ -285,30 +285,30 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Status verifikasi</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">
+        <p class="text-sm text-muted-foreground">Status verifikasi</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">
           {sellerUser.sellerProfile.isVerified ? 'Verified' : 'Pending'}
         </p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Jumlah event</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">
+        <p class="text-sm text-muted-foreground">Jumlah event</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">
           {sellerUser.sellerProfile.eventCount}
         </p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-slate-200/80 bg-white/90"
+        class="rounded-[1.75rem] border border-border bg-card/90"
       >
-        <p class="text-sm text-slate-500">Order user</p>
-        <p class="mt-2 text-3xl font-semibold text-slate-950">{sellerUser.orderCount}</p>
+        <p class="text-sm text-muted-foreground">Order user</p>
+        <p class="mt-2 text-3xl font-semibold text-foreground">{sellerUser.orderCount}</p>
       </Card>
     </div>
 
@@ -316,30 +316,30 @@
       <Card
         title="Profil organisasi"
         description="Detail identitas seller dan PIC akun yang akan diverifikasi."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="grid gap-6 md:grid-cols-2">
           <div>
-            <p class="text-sm text-slate-500">Organisasi</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">
+            <p class="text-sm text-muted-foreground">Organisasi</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">
               {sellerUser.sellerProfile.orgName}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">PIC</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{sellerUser.fullName}</p>
+            <p class="text-sm text-muted-foreground">PIC</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{sellerUser.fullName}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Email</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{sellerUser.email}</p>
+            <p class="text-sm text-muted-foreground">Email</p>
+            <p class="mt-2 text-base font-medium text-foreground">{sellerUser.email}</p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Phone</p>
-            <p class="mt-2 text-base font-medium text-slate-900">{sellerUser.phone ?? '—'}</p>
+            <p class="text-sm text-muted-foreground">Phone</p>
+            <p class="mt-2 text-base font-medium text-foreground">{sellerUser.phone ?? '—'}</p>
           </div>
           <div class="md:col-span-2">
-            <p class="text-sm text-slate-500">Deskripsi organisasi</p>
-            <p class="mt-2 text-sm leading-7 text-slate-700">
+            <p class="text-sm text-muted-foreground">Deskripsi organisasi</p>
+            <p class="mt-2 text-sm leading-7 text-foreground">
               {sellerUser.sellerProfile.orgDescription ?? 'Belum ada deskripsi organisasi.'}
             </p>
           </div>
@@ -349,12 +349,12 @@
       <Card
         title="Keputusan verifikasi"
         description="Approve seller ketika seluruh informasi organisasi dan payout sudah tervalidasi."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="space-y-4">
-          <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 p-4">
-            <p class="text-sm text-slate-500">Terverifikasi pada</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+          <div class="rounded-[1.5rem] border border-border bg-muted/80 p-4">
+            <p class="text-sm text-muted-foreground">Terverifikasi pada</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {formatDate(sellerUser.sellerProfile.verifiedAt)}
             </p>
           </div>
@@ -381,24 +381,24 @@
       <Card
         title="Data bank"
         description="Pastikan data payout seller lengkap dan sesuai sebelum approval."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="space-y-5">
           <div>
-            <p class="text-sm text-slate-500">Bank</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Bank</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {sellerUser.sellerProfile.bankName ?? '—'}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Nomor rekening</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Nomor rekening</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {sellerUser.sellerProfile.bankAccountNumber ?? '—'}
             </p>
           </div>
           <div>
-            <p class="text-sm text-slate-500">Nama pemilik rekening</p>
-            <p class="mt-2 text-base font-medium text-slate-900">
+            <p class="text-sm text-muted-foreground">Nama pemilik rekening</p>
+            <p class="mt-2 text-base font-medium text-foreground">
               {sellerUser.sellerProfile.bankAccountHolder ?? '—'}
             </p>
           </div>
@@ -408,21 +408,21 @@
       <Card
         title="Daftar event seller"
         description="Event terkini yang dimiliki seller ini untuk membantu review kualitas dan kesiapan operasional."
-        class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
       >
         <div class="space-y-3">
           {#if sellerUser.sellerProfile.events.length > 0}
             {#each sellerUser.sellerProfile.events as event (event.id)}
-              <div class="rounded-[1.5rem] border border-slate-200/80 bg-slate-50/80 px-4 py-4">
+              <div class="rounded-[1.5rem] border border-border bg-muted/80 px-4 py-4">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p class="font-semibold text-slate-950">{event.title}</p>
-                    <p class="text-sm text-slate-600">
+                    <p class="font-semibold text-foreground">{event.title}</p>
+                    <p class="text-sm text-muted-foreground">
                       {event.venueCity} • {formatDate(event.startAt)}
                     </p>
                   </div>
                   <span
-                    class="rounded-full bg-white px-3 py-1 text-xs font-semibold tracking-[0.18em] text-slate-700 uppercase"
+                    class="rounded-full bg-card px-3 py-1 text-xs font-semibold tracking-[0.18em] text-foreground uppercase"
                     >{formatStatus(event.status)}</span
                   >
                 </div>
@@ -430,7 +430,7 @@
             {/each}
           {:else}
             <div
-              class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-500"
+              class="rounded-[1.5rem] border border-dashed border-border bg-muted px-4 py-6 text-sm text-muted-foreground"
             >
               Seller ini belum memiliki event terdaftar.
             </div>

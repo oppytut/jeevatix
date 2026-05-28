@@ -97,9 +97,9 @@
     >
       <div class="flex h-full flex-col px-6 py-8">
         <div class="space-y-2 border-b border-white/10 pb-6">
-          <p class="text-xs font-semibold tracking-[0.35em] text-slate-400 uppercase">Jeevatix</p>
+          <p class="text-xs font-semibold tracking-[0.35em] text-muted-foreground/70 uppercase">Jeevatix</p>
           <h1 class="text-2xl font-semibold tracking-tight">Admin Console</h1>
-          <p class="text-sm leading-6 text-slate-400">
+          <p class="text-sm leading-6 text-muted-foreground/70">
             Kontrol pusat untuk operasional event, transaksi, dan verifikasi seller.
           </p>
         </div>
@@ -111,16 +111,16 @@
               class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
             >
               <span>{item.label}</span>
-              <span class="text-xs tracking-[0.3em] text-slate-500 uppercase">Go</span>
+              <span class="text-xs tracking-[0.3em] text-muted-foreground uppercase">Go</span>
             </a>
           {/each}
         </nav>
 
         <div class="space-y-4 rounded-3xl border border-white/10 bg-white/5 p-4">
           <div>
-            <p class="text-xs font-semibold tracking-[0.3em] text-slate-400 uppercase">Session</p>
+            <p class="text-xs font-semibold tracking-[0.3em] text-muted-foreground/70 uppercase">Session</p>
             <p class="mt-2 text-sm font-medium text-white">{currentUser?.full_name}</p>
-            <p class="text-sm text-slate-400">{currentUser?.email}</p>
+            <p class="text-sm text-muted-foreground/70">{currentUser?.email}</p>
           </div>
 
           <button

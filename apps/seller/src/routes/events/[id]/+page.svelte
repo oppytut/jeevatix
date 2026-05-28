@@ -250,17 +250,17 @@
 
   {#if isLoading}
     <div class="space-y-6">
-      <div class="h-64 animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
+      <div class="h-64 animate-pulse rounded-[2rem] border border-border bg-muted"></div>
       <div class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div class="h-130 animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
-        <div class="h-130 animate-pulse rounded-[2rem] border border-slate-200 bg-slate-100"></div>
+        <div class="h-130 animate-pulse rounded-[2rem] border border-border bg-muted"></div>
+        <div class="h-130 animate-pulse rounded-[2rem] border border-border bg-muted"></div>
       </div>
     </div>
   {:else if eventDetail}
     <div
-      class="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
+      class="overflow-hidden rounded-[2rem] border border-border bg-card shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
     >
-      <div class="relative h-72 overflow-hidden bg-slate-100">
+      <div class="relative h-72 overflow-hidden bg-muted">
         {#if eventDetail.banner_url}
           <img
             class="h-full w-full object-cover"
@@ -268,7 +268,7 @@
             alt={eventDetail.title}
           />
         {:else}
-          <div class="flex h-full items-center justify-center text-sm text-slate-500">
+          <div class="flex h-full items-center justify-center text-sm text-muted-foreground">
             Banner event belum tersedia.
           </div>
         {/if}
@@ -294,7 +294,7 @@
               <Button
                 variant="outline"
                 type="button"
-                class="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                class="border-white/30 bg-card/10 text-white hover:bg-card/20"
                 onclick={() => goto(resolve('/events'))}
               >
                 <ArrowLeft class="mr-2 size-4" />
@@ -303,7 +303,7 @@
               <Button
                 variant="outline"
                 type="button"
-                class="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                class="border-white/30 bg-card/10 text-white hover:bg-card/20"
                 onclick={goToTiers}
               >
                 <Ticket class="mr-2 size-4" />
@@ -312,7 +312,7 @@
               <Button
                 variant="outline"
                 type="button"
-                class="border-white/30 bg-white/10 text-white hover:bg-white/20"
+                class="border-white/30 bg-card/10 text-white hover:bg-card/20"
                 onclick={goToCheckin}
               >
                 <QrCode class="mr-2 size-4" />
@@ -329,21 +329,21 @@
     </div>
 
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <div class="rounded-[1.6rem] border border-slate-200/80 bg-white p-6 shadow-sm">
-        <p class="text-sm text-slate-500">Tiket Terjual</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{eventDetail.total_sold}</p>
+      <div class="rounded-[1.6rem] border border-border bg-card p-6 shadow-sm">
+        <p class="text-sm text-muted-foreground">Tiket Terjual</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">{eventDetail.total_sold}</p>
       </div>
-      <div class="rounded-[1.6rem] border border-slate-200/80 bg-white p-6 shadow-sm">
-        <p class="text-sm text-slate-500">Total Quota</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{eventDetail.total_quota}</p>
+      <div class="rounded-[1.6rem] border border-border bg-card p-6 shadow-sm">
+        <p class="text-sm text-muted-foreground">Total Quota</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">{eventDetail.total_quota}</p>
       </div>
-      <div class="rounded-[1.6rem] border border-slate-200/80 bg-white p-6 shadow-sm">
-        <p class="text-sm text-slate-500">Active Tiers</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">{summary.activeTiers}</p>
+      <div class="rounded-[1.6rem] border border-border bg-card p-6 shadow-sm">
+        <p class="text-sm text-muted-foreground">Active Tiers</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.activeTiers}</p>
       </div>
-      <div class="rounded-[1.6rem] border border-slate-200/80 bg-white p-6 shadow-sm">
-        <p class="text-sm text-slate-500">Sell-through</p>
-        <p class="mt-3 text-3xl font-semibold text-slate-950">
+      <div class="rounded-[1.6rem] border border-border bg-card p-6 shadow-sm">
+        <p class="text-sm text-muted-foreground">Sell-through</p>
+        <p class="mt-3 text-3xl font-semibold text-foreground">
           {summary.soldPercentage.toFixed(0)}%
         </p>
       </div>
@@ -354,14 +354,14 @@
         <Card
           title="Informasi event"
           description="Ringkasan info operasional yang akan tampil ke pembeli saat event dipublikasikan."
-          class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+          class="rounded-[2rem] border border-border bg-card/95"
         >
           <div class="grid gap-5 lg:grid-cols-2">
-            <div class="space-y-4 text-sm text-slate-600">
+            <div class="space-y-4 text-sm text-muted-foreground">
               <div class="flex items-start gap-3">
                 <CalendarDays class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
-                  <p class="font-semibold text-slate-950">Jadwal Event</p>
+                  <p class="font-semibold text-foreground">Jadwal Event</p>
                   <p>
                     {formatDateTime(eventDetail.start_at)} → {formatDateTime(eventDetail.end_at)}
                   </p>
@@ -370,7 +370,7 @@
               <div class="flex items-start gap-3">
                 <ChartColumn class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
-                  <p class="font-semibold text-slate-950">Jendela Penjualan</p>
+                  <p class="font-semibold text-foreground">Jendela Penjualan</p>
                   <p>
                     {formatDateTime(eventDetail.sale_start_at)} → {formatDateTime(
                       eventDetail.sale_end_at,
@@ -379,11 +379,11 @@
                 </div>
               </div>
             </div>
-            <div class="space-y-4 text-sm text-slate-600">
+            <div class="space-y-4 text-sm text-muted-foreground">
               <div class="flex items-start gap-3">
                 <MapPinned class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
-                  <p class="font-semibold text-slate-950">Venue</p>
+                  <p class="font-semibold text-foreground">Venue</p>
                   <p>{eventDetail.venue_name}</p>
                   <p>{eventDetail.venue_address ?? 'Alamat venue belum diisi.'}</p>
                   <p>{eventDetail.venue_city}</p>
@@ -392,7 +392,7 @@
               <div class="flex items-start gap-3">
                 <Ticket class="text-jeevatix-600 mt-0.5 size-4" />
                 <div>
-                  <p class="font-semibold text-slate-950">Max per Order</p>
+                  <p class="font-semibold text-foreground">Max per Order</p>
                   <p>{eventDetail.max_tickets_per_order} tiket</p>
                 </div>
               </div>
@@ -409,23 +409,23 @@
         <Card
           title="Distribusi penjualan per tier"
           description="Grafik bar sederhana untuk membaca kontribusi tiap tier terhadap penjualan event."
-          class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+          class="rounded-[2rem] border border-border bg-card/95"
         >
           <div class="space-y-4">
             {#each eventDetail.tiers as tier (tier.id)}
               {@const soldPercentage =
                 tier.quota === 0 ? 0 : Math.min(100, (tier.sold_count / tier.quota) * 100)}
-              <div class="rounded-[1.4rem] border border-slate-200 bg-slate-50/70 p-4">
+              <div class="rounded-[1.4rem] border border-border bg-muted/70 p-4">
                 <div class="flex items-center justify-between gap-4">
                   <div>
-                    <p class="font-semibold text-slate-950">{tier.name}</p>
-                    <p class="mt-1 text-sm text-slate-500">
+                    <p class="font-semibold text-foreground">{tier.name}</p>
+                    <p class="mt-1 text-sm text-muted-foreground">
                       Rp {tier.price.toLocaleString('id-ID')} • {tier.status}
                     </p>
                   </div>
-                  <p class="text-sm font-medium text-slate-700">{tier.sold_count}/{tier.quota}</p>
+                  <p class="text-sm font-medium text-foreground">{tier.sold_count}/{tier.quota}</p>
                 </div>
-                <div class="mt-4 h-3 overflow-hidden rounded-full bg-slate-200">
+                <div class="mt-4 h-3 overflow-hidden rounded-full bg-muted">
                   <div
                     class="bg-jeevatix-600 h-full rounded-full"
                     style={`width: ${soldPercentage}%`}
@@ -439,7 +439,7 @@
         <Card
           title="Galeri event"
           description="Preview aset tambahan yang akan muncul di detail page pembeli."
-          class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+          class="rounded-[2rem] border border-border bg-card/95"
         >
           {#if eventDetail.images.length > 0}
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -453,7 +453,7 @@
             </div>
           {:else}
             <div
-              class="flex h-40 items-center justify-center rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-500"
+              class="flex h-40 items-center justify-center rounded-[1.5rem] border border-dashed border-border bg-muted text-sm text-muted-foreground"
             >
               Belum ada galeri tambahan untuk event ini.
             </div>
@@ -465,7 +465,7 @@
         <Card
           title="Aksi cepat"
           description="Tombol operasional utama untuk event seller."
-          class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+          class="rounded-[2rem] border border-border bg-card/95"
         >
           <div class="space-y-3">
             <Button class="w-full" type="button" onclick={goToEdit}>
@@ -499,10 +499,10 @@
         <Card
           title="Daftar pesanan terbaru"
           description="Panel ini disiapkan untuk integrasi penuh setelah Seller Order API di T-7.5 tersedia."
-          class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+          class="rounded-[2rem] border border-border bg-card/95"
         >
           <div
-            class="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50/70 p-5 text-sm leading-6 text-slate-500"
+            class="rounded-[1.5rem] border border-dashed border-border bg-muted/70 p-5 text-sm leading-6 text-muted-foreground"
           >
             Data pesanan masuk belum tersedia di kontrak API saat fase ini. Halaman detail tetap
             menampilkan statistik tier dan readiness event, lalu akan diperkaya order feed saat
@@ -513,18 +513,18 @@
         <Card
           title="Metadata"
           description="Informasi audit untuk aktivitas seller pada event ini."
-          class="rounded-[2rem] border border-slate-200/80 bg-white/95"
+          class="rounded-[2rem] border border-border bg-card/95"
         >
-          <div class="space-y-3 text-sm text-slate-600">
+          <div class="space-y-3 text-sm text-muted-foreground">
             <p>
-              <span class="font-semibold text-slate-950">Created:</span>
+              <span class="font-semibold text-foreground">Created:</span>
               {formatDateTime(eventDetail.created_at)}
             </p>
             <p>
-              <span class="font-semibold text-slate-950">Updated:</span>
+              <span class="font-semibold text-foreground">Updated:</span>
               {formatDateTime(eventDetail.updated_at)}
             </p>
-            <p><span class="font-semibold text-slate-950">Slug:</span> {eventDetail.slug}</p>
+            <p><span class="font-semibold text-foreground">Slug:</span> {eventDetail.slug}</p>
           </div>
         </Card>
       </div>

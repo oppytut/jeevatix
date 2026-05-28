@@ -20,7 +20,7 @@
       case 'confirmed':
         return 'bg-emerald-100 text-emerald-700';
       case 'expired':
-        return 'bg-slate-200 text-slate-700';
+        return 'bg-muted text-foreground';
       case 'cancelled':
         return 'bg-rose-100 text-rose-700';
       case 'refunded':
@@ -69,62 +69,62 @@
   >
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">Orders</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">Orders</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Semua transaksi Anda dalam satu timeline.
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Pantau status pembayaran, cek detail pesanan, dan lanjutkan transaksi yang masih pending
           tanpa mencari email konfirmasi.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
             Total Orders
           </p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{data.meta.total}</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{data.meta.total}</p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
             Current Page
           </p>
-          <p class="mt-2 text-3xl font-semibold text-slate-950">{data.meta.page}</p>
+          <p class="mt-2 text-3xl font-semibold text-foreground">{data.meta.page}</p>
         </div>
       </div>
     </div>
   </div>
 
   <Card
-    class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+    class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
   >
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
           Order History
         </p>
-        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
           Daftar pesanan buyer
         </h2>
       </div>
 
-      <div class="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-600">
+      <div class="rounded-full bg-muted px-4 py-2 text-sm text-muted-foreground">
         Menampilkan {data.orders.length} dari {data.meta.total} order
       </div>
     </div>
 
     {#if data.orders.length === 0}
       <div
-        class="mt-8 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 px-6 py-14 text-center"
+        class="mt-8 rounded-[1.75rem] border border-dashed border-border bg-muted px-6 py-14 text-center"
       >
         <div
-          class="mx-auto flex size-16 items-center justify-center rounded-full bg-slate-100 text-slate-500"
+          class="mx-auto flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground"
         >
           <ReceiptText class="size-7" />
         </div>
-        <h3 class="mt-5 text-2xl font-semibold tracking-tight text-slate-950">Belum ada order</h3>
-        <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
+        <h3 class="mt-5 text-2xl font-semibold tracking-tight text-foreground">Belum ada order</h3>
+        <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
           Order yang Anda buat dari checkout akan tampil di sini lengkap dengan status pembayaran
           dan detail event.
         </p>
@@ -137,16 +137,16 @@
         {#each data.orders as order (order.id)}
           <button
             type="button"
-            class="w-full rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-slate-300 hover:bg-white"
+            class="w-full rounded-[1.75rem] border border-border bg-muted p-5 text-left transition hover:border-border hover:bg-card"
             onclick={() => goToOrder(order.id)}
           >
             <div class="flex items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">
+                <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
                   {order.order_number}
                 </p>
-                <h3 class="mt-2 text-xl font-semibold text-slate-950">{order.event_title}</h3>
-                <p class="mt-2 text-sm text-slate-600">
+                <h3 class="mt-2 text-xl font-semibold text-foreground">{order.event_title}</h3>
+                <p class="mt-2 text-sm text-muted-foreground">
                   Dibuat {formatRelativeTime(order.created_at)}
                 </p>
               </div>
@@ -158,17 +158,17 @@
             </div>
 
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
-              <div class="rounded-2xl bg-white px-4 py-3">
-                <p class="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">
+              <div class="rounded-2xl bg-card px-4 py-3">
+                <p class="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                   Tanggal Order
                 </p>
-                <p class="mt-2 text-sm font-medium text-slate-900">
+                <p class="mt-2 text-sm font-medium text-foreground">
                   {formatLongDateTime(order.created_at)}
                 </p>
               </div>
-              <div class="rounded-2xl bg-white px-4 py-3">
-                <p class="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">Total</p>
-                <p class="mt-2 text-sm font-medium text-slate-900">
+              <div class="rounded-2xl bg-card px-4 py-3">
+                <p class="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">Total</p>
+                <p class="mt-2 text-sm font-medium text-foreground">
                   {formatCurrency(order.total_amount)}
                 </p>
               </div>
@@ -177,10 +177,10 @@
         {/each}
       </div>
 
-      <div class="mt-8 hidden overflow-hidden rounded-[1.75rem] border border-slate-200 lg:block">
-        <table class="min-w-full divide-y divide-slate-200 bg-white">
-          <thead class="bg-slate-50">
-            <tr class="text-left text-xs font-semibold tracking-[0.18em] text-slate-500 uppercase">
+      <div class="mt-8 hidden overflow-hidden rounded-[1.75rem] border border-border lg:block">
+        <table class="min-w-full divide-y divide-border bg-card">
+          <thead class="bg-muted">
+            <tr class="text-left text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
               <th class="px-6 py-4">Order</th>
               <th class="px-6 py-4">Event</th>
               <th class="px-6 py-4">Tanggal</th>
@@ -188,31 +188,31 @@
               <th class="px-6 py-4">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200">
+          <tbody class="divide-y divide-border">
             {#each data.orders as order (order.id)}
               <tr>
                 <td class="px-6 py-0" colspan="5">
                   <button
                     type="button"
-                    class="grid w-full grid-cols-[1.2fr_1.4fr_1fr_1fr_0.9fr] items-center gap-4 py-5 text-left transition hover:bg-slate-50"
+                    class="grid w-full grid-cols-[1.2fr_1.4fr_1fr_1fr_0.9fr] items-center gap-4 py-5 text-left transition hover:bg-muted"
                     onclick={() => goToOrder(order.id)}
                   >
                     <div>
-                      <p class="text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">
+                      <p class="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
                         {order.order_number}
                       </p>
-                      <p class="mt-2 text-sm text-slate-600">
+                      <p class="mt-2 text-sm text-muted-foreground">
                         Order dibuat {formatRelativeTime(order.created_at)}
                       </p>
                     </div>
                     <div>
-                      <p class="font-medium text-slate-950">{order.event_title}</p>
-                      <p class="mt-1 text-sm text-slate-600">
+                      <p class="font-medium text-foreground">{order.event_title}</p>
+                      <p class="mt-1 text-sm text-muted-foreground">
                         Event ID {order.event_id.slice(0, 8)}...
                       </p>
                     </div>
-                    <div class="text-sm text-slate-700">{formatLongDateTime(order.created_at)}</div>
-                    <div class="text-sm font-semibold text-slate-950">
+                    <div class="text-sm text-foreground">{formatLongDateTime(order.created_at)}</div>
+                    <div class="text-sm font-semibold text-foreground">
                       {formatCurrency(order.total_amount)}
                     </div>
                     <div>
@@ -232,7 +232,7 @@
 
       {#if data.meta.totalPages > 1}
         <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-sm text-slate-600">
+          <p class="text-sm text-muted-foreground">
             Halaman {data.meta.page} dari {data.meta.totalPages}
           </p>
 
@@ -251,7 +251,7 @@
             {#each getVisiblePages() as pageNumber (pageNumber)}
               <button
                 type="button"
-                class={`flex size-11 items-center justify-center rounded-full border text-sm font-semibold transition ${pageNumber === data.meta.page ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'}`}
+                class={`flex size-11 items-center justify-center rounded-full border text-sm font-semibold transition ${pageNumber === data.meta.page ? 'border-foreground bg-foreground text-background' : 'border-border bg-card text-foreground hover:border-border hover:bg-muted'}`}
                 onclick={() => goToPage(pageNumber)}
               >
                 {pageNumber}
@@ -276,7 +276,7 @@
 
   <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
     <Card
-      class="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+      class="rounded-[1.75rem] border border-white/80 bg-card/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
     >
       <div class="flex items-start gap-3">
         <div
@@ -285,8 +285,8 @@
           <Wallet class="size-5" />
         </div>
         <div>
-          <p class="text-sm font-medium text-slate-900">Status pending tetap terlihat</p>
-          <p class="mt-1 text-sm leading-6 text-slate-600">
+          <p class="text-sm font-medium text-foreground">Status pending tetap terlihat</p>
+          <p class="mt-1 text-sm leading-6 text-muted-foreground">
             Buka detail order untuk melanjutkan pembayaran sebelum batas waktu habis.
           </p>
         </div>
@@ -294,7 +294,7 @@
     </Card>
 
     <Card
-      class="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+      class="rounded-[1.75rem] border border-white/80 bg-card/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
     >
       <div class="flex items-start gap-3">
         <div
@@ -303,8 +303,8 @@
           <ReceiptText class="size-5" />
         </div>
         <div>
-          <p class="text-sm font-medium text-slate-900">Order confirmed siap dilacak</p>
-          <p class="mt-1 text-sm leading-6 text-slate-600">
+          <p class="text-sm font-medium text-foreground">Order confirmed siap dilacak</p>
+          <p class="mt-1 text-sm leading-6 text-muted-foreground">
             Begitu pembayaran sukses, order akan berubah menjadi confirmed dan mengarah ke tiket
             Anda.
           </p>
@@ -313,15 +313,15 @@
     </Card>
 
     <Card
-      class="rounded-[1.75rem] border border-white/80 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+      class="rounded-[1.75rem] border border-white/80 bg-card/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
     >
       <div class="flex items-start gap-3">
         <div class="flex size-11 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
           <CalendarDays class="size-5" />
         </div>
         <div>
-          <p class="text-sm font-medium text-slate-900">Semua timestamp tersimpan</p>
-          <p class="mt-1 text-sm leading-6 text-slate-600">
+          <p class="text-sm font-medium text-foreground">Semua timestamp tersimpan</p>
+          <p class="mt-1 text-sm leading-6 text-muted-foreground">
             Lihat kapan order dibuat, kapan pembayaran jatuh tempo, dan kapan event Anda
             berlangsung.
           </p>

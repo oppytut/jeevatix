@@ -22,7 +22,7 @@
   function getStatusTone(status: BuyerTicketDetail['status']) {
     switch (status) {
       case 'used':
-        return 'bg-slate-200 text-slate-700';
+        return 'bg-muted text-foreground';
       case 'cancelled':
         return 'bg-rose-100 text-rose-700';
       case 'refunded':
@@ -105,28 +105,28 @@
   >
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-slate-500 uppercase">Ticket Detail</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">Ticket Detail</p>
+        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           {data.ticket.event.title}
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
           Simpan QR code ini untuk proses check-in di venue. Detail event dan kode tiket sudah
           tersinkron dengan transaksi Anda.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Status</p>
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">Status</p>
           <p
             class={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusTone(data.ticket.status)}`}
           >
             {data.ticket.status}
           </p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Tier</p>
-          <p class="mt-2 text-lg font-semibold text-slate-950">{data.ticket.tier_name}</p>
+        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">Tier</p>
+          <p class="mt-2 text-lg font-semibold text-foreground">{data.ticket.tier_name}</p>
         </div>
       </div>
     </div>
@@ -135,14 +135,14 @@
   <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
     <div class="space-y-6">
       <Card
-        class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">
+            <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
               Event Info
             </p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
               Informasi event
             </h2>
           </div>
@@ -152,26 +152,26 @@
         </div>
 
         <div class="mt-8 grid gap-4 md:grid-cols-2">
-          <div class="rounded-[1.5rem] bg-slate-50 p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">
+          <div class="rounded-[1.5rem] bg-muted p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
               Tanggal Event
             </p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">
+            <p class="mt-2 text-lg font-semibold text-foreground">
               {formatEventDateRange(data.ticket.event.start_at, data.ticket.event.end_at)}
             </p>
           </div>
-          <div class="rounded-[1.5rem] bg-slate-50 p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">Venue</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{data.ticket.event.venue_name}</p>
-            <p class="mt-1 text-sm text-slate-600">{data.ticket.event.venue_city}</p>
+          <div class="rounded-[1.5rem] bg-muted p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">Venue</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{data.ticket.event.venue_name}</p>
+            <p class="mt-1 text-sm text-muted-foreground">{data.ticket.event.venue_city}</p>
           </div>
         </div>
 
-        <div class="mt-6 rounded-[1.5rem] border border-slate-200 bg-white p-5">
-          <div class="flex items-start gap-3 text-sm text-slate-600">
+        <div class="mt-6 rounded-[1.5rem] border border-border bg-card p-5">
+          <div class="flex items-start gap-3 text-sm text-muted-foreground">
             <MapPin class="mt-0.5 size-4 text-orange-700" />
             <div>
-              <p class="font-medium text-slate-900">Lokasi lengkap</p>
+              <p class="font-medium text-foreground">Lokasi lengkap</p>
               <p class="mt-1">
                 {data.ticket.event.venue_address ??
                   `${data.ticket.event.venue_name}, ${data.ticket.event.venue_city}`}
@@ -181,19 +181,19 @@
         </div>
 
         <div class="mt-6 grid gap-4 md:grid-cols-2">
-          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">Order</p>
-            <p class="mt-2 text-lg font-semibold text-slate-950">{data.ticket.order_number}</p>
-            <p class="mt-1 text-sm text-slate-600">
+          <div class="rounded-[1.5rem] border border-border bg-card p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">Order</p>
+            <p class="mt-2 text-lg font-semibold text-foreground">{data.ticket.order_number}</p>
+            <p class="mt-1 text-sm text-muted-foreground">
               Diterbitkan {formatLongDateTime(data.ticket.issued_at)}
             </p>
           </div>
-          <div class="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-            <p class="text-xs font-semibold tracking-[0.22em] text-slate-500 uppercase">
+          <div class="rounded-[1.5rem] border border-border bg-card p-5">
+            <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
               Ticket Code
             </p>
             <p
-              class="mt-2 font-mono text-lg font-semibold tracking-[0.18em] break-all text-slate-950"
+              class="mt-2 font-mono text-lg font-semibold tracking-[0.18em] break-all text-foreground"
             >
               {data.ticket.ticket_code}
             </p>
@@ -202,11 +202,11 @@
 
         {#if data.ticket.status === 'used' && data.ticket.checked_in_at}
           <div
-            class="mt-6 flex items-start gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
+            class="mt-6 flex items-start gap-3 rounded-[1.5rem] border border-border bg-muted p-5 text-sm text-muted-foreground"
           >
-            <TicketCheck class="mt-0.5 size-4 text-slate-700" />
+            <TicketCheck class="mt-0.5 size-4 text-foreground" />
             <div>
-              <p class="font-medium text-slate-900">Tiket sudah digunakan</p>
+              <p class="font-medium text-foreground">Tiket sudah digunakan</p>
               <p class="mt-1">
                 Check-in tercatat pada {formatLongDateTime(data.ticket.checked_in_at)}.
               </p>
@@ -217,12 +217,12 @@
     </div>
 
     <Card
-      class="rounded-[2rem] border border-white/80 bg-white/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+      class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
     >
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-semibold tracking-[0.26em] text-slate-500 uppercase">QR Access</p>
-          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">QR Access</p>
+          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
             Scan-ready QR code
           </h2>
         </div>
@@ -234,17 +234,17 @@
       </div>
 
       <div
-        class="mt-8 rounded-[1.75rem] border border-dashed border-slate-300 bg-slate-50 p-5 text-center"
+        class="mt-8 rounded-[1.75rem] border border-dashed border-border bg-muted p-5 text-center"
       >
         {#if qrImageUrl}
           <img
             src={qrImageUrl}
             alt={`QR code untuk tiket ${data.ticket.ticket_code}`}
-            class="mx-auto w-full max-w-[320px] rounded-[1.5rem] bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+            class="mx-auto w-full max-w-[320px] rounded-[1.5rem] bg-card p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
           />
         {:else}
           <div
-            class="mx-auto flex h-[320px] w-full max-w-[320px] items-center justify-center rounded-[1.5rem] bg-white p-6 text-sm text-slate-500 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+            class="mx-auto flex h-[320px] w-full max-w-[320px] items-center justify-center rounded-[1.5rem] bg-card p-6 text-sm text-muted-foreground shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
           >
             {qrError || 'Menyiapkan QR code tiket...'}
           </div>
@@ -257,7 +257,7 @@
           <Download class="size-4" />
         </Button>
 
-        <div class="rounded-[1.5rem] bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+        <div class="rounded-[1.5rem] bg-muted p-4 text-sm leading-6 text-muted-foreground">
           Tunjukkan QR code ini kepada petugas saat check-in. Pastikan layar cukup terang atau
           gunakan file PNG hasil unduhan.
         </div>

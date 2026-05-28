@@ -202,14 +202,14 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-5 rounded-[2rem] border border-slate-200/80 bg-white/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="flex flex-col gap-5 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-slate-500 uppercase">A13</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A13</p>
+      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
         Manajemen kategori event
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
         Kurasi kategori yang dipakai seller di seluruh platform, termasuk ikon, slug, dan jumlah
         event yang masih terhubung.
       </p>
@@ -254,13 +254,13 @@
   <Card
     title="Daftar kategori"
     description="Tabel ini menampilkan slug aktif, ikon, dan total event yang masih menggunakan setiap kategori."
-    class="rounded-[2rem] border border-slate-200/80 bg-white/90 shadow-sm"
+    class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
   >
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
           <div
-            class="h-28 animate-pulse rounded-[1.5rem] border border-slate-200 bg-slate-100"
+            class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"
           ></div>
         {/each}
       </div>
@@ -313,12 +313,12 @@
   >
     <form class="space-y-5" onsubmit={submitForm}>
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="category-name">Nama</label>
+        <label class="text-sm font-medium text-foreground" for="category-name">Nama</label>
         <Input id="category-name" bind:value={form.name} placeholder="Misal: Musik" required />
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-slate-700" for="category-icon">Icon</label>
+        <label class="text-sm font-medium text-foreground" for="category-icon">Icon</label>
         <Input id="category-icon" bind:value={form.icon} placeholder="Misal: music-2" />
       </div>
 

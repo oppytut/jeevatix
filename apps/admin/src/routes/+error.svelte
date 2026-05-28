@@ -15,13 +15,13 @@
 <div class="flex min-h-[70vh] items-center justify-center px-6">
   <div class="w-full max-w-md space-y-8 text-center">
     <div class="space-y-4">
-      <div class="mx-auto flex size-24 items-center justify-center rounded-full bg-slate-950/5">
-        <span class="text-5xl font-black text-slate-950">{status}</span>
+      <div class="mx-auto flex size-24 items-center justify-center rounded-full bg-foreground/5">
+        <span class="text-5xl font-black text-foreground">{status}</span>
       </div>
 
       <div class="space-y-2">
-        <h1 class="text-3xl font-bold tracking-tight text-slate-950">{message}</h1>
-        <p class="text-sm text-slate-600">
+        <h1 class="text-3xl font-bold tracking-tight text-foreground">{message}</h1>
+        <p class="text-sm text-muted-foreground">
           {#if status === 404}
             Halaman yang Anda cari tidak ada atau telah dipindahkan.
           {:else if status === 500}
@@ -35,7 +35,7 @@
 
     <a
       href={resolve('/')}
-      class="inline-flex items-center justify-center rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:outline-none"
+      class="inline-flex items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-foreground/80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       Kembali ke Dashboard
     </a>
