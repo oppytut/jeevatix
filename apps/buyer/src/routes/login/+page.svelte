@@ -119,7 +119,7 @@
         <div class="flex items-center justify-between gap-4">
           <label class="text-foreground text-sm font-medium" for="password">Password</label>
           <a
-            class="text-sm font-medium text-orange-700 hover:text-orange-800"
+            class="text-sm font-medium text-orange-700 hover:text-orange-800 focus-visible:underline focus-visible:outline-none"
             href={resolve('/forgot-password')}
           >
             Lupa password?
@@ -137,6 +137,8 @@
 
       {#if form?.error}
         <div
+          role="alert"
+          aria-live="assertive"
           class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
         >
           <TriangleAlert class="mt-0.5 size-4 shrink-0" />
@@ -157,7 +159,10 @@
     {#snippet footer()}
       <div class="text-muted-foreground flex items-center justify-between gap-4 text-sm">
         <p>Belum punya akun?</p>
-        <a class="font-medium text-orange-700 hover:text-orange-800" href={resolve('/register')}>
+        <a
+          class="font-medium text-orange-700 hover:text-orange-800 focus-visible:underline focus-visible:outline-none"
+          href={resolve('/register')}
+        >
           Buat akun buyer
         </a>
       </div>

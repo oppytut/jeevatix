@@ -173,6 +173,8 @@
 
       {#if form?.error}
         <div
+          role="alert"
+          aria-live="assertive"
           class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 sm:col-span-2"
         >
           <TriangleAlert class="mt-0.5 size-4 shrink-0" />
@@ -183,8 +185,9 @@
       <div class="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-muted-foreground text-sm">
           Sudah punya akun?
-          <a class="font-medium text-sky-700 hover:text-sky-800" href={resolve('/login')}
-            >Masuk di sini</a
+          <a
+            class="font-medium text-sky-700 hover:text-sky-800 focus-visible:underline focus-visible:outline-none"
+            href={resolve('/login')}>Masuk di sini</a
           >
         </p>
         <Button type="submit" disabled={submitting}>
