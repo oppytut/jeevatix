@@ -8,6 +8,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed:e2e": "tsx src/db/seed-e2e.ts",
+    "db:seed:staging": "tsx src/db/seed-staging.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
