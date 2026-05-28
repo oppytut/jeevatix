@@ -1,5 +1,6 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import { navigating } from '$app/stores';
   import './layout.css';
   import { Button, DarkModeToggle } from '@jeevatix/ui';
   import favicon from '$lib/assets/favicon.svg';
@@ -148,6 +149,14 @@
     </header>
 
     <main class="relative z-10 px-6 pb-12 sm:px-10 lg:px-16">
+      {#if $navigating}
+        <div class="bg-muted fixed inset-x-0 top-0 z-50 h-1 overflow-hidden">
+          <div
+            class="bg-jeevatix-500 h-full w-1/3 animate-pulse rounded-full"
+            style="animation: slide 1s ease-in-out infinite;"
+          ></div>
+        </div>
+      {/if}
       <div class="mx-auto max-w-6xl">
         {@render children()}
       </div>

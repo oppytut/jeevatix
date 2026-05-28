@@ -1,5 +1,6 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import { navigating } from '$app/stores';
   import { page } from '$app/state';
   import type { Snippet } from 'svelte';
   import './layout.css';
@@ -143,6 +144,11 @@
     </aside>
 
     <main class="min-w-0 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(248,250,252,1))]">
+      {#if $navigating}
+        <div class="bg-muted fixed inset-x-0 top-0 z-50 h-1 overflow-hidden">
+          <div class="bg-jeevatix-500 h-full w-1/3 animate-pulse rounded-full"></div>
+        </div>
+      {/if}
       <div class="mx-auto min-h-screen max-w-7xl px-6 py-8 sm:px-10 lg:px-12">
         {@render children()}
       </div>

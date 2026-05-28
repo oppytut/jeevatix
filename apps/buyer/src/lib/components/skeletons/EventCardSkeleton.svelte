@@ -6,13 +6,13 @@
 
 <div
   class={cn(
-    'block overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]',
+    'border-border bg-card/90 block overflow-hidden rounded-[1.75rem] border shadow-[0_18px_60px_rgba(15,23,42,0.08)]',
     compact ? 'h-full' : '',
     className,
   )}
 >
   <div class={cn('relative overflow-hidden', compact ? 'aspect-[4/3]' : 'aspect-[16/10]')}>
-    <div class="h-full w-full animate-pulse bg-slate-200"></div>
+    <div class="bg-muted h-full w-full animate-pulse"></div>
 
     <div class="absolute top-4 left-4 flex flex-wrap gap-2">
       <div
@@ -31,21 +31,21 @@
 
   <div class="space-y-4 p-5 sm:p-6">
     <div class="flex flex-wrap gap-3">
-      <div class="h-8 w-32 animate-pulse rounded-full bg-slate-100"></div>
-      <div class="h-8 w-28 animate-pulse rounded-full bg-slate-100"></div>
+      <div class="bg-muted/80 h-8 w-32 animate-pulse rounded-full"></div>
+      <div class="bg-muted/80 h-8 w-28 animate-pulse rounded-full"></div>
     </div>
 
     <div class="space-y-2">
-      <div class="h-4 w-full animate-pulse rounded bg-slate-100"></div>
-      <div class="h-4 w-5/6 animate-pulse rounded bg-slate-100"></div>
+      <div class="bg-muted/80 h-4 w-full animate-pulse rounded"></div>
+      <div class="bg-muted/80 h-4 w-5/6 animate-pulse rounded"></div>
     </div>
 
     <div class="flex items-end justify-between gap-4 border-t border-slate-100 pt-4">
       <div class="space-y-2">
-        <div class="h-3 w-20 animate-pulse rounded bg-slate-100"></div>
-        <div class="h-6 w-28 animate-pulse rounded bg-slate-200"></div>
+        <div class="bg-muted/80 h-3 w-20 animate-pulse rounded"></div>
+        <div class="bg-muted h-6 w-28 animate-pulse rounded"></div>
       </div>
-      <div class="h-5 w-24 animate-pulse rounded bg-slate-100"></div>
+      <div class="bg-muted/80 h-5 w-24 animate-pulse rounded"></div>
     </div>
   </div>
 </div>

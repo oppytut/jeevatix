@@ -2,6 +2,7 @@
   import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
+  import { navigating } from '$app/stores';
   import { page } from '$app/state';
   import { Bell } from '@lucide/svelte';
   import { onMount } from 'svelte';
@@ -238,6 +239,11 @@
     <main
       class="min-w-0 bg-[linear-gradient(180deg,rgba(254,252,232,0.65),rgba(255,255,255,1)_22%,rgba(236,253,245,0.8)_100%)]"
     >
+      {#if $navigating}
+        <div class="bg-muted fixed inset-x-0 top-0 z-50 h-1 overflow-hidden">
+          <div class="h-full w-1/3 animate-pulse rounded-full bg-emerald-500"></div>
+        </div>
+      {/if}
       <div class="mx-auto min-h-screen max-w-7xl px-6 py-8 sm:px-10 lg:px-12">
         {@render children()}
       </div>
