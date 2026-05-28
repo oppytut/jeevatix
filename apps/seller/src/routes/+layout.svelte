@@ -99,6 +99,17 @@
     content="Dashboard seller Jeevatix untuk mengelola event, pesanan, check-in, dan notifikasi operasional."
   />
   <link rel="icon" href={favicon} />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#059669" />
+  <meta property="og:site_name" content="Jeevatix" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Jeevatix Seller — Dashboard Event" />
+  <meta
+    property="og:description"
+    content="Dashboard seller Jeevatix untuk mengelola event, pesanan, check-in, dan notifikasi operasional."
+  />
+  <meta property="og:image" content="https://jeevatix.my.id/og-default.png" />
+  <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
 {#if isAuthRoute}

@@ -10,7 +10,7 @@
     ShoppingBag,
     Wallet,
   } from '@lucide/svelte';
-  import { Badge, Button, Card, EmptyState, Toast } from '@jeevatix/ui';
+  import { Badge, Button, Card, EmptyState, Select, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiGetResponse } from '$lib/api';
 
@@ -304,27 +304,21 @@
     <div class="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
       <label class="text-foreground space-y-2 text-sm font-medium">
         <span>Event</span>
-        <select
-          class="border-border bg-card text-foreground h-12 w-full rounded-2xl border px-4 text-sm transition outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-          bind:value={selectedEventId}
-        >
+        <Select class="h-12 rounded-full" bind:value={selectedEventId}>
           <option value="all">Semua event</option>
           {#each events as event (event.id)}
             <option value={event.id}>{event.title}</option>
           {/each}
-        </select>
+        </Select>
       </label>
 
       <label class="text-foreground space-y-2 text-sm font-medium">
         <span>Status</span>
-        <select
-          class="border-border bg-card text-foreground h-12 w-full rounded-2xl border px-4 text-sm transition outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
-          bind:value={selectedStatus}
-        >
+        <Select class="h-12 rounded-full" bind:value={selectedStatus}>
           {#each statusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
-        </select>
+        </Select>
       </label>
 
       <div class="flex items-end">

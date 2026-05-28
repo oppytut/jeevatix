@@ -82,6 +82,17 @@
     content="Dashboard admin Jeevatix untuk mengelola pengguna, seller, event, pesanan, dan kategori."
   />
   <link rel="icon" href={favicon} />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#f97316" />
+  <meta property="og:site_name" content="Jeevatix" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Jeevatix Admin — Platform Management" />
+  <meta
+    property="og:description"
+    content="Dashboard admin Jeevatix untuk mengelola pengguna, seller, event, pesanan, dan kategori."
+  />
+  <meta property="og:image" content="https://jeevatix.my.id/og-default.png" />
+  <meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
 {#if isLoginRoute}

@@ -4,7 +4,7 @@
   import { page } from '$app/state';
   import { onMount } from 'svelte';
   import { ArrowLeft, Pencil, Plus, RefreshCw, Save, Ticket, Trash2 } from '@lucide/svelte';
-  import { Badge, Button, Card, DataTable, Input, Textarea, Toast } from '@jeevatix/ui';
+  import { Badge, Button, Card, DataTable, Input, Select, Textarea, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiDelete, apiGet, apiPatch, apiPost } from '$lib/api';
 
@@ -493,15 +493,11 @@
             </div>
             <div class="space-y-2">
               <label class="text-foreground text-sm font-medium" for="tier-status">Status</label>
-              <select
-                id="tier-status"
-                bind:value={form.status}
-                class="border-border bg-card text-foreground w-full rounded-[1.25rem] border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
-              >
+              <Select id="tier-status" bind:value={form.status} class="h-12 rounded-full">
                 <option value="available">available</option>
                 <option value="sold_out">sold_out</option>
                 <option value="hidden">hidden</option>
-              </select>
+              </Select>
             </div>
           </div>
 

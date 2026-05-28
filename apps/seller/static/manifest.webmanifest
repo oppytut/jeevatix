@@ -1,0 +1,16 @@
+{
+  "name": "Jeevatix Seller",
+  "short_name": "Jeevatix Seller",
+  "description": "Dashboard seller Jeevatix untuk mengelola event dan pesanan",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ecfdf5",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#facc15"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#brand)"/>
+  <g transform="translate(24, 20)">
+    <path d="M8 16C8 11.58 11.58 8 16 8h48c4.42 0 8 3.58 8 8v8a8 8 0 0 0 0 16v8a8 8 0 0 0 0 16v8c0 4.42-3.58 8-8 8H16c-4.42 0-8-3.58-8-8v-8a8 8 0 0 0 0-16v-8a8 8 0 0 0 0-16v-8z" fill="white" opacity="0.95"/>
+    <line x1="52" y1="16" x2="52" y2="80" stroke="#f97316" stroke-width="2.5" stroke-dasharray="5 4" opacity="0.5"/>
+    <text x="28" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="700" fill="#f97316" text-anchor="middle">J</text>
+  </g>
+</svg>
