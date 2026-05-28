@@ -2,7 +2,7 @@
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
   import { Building2, CheckCircle2, Clock3, Landmark, LoaderCircle, Upload } from '@lucide/svelte';
-  import { Button, Card, Input, Toast } from '@jeevatix/ui';
+  import { Button, Card, Input, Textarea, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiGet, apiPatch, apiPost } from '$lib/api';
 
@@ -293,13 +293,12 @@
 
                 <label class="block space-y-2 sm:col-span-2" for="org-description">
                   <span class="text-foreground text-sm font-medium">Org Description</span>
-                  <textarea
+                  <Textarea
                     id="org-description"
                     bind:value={form.org_description}
-                    rows="6"
-                    class="focus:border-jeevatix-300 focus:ring-jeevatix-200 border-border bg-card text-foreground placeholder:text-muted-foreground/70 w-full rounded-[1.5rem] border px-4 py-3 text-sm shadow-sm transition focus:ring-2 focus:outline-none"
+                    rows={6}
                     placeholder="Jelaskan positioning brand, jenis event, dan karakter audiens organisasi Anda."
-                  ></textarea>
+                  />
                 </label>
 
                 <label class="block space-y-2" for="bank-name">

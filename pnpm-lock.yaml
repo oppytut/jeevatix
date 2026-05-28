@@ -345,6 +345,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@lucide/svelte':
+        specifier: ^1.7.0
+        version: 1.7.0(svelte@5.55.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1

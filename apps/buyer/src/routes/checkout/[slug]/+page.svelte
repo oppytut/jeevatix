@@ -176,7 +176,7 @@
   />
 
   <div
-    class="rounded-[2.5rem] border border-white/80 bg-[linear-gradient(135deg,#fff8ef_0%,#fff1e0_44%,#eef9ff_100%)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9"
+    class="rounded-[2.5rem] border border-white/80 bg-[var(--gradient-section-alt)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9"
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">

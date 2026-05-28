@@ -2,7 +2,7 @@
   import { resolve } from '$app/paths';
   import { enhance } from '$app/forms';
   import { Building2, TriangleAlert } from '@lucide/svelte';
-  import { Button, Card, Input } from '@jeevatix/ui';
+  import { Button, Card, Input, Textarea } from '@jeevatix/ui';
 
   let { form }: import('./$types').PageProps = $props();
 </script>
@@ -100,13 +100,13 @@
             <label class="text-foreground text-sm font-medium" for="orgDescription"
               >Deskripsi Organisasi</label
             >
-            <textarea
+            <Textarea
               id="orgDescription"
               name="org_description"
-              class="border-border bg-card text-foreground min-h-28 w-full rounded-xl border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-28"
               placeholder="Ceritakan jenis event yang Anda kelola."
-              >{form?.values?.org_description ?? ''}</textarea
-            >
+              value={form?.values?.org_description ?? ''}
+            />
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import './layout.css';
-  import { Button } from '@jeevatix/ui';
+  import { Button, DarkModeToggle } from '@jeevatix/ui';
   import favicon from '$lib/assets/favicon.svg';
   import { Menu, X } from '@lucide/svelte';
 
@@ -30,15 +30,10 @@
 </svelte:head>
 
 <div class="bg-background text-foreground min-h-screen">
-  <div
-    class="relative min-h-screen overflow-hidden bg-[linear-gradient(180deg,#fffaf3_0%,#fffdf8_38%,#f6fbff_100%)]"
-  >
+  <div class="relative min-h-screen overflow-hidden bg-[var(--gradient-page)]">
     <div
       class="pointer-events-none absolute inset-0 opacity-90"
-      style="background-image:
-        radial-gradient(circle at 0% 0%, rgba(249,115,22,0.18), transparent 25%),
-        radial-gradient(circle at 100% 12%, rgba(14,165,233,0.15), transparent 24%),
-        radial-gradient(circle at 50% 100%, rgba(251,191,36,0.18), transparent 28%);"
+      style="background-image: var(--gradient-overlay-top);"
     ></div>
 
     <header class="relative z-10 px-6 py-5 sm:px-10 lg:px-16">
@@ -47,7 +42,7 @@
       >
         <a href={resolve('/')} class="flex items-center gap-3">
           <div
-            class="text-foreground flex size-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f97316,#facc15)] text-sm font-black"
+            class="text-foreground flex size-10 items-center justify-center rounded-full bg-[var(--gradient-brand)] text-sm font-black"
           >
             J
           </div>
@@ -74,6 +69,7 @@
         </nav>
 
         <div class="flex items-center gap-3">
+          <DarkModeToggle />
           <button
             class="border-border text-muted-foreground hover:bg-muted inline-flex size-10 items-center justify-center rounded-full border transition md:hidden"
             onclick={() => (mobileMenuOpen = !mobileMenuOpen)}

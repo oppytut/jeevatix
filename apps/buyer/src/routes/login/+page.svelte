@@ -20,7 +20,7 @@
   class="grid min-h-[calc(100vh-10rem)] items-center gap-8 py-6 lg:grid-cols-[1.08fr_0.92fr] lg:py-10"
 >
   <div
-    class="border-border space-y-8 rounded-[2rem] border bg-[linear-gradient(180deg,#fff8ef_0%,#fff1df_100%)] p-8 shadow-[0_30px_90px_rgba(249,115,22,0.12)] sm:p-10"
+    class="border-border space-y-8 rounded-[2rem] border bg-[var(--gradient-section)] p-8 shadow-[0_30px_90px_rgba(249,115,22,0.12)] sm:p-10"
   >
     <div
       class="bg-card/80 inline-flex w-fit items-center gap-3 rounded-full border border-orange-200 px-4 py-2 text-sm font-semibold tracking-[0.26em] text-orange-700 uppercase"

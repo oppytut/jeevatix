@@ -7,6 +7,7 @@
 
   import { logout } from '$lib/auth';
   import type { LayoutData } from './$types';
+  import { DarkModeToggle } from '@jeevatix/ui';
 
   const menuItems = [
     {
@@ -127,13 +128,16 @@
             <p class="text-muted-foreground/70 text-sm">{currentUser?.email}</p>
           </div>
 
-          <button
-            class="w-full rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-slate-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
-            onclick={handleLogout}
-            type="button"
-          >
-            Logout
-          </button>
+          <div class="flex items-center gap-2">
+            <DarkModeToggle />
+            <button
+              class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-slate-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+              onclick={handleLogout}
+              type="button"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </aside>

@@ -53,9 +53,7 @@
   <div
     class="bg-card/85 overflow-hidden rounded-[2.5rem] border border-white/80 shadow-[0_28px_90px_rgba(15,23,42,0.08)]"
   >
-    <div
-      class="relative aspect-16/8 overflow-hidden bg-[linear-gradient(135deg,#f97316,#facc15_45%,#0ea5e9)]"
-    >
+    <div class="relative aspect-16/8 overflow-hidden bg-[var(--gradient-hero)]">
       {#if data.event.banner_url}
         <img
           src={data.event.banner_url}

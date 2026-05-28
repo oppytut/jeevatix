@@ -4,7 +4,7 @@
   import { page } from '$app/state';
   import { onMount } from 'svelte';
   import { ArrowLeft, Pencil, Plus, RefreshCw, Save, Ticket, Trash2 } from '@lucide/svelte';
-  import { Badge, Button, Card, DataTable, Input, Toast } from '@jeevatix/ui';
+  import { Badge, Button, Card, DataTable, Input, Textarea, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiDelete, apiGet, apiPatch, apiPost } from '$lib/api';
 
@@ -460,12 +460,12 @@
             <label class="text-foreground text-sm font-medium" for="tier-description"
               >Deskripsi</label
             >
-            <textarea
+            <Textarea
               id="tier-description"
               bind:value={form.description}
-              class="border-border bg-card text-foreground min-h-28 w-full rounded-[1.25rem] border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-28"
               placeholder="Benefit untuk tier ini."
-            ></textarea>
+            />
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">

@@ -18,7 +18,7 @@
 
 <section class="grid gap-8 py-6 lg:grid-cols-[0.92fr_1.08fr] lg:py-10">
   <div
-    class="rounded-[2rem] border border-sky-200/80 bg-[linear-gradient(180deg,#f0f9ff_0%,#e0f2fe_100%)] p-8 shadow-[0_28px_90px_rgba(14,165,233,0.12)] sm:p-10"
+    class="rounded-[2rem] border border-sky-200/80 bg-[var(--gradient-section)] p-8 shadow-[0_28px_90px_rgba(14,165,233,0.12)] sm:p-10"
   >
     <div class="bg-card/70 flex size-14 items-center justify-center rounded-2xl text-sky-700">
       <Ticket class="size-7" />

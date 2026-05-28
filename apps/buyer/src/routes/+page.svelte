@@ -48,7 +48,7 @@
 <section class="relative overflow-hidden py-6 sm:py-8 lg:py-10">
   <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
     <div
-      class="border-border relative overflow-hidden rounded-[2.5rem] border bg-[linear-gradient(135deg,#fff7ed_0%,#fff1d6_30%,#e0f2fe_100%)] p-8 shadow-[0_30px_90px_rgba(15,23,42,0.10)] sm:p-10 lg:p-12"
+      class="border-border relative overflow-hidden rounded-[2.5rem] border bg-[var(--gradient-section)] p-8 shadow-[0_30px_90px_rgba(15,23,42,0.10)] sm:p-10 lg:p-12"
     >
       <div
         class="absolute inset-0 opacity-70"

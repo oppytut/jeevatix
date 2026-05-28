@@ -1,6 +1,7 @@
 export { default as Badge } from './lib/components/ui/Badge.svelte';
 export { default as Button } from './lib/components/ui/Button.svelte';
 export { default as Card } from './lib/components/ui/Card.svelte';
+export { default as DarkModeToggle } from './lib/components/ui/DarkModeToggle.svelte';
 export { default as DataTable } from './lib/components/ui/DataTable.svelte';
 export { default as EmptyState } from './lib/components/ui/EmptyState.svelte';
 export { default as Input } from './lib/components/ui/Input.svelte';

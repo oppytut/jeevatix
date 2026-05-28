@@ -26,7 +26,7 @@
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
   <div
-    class="border-border rounded-[2.25rem] border bg-[linear-gradient(135deg,#fff8ef_0%,#eef8ff_100%)] p-7 shadow-[0_26px_80px_rgba(15,23,42,0.08)] sm:p-9"
+    class="border-border rounded-[2.25rem] border bg-[var(--gradient-section)] p-7 shadow-[0_26px_80px_rgba(15,23,42,0.08)] sm:p-9"
   >
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">

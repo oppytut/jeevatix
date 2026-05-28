@@ -12,6 +12,7 @@
   import { apiGetResponse } from '$lib/api';
   import { logout } from '$lib/auth';
   import type { SellerAuthUser } from '$lib/auth';
+  import { DarkModeToggle } from '@jeevatix/ui';
 
   const menuItems = [
     { label: 'Dashboard', href: '/', enabled: true },
@@ -220,13 +221,16 @@
             <p class="text-sm text-emerald-100/75">{currentUser?.email}</p>
           </div>
 
-          <button
-            class="hover:bg-card/10 w-full rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-emerald-50 transition hover:border-white/20 hover:text-white"
-            onclick={handleLogout}
-            type="button"
-          >
-            Logout
-          </button>
+          <div class="flex items-center gap-2">
+            <DarkModeToggle />
+            <button
+              class="hover:bg-card/10 flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-emerald-50 transition hover:border-white/20 hover:text-white"
+              onclick={handleLogout}
+              type="button"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </aside>

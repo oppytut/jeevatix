@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Bell, Megaphone, RefreshCw, Send } from '@lucide/svelte';
-  import { Badge, Button, Card, DataTable, Input, Modal, Toast } from '@jeevatix/ui';
+  import { Badge, Button, Card, DataTable, Input, Modal, Textarea, Toast } from '@jeevatix/ui';
 
   import { apiGetEnvelope, apiPost, ApiError } from '$lib/api';
 
@@ -507,13 +507,13 @@
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="broadcast-body">Isi broadcast</label
         >
-        <textarea
+        <Textarea
           id="broadcast-body"
           bind:value={broadcastForm.body}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground min-h-36 w-full rounded-[1.5rem] border px-4 py-3 text-sm shadow-sm transition outline-none focus:ring-2"
+          class="min-h-36"
           placeholder="Tuliskan pengumuman yang akan dikirim ke target terpilih"
           required
-        ></textarea>
+        />
       </div>
 
       {#if broadcastError}

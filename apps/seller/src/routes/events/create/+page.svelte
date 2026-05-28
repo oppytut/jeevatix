@@ -15,7 +15,7 @@
     Trash2,
   } from '@lucide/svelte';
   import { onMount } from 'svelte';
-  import { Button, Card, Input, Toast } from '@jeevatix/ui';
+  import { Button, Card, Input, Textarea, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiGet, apiPost } from '$lib/api';
 
@@ -433,12 +433,12 @@
 
           <div class="space-y-2">
             <label class="text-foreground text-sm font-medium" for="description">Deskripsi</label>
-            <textarea
+            <Textarea
               id="description"
               bind:value={form.description}
-              class="border-border bg-card text-foreground min-h-36 w-full rounded-[1.25rem] border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-36"
               placeholder="Tuliskan konsep event, headline performer, dan pengalaman yang akan didapat pembeli tiket."
-            ></textarea>
+            />
           </div>
 
           <div class="space-y-2">
@@ -483,12 +483,12 @@
             <label class="text-foreground text-sm font-medium" for="venue-address"
               >Venue Address</label
             >
-            <textarea
+            <Textarea
               id="venue-address"
               bind:value={form.venue_address}
-              class="border-border bg-card text-foreground min-h-28 w-full rounded-[1.25rem] border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="min-h-28"
               placeholder="Jl. Pintu Satu Senayan, Jakarta Pusat"
-            ></textarea>
+            />
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
@@ -709,12 +709,12 @@
                     class="text-foreground text-sm font-medium"
                     for={`tier-description-${tier.clientId}`}>Deskripsi</label
                   >
-                  <textarea
+                  <Textarea
                     id={`tier-description-${tier.clientId}`}
                     bind:value={tier.description}
-                    class="border-border bg-card text-foreground min-h-24 w-full rounded-[1.25rem] border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    class="min-h-24"
                     placeholder="Benefit, area duduk, atau akses khusus untuk tier ini."
-                  ></textarea>
+                  />
                 </div>
                 <div class="space-y-2">
                   <label
