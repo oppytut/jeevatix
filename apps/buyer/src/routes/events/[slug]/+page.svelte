@@ -47,6 +47,52 @@
     property="og:image"
     content={data.event.banner_url ?? 'https://jeevatix.my.id/og-default.png'}
   />
+  {@html `<script type="application/ld+json">${JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: data.event.title,
+    description: data.event.description ?? undefined,
+    startDate: data.event.start_at,
+    endDate: data.event.end_at,
+    eventStatus: 'https://schema.org/EventScheduled',
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    location: {
+      '@type': 'Place',
+      name: data.event.venue_name,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: data.event.venue_city,
+        streetAddress: data.event.venue_address ?? undefined,
+      },
+      ...(data.event.venue_latitude && data.event.venue_longitude
+        ? {
+            geo: {
+              '@type': 'GeoCoordinates',
+              latitude: data.event.venue_latitude,
+              longitude: data.event.venue_longitude,
+            },
+          }
+        : {}),
+    },
+    image: data.event.banner_url ?? 'https://jeevatix.my.id/og-default.png',
+    organizer: {
+      '@type': 'Organization',
+      name: data.event.seller.org_name,
+      ...(data.event.seller.logo_url ? { logo: data.event.seller.logo_url } : {}),
+    },
+    ...(data.event.min_price != null
+      ? {
+          offers: {
+            '@type': 'Offer',
+            price: data.event.min_price,
+            priceCurrency: 'IDR',
+            availability: 'https://schema.org/InStock',
+            url: `https://jeevatix.my.id/events/${data.event.slug}`,
+            validFrom: data.event.sale_start_at,
+          },
+        }
+      : {}),
+  })}</script>`}
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
