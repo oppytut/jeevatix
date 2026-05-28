@@ -2,16 +2,27 @@
 title: Handoff Progress
 last_updated: 2026-05-28
 status: Active
-phase: UI/UX overhaul complete. E2E green. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
+phase: UI/UX overhaul + brand polish complete. E2E green. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**UI/UX OVERHAUL COMPLETE. E2E FULLY GREEN. STAGING CLEAN.**
+**UI/UX OVERHAUL + BRAND POLISH COMPLETE. E2E FULLY GREEN. STAGING CLEAN.**
 
 Only user decisions block production launch.
 
-### What's Done (Session 2026-05-28 ~08:00-14:20 UTC)
+### What's Done (Session 2026-05-28 ~22:00 UTC — Brand & Polish)
+
+| # | Deliverable | Status |
+|---|---|---|
+| 20 | **Hero redesign** — gradient headline, larger CTA, semantic tokens, hover animations | ✅ |
+| 21 | **Wire Select component** ke 12 admin filter dropdowns (7 pages) | ✅ |
+| 22 | **Dark mode gradient migration** — seller/admin hardcoded gradients → `var(--gradient-*)` tokens (10 files) | ✅ |
+| 23 | **Favicon SVG** — Jeevatix brand (orange→yellow gradient, ticket + J) all 3 portals | ✅ |
+| 24 | **og-default.png** — 1200x630 OG image for social sharing | ✅ |
+| 25 | **Prettier formatting** — all files formatted, CI format:check green | ✅ |
+
+### What's Done (Session 2026-05-28 ~08:00-14:20 UTC — UI/UX Overhaul)
 
 | # | Deliverable | Status |
 |---|---|---|
@@ -41,13 +52,18 @@ Only user decisions block production launch.
 
 | # | Task | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
-| 1 | **Landing page hero redesign** (buyer homepage) | 1-2h | First impression | More engaging CTA, better visual hierarchy |
-| 2 | **Wire Select component ke admin filter dropdowns** | 1h | Consistency | Component ready, not yet adopted |
-| 3 | **og-default.png** — generate OG image | 30 min | Social sharing | Referenced in meta but not uploaded |
-| 4 | **Dark mode gradient polish** — seller/admin inline gradients | 1h | Dark mode completeness | Buyer done, seller/admin still hardcoded |
-| 5 | **Favicon + logo SVG** — generate brand assets | 30 min | Brand polish | Currently using default Svelte logo |
-| 6 | **Reduce E2E skipped tests** (38 skipped) | 2h | Test coverage | Some skips are fixable |
+| 1 | ~~Landing page hero redesign~~ | ~~1-2h~~ | ~~First impression~~ | ✅ Done |
+| 2 | ~~Wire Select component ke admin filter dropdowns~~ | ~~1h~~ | ~~Consistency~~ | ✅ Done |
+| 3 | ~~og-default.png~~ | ~~30 min~~ | ~~Social sharing~~ | ✅ Done |
+| 4 | ~~Dark mode gradient polish~~ | ~~1h~~ | ~~Dark mode completeness~~ | ✅ Done |
+| 5 | ~~Favicon + logo SVG~~ | ~~30 min~~ | ~~Brand polish~~ | ✅ Done |
+| 6 | **Reduce E2E skipped tests** (38 skipped) | 2h | Test coverage | Some skips are fixable with Service Binding now active |
 | 7 | **Performance audit** — bundle size, lazy loading, images | 1-2h | Speed | Lighthouse audit + fixes |
+| 8 | **OG image upgrade** — add text rendering ("Jeevatix" + tagline) | 30 min | Social sharing | Needs image library (sharp/resvg) |
+| 9 | **Wire Select to seller filter dropdowns** | 1h | Consistency | Same pattern as admin, seller pages likely have native selects too |
+| 10 | **Accessibility audit** — ARIA labels, focus management, contrast | 1-2h | A11y compliance | Especially buyer portal public pages |
+| 11 | **Error boundary polish** — custom error pages styling refresh | 30 min | UX | Match new design token system |
+| 12 | **Seller/admin OG + manifest** — add og:image meta + manifest to seller/admin | 30 min | SEO | Currently only buyer has these |
 
 ### Production Launch — 3 Decisions Needed (BLOCKING)
 
