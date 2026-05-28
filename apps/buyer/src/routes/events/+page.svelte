@@ -2,7 +2,7 @@
   import { resolve } from '$app/paths';
   import { Filter, Search, SlidersHorizontal } from '@lucide/svelte';
 
-  import { Button, Input } from '@jeevatix/ui';
+  import { Button, EmptyState, Input } from '@jeevatix/ui';
 
   import EventCard from '$lib/components/EventCard.svelte';
   import { cn } from '$lib/utils';
@@ -230,12 +230,10 @@
           {/each}
         </div>
       {:else}
-        <div
-          class="border-border bg-card/70 text-muted-foreground rounded-[2rem] border border-dashed p-10 text-center"
-        >
-          Tidak ada event yang cocok dengan filter Anda. Coba ubah kriteria pencarian atau reset
-          filter.
-        </div>
+        <EmptyState
+          title="Tidak ada event yang cocok dengan filter Anda"
+          description="Coba ubah kriteria pencarian atau reset filter."
+        />
       {/if}
 
       {#if data.meta.totalPages > 1}

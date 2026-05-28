@@ -14,7 +14,7 @@
     TicketCheck,
     UserRound,
   } from '@lucide/svelte';
-  import { Button, Card, Input, Toast } from '@jeevatix/ui';
+  import { Button, Card, EmptyState, Input, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiGet, apiPost } from '$lib/api';
 
@@ -214,6 +214,16 @@
 </svelte:head>
 
 <section class="space-y-8">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/events')} class="hover:text-foreground transition">Events</a>
+    <span>/</span>
+    <a href={resolve(`/events/${eventId}`)} class="hover:text-foreground transition"
+      >{stats?.event_title ?? 'Detail'}</a
+    >
+    <span>/</span>
+    <span class="text-foreground font-medium">Check-in</span>
+  </nav>
+
   {#if toast}
     <Toast
       title={toast.title}
@@ -390,10 +400,8 @@
             Memuat riwayat check-in...
           </div>
         {:else if !stats || stats.recent_checkins.length === 0}
-          <div
-            class="border-border bg-muted text-muted-foreground mt-8 rounded-[1.6rem] border border-dashed p-8 text-sm"
-          >
-            Belum ada tiket yang berhasil di-check-in untuk event ini.
+          <div class="mt-8">
+            <EmptyState title="Belum ada tiket yang berhasil di-check-in untuk event ini" />
           </div>
         {:else}
           <div class="mt-8 space-y-3">

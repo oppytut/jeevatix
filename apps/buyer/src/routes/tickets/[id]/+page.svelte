@@ -88,6 +88,12 @@
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/tickets')} class="hover:text-foreground transition">Tiket Saya</a>
+    <span>/</span>
+    <span class="text-foreground font-medium">Detail Tiket</span>
+  </nav>
+
   <div class="flex items-center justify-between gap-4">
     <Button
       type="button"

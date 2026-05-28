@@ -2,6 +2,8 @@
   import { resolve } from '$app/paths';
   import { ArrowRight } from '@lucide/svelte';
 
+  import { EmptyState } from '@jeevatix/ui';
+
   import EventCard from '$lib/components/EventCard.svelte';
   import { cn } from '$lib/utils';
 
@@ -55,21 +57,19 @@
       {/each}
     </div>
   {:else}
-    <div class="border-border bg-card/80 rounded-[2rem] border border-dashed p-10 text-center">
-      <h2 class="text-foreground text-2xl font-semibold tracking-tight">
-        Belum ada event untuk kategori ini
-      </h2>
-      <p class="text-muted-foreground mt-3 text-sm leading-7">
-        Kategori ini belum memiliki event published atau ongoing. Coba kategori lain atau kembali ke
-        explore page.
-      </p>
-      <a
-        href={resolve('/events')}
-        class="text-foreground hover:text-foreground mt-5 inline-flex items-center gap-2 text-sm font-semibold transition"
-      >
-        Buka explore page
-        <ArrowRight class="size-4" />
-      </a>
-    </div>
+    <EmptyState
+      title="Belum ada event untuk kategori ini"
+      description="Kategori ini belum memiliki event published atau ongoing. Coba kategori lain atau kembali ke explore page."
+    >
+      {#snippet action()}
+        <a
+          href={resolve('/events')}
+          class="text-foreground hover:text-foreground mt-5 inline-flex items-center gap-2 text-sm font-semibold transition"
+        >
+          Buka explore page
+          <ArrowRight class="size-4" />
+        </a>
+      {/snippet}
+    </EmptyState>
   {/if}
 </section>

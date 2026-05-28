@@ -8,7 +8,7 @@
     ShoppingCart,
   } from '@lucide/svelte';
 
-  import { Button, Card } from '@jeevatix/ui';
+  import { Button, Card, EmptyState } from '@jeevatix/ui';
 
   import { formatLongDateTime, formatRelativeTime } from '$lib/utils';
 
@@ -94,22 +94,10 @@
 
     <div class="mt-8 space-y-4">
       {#if getNotifications().length === 0}
-        <div
-          class="border-border bg-muted rounded-[1.75rem] border border-dashed px-6 py-14 text-center"
-        >
-          <div
-            class="bg-muted text-muted-foreground mx-auto flex size-16 items-center justify-center rounded-full"
-          >
-            <BellRing class="size-7" />
-          </div>
-          <h3 class="text-foreground mt-5 text-2xl font-semibold tracking-tight">
-            Belum ada notifikasi
-          </h3>
-          <p class="text-muted-foreground mx-auto mt-3 max-w-xl text-sm leading-7">
-            Saat order terkonfirmasi atau ada update event penting, notifikasinya akan muncul di
-            halaman ini.
-          </p>
-        </div>
+        <EmptyState
+          title="Belum ada notifikasi"
+          description="Saat order terkonfirmasi atau ada update event penting, notifikasinya akan muncul di halaman ini."
+        />
       {:else}
         {#each getNotifications() as notification (notification.id)}
           <form method="POST" action="?/markRead">

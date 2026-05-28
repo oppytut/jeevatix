@@ -13,7 +13,7 @@
     Wrench,
   } from '@lucide/svelte';
 
-  import { Button } from '@jeevatix/ui';
+  import { Button, EmptyState } from '@jeevatix/ui';
 
   import EventCard from '$lib/components/EventCard.svelte';
   import { formatCompactNumber } from '$lib/utils';
@@ -210,10 +210,8 @@
         <EventCard {event} />
       {/each}
     {:else}
-      <div
-        class="border-border bg-card/70 text-muted-foreground rounded-[2rem] border border-dashed p-10 text-center lg:col-span-3"
-      >
-        Event featured belum tersedia.
+      <div class="lg:col-span-3">
+        <EmptyState title="Event featured belum tersedia" />
       </div>
     {/if}
   </div>
@@ -298,10 +296,8 @@
         <EventCard {event} compact={true} />
       {/each}
     {:else}
-      <div
-        class="border-border bg-card/70 text-muted-foreground rounded-[2rem] border border-dashed p-10 text-center md:col-span-2 xl:col-span-4"
-      >
-        Belum ada event upcoming yang bisa ditampilkan.
+      <div class="md:col-span-2 xl:col-span-4">
+        <EmptyState title="Belum ada event upcoming yang bisa ditampilkan" />
       </div>
     {/if}
   </div>

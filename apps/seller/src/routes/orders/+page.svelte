@@ -10,7 +10,7 @@
     ShoppingBag,
     Wallet,
   } from '@lucide/svelte';
-  import { Badge, Button, Card, Toast } from '@jeevatix/ui';
+  import { Badge, Button, Card, EmptyState, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiGetResponse } from '$lib/api';
 
@@ -344,8 +344,8 @@
     {#if isLoading}
       <div class="text-muted-foreground py-16 text-center text-sm">Memuat pesanan seller...</div>
     {:else if orders.length === 0}
-      <div class="text-muted-foreground py-16 text-center text-sm">
-        Belum ada pesanan yang cocok dengan filter aktif.
+      <div class="py-16">
+        <EmptyState title="Belum ada pesanan yang cocok dengan filter aktif" />
       </div>
     {:else}
       <div class="overflow-x-auto">

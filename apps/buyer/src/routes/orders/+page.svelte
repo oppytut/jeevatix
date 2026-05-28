@@ -3,7 +3,7 @@
   import { resolve } from '$app/paths';
   import { CalendarDays, ChevronLeft, ChevronRight, ReceiptText, Wallet } from '@lucide/svelte';
 
-  import { Button, Card } from '@jeevatix/ui';
+  import { Button, Card, EmptyState } from '@jeevatix/ui';
 
   import type { OrderListItem, PaginationMeta } from '$lib/api';
   import { formatCurrency, formatLongDateTime, formatRelativeTime } from '$lib/utils';
@@ -115,22 +115,17 @@
     </div>
 
     {#if data.orders.length === 0}
-      <div
-        class="border-border bg-muted mt-8 rounded-[1.75rem] border border-dashed px-6 py-14 text-center"
-      >
-        <div
-          class="bg-muted text-muted-foreground mx-auto flex size-16 items-center justify-center rounded-full"
+      <div class="mt-8">
+        <EmptyState
+          title="Belum ada order"
+          description="Order yang Anda buat dari checkout akan tampil di sini lengkap dengan status pembayaran dan detail event."
         >
-          <ReceiptText class="size-7" />
-        </div>
-        <h3 class="text-foreground mt-5 text-2xl font-semibold tracking-tight">Belum ada order</h3>
-        <p class="text-muted-foreground mx-auto mt-3 max-w-xl text-sm leading-7">
-          Order yang Anda buat dari checkout akan tampil di sini lengkap dengan status pembayaran
-          dan detail event.
-        </p>
-        <Button class="mt-6 rounded-full px-5" onclick={() => goto(resolve('/events'))}
-          >Jelajahi Event</Button
-        >
+          {#snippet action()}
+            <Button class="mt-6 rounded-full px-5" onclick={() => goto(resolve('/events'))}
+              >Jelajahi Event</Button
+            >
+          {/snippet}
+        </EmptyState>
       </div>
     {:else}
       <div class="mt-8 space-y-4 lg:hidden">

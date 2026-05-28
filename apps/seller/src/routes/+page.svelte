@@ -1,7 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import { CalendarRange, ChartSpline, ReceiptText, Ticket, Wallet } from '@lucide/svelte';
-  import { Badge, Card, Toast } from '@jeevatix/ui';
+  import { Badge, Card, EmptyState, Toast } from '@jeevatix/ui';
 
   type SellerDashboardPageData = {
     dashboard: {
@@ -285,10 +285,8 @@
       class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_orders.length === 0}
-        <div
-          class="border-border bg-muted text-muted-foreground flex min-h-72 items-center justify-center rounded-[1.5rem] border border-dashed text-sm"
-        >
-          Belum ada pesanan yang bisa ditampilkan.
+        <div class="min-h-72">
+          <EmptyState title="Belum ada pesanan yang bisa ditampilkan" />
         </div>
       {:else}
         <div class="overflow-x-auto">

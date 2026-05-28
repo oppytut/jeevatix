@@ -6,6 +6,36 @@
 
   let { form }: import('./$types').PageProps = $props();
   let submitting = $state(false);
+  let password = $state('');
+
+  function getStrengthLevel(pwd: string): number {
+    if (pwd.length === 0) return 0;
+    if (pwd.length < 6) return 1;
+    if (pwd.length < 8) return 2;
+
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasLower = /[a-z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+    if (pwd.length >= 10 && hasUpper && hasLower && hasNumber && hasSpecial) return 4;
+    if (pwd.length >= 8 && hasUpper && hasLower && hasNumber) return 3;
+
+    return 2;
+  }
+
+  let strengthLevel = $derived(getStrengthLevel(password));
+  let strengthLabel = $derived(
+    strengthLevel === 1
+      ? 'Weak'
+      : strengthLevel === 2
+        ? 'Fair'
+        : strengthLevel === 3
+          ? 'Good'
+          : strengthLevel === 4
+            ? 'Strong'
+            : '',
+  );
 </script>
 
 <svelte:head>
@@ -80,8 +110,41 @@
           type="password"
           placeholder="Minimal 8 karakter"
           autocomplete="new-password"
+          bind:value={password}
           required
         />
+        {#if password.length > 0}
+          <div class="mt-2 space-y-1">
+            <div class="flex gap-1">
+              {#each Array(4) as _, i (i)}
+                <div
+                  class="h-1.5 flex-1 rounded-full {i < strengthLevel
+                    ? strengthLevel === 1
+                      ? 'bg-rose-500'
+                      : strengthLevel === 2
+                        ? 'bg-amber-500'
+                        : strengthLevel === 3
+                          ? 'bg-emerald-500'
+                          : 'bg-emerald-600'
+                    : 'bg-muted'}"
+                ></div>
+              {/each}
+            </div>
+            <p
+              class="text-xs {strengthLevel === 1
+                ? 'text-rose-700'
+                : strengthLevel === 2
+                  ? 'text-amber-700'
+                  : strengthLevel === 3
+                    ? 'text-emerald-700'
+                    : strengthLevel === 4
+                      ? 'text-emerald-800'
+                      : 'text-muted-foreground'}"
+            >
+              {strengthLabel}
+            </p>
+          </div>
+        {/if}
       </div>
 
       <div class="space-y-2 sm:col-span-2">

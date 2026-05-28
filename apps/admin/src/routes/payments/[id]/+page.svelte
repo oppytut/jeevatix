@@ -4,7 +4,7 @@
   import type { PageProps } from './$types';
   import { onMount } from 'svelte';
   import { ArrowLeft, BadgeCheck, CircleX, RefreshCw } from '@lucide/svelte';
-  import { Badge, Button, Card, Modal, Toast } from '@jeevatix/ui';
+  import { Badge, Button, Card, EmptyState, Modal, Toast } from '@jeevatix/ui';
 
   import { apiGet, apiPatch, ApiError } from '$lib/api';
 
@@ -260,6 +260,12 @@
 </svelte:head>
 
 <section class="space-y-8">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/payments')} class="hover:text-foreground transition">Payments</a>
+    <span>/</span>
+    <span class="text-foreground font-medium">Detail</span>
+  </nav>
+
   <div
     class="border-border bg-card/85 flex flex-col gap-4 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
@@ -486,7 +492,7 @@
               </div>
             {/each}
           {:else}
-            <p class="text-muted-foreground text-sm">Belum ada tiket terbit untuk payment ini.</p>
+            <EmptyState title="Belum ada tiket terbit untuk payment ini" />
           {/if}
         </div>
       </Card>

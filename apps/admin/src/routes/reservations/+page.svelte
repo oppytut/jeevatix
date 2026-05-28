@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { Clock3, RefreshCw, TicketCheck } from '@lucide/svelte';
   import { Badge, Button, Card, DataTable, Input, Toast } from '@jeevatix/ui';
 
@@ -74,6 +73,18 @@
   let isRefreshing = $state(false);
   let pageError = $state('');
   let toast = $state<ToastState | null>(null);
+  let now = $state(Date.now());
+
+  $effect(() => {
+    const interval = setInterval(() => {
+      now = Date.now();
+    }, 1000);
+    return () => clearInterval(interval);
+  });
+
+  $effect(() => {
+    void loadReservations();
+  });
 
   function setToast(nextToast: ToastState) {
     toast = nextToast;
@@ -91,15 +102,14 @@
     }).format(new Date(value));
   }
 
-  function formatDuration(seconds: number) {
-    if (seconds <= 0) {
-      return 'Habis';
+  function formatCountdown(expiresAt: string) {
+    const diff = new Date(expiresAt).getTime() - now;
+    if (diff <= 0) {
+      return { text: 'Expired', expired: true };
     }
-
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-
-    return `${minutes}m ${remainingSeconds}s`;
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return { text: `${minutes}m ${seconds}s`, expired: false };
   }
 
   function getReservationVariant(
@@ -188,25 +198,26 @@
   }
 
   const tableRows = $derived(
-    reservations.map((reservation) => ({
-      ...reservation,
-      buyerLabel: `${reservation.buyer.fullName} - ${reservation.buyer.email}`,
-      eventLabel: `${reservation.event.title} - ${reservation.event.venueCity}`,
-      tierLabel: `${reservation.ticketTier.name} - ${reservation.ticketTier.status}`,
-      statusLabel: reservation.status,
-      expiryLabel:
-        reservation.status === 'active'
-          ? `${formatDate(reservation.expiresAt)} - ${formatDuration(reservation.remainingSeconds)}`
-          : formatDate(reservation.expiresAt),
-    })),
+    reservations.map((reservation) => {
+      const countdown =
+        reservation.status === 'active' ? formatCountdown(reservation.expiresAt) : null;
+      return {
+        ...reservation,
+        buyerLabel: `${reservation.buyer.fullName} - ${reservation.buyer.email}`,
+        eventLabel: `${reservation.event.title} - ${reservation.event.venueCity}`,
+        tierLabel: `${reservation.ticketTier.name} - ${reservation.ticketTier.status}`,
+        statusLabel: reservation.status,
+        expiryLabel:
+          reservation.status === 'active' && countdown
+            ? `${formatDate(reservation.expiresAt)} - ${countdown.text}`
+            : formatDate(reservation.expiresAt),
+        countdownExpired: countdown?.expired ?? false,
+      };
+    }),
   );
 
   const activeCount = $derived(reservations.filter((item) => item.status === 'active').length);
   const quantityCount = $derived(reservations.reduce((total, item) => total + item.quantity, 0));
-
-  onMount(async () => {
-    await loadReservations();
-  });
 </script>
 
 <svelte:head>

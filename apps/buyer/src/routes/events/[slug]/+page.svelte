@@ -50,6 +50,12 @@
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/events')} class="hover:text-foreground transition">Events</a>
+    <span>/</span>
+    <span class="text-foreground font-medium">{data.event.title}</span>
+  </nav>
+
   <div
     class="bg-card/85 overflow-hidden rounded-[2.5rem] border border-white/80 shadow-[0_28px_90px_rgba(15,23,42,0.08)]"
   >

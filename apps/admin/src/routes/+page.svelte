@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AreaChart, ReceiptText, Ticket, UserRound, Users, Wallet } from '@lucide/svelte';
-  import { Badge, Card, Toast } from '@jeevatix/ui';
+  import { Badge, Card, EmptyState, Toast } from '@jeevatix/ui';
 
   type AdminDashboardPageData = {
     dashboard: {
@@ -352,10 +352,8 @@
       class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_events.length === 0}
-        <div
-          class="border-border bg-muted text-muted-foreground flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed text-sm"
-        >
-          Belum ada event terbaru yang bisa ditampilkan.
+        <div class="min-h-64">
+          <EmptyState title="Belum ada event terbaru yang bisa ditampilkan" />
         </div>
       {:else}
         <div class="overflow-x-auto">
@@ -391,10 +389,8 @@
       class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_orders.length === 0}
-        <div
-          class="border-border bg-muted text-muted-foreground flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed text-sm"
-        >
-          Belum ada pesanan terbaru yang bisa ditampilkan.
+        <div class="min-h-64">
+          <EmptyState title="Belum ada pesanan terbaru yang bisa ditampilkan" />
         </div>
       {:else}
         <div class="overflow-x-auto">

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { resolve } from '$app/paths';
   import {
     ArrowRight,
     CalendarDays,
@@ -110,6 +111,12 @@
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/orders')} class="hover:text-foreground transition">Orders</a>
+    <span>/</span>
+    <span class="text-foreground font-medium">Pembayaran</span>
+  </nav>
+
   <div
     class="rounded-[2.5rem] border border-white/80 bg-[var(--gradient-section-alt)] p-7 shadow-[0_26px_90px_rgba(15,23,42,0.08)] sm:p-9"
   >

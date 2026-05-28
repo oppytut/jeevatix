@@ -130,6 +130,12 @@
 </svelte:head>
 
 <section class="space-y-8">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/orders')} class="hover:text-foreground transition">Orders</a>
+    <span>/</span>
+    <span class="text-foreground font-medium">Detail Order</span>
+  </nav>
+
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div class="space-y-3">
       <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">S12</p>

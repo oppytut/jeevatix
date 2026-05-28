@@ -10,7 +10,7 @@
     Sparkles,
   } from '@lucide/svelte';
   import { onMount } from 'svelte';
-  import { Button, Card, Toast } from '@jeevatix/ui';
+  import { Button, Card, EmptyState, Toast } from '@jeevatix/ui';
 
   import { ApiError, apiGetResponse, apiPatch } from '$lib/api';
 
@@ -324,22 +324,10 @@
           Memuat notifikasi seller...
         </div>
       {:else if notifications.length === 0}
-        <div
-          class="border-border bg-muted rounded-[1.75rem] border border-dashed px-6 py-14 text-center"
-        >
-          <div
-            class="bg-muted text-muted-foreground mx-auto flex size-16 items-center justify-center rounded-full"
-          >
-            <BellRing class="size-7" />
-          </div>
-          <h3 class="text-foreground mt-5 text-2xl font-semibold tracking-tight">
-            Belum ada notifikasi
-          </h3>
-          <p class="text-muted-foreground mx-auto mt-3 max-w-xl text-sm leading-7">
-            Saat ada pesanan baru atau perubahan status event, notifikasinya akan muncul di halaman
-            ini.
-          </p>
-        </div>
+        <EmptyState
+          title="Belum ada notifikasi"
+          description="Saat ada pesanan baru atau perubahan status event, notifikasinya akan muncul di halaman ini."
+        />
       {:else}
         {#each notifications as notification (notification.id)}
           {@const NotificationIcon = getNotificationIcon(notification.type)}

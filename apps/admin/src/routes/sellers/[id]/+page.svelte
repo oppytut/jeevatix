@@ -226,6 +226,12 @@
 </svelte:head>
 
 <section class="space-y-8">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/sellers')} class="hover:text-foreground transition">Sellers</a>
+    <span>/</span>
+    <span class="text-foreground font-medium">Detail</span>
+  </nav>
+
   <div
     class="border-border bg-card/85 flex flex-col gap-4 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >

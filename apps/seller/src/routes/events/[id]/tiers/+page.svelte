@@ -293,6 +293,16 @@
 </svelte:head>
 
 <section class="space-y-8">
+  <nav aria-label="Breadcrumb" class="text-muted-foreground mb-6 flex items-center gap-2 text-sm">
+    <a href={resolve('/events')} class="hover:text-foreground transition">Events</a>
+    <span>/</span>
+    <a href={resolve(`/events/${eventId}`)} class="hover:text-foreground transition"
+      >{eventDetail?.title ?? 'Detail'}</a
+    >
+    <span>/</span>
+    <span class="text-foreground font-medium">Tiers</span>
+  </nav>
+
   {#if toast}
     <Toast
       title={toast.title}
