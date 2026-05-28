@@ -2,16 +2,16 @@
 title: Handoff Progress
 last_updated: 2026-05-28
 status: Active
-phase: UI/UX overhaul + brand polish complete. E2E green. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
+phase: UI/UX overhaul + brand polish + E2E hardening complete. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**UI/UX OVERHAUL + BRAND POLISH COMPLETE. E2E FULLY GREEN. STAGING CLEAN.**
+**UI/UX OVERHAUL + BRAND POLISH + E2E HARDENING COMPLETE. STAGING CLEAN.**
 
 Only user decisions block production launch.
 
-### What's Done (Session 2026-05-28 ~22:00 UTC — Brand & Polish)
+### What's Done (Session 2026-05-28 ~22:00 UTC — Brand, Polish & E2E)
 
 | # | Deliverable | Status |
 |---|---|---|
@@ -21,6 +21,11 @@ Only user decisions block production launch.
 | 23 | **Favicon SVG** — Jeevatix brand (orange→yellow gradient, ticket + J) all 3 portals | ✅ |
 | 24 | **og-default.png** — 1200x630 OG image for social sharing | ✅ |
 | 25 | **Prettier formatting** — all files formatted, CI format:check green | ✅ |
+| 26 | **Wire Select** ke 3 seller filter dropdowns (tiers + orders) | ✅ |
+| 27 | **OG meta + manifest** — seller/admin portals (og:image, theme-color, twitter:card, manifest.webmanifest) | ✅ |
+| 28 | **E2E W2W skip removal** — 7 graceful skip blocks removed (Service Binding now active) | ✅ |
+
+**E2E Result: 58 passed, 0 failed, 31 skipped** (was 38 skipped)
 
 ### What's Done (Session 2026-05-28 ~08:00-14:20 UTC — UI/UX Overhaul)
 
@@ -46,24 +51,17 @@ Only user decisions block production launch.
 | 18 | E2E workflow_dispatch condition fixed | ✅ |
 | 19 | `db:seed:staging` script shortcut added | ✅ |
 
-**E2E Result: 58 passed, 0 failed, 38 skipped**
-
 ### Planning — Next Tasks (AI-executable, no user decisions needed)
 
 | # | Task | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
-| 1 | ~~Landing page hero redesign~~ | ~~1-2h~~ | ~~First impression~~ | ✅ Done |
-| 2 | ~~Wire Select component ke admin filter dropdowns~~ | ~~1h~~ | ~~Consistency~~ | ✅ Done |
-| 3 | ~~og-default.png~~ | ~~30 min~~ | ~~Social sharing~~ | ✅ Done |
-| 4 | ~~Dark mode gradient polish~~ | ~~1h~~ | ~~Dark mode completeness~~ | ✅ Done |
-| 5 | ~~Favicon + logo SVG~~ | ~~30 min~~ | ~~Brand polish~~ | ✅ Done |
-| 6 | **Reduce E2E skipped tests** (38 skipped) | 2h | Test coverage | Some skips are fixable with Service Binding now active |
-| 7 | **Performance audit** — bundle size, lazy loading, images | 1-2h | Speed | Lighthouse audit + fixes |
-| 8 | **OG image upgrade** — add text rendering ("Jeevatix" + tagline) | 30 min | Social sharing | Needs image library (sharp/resvg) |
-| 9 | **Wire Select to seller filter dropdowns** | 1h | Consistency | Same pattern as admin, seller pages likely have native selects too |
-| 10 | **Accessibility audit** — ARIA labels, focus management, contrast | 1-2h | A11y compliance | Especially buyer portal public pages |
-| 11 | **Error boundary polish** — custom error pages styling refresh | 30 min | UX | Match new design token system |
-| 12 | **Seller/admin OG + manifest** — add og:image meta + manifest to seller/admin | 30 min | SEO | Currently only buyer has these |
+| 1 | **Performance audit** — bundle size, lazy loading, code splitting | 1-2h | Speed | Analyze imports, identify heavy chunks |
+| 2 | **Accessibility audit** — ARIA labels, focus management, contrast | 1-2h | A11y | Buyer public pages priority |
+| 3 | **Error boundary polish** — custom error pages styling refresh | 30 min | UX | Match new design token system |
+| 4 | **OG image upgrade** — add text rendering ("Jeevatix" + tagline) | 30 min | Social sharing | Needs image library (sharp/resvg) |
+| 5 | **Seller event wizard UX** — improve multi-step form flow | 2-3h | Seller experience | Wizard steps, validation feedback |
+| 6 | **Buyer search/filter UX** — improve event discovery filters | 1-2h | Buyer experience | Better filter UI, URL state sync |
+| 7 | **Admin bulk actions** — select multiple items for batch operations | 2h | Admin efficiency | DataTable checkbox + bulk action bar |
 
 ### Production Launch — 3 Decisions Needed (BLOCKING)
 
