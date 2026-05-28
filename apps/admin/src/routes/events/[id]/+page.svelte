@@ -395,6 +395,8 @@
             <img
               src={eventDetail.bannerUrl}
               alt={eventDetail.title}
+              loading="lazy"
+              decoding="async"
               class="h-56 w-full rounded-[1.5rem] object-cover"
             />
           {/if}
@@ -545,6 +547,8 @@
                   <img
                     src={image.imageUrl}
                     alt={`${eventDetail.title} gallery ${image.sortOrder + 1}`}
+                    loading="lazy"
+                    decoding="async"
                     class="h-36 w-full rounded-[1.25rem] object-cover"
                   />
                 {/each}

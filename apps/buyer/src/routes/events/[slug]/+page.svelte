@@ -64,6 +64,7 @@
         <img
           src={data.event.banner_url}
           alt={data.event.title}
+          decoding="async"
           class="h-full w-full object-cover"
         />
       {/if}
@@ -125,6 +126,8 @@
                 <img
                   src={image.image_url}
                   alt={data.event.title}
+                  loading="lazy"
+                  decoding="async"
                   class="aspect-4/3 h-full w-full object-cover"
                 />
               </div>
@@ -297,6 +300,8 @@
               <img
                 src={data.event.seller.logo_url}
                 alt={data.event.seller.org_name}
+                loading="lazy"
+                decoding="async"
                 class="h-full w-full object-cover"
               />
             {:else}

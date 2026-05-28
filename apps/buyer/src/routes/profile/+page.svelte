@@ -135,6 +135,8 @@
               <img
                 src={getAvatarSrc() ?? undefined}
                 alt={getProfile().full_name}
+                loading="lazy"
+                decoding="async"
                 class="h-full w-full object-cover"
               />
             {:else}

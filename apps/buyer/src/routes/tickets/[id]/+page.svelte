@@ -3,7 +3,6 @@
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { ArrowLeft, Download, MapPin, QrCode, Ticket, TicketCheck } from '@lucide/svelte';
-  import QRCode from 'qrcode';
 
   import { Button, Card } from '@jeevatix/ui';
 
@@ -38,6 +37,7 @@
     }
 
     try {
+      const QRCode = (await import('qrcode')).default;
       qrImageUrl = await QRCode.toDataURL(data.ticket.qr_data, {
         width: 640,
         margin: 2,

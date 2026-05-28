@@ -32,6 +32,8 @@
       <img
         src={event.banner_url}
         alt={event.title}
+        loading="lazy"
+        decoding="async"
         class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
       />
     {:else}

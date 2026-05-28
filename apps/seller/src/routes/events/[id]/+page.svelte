@@ -272,6 +272,7 @@
             class="h-full w-full object-cover"
             src={eventDetail.banner_url}
             alt={eventDetail.title}
+            decoding="async"
           />
         {:else}
           <div class="text-muted-foreground flex h-full items-center justify-center text-sm">
@@ -454,6 +455,8 @@
                   class="h-44 w-full rounded-[1.4rem] object-cover"
                   src={image.image_url}
                   alt="Galeri event"
+                  loading="lazy"
+                  decoding="async"
                 />
               {/each}
             </div>

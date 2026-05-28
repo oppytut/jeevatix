@@ -582,6 +582,8 @@
                 class="mt-5 h-60 w-full rounded-[1.4rem] object-cover"
                 src={form.banner_url}
                 alt="Banner event preview"
+                loading="lazy"
+                decoding="async"
               />
             {:else}
               <div
@@ -629,6 +631,8 @@
                       class="h-40 w-full object-cover"
                       src={image.image_url}
                       alt="Galeri event"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div class="flex items-center justify-between px-4 py-3">
                       <p

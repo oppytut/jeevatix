@@ -245,6 +245,8 @@
                   <img
                     src={form.logo_url}
                     alt="Logo organisasi seller"
+                    loading="lazy"
+                    decoding="async"
                     class="h-52 w-full object-cover"
                   />
                 {:else}
