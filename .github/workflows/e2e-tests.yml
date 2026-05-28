@@ -9,7 +9,7 @@ jobs:
   e2e-tests:
     timeout-minutes: 45
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
     
     env:
       E2E_TARGET: staging
