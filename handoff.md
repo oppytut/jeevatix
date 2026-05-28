@@ -2,12 +2,29 @@
 title: Handoff Progress
 last_updated: 2026-05-28
 status: Active
-phase: Staging fully operational. All AI-doable polish work COMPLETE. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
+phase: Staging fully operational. UI bug fixed (invisible buttons). Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
 **ALL TECHNICAL WORK READY FOR PRODUCTION.** Only user decisions block launch.
+
+### What's Done (Session 2026-05-28 ~02:00-03:14 UTC)
+
+| # | Deliverable | Commit |
+|---|---|---|
+| 1 | Revert dotenv-cli hack + add INTERNAL_API_URL to .env.example | `d796ba0` |
+| 2 | Loading skeleton components (shared primitive + buyer/seller/admin) | `1952a3c` |
+| 3 | Fix invisible buttons — add jeevatix theme tokens to all portal layout.css | (commit in deploy run) |
+| 4 | Fix invisible buttons — add `@source` for shared UI package (Tailwind v4 content scan) | (commit in deploy run) |
+| 5 | Prettier format fixes for CI | (2 commits) |
+
+**Root cause of invisible login button:**
+- Tailwind v4 CSS-first mode does not scan `node_modules` by default
+- `Button.svelte` in `packages/ui` uses `bg-jeevatix-600` but Tailwind never generated the CSS rule
+- Fix required TWO changes:
+  1. `@theme inline` block needed `--color-jeevatix-*` token definitions (so Tailwind knows the color values)
+  2. `@source "../../../../packages/ui/src"` directive needed (so Tailwind scans shared UI files for class usage)
 
 ### What's Done (Session 2026-05-27 → 2026-05-28)
 
@@ -47,8 +64,9 @@ phase: Staging fully operational. All AI-doable polish work COMPLETE. Production
 - og-default.png image asset (referenced in meta but not yet uploaded) — design work
 - Status page publik via Better Stack (10 min user setup)
 - Slack alert integration (5 min user setup, needs Slack workspace)
-- Loading skeleton components (UX polish, not blocking)
+- ~~Loading skeleton components (UX polish, not blocking)~~ ✅ DONE
 - Custom Jeevatix landing page hero (if desired)
+- Integrate skeleton components into actual page loading states (wire `{#await}` or SvelteKit `+loading.svelte`)
 
 ### Demo Accounts (Staging)
 
@@ -68,6 +86,17 @@ Manual workflow available: `Reset Staging DB` (workflow_dispatch). Wipes + resee
 - **Service Binding (not HTTP)** for SSR API calls — see section "Service Binding Migration" below for full rationale
 - **Custom domain** routing works via Service Binding regardless of W2W bugs
 - **Staging DB shared with CI tests** — local PG service in CI handles unit tests, staging DB only used for deploy + E2E
+- **Tailwind v4 `@source` required for monorepo shared packages** — without it, classes used in `packages/ui` are not generated in portal CSS output
+
+### Penting saat resume
+
+1. **JANGAN hapus `DB_DISABLE_CACHE=1`** — sudah dibuktikan trigger ~30% 500 di `/categories`.
+2. **JANGAN ganti `INTERNAL_API_URL` ke `https://api.jeevatix.my.id`** untuk SSR — itu trigger 522. Service Binding handles it now.
+3. **`PRODUCTION_INTERNAL_API_URL` GH var WAJIB di-set sebelum production deploy.**
+4. **Canary CI sekarang real coverage.** Kalau canary fail dengan 5xx, treat as P0.
+5. **Production canary memerlukan 2 deploy.** First deploy: skip canary (URLs unknown). Capture URLs from output. Set vars. Next deploy: canary runs fully.
+6. **Tailwind v4 monorepo gotcha:** Any new shared package with Tailwind classes needs `@source` in consuming portal's `layout.css`.
+7. **`svelte-check` lokal butuh env vars.** Jalankan via `pnpm run typecheck` (turbo injects env) atau set `INTERNAL_API_URL` + `PUBLIC_API_BASE_URL` + `PUBLIC_PARTYKIT_HOST` di `.env` root.
 
 ---
 
