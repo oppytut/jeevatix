@@ -45,86 +45,87 @@
   />
 </svelte:head>
 
-<section class="relative overflow-hidden py-6 sm:py-8 lg:py-10">
-  <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
+<section class="relative overflow-hidden py-8 sm:py-12 lg:py-16">
+  <div class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-stretch">
     <div
-      class="border-border relative overflow-hidden rounded-[2.5rem] border bg-[var(--gradient-section)] p-8 shadow-[0_30px_90px_rgba(15,23,42,0.10)] sm:p-10 lg:p-12"
+      class="border-border relative overflow-hidden rounded-[var(--radius-panel)] border bg-[var(--gradient-section)] p-10 shadow-[var(--shadow-spotlight)] sm:p-12 lg:p-16"
     >
       <div
-        class="absolute inset-0 opacity-70"
-        style="background-image:
-        radial-gradient(circle at 15% 20%, rgba(249,115,22,0.18), transparent 30%),
-        radial-gradient(circle at 85% 15%, rgba(14,165,233,0.22), transparent 28%),
-        radial-gradient(circle at 50% 100%, rgba(250,204,21,0.22), transparent 35%);"
+        class="absolute inset-0 opacity-60"
+        style="background-image: var(--gradient-overlay-top);"
       ></div>
 
-      <div class="relative space-y-8">
+      <div class="relative space-y-10">
         <div
-          class="bg-card/70 inline-flex w-fit items-center gap-3 rounded-full border border-orange-200/70 px-4 py-2 text-sm font-semibold tracking-[0.26em] text-orange-700 uppercase backdrop-blur"
+          class="bg-card/60 inline-flex w-fit items-center gap-2.5 rounded-full border border-orange-200/60 px-5 py-2.5 text-xs font-bold tracking-[0.28em] text-orange-700 uppercase backdrop-blur-md shadow-sm"
         >
           <Sparkles class="size-4" />
           Event Discovery Layer
         </div>
 
-        <div class="space-y-5">
+        <div class="space-y-6">
           <h1
-            class="text-foreground max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl"
+            class="text-foreground max-w-3xl text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl"
           >
-            Panggung, tribun, workshop, dan festival terbaik kini ada dalam satu alur pencarian.
+            Temukan event yang
+            <span
+              class="bg-[var(--gradient-brand)] bg-clip-text text-transparent"
+            >
+              menggerakkan hatimu
+            </span>
           </h1>
-          <p class="text-foreground max-w-2xl text-base leading-8 sm:text-lg">
-            Temukan event yang relevan lebih cepat, bandingkan tier tiket, lalu lanjutkan ke
-            pembelian tanpa ribet saat momen favoritmu sudah tayang.
+          <p class="text-muted-foreground max-w-2xl text-lg leading-relaxed sm:text-xl">
+            Panggung, tribun, workshop, festival — semua dalam satu pencarian. Bandingkan tiket, amankan kursi, tanpa ribet.
           </p>
         </div>
 
-        <div class="flex flex-col gap-3 sm:flex-row">
-          <a href={resolve('/events')}>
-            <Button class="h-12 rounded-full px-6 text-sm font-semibold">
-              Jelajah Event
-              <ArrowRight class="size-4" />
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <a href={resolve('/events')} class="group">
+            <Button class="h-14 rounded-full bg-[var(--gradient-brand)] px-8 text-base font-bold shadow-[var(--shadow-float)] transition-all hover:scale-105 hover:shadow-[0_20px_60px_rgba(232,93,63,0.28)]">
+              Jelajah Event Sekarang
+              <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </a>
           <a
             href="#featured"
-            class="border-border bg-card/70 text-foreground hover:bg-card inline-flex h-12 items-center justify-center rounded-full border px-6 text-sm font-semibold transition"
+            class="border-border bg-card/60 text-foreground hover:bg-card/90 inline-flex h-14 items-center justify-center gap-2 rounded-full border px-7 text-base font-semibold backdrop-blur-sm transition-all hover:scale-[1.02]"
           >
             Lihat Highlight Minggu Ini
           </a>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-3">
-          <div class="border-border bg-card/75 rounded-[1.5rem] border p-4 backdrop-blur">
-            <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+        <div class="grid gap-3 sm:grid-cols-3">
+          <div class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg">
+            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Featured
             </p>
-            <p class="text-foreground mt-3 text-3xl font-semibold">
+            <p class="text-foreground mt-2.5 text-4xl font-bold">
               {formatCompactNumber(data.featuredEvents.length)}
             </p>
-            <p class="text-muted-foreground mt-2 text-sm">
-              Kurasi event dengan momentum paling tinggi.
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
+              Event dengan momentum tertinggi
             </p>
           </div>
-          <div class="border-border bg-card/75 rounded-[1.5rem] border p-4 backdrop-blur">
-            <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+          <div class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg">
+            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Kategori
             </p>
-            <p class="text-foreground mt-3 text-3xl font-semibold">
+            <p class="text-foreground mt-2.5 text-4xl font-bold">
               {formatCompactNumber(data.categories.length)}
             </p>
-            <p class="text-muted-foreground mt-2 text-sm">
-              Jalur cepat untuk menemukan vibe yang kamu cari.
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
+              Jalur cepat ke vibe-mu
             </p>
           </div>
-          <div class="border-border bg-card/75 rounded-[1.5rem] border p-4 backdrop-blur">
-            <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+          <div class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg">
+            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Upcoming
             </p>
-            <p class="text-foreground mt-3 text-3xl font-semibold">
+            <p class="text-foreground mt-2.5 text-4xl font-bold">
               {formatCompactNumber(data.upcomingMeta.total)}
             </p>
-            <p class="text-muted-foreground mt-2 text-sm">
-              Agenda terdekat yang siap diburu sebelum sold out.
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
+              Agenda siap diburu
             </p>
           </div>
         </div>
@@ -133,55 +134,60 @@
 
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
       <div
-        class="border-border bg-card/85 rounded-[2rem] border p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur sm:p-7"
+        class="border-border bg-card/90 group rounded-[var(--radius-panel)] border p-7 shadow-[var(--shadow-spotlight)] backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-xl sm:p-8"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-start gap-4">
           <div
-            class="flex size-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-700"
+            class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-white shadow-lg"
           >
-            <CalendarRange class="size-6" />
+            <CalendarRange class="size-7" />
           </div>
           <div>
-            <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Agenda Cerdas
             </p>
-            <h2 class="text-foreground text-lg font-semibold">
+            <h2 class="text-foreground mt-1 text-xl font-bold leading-tight">
               Rencanakan weekend tanpa tebak-tebakan
             </h2>
           </div>
         </div>
-        <p class="text-muted-foreground mt-4 text-sm leading-7">
-          Filter by kota, rentang tanggal, dan harga untuk menyaring event yang benar-benar relevan
-          dengan waktu dan budget Anda.
+        <p class="text-muted-foreground mt-5 text-sm leading-relaxed">
+          Filter kota, tanggal, dan harga untuk menyaring event yang benar-benar relevan dengan waktu dan budget-mu.
         </p>
       </div>
 
       <div
-        class="bg-foreground text-background rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.16)] sm:p-7"
+        class="bg-foreground text-background group relative overflow-hidden rounded-[var(--radius-panel)] border border-white/20 p-7 shadow-[0_28px_80px_rgba(15,23,42,0.20)] transition-all hover:scale-[1.02] hover:shadow-2xl sm:p-8"
       >
-        <div class="flex items-center gap-3">
-          <div
-            class="bg-card/10 flex size-12 items-center justify-center rounded-2xl text-amber-300"
+        <div
+          class="absolute inset-0 opacity-20"
+          style="background: radial-gradient(circle at 80% 20%, rgba(251,191,36,0.4), transparent 50%);"
+        ></div>
+        <div class="relative">
+          <div class="flex items-start gap-4">
+            <div
+              class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-yellow-400 text-slate-900 shadow-lg"
+            >
+              <MapPin class="size-7" />
+            </div>
+            <div>
+              <p class="text-[0.65rem] font-bold tracking-[0.26em] text-white/50 uppercase">
+                Kota Populer
+              </p>
+              <h2 class="mt-1 text-xl font-bold leading-tight">Jakarta, Bandung, Surabaya, Yogya</h2>
+            </div>
+          </div>
+          <p class="mt-5 text-sm leading-relaxed text-white/75">
+            Temukan event di kota dengan jadwal terpadat dan lineup paling dinamis.
+          </p>
+          <a
+            href={resolve('/events')}
+            class="mt-6 inline-flex items-center gap-2 text-sm font-bold text-amber-300 transition-all hover:gap-3"
           >
-            <MapPin class="size-6" />
-          </div>
-          <div>
-            <p class="text-xs font-semibold tracking-[0.24em] text-white/60 uppercase">
-              Kota Populer
-            </p>
-            <h2 class="text-lg font-semibold">Jakarta, Bandung, Surabaya, Yogyakarta</h2>
-          </div>
+            Mulai eksplor sekarang
+            <ArrowRight class="size-4" />
+          </a>
         </div>
-        <p class="mt-4 text-sm leading-7 text-white/72">
-          Temukan event di kota-kota dengan jadwal paling padat dan lineup paling cepat berubah.
-        </p>
-        <a
-          href={resolve('/events')}
-          class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-amber-300"
-        >
-          Mulai eksplor sekarang
-          <ArrowRight class="size-4" />
-        </a>
       </div>
     </div>
   </div>

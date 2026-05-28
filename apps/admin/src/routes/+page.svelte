@@ -152,9 +152,14 @@
     class="border-border bg-card overflow-hidden rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
   >
     <div
-      class="grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_36%),linear-gradient(135deg,rgba(15,23,42,0.04),rgba(255,255,255,0.96)_45%,rgba(251,191,36,0.10)_100%)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
+      class="relative grid gap-8 bg-[var(--gradient-section)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
     >
-      <div class="space-y-4">
+      <div
+        class="pointer-events-none absolute inset-0 opacity-70"
+        style="background-image: var(--gradient-overlay-top);"
+      ></div>
+
+      <div class="relative space-y-4">
         <p class="text-muted-foreground text-sm font-semibold tracking-[0.35em] uppercase">A2</p>
         <h1 class="text-foreground max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Admin Dashboard
@@ -166,7 +171,7 @@
       </div>
 
       <div
-        class="bg-foreground text-background rounded-[1.75rem] border border-slate-900/10 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.24)]"
+        class="bg-foreground text-background relative rounded-[1.75rem] border border-slate-900/10 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.24)]"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -296,7 +301,7 @@
     class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
   >
     <div
-      class="border-border rounded-[1.6rem] border bg-[linear-gradient(180deg,rgba(239,246,255,0.85),rgba(255,255,255,1))] p-4 sm:p-5"
+      class="border-border rounded-[1.6rem] border bg-[var(--gradient-section-alt)] p-4 sm:p-5"
     >
       <svg
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}

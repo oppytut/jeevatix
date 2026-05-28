@@ -86,7 +86,7 @@
 
 {#if isLoginRoute}
   <div
-    class="min-h-screen bg-[linear-gradient(180deg,rgba(255,248,235,0.6),rgba(248,250,252,1))] px-4 py-4 sm:px-6 lg:px-8"
+    class="min-h-screen bg-[var(--gradient-page)] px-4 py-4 sm:px-6 lg:px-8"
   >
     <div class="mx-auto max-w-7xl">
       {@render children()}
@@ -143,7 +143,7 @@
       </div>
     </aside>
 
-    <main class="min-w-0 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(248,250,252,1))]">
+    <main class="min-w-0 bg-[var(--gradient-section-alt)]">
       {#if $navigating}
         <div class="bg-muted fixed inset-x-0 top-0 z-50 h-1 overflow-hidden">
           <div class="bg-jeevatix-500 h-full w-1/3 animate-pulse rounded-full"></div>

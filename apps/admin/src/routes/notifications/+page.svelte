@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Bell, Megaphone, RefreshCw, Send } from '@lucide/svelte';
-  import { Badge, Button, Card, DataTable, Input, Modal, Textarea, Toast } from '@jeevatix/ui';
+  import { Badge, Button, Card, DataTable, Input, Modal, Select, Textarea, Toast } from '@jeevatix/ui';
 
   import { apiGetEnvelope, apiPost, ApiError } from '$lib/api';
 
@@ -361,28 +361,28 @@
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="notification-type">Tipe</label>
-        <select
+        <Select
           id="notification-type"
           bind:value={typeFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
+          class="h-11 rounded-full"
         >
           {#each typeOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
-        </select>
+        </Select>
       </div>
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="notification-role">Role</label>
-        <select
+        <Select
           id="notification-role"
           bind:value={roleFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
+          class="h-11 rounded-full"
         >
           {#each roleOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
-        </select>
+        </Select>
       </div>
 
       <div class="flex items-end">
@@ -493,15 +493,15 @@
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="broadcast-target-role">Target</label
         >
-        <select
+        <Select
           id="broadcast-target-role"
           bind:value={broadcastForm.targetRole}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
+          class="h-11 rounded-full"
         >
           {#each broadcastRoleOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
-        </select>
+        </Select>
       </div>
 
       <div class="space-y-2">

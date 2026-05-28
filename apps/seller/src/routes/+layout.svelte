@@ -103,7 +103,7 @@
 
 {#if isAuthRoute}
   <div
-    class="min-h-screen bg-[linear-gradient(180deg,rgba(236,253,245,0.72),rgba(255,255,255,1)_18%,rgba(255,251,235,0.72))] px-4 py-4 sm:px-6 lg:px-8"
+    class="min-h-screen bg-[var(--gradient-page)] px-4 py-4 sm:px-6 lg:px-8"
   >
     <div class="mx-auto max-w-7xl">
       {@render children()}
@@ -237,7 +237,7 @@
     </aside>
 
     <main
-      class="min-w-0 bg-[linear-gradient(180deg,rgba(254,252,232,0.65),rgba(255,255,255,1)_22%,rgba(236,253,245,0.8)_100%)]"
+      class="min-w-0 bg-[var(--gradient-page)]"
     >
       {#if $navigating}
         <div class="bg-muted fixed inset-x-0 top-0 z-50 h-1 overflow-hidden">

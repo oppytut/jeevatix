@@ -3,7 +3,7 @@
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
   import { BadgeCheck, RefreshCw, Search, Store } from '@lucide/svelte';
-  import { Button, Card, DataTable, Input, Toast } from '@jeevatix/ui';
+  import { Button, Card, DataTable, Input, Select, Toast } from '@jeevatix/ui';
 
   import { apiGetEnvelope, ApiError } from '$lib/api';
 
@@ -276,15 +276,15 @@
         <label class="text-foreground text-sm font-medium" for="seller-verification-filter"
           >Verifikasi</label
         >
-        <select
+        <Select
           id="seller-verification-filter"
           bind:value={verificationFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
+          class="h-11 rounded-full"
         >
           {#each verificationOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
-        </select>
+        </Select>
       </div>
 
       <div class="flex items-end">

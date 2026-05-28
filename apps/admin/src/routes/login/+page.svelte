@@ -18,9 +18,7 @@
 <section
   class="border-border bg-card relative overflow-hidden rounded-[2rem] border shadow-[0_30px_90px_rgba(15,23,42,0.12)]"
 >
-  <div
-    class="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.18),_transparent_55%),linear-gradient(120deg,_rgba(14,116,144,0.14),_rgba(251,191,36,0.12))]"
-  ></div>
+  <div class="absolute inset-x-0 top-0 h-40 opacity-70" style="background-image: var(--gradient-overlay-top);"></div>
 
   <div class="relative grid min-h-[calc(100vh-4rem)] gap-0 lg:grid-cols-[1.05fr_0.95fr]">
     <div
@@ -71,7 +69,7 @@
     </div>
 
     <div
-      class="flex items-center justify-center bg-[linear-gradient(180deg,rgba(248,250,252,0.9),rgba(255,255,255,1))] px-6 py-10 sm:px-8 lg:px-12"
+      class="flex items-center justify-center bg-[var(--gradient-section-alt)] px-6 py-10 sm:px-8 lg:px-12"
     >
       <Card
         title={undefined}

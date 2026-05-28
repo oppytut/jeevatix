@@ -3,7 +3,7 @@
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
   import { RefreshCw, Search, ShieldBan, UserRound } from '@lucide/svelte';
-  import { Button, Card, DataTable, Input, Toast } from '@jeevatix/ui';
+  import { Button, Card, DataTable, Input, Select, Toast } from '@jeevatix/ui';
 
   import { apiGetEnvelope, ApiError } from '$lib/api';
 
@@ -302,28 +302,28 @@
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="user-role-filter">Role</label>
-        <select
+        <Select
           id="user-role-filter"
           bind:value={roleFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
+          class="h-11 rounded-full"
         >
           {#each roleOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
-        </select>
+        </Select>
       </div>
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="user-status-filter">Status</label>
-        <select
+        <Select
           id="user-status-filter"
           bind:value={statusFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
+          class="h-11 rounded-full"
         >
           {#each statusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
-        </select>
+        </Select>
       </div>
 
       <div class="flex items-end">

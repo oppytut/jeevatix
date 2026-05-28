@@ -152,9 +152,14 @@
     class="bg-card/90 overflow-hidden rounded-[2rem] border border-emerald-950/10 shadow-[0_30px_90px_rgba(5,46,34,0.10)]"
   >
     <div
-      class="grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_38%),linear-gradient(135deg,rgba(15,118,110,0.08),rgba(255,255,255,0.96)_44%,rgba(245,158,11,0.10)_100%)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
+      class="relative grid gap-8 bg-[var(--gradient-section)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
     >
-      <div class="space-y-4">
+      <div
+        class="pointer-events-none absolute inset-0 opacity-70"
+        style="background-image: var(--gradient-overlay-top);"
+      ></div>
+
+      <div class="relative space-y-4">
         <p class="text-sm font-semibold tracking-[0.35em] text-emerald-800/70 uppercase">S5</p>
         <h1 class="text-foreground max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Seller Dashboard
@@ -166,7 +171,7 @@
       </div>
 
       <div
-        class="bg-foreground text-background rounded-[1.75rem] border border-emerald-950/10 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.25)]"
+        class="bg-foreground text-background relative rounded-[1.75rem] border border-emerald-950/10 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.25)]"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -337,7 +342,7 @@
       class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       <div
-        class="border-border rounded-[1.6rem] border bg-[linear-gradient(180deg,rgba(240,253,250,0.7),rgba(255,255,255,1))] p-4 sm:p-5"
+        class="border-border rounded-[1.6rem] border bg-[var(--gradient-section-alt)] p-4 sm:p-5"
       >
         <svg
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}

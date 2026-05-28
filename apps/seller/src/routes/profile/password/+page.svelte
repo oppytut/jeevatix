@@ -176,7 +176,7 @@
       <Card
         title="Checklist keamanan"
         description="Pedoman singkat agar kredensial seller tetap aman dari reuse atau kebocoran."
-        class="rounded-[2rem] bg-[linear-gradient(180deg,rgba(236,253,245,0.9),rgba(255,255,255,1))]"
+        class="rounded-[2rem] bg-[var(--gradient-section-alt)]"
       >
         <div class="text-muted-foreground space-y-4 text-sm leading-6">
           <div

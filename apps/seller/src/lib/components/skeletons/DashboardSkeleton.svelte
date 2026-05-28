@@ -3,7 +3,7 @@
     class="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-white/92 shadow-[0_30px_90px_rgba(5,46,34,0.10)]"
   >
     <div
-      class="grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_38%),linear-gradient(135deg,rgba(15,118,110,0.08),rgba(255,255,255,0.96)_44%,rgba(245,158,11,0.10)_100%)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
+      class="grid gap-8 bg-[var(--gradient-section)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
     >
       <div class="space-y-4">
         <div class="h-4 w-12 animate-pulse rounded-lg bg-emerald-200/60"></div>

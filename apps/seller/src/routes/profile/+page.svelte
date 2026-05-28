@@ -249,7 +249,7 @@
                   />
                 {:else}
                   <div
-                    class="text-muted-foreground flex h-52 items-center justify-center bg-[radial-gradient(circle_at_top,#ecfdf5_0%,#f8fafc_65%,#ffffff_100%)]"
+                    class="text-muted-foreground flex h-52 items-center justify-center bg-[var(--gradient-section)]"
                   >
                     <Building2 class="size-10" />
                   </div>
@@ -355,7 +355,7 @@
       <Card
         title="Status Verifikasi"
         description="Status ini menentukan kesiapan akun seller untuk mengelola event yang dipublikasikan."
-        class="rounded-[2rem] border-emerald-900/10 bg-[linear-gradient(180deg,rgba(236,253,245,0.9),rgba(255,255,255,1))]"
+        class="rounded-[2rem] border-emerald-900/10 bg-[var(--gradient-section-alt)]"
       >
         {#if profile}
           <div class="space-y-5">
