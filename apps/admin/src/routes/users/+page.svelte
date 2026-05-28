@@ -302,11 +302,7 @@
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="user-role-filter">Role</label>
-        <Select
-          id="user-role-filter"
-          bind:value={roleFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="user-role-filter" bind:value={roleFilter} class="h-11 rounded-full">
           {#each roleOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
@@ -315,11 +311,7 @@
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="user-status-filter">Status</label>
-        <Select
-          id="user-status-filter"
-          bind:value={statusFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="user-status-filter" bind:value={statusFilter} class="h-11 rounded-full">
           {#each statusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}

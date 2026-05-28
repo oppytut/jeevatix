@@ -57,7 +57,7 @@
 
       <div class="relative space-y-10">
         <div
-          class="bg-card/60 inline-flex w-fit items-center gap-2.5 rounded-full border border-orange-200/60 px-5 py-2.5 text-xs font-bold tracking-[0.28em] text-orange-700 uppercase backdrop-blur-md shadow-sm"
+          class="bg-card/60 inline-flex w-fit items-center gap-2.5 rounded-full border border-orange-200/60 px-5 py-2.5 text-xs font-bold tracking-[0.28em] text-orange-700 uppercase shadow-sm backdrop-blur-md"
         >
           <Sparkles class="size-4" />
           Event Discovery Layer
@@ -65,23 +65,24 @@
 
         <div class="space-y-6">
           <h1
-            class="text-foreground max-w-3xl text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl"
+            class="text-foreground max-w-3xl text-5xl leading-[1.1] font-bold tracking-tight sm:text-6xl lg:text-7xl"
           >
             Temukan event yang
-            <span
-              class="bg-[var(--gradient-brand)] bg-clip-text text-transparent"
-            >
+            <span class="bg-[var(--gradient-brand)] bg-clip-text text-transparent">
               menggerakkan hatimu
             </span>
           </h1>
           <p class="text-muted-foreground max-w-2xl text-lg leading-relaxed sm:text-xl">
-            Panggung, tribun, workshop, festival — semua dalam satu pencarian. Bandingkan tiket, amankan kursi, tanpa ribet.
+            Panggung, tribun, workshop, festival — semua dalam satu pencarian. Bandingkan tiket,
+            amankan kursi, tanpa ribet.
           </p>
         </div>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <a href={resolve('/events')} class="group">
-            <Button class="h-14 rounded-full bg-[var(--gradient-brand)] px-8 text-base font-bold shadow-[var(--shadow-float)] transition-all hover:scale-105 hover:shadow-[0_20px_60px_rgba(232,93,63,0.28)]">
+            <Button
+              class="h-14 rounded-full bg-[var(--gradient-brand)] px-8 text-base font-bold shadow-[var(--shadow-float)] transition-all hover:scale-105 hover:shadow-[0_20px_60px_rgba(232,93,63,0.28)]"
+            >
               Jelajah Event Sekarang
               <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
             </Button>
@@ -95,7 +96,9 @@
         </div>
 
         <div class="grid gap-3 sm:grid-cols-3">
-          <div class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg">
+          <div
+            class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
+          >
             <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Featured
             </p>
@@ -106,27 +109,27 @@
               Event dengan momentum tertinggi
             </p>
           </div>
-          <div class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg">
+          <div
+            class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
+          >
             <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Kategori
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
               {formatCompactNumber(data.categories.length)}
             </p>
-            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-              Jalur cepat ke vibe-mu
-            </p>
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">Jalur cepat ke vibe-mu</p>
           </div>
-          <div class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg">
+          <div
+            class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
+          >
             <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Upcoming
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
               {formatCompactNumber(data.upcomingMeta.total)}
             </p>
-            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">
-              Agenda siap diburu
-            </p>
+            <p class="text-muted-foreground mt-2 text-sm leading-relaxed">Agenda siap diburu</p>
           </div>
         </div>
       </div>
@@ -146,13 +149,14 @@
             <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
               Agenda Cerdas
             </p>
-            <h2 class="text-foreground mt-1 text-xl font-bold leading-tight">
+            <h2 class="text-foreground mt-1 text-xl leading-tight font-bold">
               Rencanakan weekend tanpa tebak-tebakan
             </h2>
           </div>
         </div>
         <p class="text-muted-foreground mt-5 text-sm leading-relaxed">
-          Filter kota, tanggal, dan harga untuk menyaring event yang benar-benar relevan dengan waktu dan budget-mu.
+          Filter kota, tanggal, dan harga untuk menyaring event yang benar-benar relevan dengan
+          waktu dan budget-mu.
         </p>
       </div>
 
@@ -174,7 +178,9 @@
               <p class="text-[0.65rem] font-bold tracking-[0.26em] text-white/50 uppercase">
                 Kota Populer
               </p>
-              <h2 class="mt-1 text-xl font-bold leading-tight">Jakarta, Bandung, Surabaya, Yogya</h2>
+              <h2 class="mt-1 text-xl leading-tight font-bold">
+                Jakarta, Bandung, Surabaya, Yogya
+              </h2>
             </div>
           </div>
           <p class="mt-5 text-sm leading-relaxed text-white/75">

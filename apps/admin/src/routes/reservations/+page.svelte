@@ -338,11 +338,7 @@
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="reservation-status">Status</label>
-        <Select
-          id="reservation-status"
-          bind:value={statusFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="reservation-status" bind:value={statusFilter} class="h-11 rounded-full">
           {#each statusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}

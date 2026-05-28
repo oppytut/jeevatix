@@ -2,9 +2,7 @@
   <div
     class="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
   >
-    <div
-      class="grid gap-8 bg-[var(--gradient-section)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
-    >
+    <div class="grid gap-8 bg-[var(--gradient-section)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]">
       <div class="space-y-4">
         <div class="bg-muted h-4 w-8 animate-pulse rounded-lg"></div>
         <div class="bg-muted h-12 w-80 animate-pulse rounded-2xl"></div>

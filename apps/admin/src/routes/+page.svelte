@@ -300,9 +300,7 @@
     description="Bar chart jumlah transaksi sukses dalam 30 hari terakhir."
     class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
   >
-    <div
-      class="border-border rounded-[1.6rem] border bg-[var(--gradient-section-alt)] p-4 sm:p-5"
-    >
+    <div class="border-border rounded-[1.6rem] border bg-[var(--gradient-section-alt)] p-4 sm:p-5">
       <svg
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
         class="h-auto w-full overflow-visible"

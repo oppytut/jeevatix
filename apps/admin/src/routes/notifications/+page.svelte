@@ -1,7 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Bell, Megaphone, RefreshCw, Send } from '@lucide/svelte';
-  import { Badge, Button, Card, DataTable, Input, Modal, Select, Textarea, Toast } from '@jeevatix/ui';
+  import {
+    Badge,
+    Button,
+    Card,
+    DataTable,
+    Input,
+    Modal,
+    Select,
+    Textarea,
+    Toast,
+  } from '@jeevatix/ui';
 
   import { apiGetEnvelope, apiPost, ApiError } from '$lib/api';
 
@@ -361,11 +371,7 @@
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="notification-type">Tipe</label>
-        <Select
-          id="notification-type"
-          bind:value={typeFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="notification-type" bind:value={typeFilter} class="h-11 rounded-full">
           {#each typeOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
@@ -374,11 +380,7 @@
 
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="notification-role">Role</label>
-        <Select
-          id="notification-role"
-          bind:value={roleFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="notification-role" bind:value={roleFilter} class="h-11 rounded-full">
           {#each roleOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}

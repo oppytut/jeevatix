@@ -341,11 +341,7 @@
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="payment-status-filter">Status</label
         >
-        <Select
-          id="payment-status-filter"
-          bind:value={statusFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="payment-status-filter" bind:value={statusFilter} class="h-11 rounded-full">
           {#each paymentStatusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
@@ -355,11 +351,7 @@
       <div class="space-y-2">
         <label class="text-foreground text-sm font-medium" for="payment-method-filter">Metode</label
         >
-        <Select
-          id="payment-method-filter"
-          bind:value={methodFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="payment-method-filter" bind:value={methodFilter} class="h-11 rounded-full">
           {#each methodOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}

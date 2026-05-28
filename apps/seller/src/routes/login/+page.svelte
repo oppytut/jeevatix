@@ -19,7 +19,10 @@
 <section
   class="bg-card relative overflow-hidden rounded-[2rem] border border-emerald-200/70 shadow-[0_30px_90px_rgba(6,78,59,0.12)]"
 >
-  <div class="absolute inset-x-0 top-0 h-48 opacity-70" style="background-image: var(--gradient-overlay-top);"></div>
+  <div
+    class="absolute inset-x-0 top-0 h-48 opacity-70"
+    style="background-image: var(--gradient-overlay-top);"
+  ></div>
 
   <div class="relative grid min-h-[calc(100vh-4rem)] gap-0 lg:grid-cols-[1.05fr_0.95fr]">
     <div

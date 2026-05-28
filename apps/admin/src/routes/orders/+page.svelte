@@ -340,11 +340,7 @@
         <label class="text-foreground text-sm font-medium" for="order-status-filter"
           >Status order</label
         >
-        <Select
-          id="order-status-filter"
-          bind:value={statusFilter}
-          class="h-11 rounded-full"
-        >
+        <Select id="order-status-filter" bind:value={statusFilter} class="h-11 rounded-full">
           {#each orderStatusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
           {/each}
