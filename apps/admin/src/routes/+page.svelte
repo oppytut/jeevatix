@@ -149,45 +149,49 @@
 
 <section class="space-y-8">
   <div
-    class="overflow-hidden rounded-[2rem] border border-border bg-card shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
+    class="border-border bg-card overflow-hidden rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
   >
     <div
       class="grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_36%),linear-gradient(135deg,rgba(15,23,42,0.04),rgba(255,255,255,0.96)_45%,rgba(251,191,36,0.10)_100%)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
     >
       <div class="space-y-4">
-        <p class="text-sm font-semibold tracking-[0.35em] text-muted-foreground uppercase">A2</p>
-        <h1 class="max-w-3xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.35em] uppercase">A2</p>
+        <h1 class="text-foreground max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Admin Dashboard
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Ringkasan operasional platform untuk membaca pertumbuhan pengguna, performa event, dan
           ritme transaksi harian dari satu layar.
         </p>
       </div>
 
       <div
-        class="rounded-[1.75rem] border border-slate-900/10 bg-foreground p-6 text-background shadow-[0_20px_50px_rgba(15,23,42,0.24)]"
+        class="bg-foreground text-background rounded-[1.75rem] border border-slate-900/10 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.24)]"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-medium text-muted-foreground">30-Day Transactions</p>
+            <p class="text-muted-foreground text-sm font-medium">30-Day Transactions</p>
             <p class="mt-3 text-4xl font-semibold">{totalTransactions}</p>
-            <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            <p class="text-muted-foreground mt-2 text-sm leading-6">
               transaksi sukses dalam 30 hari terakhir untuk membaca pace aktivitas platform.
             </p>
           </div>
-          <div class="rounded-2xl border border-white/10 bg-card/8 p-3">
+          <div class="bg-card/8 rounded-2xl border border-white/10 p-3">
             <AreaChart class="size-5 text-sky-300" />
           </div>
         </div>
 
         <div class="mt-6 grid gap-3 sm:grid-cols-2">
-          <div class="rounded-2xl border border-white/10 bg-card/6 p-4">
-            <p class="text-xs font-medium tracking-[0.25em] text-muted-foreground/70 uppercase">Buyers</p>
+          <div class="bg-card/6 rounded-2xl border border-white/10 p-4">
+            <p class="text-muted-foreground/70 text-xs font-medium tracking-[0.25em] uppercase">
+              Buyers
+            </p>
             <p class="mt-2 text-lg font-semibold">{dashboard?.total_buyers ?? 0}</p>
           </div>
-          <div class="rounded-2xl border border-white/10 bg-card/6 p-4">
-            <p class="text-xs font-medium tracking-[0.25em] text-muted-foreground/70 uppercase">Revenue</p>
+          <div class="bg-card/6 rounded-2xl border border-white/10 p-4">
+            <p class="text-muted-foreground/70 text-xs font-medium tracking-[0.25em] uppercase">
+              Revenue
+            </p>
             <p class="mt-2 text-lg font-semibold">
               {formatCurrency(dashboard?.total_revenue ?? 0)}
             </p>
@@ -207,23 +211,23 @@
   {/if}
 
   <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <div class="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.75rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Total User</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">{dashboard?.total_users ?? 0}</p>
+          <p class="text-muted-foreground text-sm">Total User</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">{dashboard?.total_users ?? 0}</p>
         </div>
-        <div class="rounded-2xl bg-muted p-3 text-muted-foreground">
+        <div class="bg-muted text-muted-foreground rounded-2xl p-3">
           <Users class="size-5" />
         </div>
       </div>
     </div>
 
-    <div class="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.75rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Total Seller</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">{dashboard?.total_sellers ?? 0}</p>
+          <p class="text-muted-foreground text-sm">Total Seller</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">{dashboard?.total_sellers ?? 0}</p>
         </div>
         <div class="rounded-2xl bg-sky-50 p-3 text-sky-700">
           <UserRound class="size-5" />
@@ -231,11 +235,11 @@
       </div>
     </div>
 
-    <div class="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.75rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Total Event</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">{dashboard?.total_events ?? 0}</p>
+          <p class="text-muted-foreground text-sm">Total Event</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">{dashboard?.total_events ?? 0}</p>
         </div>
         <div class="rounded-2xl bg-indigo-50 p-3 text-indigo-700">
           <AreaChart class="size-5" />
@@ -243,11 +247,11 @@
       </div>
     </div>
 
-    <div class="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.75rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Total Revenue</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">
+          <p class="text-muted-foreground text-sm">Total Revenue</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">
             {formatCurrency(dashboard?.total_revenue ?? 0)}
           </p>
         </div>
@@ -257,11 +261,11 @@
       </div>
     </div>
 
-    <div class="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.75rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Tiket Terjual</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">
+          <p class="text-muted-foreground text-sm">Tiket Terjual</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">
             {dashboard?.total_tickets_sold ?? 0}
           </p>
         </div>
@@ -271,11 +275,11 @@
       </div>
     </div>
 
-    <div class="rounded-[1.75rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.75rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Event Published</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">
+          <p class="text-muted-foreground text-sm">Event Published</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">
             {dashboard?.total_events_published ?? 0}
           </p>
         </div>
@@ -289,10 +293,10 @@
   <Card
     title="Transaksi harian"
     description="Bar chart jumlah transaksi sukses dalam 30 hari terakhir."
-    class="rounded-[2rem] border border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+    class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
   >
     <div
-      class="rounded-[1.6rem] border border-border bg-[linear-gradient(180deg,rgba(239,246,255,0.85),rgba(255,255,255,1))] p-4 sm:p-5"
+      class="border-border rounded-[1.6rem] border bg-[linear-gradient(180deg,rgba(239,246,255,0.85),rgba(255,255,255,1))] p-4 sm:p-5"
     >
       <svg
         viewBox={`0 0 ${chartWidth} ${chartHeight}`}
@@ -332,7 +336,7 @@
       </svg>
 
       <div
-        class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase"
+        class="text-muted-foreground mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-medium tracking-[0.22em] uppercase"
       >
         {#each chartLabels as label (label.date)}
           <span>{formatDayLabel(label.date)}</span>
@@ -345,17 +349,17 @@
     <Card
       title="Event terbaru"
       description="Lima event terbaru yang masuk ke platform."
-      class="rounded-[2rem] border border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+      class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_events.length === 0}
         <div
-          class="flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed border-border bg-muted text-sm text-muted-foreground"
+          class="border-border bg-muted text-muted-foreground flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed text-sm"
         >
           Belum ada event terbaru yang bisa ditampilkan.
         </div>
       {:else}
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-border text-left text-sm">
+          <table class="divide-border min-w-full divide-y text-left text-sm">
             <thead>
               <tr class="text-muted-foreground">
                 <th class="px-4 py-3 font-semibold">Name</th>
@@ -364,15 +368,15 @@
                 <th class="px-4 py-3 font-semibold">Tanggal</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-border">
+            <tbody class="divide-border divide-y">
               {#each dashboard.recent_events as event (event.id)}
                 <tr class="hover:bg-muted">
-                  <td class="px-4 py-4 font-medium text-foreground">{event.name}</td>
-                  <td class="px-4 py-4 text-foreground">{event.seller}</td>
+                  <td class="text-foreground px-4 py-4 font-medium">{event.name}</td>
+                  <td class="text-foreground px-4 py-4">{event.seller}</td>
                   <td class="px-4 py-4">
                     <Badge variant={getEventStatusVariant(event.status)}>{event.status}</Badge>
                   </td>
-                  <td class="px-4 py-4 text-foreground">{formatDate(event.created_at)}</td>
+                  <td class="text-foreground px-4 py-4">{formatDate(event.created_at)}</td>
                 </tr>
               {/each}
             </tbody>
@@ -384,17 +388,17 @@
     <Card
       title="Pesanan terbaru"
       description="Lima order terbaru lintas buyer dan event di seluruh platform."
-      class="rounded-[2rem] border border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+      class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_orders.length === 0}
         <div
-          class="flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed border-border bg-muted text-sm text-muted-foreground"
+          class="border-border bg-muted text-muted-foreground flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed text-sm"
         >
           Belum ada pesanan terbaru yang bisa ditampilkan.
         </div>
       {:else}
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-border text-left text-sm">
+          <table class="divide-border min-w-full divide-y text-left text-sm">
             <thead>
               <tr class="text-muted-foreground">
                 <th class="px-4 py-3 font-semibold">Order Number</th>
@@ -403,12 +407,12 @@
                 <th class="px-4 py-3 font-semibold">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-border">
+            <tbody class="divide-border divide-y">
               {#each dashboard.recent_orders as order (order.id)}
                 <tr class="hover:bg-muted">
-                  <td class="px-4 py-4 font-medium text-foreground">{order.order_number}</td>
-                  <td class="px-4 py-4 text-foreground">{order.buyer}</td>
-                  <td class="px-4 py-4 font-medium text-foreground"
+                  <td class="text-foreground px-4 py-4 font-medium">{order.order_number}</td>
+                  <td class="text-foreground px-4 py-4">{order.buyer}</td>
+                  <td class="text-foreground px-4 py-4 font-medium"
                     >{formatCurrency(order.total_amount)}</td
                   >
                   <td class="px-4 py-4">

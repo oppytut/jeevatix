@@ -115,25 +115,29 @@
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">Payment</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.3em] uppercase">
+          Payment
+        </p>
+        <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
           Selesaikan pembayaran order Anda.
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Pilih metode pembayaran yang paling nyaman, lalu lanjutkan ke gateway pembayaran mock
           Jeevatix.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-[1.5rem] border border-white/70 bg-card/75 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
+        <div class="bg-card/75 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
+          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
             Order Number
           </p>
-          <p class="mt-2 text-sm font-medium text-foreground">{data.order.order_number}</p>
+          <p class="text-foreground mt-2 text-sm font-medium">{data.order.order_number}</p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/70 bg-card/75 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">Status</p>
+        <div class="bg-card/75 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
+          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+            Status
+          </p>
           <p
             class={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusTone(data.order.status)}`}
           >
@@ -146,17 +150,17 @@
 
   <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
     <Card
-      class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+      class="bg-card/92 rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
     >
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+          <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
             Metode Pembayaran
           </p>
-          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+          <h2 class="text-foreground mt-2 text-3xl font-semibold tracking-tight">
             Pilih cara bayar
           </h2>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Order ini akan kedaluwarsa pada {formatLongDateTime(data.order.expires_at)} jika belum dibayar.
           </p>
         </div>
@@ -182,13 +186,15 @@
 
               <div class="flex items-start gap-4">
                 <div
-                  class="flex size-12 items-center justify-center rounded-2xl bg-card text-foreground shadow-sm"
+                  class="bg-card text-foreground flex size-12 items-center justify-center rounded-2xl shadow-sm"
                 >
                   <paymentMethod.icon class="size-5" />
                 </div>
                 <div>
-                  <p class="text-lg font-semibold text-foreground">{paymentMethod.label}</p>
-                  <p class="mt-1 text-sm leading-6 text-muted-foreground">{paymentMethod.description}</p>
+                  <p class="text-foreground text-lg font-semibold">{paymentMethod.label}</p>
+                  <p class="text-muted-foreground mt-1 text-sm leading-6">
+                    {paymentMethod.description}
+                  </p>
                 </div>
               </div>
             </label>
@@ -224,19 +230,19 @@
 
     <div class="space-y-6">
       <Card
-        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="bg-card/92 rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
-        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
           Batas Waktu Bayar
         </p>
         <div class="mt-5 rounded-[1.75rem] border border-amber-200 bg-amber-50 p-5">
           <div class="flex items-start gap-3">
             <Clock3 class="mt-0.5 size-5 text-amber-700" />
             <div>
-              <p class="text-4xl font-semibold tracking-tight text-foreground">
+              <p class="text-foreground text-4xl font-semibold tracking-tight">
                 {formatCountdown(getRemainingMs())}
               </p>
-              <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              <p class="text-muted-foreground mt-3 text-sm leading-6">
                 Selesaikan pembayaran sebelum {formatLongDateTime(data.order.expires_at)} agar order tidak
                 hangus.
               </p>
@@ -246,50 +252,50 @@
       </Card>
 
       <Card
-        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="bg-card/92 rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
-        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
           Ringkasan Order
         </p>
         <div class="mt-5 space-y-4">
           <div
-            class="flex items-start gap-3 rounded-[1.5rem] bg-muted p-4 text-sm text-muted-foreground"
+            class="bg-muted text-muted-foreground flex items-start gap-3 rounded-[1.5rem] p-4 text-sm"
           >
             <CalendarDays class="mt-0.5 size-4 text-orange-600" />
             <div>
-              <p class="font-medium text-foreground">{data.order.event_title}</p>
+              <p class="text-foreground font-medium">{data.order.event_title}</p>
               <p class="mt-1">Order dibuat {formatLongDateTime(data.order.created_at)}</p>
             </div>
           </div>
 
-          <div class="space-y-3 rounded-[1.5rem] bg-muted p-4">
+          <div class="bg-muted space-y-3 rounded-[1.5rem] p-4">
             {#each data.order.items as item (item.id)}
               <div
-                class="flex items-end justify-between gap-4 border-b border-border pb-3 last:border-b-0 last:pb-0"
+                class="border-border flex items-end justify-between gap-4 border-b pb-3 last:border-b-0 last:pb-0"
               >
                 <div>
-                  <p class="font-medium text-foreground">{item.tier_name}</p>
-                  <p class="mt-1 text-sm text-muted-foreground">
+                  <p class="text-foreground font-medium">{item.tier_name}</p>
+                  <p class="text-muted-foreground mt-1 text-sm">
                     {item.quantity} tiket x {formatCurrency(item.unit_price)}
                   </p>
                 </div>
-                <p class="text-sm font-semibold text-foreground">{formatCurrency(item.subtotal)}</p>
+                <p class="text-foreground text-sm font-semibold">{formatCurrency(item.subtotal)}</p>
               </div>
             {/each}
           </div>
 
-          <div class="rounded-[1.5rem] border border-border bg-card p-4">
-            <div class="flex items-center justify-between text-sm text-muted-foreground">
+          <div class="border-border bg-card rounded-[1.5rem] border p-4">
+            <div class="text-muted-foreground flex items-center justify-between text-sm">
               <span>Subtotal</span>
               <span>{formatCurrency(data.order.total_amount - data.order.service_fee)}</span>
             </div>
-            <div class="mt-3 flex items-center justify-between text-sm text-muted-foreground">
+            <div class="text-muted-foreground mt-3 flex items-center justify-between text-sm">
               <span>Service Fee</span>
               <span>{formatCurrency(data.order.service_fee)}</span>
             </div>
-            <div class="mt-4 flex items-center justify-between border-t border-border pt-4">
-              <span class="text-base font-medium text-foreground">Total Bayar</span>
-              <span class="text-2xl font-semibold text-foreground"
+            <div class="border-border mt-4 flex items-center justify-between border-t pt-4">
+              <span class="text-foreground text-base font-medium">Total Bayar</span>
+              <span class="text-foreground text-2xl font-semibold"
                 >{formatCurrency(data.order.total_amount)}</span
               >
             </div>

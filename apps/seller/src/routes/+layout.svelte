@@ -129,7 +129,7 @@
             {#if !isAuthRoute}
               <button
                 type="button"
-                class="relative inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-card/8 text-emerald-50 transition hover:border-white/20 hover:bg-card/12 hover:text-white"
+                class="bg-card/8 hover:bg-card/12 relative inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 text-emerald-50 transition hover:border-white/20 hover:text-white"
                 onclick={() => goto(resolve('/notifications'))}
                 aria-label="Buka notifikasi seller"
               >
@@ -152,7 +152,7 @@
               {#if item.href === '/'}
                 <a
                   href={resolve('/')}
-                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-card/12 text-white' : 'border-white/10 bg-card/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-card/10 hover:text-white'}`}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
                 >
                   <span>{item.label}</span>
                   <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
@@ -160,7 +160,7 @@
               {:else if item.href === '/events'}
                 <a
                   href={resolve('/events')}
-                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-card/12 text-white' : 'border-white/10 bg-card/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-card/10 hover:text-white'}`}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
                 >
                   <span>{item.label}</span>
                   <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
@@ -168,7 +168,7 @@
               {:else if item.href === '/orders'}
                 <a
                   href={resolve('/orders')}
-                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-card/12 text-white' : 'border-white/10 bg-card/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-card/10 hover:text-white'}`}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
                 >
                   <span>{item.label}</span>
                   <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
@@ -176,7 +176,7 @@
               {:else if item.href === '/notifications'}
                 <a
                   href={resolve('/notifications')}
-                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-card/12 text-white' : 'border-white/10 bg-card/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-card/10 hover:text-white'}`}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
                 >
                   <span>{item.label}</span>
                   {#if unreadCount > 0}
@@ -192,7 +192,7 @@
               {:else}
                 <a
                   href={resolve('/profile')}
-                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'border-white/20 bg-card/12 text-white' : 'border-white/10 bg-card/5 text-emerald-50/85 hover:border-amber-300/30 hover:bg-card/10 hover:text-white'}`}
+                  class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
                 >
                   <span>{item.label}</span>
                   <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
@@ -200,7 +200,7 @@
               {/if}
             {:else}
               <div
-                class="flex items-center justify-between rounded-2xl border border-white/10 bg-card/5 px-4 py-3 text-sm font-medium text-emerald-50/85"
+                class="bg-card/5 flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-sm font-medium text-emerald-50/85"
               >
                 <span>{item.label}</span>
                 <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Soon</span>
@@ -210,7 +210,7 @@
         </nav>
 
         <div
-          class="space-y-4 rounded-[1.75rem] border border-white/10 bg-card/8 p-4 backdrop-blur-sm"
+          class="bg-card/8 space-y-4 rounded-[1.75rem] border border-white/10 p-4 backdrop-blur-sm"
         >
           <div>
             <p class="text-xs font-semibold tracking-[0.3em] text-amber-200/70 uppercase">
@@ -221,7 +221,7 @@
           </div>
 
           <button
-            class="w-full rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-emerald-50 transition hover:border-white/20 hover:bg-card/10 hover:text-white"
+            class="hover:bg-card/10 w-full rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-emerald-50 transition hover:border-white/20 hover:text-white"
             onclick={handleLogout}
             type="button"
           >

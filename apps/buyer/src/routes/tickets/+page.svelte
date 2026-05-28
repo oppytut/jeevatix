@@ -115,64 +115,66 @@
   >
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">Tickets</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.3em] uppercase">
+          Tickets
+        </p>
+        <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
           Semua tiket Anda siap dipakai kapan saja.
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Simpan akses cepat ke tiket aktif, lihat event yang akan datang, dan buka QR code tiket
           hanya dalam satu langkah.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
+        <div class="bg-card/80 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
+          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
             Total Tickets
           </p>
-          <p class="mt-2 text-3xl font-semibold text-foreground">{data.meta.total}</p>
+          <p class="text-foreground mt-2 text-3xl font-semibold">{data.meta.total}</p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/70 bg-card/80 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
+        <div class="bg-card/80 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
+          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
             Grouped Events
           </p>
-          <p class="mt-2 text-3xl font-semibold text-foreground">{getGroupedTickets().length}</p>
+          <p class="text-foreground mt-2 text-3xl font-semibold">{getGroupedTickets().length}</p>
         </div>
       </div>
     </div>
   </div>
 
   <Card
-    class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+    class="bg-card/92 rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
   >
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
           Ticket Wallet
         </p>
-        <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+        <h2 class="text-foreground mt-2 text-3xl font-semibold tracking-tight">
           Daftar tiket buyer
         </h2>
       </div>
 
-      <div class="rounded-full bg-muted px-4 py-2 text-sm text-muted-foreground">
+      <div class="bg-muted text-muted-foreground rounded-full px-4 py-2 text-sm">
         Menampilkan {data.tickets.length} dari {data.meta.total} tiket
       </div>
     </div>
 
     {#if data.tickets.length === 0}
       <div
-        class="mt-8 rounded-[1.75rem] border border-dashed border-border bg-muted px-6 py-14 text-center"
+        class="border-border bg-muted mt-8 rounded-[1.75rem] border border-dashed px-6 py-14 text-center"
       >
         <div
-          class="mx-auto flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground"
+          class="bg-muted text-muted-foreground mx-auto flex size-16 items-center justify-center rounded-full"
         >
           <Ticket class="size-7" />
         </div>
-        <h3 class="mt-5 text-2xl font-semibold tracking-tight text-foreground">
+        <h3 class="text-foreground mt-5 text-2xl font-semibold tracking-tight">
           Belum ada tiket aktif
         </h3>
-        <p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted-foreground">
+        <p class="text-muted-foreground mx-auto mt-3 max-w-xl text-sm leading-7">
           Setelah pembayaran sukses, tiket Anda akan otomatis muncul di sini lengkap dengan kode
           tiket dan detail event.
         </p>
@@ -183,19 +185,17 @@
     {:else}
       <div class="mt-8 space-y-6">
         {#each getGroupedTickets() as group (group.eventId)}
-          <section
-            class="space-y-4 rounded-[1.75rem] border border-border bg-muted p-5 sm:p-6"
-          >
+          <section class="border-border bg-muted space-y-4 rounded-[1.75rem] border p-5 sm:p-6">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+                <p class="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
                   {group.tickets.length} tiket
                 </p>
-                <h3 class="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                <h3 class="text-foreground mt-2 text-2xl font-semibold tracking-tight">
                   {group.eventTitle}
                 </h3>
                 <div
-                  class="mt-3 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
+                  class="text-muted-foreground mt-3 flex flex-col gap-2 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
                 >
                   <span class="inline-flex items-center gap-2">
                     <CalendarDays class="size-4 text-emerald-700" />
@@ -221,15 +221,17 @@
               {#each group.tickets as ticket (ticket.id)}
                 <button
                   type="button"
-                  class="rounded-[1.5rem] border border-white/80 bg-card p-5 text-left shadow-[0_18px_50px_rgba(15,23,42,0.07)] transition hover:-translate-y-0.5 hover:border-border hover:shadow-[0_20px_55px_rgba(15,23,42,0.10)]"
+                  class="bg-card hover:border-border rounded-[1.5rem] border border-white/80 p-5 text-left shadow-[0_18px_50px_rgba(15,23,42,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_55px_rgba(15,23,42,0.10)]"
                   onclick={() => goToTicket(ticket.id)}
                 >
                   <div class="flex items-start justify-between gap-4">
                     <div>
-                      <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+                      <p
+                        class="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase"
+                      >
                         {ticket.order_number}
                       </p>
-                      <h4 class="mt-2 text-lg font-semibold text-foreground">{ticket.tier_name}</h4>
+                      <h4 class="text-foreground mt-2 text-lg font-semibold">{ticket.tier_name}</h4>
                     </div>
                     <span
                       class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${getStatusTone(ticket.status)}`}
@@ -239,23 +241,25 @@
                   </div>
 
                   <div class="mt-5 space-y-3">
-                    <div class="rounded-2xl bg-muted px-4 py-3">
-                      <p class="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                    <div class="bg-muted rounded-2xl px-4 py-3">
+                      <p
+                        class="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase"
+                      >
                         Kode Tiket
                       </p>
                       <p
-                        class="mt-2 font-mono text-sm font-semibold tracking-[0.22em] text-foreground"
+                        class="text-foreground mt-2 font-mono text-sm font-semibold tracking-[0.22em]"
                       >
                         {maskTicketCode(ticket.ticket_code)}
                       </p>
                     </div>
 
                     <div
-                      class="flex items-start gap-3 rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground"
+                      class="bg-muted text-muted-foreground flex items-start gap-3 rounded-2xl px-4 py-3 text-sm"
                     >
                       <TicketCheck class="mt-0.5 size-4 text-emerald-700" />
                       <div>
-                        <p class="font-medium text-foreground">
+                        <p class="text-foreground font-medium">
                           Diterbitkan {formatRelativeTime(ticket.issued_at)}
                         </p>
                         <p class="mt-1">Tap untuk membuka detail dan QR code tiket.</p>
@@ -271,7 +275,7 @@
 
       {#if data.meta.totalPages > 1}
         <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-sm text-muted-foreground">
+          <p class="text-muted-foreground text-sm">
             Halaman {data.meta.page} dari {data.meta.totalPages}
           </p>
 

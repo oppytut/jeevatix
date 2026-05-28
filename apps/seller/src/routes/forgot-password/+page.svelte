@@ -45,17 +45,17 @@
   <Card
     title={undefined}
     description={undefined}
-    class="w-full rounded-[2rem] border border-emerald-200/70 bg-card/90 p-8 shadow-[0_28px_80px_rgba(6,78,59,0.10)] sm:p-10"
+    class="bg-card/90 w-full rounded-[2rem] border border-emerald-200/70 p-8 shadow-[0_28px_80px_rgba(6,78,59,0.10)] sm:p-10"
   >
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-2">
         <p class="text-sm font-semibold tracking-[0.32em] text-emerald-700/70 uppercase">
           Password Recovery
         </p>
-        <h1 class="text-3xl font-semibold tracking-tight text-foreground">
+        <h1 class="text-foreground text-3xl font-semibold tracking-tight">
           Reset akses Seller Studio
         </h1>
-        <p class="text-sm leading-6 text-muted-foreground">
+        <p class="text-muted-foreground text-sm leading-6">
           Masukkan email akun seller Anda. Kami akan kirim instruksi reset password agar akses
           operasional bisa dipulihkan.
         </p>
@@ -67,9 +67,9 @@
       </div>
     </div>
 
-      <form class="mt-8 space-y-5" onsubmit={handleSubmit}>
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-foreground" for="email">Email Seller</label>
+    <form class="mt-8 space-y-5" onsubmit={handleSubmit}>
+      <div class="space-y-2">
+        <label class="text-foreground text-sm font-medium" for="email">Email Seller</label>
         <Input
           id="email"
           name="email"

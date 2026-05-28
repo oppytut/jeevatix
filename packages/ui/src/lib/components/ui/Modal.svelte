@@ -27,28 +27,28 @@
 {#if open}
   <div
     class={cn(
-      'fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-sm',
+      'bg-foreground/50 fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm',
       className,
     )}
   >
     <div
       class={cn(
-        'w-full max-w-2xl rounded-(--radius-panel) border border-white/20 bg-card p-6 shadow-(--shadow-spotlight)',
+        'bg-card w-full max-w-2xl rounded-(--radius-panel) border border-white/20 p-6 shadow-(--shadow-spotlight)',
         contentClass,
       )}
     >
       <div class="flex items-start justify-between gap-4">
         <div class="space-y-2">
           {#if title}
-            <h3 class="text-xl font-semibold tracking-tight text-foreground">{title}</h3>
+            <h3 class="text-foreground text-xl font-semibold tracking-tight">{title}</h3>
           {/if}
           {#if description}
-            <p class="text-sm leading-6 text-muted-foreground">{description}</p>
+            <p class="text-muted-foreground text-sm leading-6">{description}</p>
           {/if}
         </div>
         <button
           type="button"
-          class="hover:border-jeevatix-300 hover:text-jeevatix-700 rounded-full border border-border px-3 py-1.5 text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase transition"
+          class="hover:border-jeevatix-300 hover:text-jeevatix-700 border-border text-muted-foreground rounded-full border px-3 py-1.5 text-xs font-semibold tracking-[0.2em] uppercase transition"
           onclick={() => onClose?.()}
         >
           Close

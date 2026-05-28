@@ -245,15 +245,15 @@
 
 <section class="space-y-8">
   <div
-    class="rounded-[2rem] border border-border bg-card/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+    class="border-border bg-card/90 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">S6</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">S6</p>
+        <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
           Workspace event seller
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Lihat seluruh event milik Anda, filter berdasarkan status publikasi, dan lanjutkan ke
           halaman detail, edit, atau manajemen tier tiket.
         </p>
@@ -277,21 +277,21 @@
     </div>
 
     <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
-        <p class="text-sm text-muted-foreground">Total Event</p>
-        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.totalEvents}</p>
+      <div class="border-border bg-muted/70 rounded-[1.5rem] border p-5">
+        <p class="text-muted-foreground text-sm">Total Event</p>
+        <p class="text-foreground mt-3 text-3xl font-semibold">{summary.totalEvents}</p>
       </div>
-      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
-        <p class="text-sm text-muted-foreground">Published / Ongoing</p>
-        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.liveEvents}</p>
+      <div class="border-border bg-muted/70 rounded-[1.5rem] border p-5">
+        <p class="text-muted-foreground text-sm">Published / Ongoing</p>
+        <p class="text-foreground mt-3 text-3xl font-semibold">{summary.liveEvents}</p>
       </div>
-      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
-        <p class="text-sm text-muted-foreground">Total Kuota</p>
-        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.totalQuota}</p>
+      <div class="border-border bg-muted/70 rounded-[1.5rem] border p-5">
+        <p class="text-muted-foreground text-sm">Total Kuota</p>
+        <p class="text-foreground mt-3 text-3xl font-semibold">{summary.totalQuota}</p>
       </div>
-      <div class="rounded-[1.5rem] border border-border bg-muted/70 p-5">
-        <p class="text-sm text-muted-foreground">Tiket Terjual</p>
-        <p class="mt-3 text-3xl font-semibold text-foreground">{summary.totalSold}</p>
+      <div class="border-border bg-muted/70 rounded-[1.5rem] border p-5">
+        <p class="text-muted-foreground text-sm">Tiket Terjual</p>
+        <p class="text-foreground mt-3 text-3xl font-semibold">{summary.totalSold}</p>
       </div>
     </div>
   </div>
@@ -317,7 +317,7 @@
   <Card
     title="Daftar event"
     description="Status, jadwal, dan progres penjualan semua event seller ditampilkan di satu tabel kerja."
-    class="rounded-[2rem] border border-border bg-card/95 shadow-sm"
+    class="border-border bg-card/95 rounded-[2rem] border shadow-sm"
   >
     <div class="mb-5 flex flex-wrap gap-2">
       {#each statusOptions as option (option.value)}
@@ -334,9 +334,7 @@
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
-          <div
-            class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"
-          ></div>
+          <div class="border-border bg-muted h-28 animate-pulse rounded-[1.5rem] border"></div>
         {/each}
       </div>
     {:else}
@@ -353,8 +351,8 @@
           {@const event = (row as TableRow).original}
           {#if column.key === 'title'}
             <div class="space-y-1">
-              <p class="font-semibold text-foreground">{event.title}</p>
-              <p class="text-xs text-muted-foreground">{event.venue_city}</p>
+              <p class="text-foreground font-semibold">{event.title}</p>
+              <p class="text-muted-foreground text-xs">{event.venue_city}</p>
             </div>
           {:else if column.key === 'status'}
             <Badge variant={getStatusBadgeVariant(event.status)}
@@ -362,17 +360,17 @@
             >
           {:else if column.key === 'schedule'}
             <div class="space-y-1 text-sm">
-              <p class="font-medium text-foreground">
+              <p class="text-foreground font-medium">
                 {formatDateRange(event.start_at, event.end_at)}
               </p>
-              <p class="text-xs text-muted-foreground">
+              <p class="text-muted-foreground text-xs">
                 Jual: {formatDateRange(event.sale_start_at, event.sale_end_at)}
               </p>
             </div>
           {:else if column.key === 'soldSummary'}
             <div class="space-y-2 text-right">
-              <p class="font-semibold text-foreground">{event.total_sold}/{event.total_quota}</p>
-              <div class="ml-auto h-2 w-28 overflow-hidden rounded-full bg-muted">
+              <p class="text-foreground font-semibold">{event.total_sold}/{event.total_quota}</p>
+              <div class="bg-muted ml-auto h-2 w-28 overflow-hidden rounded-full">
                 <div
                   class="bg-jeevatix-600 h-full rounded-full"
                   style={`width: ${event.total_quota === 0 ? 0 : Math.min(100, (event.total_sold / event.total_quota) * 100)}%`}
@@ -447,27 +445,27 @@
     <Card
       title="Next moves"
       description="Jalur kerja tercepat setelah event dibuat."
-      class="rounded-[2rem] border border-border bg-card/95"
+      class="border-border bg-card/95 rounded-[2rem] border"
     >
       <div class="grid gap-4 sm:grid-cols-3">
-        <div class="rounded-[1.4rem] border border-border bg-muted/70 p-4">
+        <div class="border-border bg-muted/70 rounded-[1.4rem] border p-4">
           <CalendarDays class="text-jeevatix-600 size-5" />
-          <p class="mt-4 font-semibold text-foreground">Lengkapi jadwal</p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-foreground mt-4 font-semibold">Lengkapi jadwal</p>
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Pastikan sale window dan waktu event sinkron sebelum submit review.
           </p>
         </div>
-        <div class="rounded-[1.4rem] border border-border bg-muted/70 p-4">
+        <div class="border-border bg-muted/70 rounded-[1.4rem] border p-4">
           <Ticket class="text-jeevatix-600 size-5" />
-          <p class="mt-4 font-semibold text-foreground">Atur tier tiket</p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-foreground mt-4 font-semibold">Atur tier tiket</p>
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Kelola harga, quota, dan urutan tier dari halaman khusus per event.
           </p>
         </div>
-        <div class="rounded-[1.4rem] border border-border bg-muted/70 p-4">
+        <div class="border-border bg-muted/70 rounded-[1.4rem] border p-4">
           <Eye class="text-jeevatix-600 size-5" />
-          <p class="mt-4 font-semibold text-foreground">Review detail</p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-foreground mt-4 font-semibold">Review detail</p>
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Gunakan halaman detail untuk cek progress tier sebelum event masuk proses review.
           </p>
         </div>
@@ -477,22 +475,22 @@
     <Card
       title="Catatan status"
       description="Interpretasi cepat untuk badge event seller."
-      class="rounded-[2rem] border border-border bg-card/95"
+      class="border-border bg-card/95 rounded-[2rem] border"
     >
-      <div class="space-y-3 text-sm text-muted-foreground">
+      <div class="text-muted-foreground space-y-3 text-sm">
         <p>
-          <span class="font-semibold text-foreground">Draft</span> berarti event masih aman untuk dihapus.
+          <span class="text-foreground font-semibold">Draft</span> berarti event masih aman untuk dihapus.
         </p>
         <p>
-          <span class="font-semibold text-foreground">Pending Review</span> berarti event sedang menunggu
+          <span class="text-foreground font-semibold">Pending Review</span> berarti event sedang menunggu
           keputusan admin.
         </p>
         <p>
-          <span class="font-semibold text-foreground">Rejected</span> berarti seller bisa revisi lalu submit
-          ulang lewat edit/detail page.
+          <span class="text-foreground font-semibold">Rejected</span> berarti seller bisa revisi lalu
+          submit ulang lewat edit/detail page.
         </p>
         <p>
-          <span class="font-semibold text-foreground">Published / Ongoing</span> berarti event sudah live
+          <span class="text-foreground font-semibold">Published / Ongoing</span> berarti event sudah live
           dan tidak boleh melakukan perubahan destruktif pada tier yang punya penjualan.
         </p>
       </div>

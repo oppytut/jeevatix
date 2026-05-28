@@ -20,13 +20,13 @@
   <div
     class="rounded-[2.25rem] border border-white/80 bg-[linear-gradient(135deg,#fff8ef_0%,#eef8ff_100%)] p-7 shadow-[0_26px_80px_rgba(15,23,42,0.08)] sm:p-9"
   >
-    <p class="text-sm font-semibold tracking-[0.28em] text-muted-foreground uppercase">
+    <p class="text-muted-foreground text-sm font-semibold tracking-[0.28em] uppercase">
       Category Spotlight
     </p>
-    <h1 class="mt-3 text-4xl font-semibold tracking-tight text-foreground">
+    <h1 class="text-foreground mt-3 text-4xl font-semibold tracking-tight">
       {data.currentCategory.name}
     </h1>
-    <p class="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
+    <p class="text-muted-foreground mt-3 max-w-2xl text-base leading-7">
       Menampilkan event publik aktif untuk kategori ini. Gunakan explore page untuk filter yang
       lebih detail berdasarkan kota, tanggal, dan harga.
     </p>
@@ -55,17 +55,17 @@
       {/each}
     </div>
   {:else}
-    <div class="rounded-[2rem] border border-dashed border-border bg-card/80 p-10 text-center">
-      <h2 class="text-2xl font-semibold tracking-tight text-foreground">
+    <div class="border-border bg-card/80 rounded-[2rem] border border-dashed p-10 text-center">
+      <h2 class="text-foreground text-2xl font-semibold tracking-tight">
         Belum ada event untuk kategori ini
       </h2>
-      <p class="mt-3 text-sm leading-7 text-muted-foreground">
+      <p class="text-muted-foreground mt-3 text-sm leading-7">
         Kategori ini belum memiliki event published atau ongoing. Coba kategori lain atau kembali ke
         explore page.
       </p>
       <a
         href={resolve('/events')}
-        class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-foreground transition hover:text-foreground"
+        class="text-foreground hover:text-foreground mt-5 inline-flex items-center gap-2 text-sm font-semibold transition"
       >
         Buka explore page
         <ArrowRight class="size-4" />

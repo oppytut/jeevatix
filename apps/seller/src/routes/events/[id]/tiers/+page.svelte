@@ -312,15 +312,15 @@
   {/if}
 
   <div
-    class="rounded-[2rem] border border-border bg-card/92 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+    class="border-border bg-card/92 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
   >
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">S10</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">S10</p>
+        <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
           Kelola tier tiket
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Buat, edit, dan evaluasi tier tiket event seller. Penghapusan otomatis diblok jika tier
           sudah punya penjualan.
         </p>
@@ -346,32 +346,30 @@
 
   {#if isLoading}
     <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-      <div
-        class="h-[520px] animate-pulse rounded-[2rem] border border-border bg-muted"
-      ></div>
-      <div
-        class="h-[520px] animate-pulse rounded-[2rem] border border-border bg-muted"
-      ></div>
+      <div class="border-border bg-muted h-[520px] animate-pulse rounded-[2rem] border"></div>
+      <div class="border-border bg-muted h-[520px] animate-pulse rounded-[2rem] border"></div>
     </div>
   {:else}
     <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
       <Card
         title={eventDetail ? `${eventDetail.title} — Tier Table` : 'Tier Table'}
         description="Tabel operasional semua tier tiket untuk event ini."
-        class="rounded-[2rem] border border-border bg-card/95"
+        class="border-border bg-card/95 rounded-[2rem] border"
       >
         <div class="mb-5 grid gap-4 md:grid-cols-3">
-          <div class="rounded-[1.3rem] border border-border bg-muted/70 p-4">
-            <p class="text-sm text-muted-foreground">Total Tier</p>
-            <p class="mt-3 text-2xl font-semibold text-foreground">{tiers.length}</p>
+          <div class="border-border bg-muted/70 rounded-[1.3rem] border p-4">
+            <p class="text-muted-foreground text-sm">Total Tier</p>
+            <p class="text-foreground mt-3 text-2xl font-semibold">{tiers.length}</p>
           </div>
-          <div class="rounded-[1.3rem] border border-border bg-muted/70 p-4">
-            <p class="text-sm text-muted-foreground">Total Sold</p>
-            <p class="mt-3 text-2xl font-semibold text-foreground">{eventDetail?.total_sold ?? 0}</p>
+          <div class="border-border bg-muted/70 rounded-[1.3rem] border p-4">
+            <p class="text-muted-foreground text-sm">Total Sold</p>
+            <p class="text-foreground mt-3 text-2xl font-semibold">
+              {eventDetail?.total_sold ?? 0}
+            </p>
           </div>
-          <div class="rounded-[1.3rem] border border-border bg-muted/70 p-4">
-            <p class="text-sm text-muted-foreground">Total Quota</p>
-            <p class="mt-3 text-2xl font-semibold text-foreground">
+          <div class="border-border bg-muted/70 rounded-[1.3rem] border p-4">
+            <p class="text-muted-foreground text-sm">Total Quota</p>
+            <p class="text-foreground mt-3 text-2xl font-semibold">
               {eventDetail?.total_quota ?? 0}
             </p>
           </div>
@@ -389,15 +387,15 @@
             {@const tier = (row as TableRow).original}
             {#if column.key === 'name'}
               <div class="space-y-1">
-                <p class="font-semibold text-foreground">{tier.name}</p>
-                <p class="text-xs text-muted-foreground">Sort order {tier.sort_order}</p>
+                <p class="text-foreground font-semibold">{tier.name}</p>
+                <p class="text-muted-foreground text-xs">Sort order {tier.sort_order}</p>
               </div>
             {:else if column.key === 'status'}
               <Badge variant={getStatusBadgeVariant(tier.status)}>{tier.status}</Badge>
             {:else if column.key === 'sales'}
               <div class="space-y-2 text-right">
-                <p class="font-semibold text-foreground">{tier.sold_count}/{tier.quota}</p>
-                <div class="ml-auto h-2 w-24 overflow-hidden rounded-full bg-muted">
+                <p class="text-foreground font-semibold">{tier.sold_count}/{tier.quota}</p>
+                <div class="bg-muted ml-auto h-2 w-24 overflow-hidden rounded-full">
                   <div
                     class="bg-jeevatix-600 h-full rounded-full"
                     style={`width: ${tier.quota === 0 ? 0 : Math.min(100, (tier.sold_count / tier.quota) * 100)}%`}
@@ -442,7 +440,7 @@
         description={editingTierId
           ? 'Perbarui harga, quota, atau status tier.'
           : 'Buat tier baru untuk event ini.'}
-        class="rounded-[2rem] border border-border bg-card/95"
+        class="border-border bg-card/95 rounded-[2rem] border"
       >
         {#if formError}
           <div
@@ -454,41 +452,41 @@
 
         <form class="space-y-4" onsubmit={submitForm}>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="tier-name">Nama Tier</label>
+            <label class="text-foreground text-sm font-medium" for="tier-name">Nama Tier</label>
             <Input id="tier-name" bind:value={form.name} placeholder="VIP Early Bird" required />
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="tier-description"
+            <label class="text-foreground text-sm font-medium" for="tier-description"
               >Deskripsi</label
             >
             <textarea
               id="tier-description"
               bind:value={form.description}
-              class="min-h-28 w-full rounded-[1.25rem] border border-border bg-card px-4 py-3 text-sm text-foreground transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="border-border bg-card text-foreground min-h-28 w-full rounded-[1.25rem] border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Benefit untuk tier ini."
             ></textarea>
           </div>
 
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-foreground" for="tier-price">Harga</label>
+              <label class="text-foreground text-sm font-medium" for="tier-price">Harga</label>
               <Input id="tier-price" type="number" min="0" bind:value={form.price} required />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-foreground" for="tier-quota">Quota</label>
+              <label class="text-foreground text-sm font-medium" for="tier-quota">Quota</label>
               <Input id="tier-quota" type="number" min="1" bind:value={form.quota} required />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-foreground" for="tier-sort">Sort Order</label>
+              <label class="text-foreground text-sm font-medium" for="tier-sort">Sort Order</label>
               <Input id="tier-sort" type="number" min="0" bind:value={form.sort_order} />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-foreground" for="tier-status">Status</label>
+              <label class="text-foreground text-sm font-medium" for="tier-status">Status</label>
               <select
                 id="tier-status"
                 bind:value={form.status}
-                class="w-full rounded-[1.25rem] border border-border bg-card px-4 py-3 text-sm text-foreground transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                class="border-border bg-card text-foreground w-full rounded-[1.25rem] border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               >
                 <option value="available">available</option>
                 <option value="sold_out">sold_out</option>
@@ -499,11 +497,11 @@
 
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-foreground" for="sale-start">Sale Start</label>
+              <label class="text-foreground text-sm font-medium" for="sale-start">Sale Start</label>
               <Input id="sale-start" type="datetime-local" bind:value={form.sale_start_at} />
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-foreground" for="sale-end">Sale End</label>
+              <label class="text-foreground text-sm font-medium" for="sale-end">Sale End</label>
               <Input id="sale-end" type="datetime-local" bind:value={form.sale_end_at} />
             </div>
           </div>
@@ -521,7 +519,7 @@
         </form>
 
         <div
-          class="mt-6 rounded-[1.4rem] border border-border bg-muted/70 p-4 text-sm text-muted-foreground"
+          class="border-border bg-muted/70 text-muted-foreground mt-6 rounded-[1.4rem] border p-4 text-sm"
         >
           Tier dengan `sold_count > 0` tidak bisa dihapus. Backend juga mengunci perubahan harga
           jika tiket sudah terjual.

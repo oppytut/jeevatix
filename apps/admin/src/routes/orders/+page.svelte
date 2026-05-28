@@ -232,14 +232,14 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-5 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="border-border bg-card/85 flex flex-col gap-5 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A9</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+      <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">A9</p>
+      <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
         Semua pesanan
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+      <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
         Lacak order lintas event, cocokkan status order dan pembayaran, lalu buka detail untuk aksi
         refund atau cancel.
       </p>
@@ -271,12 +271,12 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-border bg-card/90"
+      class="border-border bg-card/90 rounded-[1.75rem] border"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Total order</p>
-          <p class="mt-2 text-3xl font-semibold text-foreground">{meta.total}</p>
+          <p class="text-muted-foreground text-sm">Total order</p>
+          <p class="text-foreground mt-2 text-3xl font-semibold">{meta.total}</p>
         </div>
         <div class="bg-jeevatix-50 text-jeevatix-700 rounded-2xl p-3">
           <Receipt class="size-6" />
@@ -286,12 +286,12 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-border bg-card/90"
+      class="border-border bg-card/90 rounded-[1.75rem] border"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Confirmed di hasil</p>
-          <p class="mt-2 text-3xl font-semibold text-foreground">{confirmedCount}</p>
+          <p class="text-muted-foreground text-sm">Confirmed di hasil</p>
+          <p class="text-foreground mt-2 text-3xl font-semibold">{confirmedCount}</p>
         </div>
         <div class="bg-sea-50 text-sea-700 rounded-2xl p-3">
           <CreditCard class="size-6" />
@@ -301,14 +301,14 @@
     <Card
       title={undefined}
       description={undefined}
-      class="rounded-[1.75rem] border border-border bg-card/90"
+      class="border-border bg-card/90 rounded-[1.75rem] border"
     >
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-muted-foreground">Nilai transaksi di hasil</p>
-          <p class="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(totalValue)}</p>
+          <p class="text-muted-foreground text-sm">Nilai transaksi di hasil</p>
+          <p class="text-foreground mt-2 text-3xl font-semibold">{formatCurrency(totalValue)}</p>
         </div>
-        <div class="rounded-2xl bg-muted p-3 text-foreground">
+        <div class="bg-muted text-foreground rounded-2xl p-3">
           <RefreshCw class="size-6" />
         </div>
       </div>
@@ -318,7 +318,7 @@
   <Card
     title="Filter pesanan"
     description="Cari berdasarkan nomor order, buyer, email, atau judul event, lalu kombinasikan dengan status order dan pembayaran."
-    class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+    class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
   >
     <form
       class="grid gap-4 lg:grid-cols-[1.6fr_1fr_1fr_auto]"
@@ -328,7 +328,7 @@
       }}
     >
       <div class="space-y-2">
-        <label class="text-sm font-medium text-foreground" for="order-search">Cari pesanan</label>
+        <label class="text-foreground text-sm font-medium" for="order-search">Cari pesanan</label>
         <Input
           id="order-search"
           bind:value={searchDraft}
@@ -337,13 +337,13 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-foreground" for="order-status-filter"
+        <label class="text-foreground text-sm font-medium" for="order-status-filter"
           >Status order</label
         >
         <select
           id="order-status-filter"
           bind:value={statusFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-border bg-card px-4 text-sm text-foreground shadow-sm transition outline-none focus:ring-2"
+          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
         >
           {#each orderStatusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
@@ -352,13 +352,13 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm font-medium text-foreground" for="payment-status-filter"
+        <label class="text-foreground text-sm font-medium" for="payment-status-filter"
           >Pembayaran</label
         >
         <select
           id="payment-status-filter"
           bind:value={paymentStatusFilter}
-          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 h-11 w-full rounded-full border border-border bg-card px-4 text-sm text-foreground shadow-sm transition outline-none focus:ring-2"
+          class="focus:border-jeevatix-400 focus:ring-jeevatix-200 border-border bg-card text-foreground h-11 w-full rounded-full border px-4 text-sm shadow-sm transition outline-none focus:ring-2"
         >
           {#each paymentStatusOptions as option (option.value)}
             <option value={option.value}>{option.label}</option>
@@ -384,14 +384,12 @@
   <Card
     title="Daftar pesanan"
     description="Masuk ke detail pesanan untuk melihat item, tiket terbit, dan aksi administratif yang tersedia."
-    class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+    class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
   >
     {#if isLoading}
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {#each Array.from({ length: 4 }) as _, index (index)}
-          <div
-            class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"
-          ></div>
+          <div class="border-border bg-muted h-28 animate-pulse rounded-[1.5rem] border"></div>
         {/each}
       </div>
     {:else}
@@ -413,8 +411,8 @@
 
     {#snippet footer()}
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-muted-foreground">
-          Menampilkan <span class="font-semibold text-foreground">{orders.length}</span> dari {meta.total}
+        <p class="text-muted-foreground text-sm">
+          Menampilkan <span class="text-foreground font-semibold">{orders.length}</span> dari {meta.total}
           pesanan.
         </p>
         <div class="flex items-center gap-3">
@@ -426,7 +424,7 @@
           >
             Sebelumnya
           </Button>
-          <span class="text-sm font-medium text-muted-foreground"
+          <span class="text-muted-foreground text-sm font-medium"
             >Halaman {meta.page} / {Math.max(meta.totalPages, 1)}</span
           >
           <Button

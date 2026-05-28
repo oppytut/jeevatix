@@ -17,7 +17,7 @@
 </svelte:head>
 
 <section
-  class="relative overflow-hidden rounded-[2rem] border border-emerald-200/70 bg-card shadow-[0_30px_90px_rgba(6,78,59,0.12)]"
+  class="bg-card relative overflow-hidden rounded-[2rem] border border-emerald-200/70 shadow-[0_30px_90px_rgba(6,78,59,0.12)]"
 >
   <div
     class="absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top_left,_rgba(6,78,59,0.22),_transparent_55%),linear-gradient(120deg,_rgba(22,163,74,0.16),_rgba(245,158,11,0.14))]"
@@ -29,7 +29,7 @@
     >
       <div class="space-y-6">
         <div
-          class="inline-flex w-fit items-center gap-3 rounded-full border border-white/10 bg-card/5 px-4 py-2"
+          class="bg-card/5 inline-flex w-fit items-center gap-3 rounded-full border border-white/10 px-4 py-2"
         >
           <span class="size-2.5 rounded-full bg-amber-300"></span>
           <span class="text-xs font-semibold tracking-[0.35em] uppercase">Seller Studio</span>
@@ -47,14 +47,14 @@
       </div>
 
       <div class="grid gap-4 sm:grid-cols-3">
-        <div class="rounded-[1.5rem] border border-white/10 bg-card/5 p-4">
+        <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
           <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">
             Events
           </p>
           <p class="mt-3 text-3xl font-semibold">S6</p>
           <p class="mt-2 text-sm text-emerald-100/75">Publikasikan dan kelola event seller.</p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/10 bg-card/5 p-4">
+        <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
           <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">
             Orders
           </p>
@@ -63,7 +63,7 @@
             Pantau order masuk dan status pembayarannya.
           </p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/10 bg-card/5 p-4">
+        <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
           <p class="text-xs font-semibold tracking-[0.25em] text-emerald-200/70 uppercase">
             Check-in
           </p>
@@ -77,17 +77,17 @@
       <Card
         title={undefined}
         description={undefined}
-        class="w-full max-w-xl rounded-[2rem] border border-emerald-100 bg-card/90 p-7 shadow-[0_28px_80px_rgba(6,78,59,0.08)] sm:p-9"
+        class="bg-card/90 w-full max-w-xl rounded-[2rem] border border-emerald-100 p-7 shadow-[0_28px_80px_rgba(6,78,59,0.08)] sm:p-9"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="space-y-2">
             <p class="text-sm font-semibold tracking-[0.32em] text-emerald-700/70 uppercase">
               Sign In
             </p>
-            <h2 class="text-3xl font-semibold tracking-tight text-foreground">
+            <h2 class="text-foreground text-3xl font-semibold tracking-tight">
               Masuk ke Seller Studio
             </h2>
-            <p class="text-sm leading-6 text-muted-foreground">
+            <p class="text-muted-foreground text-sm leading-6">
               Gunakan akun seller untuk mengelola event, tiket, dan notifikasi operasional.
             </p>
           </div>
@@ -99,15 +99,19 @@
           </div>
         </div>
 
-        <form class="mt-8 space-y-5" method="POST" use:enhance={() => {
-      submitting = true;
-      return async ({ update }) => {
-        submitting = false;
-        await update();
-      };
-    }}>
+        <form
+          class="mt-8 space-y-5"
+          method="POST"
+          use:enhance={() => {
+            submitting = true;
+            return async ({ update }) => {
+              submitting = false;
+              await update();
+            };
+          }}
+        >
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="email">Email</label>
+            <label class="text-foreground text-sm font-medium" for="email">Email</label>
             <Input
               id="email"
               name="email"
@@ -121,7 +125,7 @@
 
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-4">
-              <label class="text-sm font-medium text-foreground" for="password">Password</label>
+              <label class="text-foreground text-sm font-medium" for="password">Password</label>
               <a
                 class="text-sm font-medium text-emerald-700 hover:text-emerald-800"
                 href={resolve('/forgot-password')}
@@ -149,17 +153,17 @@
           {/if}
 
           <Button class="w-full" type="submit" disabled={submitting}>
-        {#if submitting}
-          <Loader2 class="mr-2 size-4 animate-spin" />
-          Memproses...
-        {:else}
-          Login
-        {/if}
-      </Button>
+            {#if submitting}
+              <Loader2 class="mr-2 size-4 animate-spin" />
+              Memproses...
+            {:else}
+              Login
+            {/if}
+          </Button>
         </form>
 
         {#snippet footer()}
-          <div class="flex items-center justify-between gap-4 text-sm text-muted-foreground">
+          <div class="text-muted-foreground flex items-center justify-between gap-4 text-sm">
             <p>Belum punya akun seller?</p>
             <a
               class="font-medium text-emerald-700 hover:text-emerald-800"

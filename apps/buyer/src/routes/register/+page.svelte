@@ -20,15 +20,15 @@
   <div
     class="rounded-[2rem] border border-sky-200/80 bg-[linear-gradient(180deg,#f0f9ff_0%,#e0f2fe_100%)] p-8 shadow-[0_28px_90px_rgba(14,165,233,0.12)] sm:p-10"
   >
-    <div class="flex size-14 items-center justify-center rounded-2xl bg-card/70 text-sky-700">
+    <div class="bg-card/70 flex size-14 items-center justify-center rounded-2xl text-sky-700">
       <Ticket class="size-7" />
     </div>
     <div class="mt-6 space-y-4">
       <p class="text-sm font-semibold tracking-[0.3em] text-sky-700 uppercase">Create Account</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+      <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
         Buat akun untuk checkout lebih cepat saat event incaran sudah tayang.
       </h1>
-      <p class="text-base leading-7 text-muted-foreground sm:text-lg">
+      <p class="text-muted-foreground text-base leading-7 sm:text-lg">
         Dengan akun buyer, Anda bisa melanjutkan pembelian lebih cepat, melacak order, dan menyimpan
         semua tiket di satu tempat.
       </p>
@@ -36,27 +36,31 @@
   </div>
 
   <Card
-    class="rounded-[2rem] border border-border bg-card/90 p-7 shadow-[0_26px_80px_rgba(15,23,42,0.10)] sm:p-9"
+    class="border-border bg-card/90 rounded-[2rem] border p-7 shadow-[0_26px_80px_rgba(15,23,42,0.10)] sm:p-9"
   >
     <div class="space-y-2">
-      <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">
+      <p class="text-muted-foreground text-sm font-semibold tracking-[0.3em] uppercase">
         Buyer Registration
       </p>
-      <h2 class="text-3xl font-semibold tracking-tight text-foreground">Daftar akun buyer baru</h2>
-      <p class="text-sm leading-6 text-muted-foreground">
+      <h2 class="text-foreground text-3xl font-semibold tracking-tight">Daftar akun buyer baru</h2>
+      <p class="text-muted-foreground text-sm leading-6">
         Isi detail dasar Anda untuk mulai jelajah event dan menyimpan progres pembelian.
       </p>
     </div>
 
-    <form class="mt-8 grid gap-5 sm:grid-cols-2" method="POST" use:enhance={() => {
-      submitting = true;
-      return async ({ update }) => {
-        submitting = false;
-        await update();
-      };
-    }}>
+    <form
+      class="mt-8 grid gap-5 sm:grid-cols-2"
+      method="POST"
+      use:enhance={() => {
+        submitting = true;
+        return async ({ update }) => {
+          submitting = false;
+          await update();
+        };
+      }}
+    >
       <div class="space-y-2 sm:col-span-2">
-        <label class="text-sm font-medium text-foreground" for="email">Email</label>
+        <label class="text-foreground text-sm font-medium" for="email">Email</label>
         <Input
           id="email"
           name="email"
@@ -69,7 +73,7 @@
       </div>
 
       <div class="space-y-2 sm:col-span-2">
-        <label class="text-sm font-medium text-foreground" for="password">Password</label>
+        <label class="text-foreground text-sm font-medium" for="password">Password</label>
         <Input
           id="password"
           name="password"
@@ -81,7 +85,7 @@
       </div>
 
       <div class="space-y-2 sm:col-span-2">
-        <label class="text-sm font-medium text-foreground" for="full_name">Nama Lengkap</label>
+        <label class="text-foreground text-sm font-medium" for="full_name">Nama Lengkap</label>
         <Input
           id="full_name"
           name="full_name"
@@ -93,7 +97,7 @@
       </div>
 
       <div class="space-y-2 sm:col-span-2">
-        <label class="text-sm font-medium text-foreground" for="phone">Nomor Telepon</label>
+        <label class="text-foreground text-sm font-medium" for="phone">Nomor Telepon</label>
         <Input
           id="phone"
           name="phone"
@@ -114,7 +118,7 @@
       {/if}
 
       <div class="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-        <p class="text-sm text-muted-foreground">
+        <p class="text-muted-foreground text-sm">
           Sudah punya akun?
           <a class="font-medium text-sky-700 hover:text-sky-800" href={resolve('/login')}
             >Masuk di sini</a

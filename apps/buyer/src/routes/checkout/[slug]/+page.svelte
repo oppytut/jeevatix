@@ -180,28 +180,32 @@
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.3em] text-muted-foreground uppercase">Checkout</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.3em] uppercase">
+          Checkout
+        </p>
+        <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
           Amankan kursi Anda untuk {data.event.title}.
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Pilih tier, tentukan jumlah tiket, lalu lanjutkan ke pembayaran sebelum slot reservasi
           Anda berakhir.
         </p>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-[1.5rem] border border-white/70 bg-card/75 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">
+        <div class="bg-card/75 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
+          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
             Jadwal Event
           </p>
-          <p class="mt-2 text-sm leading-6 font-medium text-foreground">
+          <p class="text-foreground mt-2 text-sm leading-6 font-medium">
             {formatEventDateRange(data.event.start_at, data.event.end_at)}
           </p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/70 bg-card/75 px-5 py-4 backdrop-blur">
-          <p class="text-xs font-semibold tracking-[0.24em] text-muted-foreground uppercase">Lokasi</p>
-          <p class="mt-2 text-sm font-medium text-foreground">
+        <div class="bg-card/75 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
+          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+            Lokasi
+          </p>
+          <p class="text-foreground mt-2 text-sm font-medium">
             {data.event.venue_name}, {data.event.venue_city}
           </p>
         </div>
@@ -222,17 +226,17 @@
 
   <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
     <Card
-      class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+      class="bg-card/92 rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
     >
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+          <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
             Pilih Tiket
           </p>
-          <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+          <h2 class="text-foreground mt-2 text-3xl font-semibold tracking-tight">
             Tentukan tier dan jumlah
           </h2>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Maksimal {data.event.max_tickets_per_order} tiket per transaksi. Stok akan dikunci selama
             10 menit setelah reservasi berhasil.
           </p>
@@ -271,7 +275,7 @@
                 <div class="flex items-start justify-between gap-4">
                   <div>
                     <div class="flex items-center gap-3">
-                      <h3 class="text-lg font-semibold text-foreground">{tier.name}</h3>
+                      <h3 class="text-foreground text-lg font-semibold">{tier.name}</h3>
                       <span
                         class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${tier.remaining > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}
                       >
@@ -279,21 +283,21 @@
                       </span>
                     </div>
                     {#if tier.description}
-                      <p class="mt-2 text-sm leading-6 text-muted-foreground">{tier.description}</p>
+                      <p class="text-muted-foreground mt-2 text-sm leading-6">{tier.description}</p>
                     {/if}
                   </div>
 
-                  <p class="text-right text-xl font-semibold text-foreground">
+                  <p class="text-foreground text-right text-xl font-semibold">
                     {formatCurrency(tier.price)}
                   </p>
                 </div>
 
-                <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <span class="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5">
+                <div class="text-muted-foreground mt-4 flex flex-wrap items-center gap-3 text-sm">
+                  <span class="bg-card inline-flex items-center gap-2 rounded-full px-3 py-1.5">
                     <ShieldCheck class="size-4 text-emerald-600" />
                     Sisa {tier.remaining} tiket
                   </span>
-                  <span class="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5">
+                  <span class="bg-card inline-flex items-center gap-2 rounded-full px-3 py-1.5">
                     <CalendarDays class="size-4 text-sky-600" />
                     Penjualan ditutup {formatLongDateTime(
                       tier.sale_end_at ?? data.event.sale_end_at,
@@ -304,11 +308,11 @@
             {/each}
           </div>
 
-          <div class="rounded-[1.75rem] border border-border bg-muted p-5">
+          <div class="border-border bg-muted rounded-[1.75rem] border p-5">
             <div class="flex items-center justify-between gap-4">
               <div>
-                <p class="text-sm font-medium text-foreground">Jumlah tiket</p>
-                <p class="mt-1 text-sm text-muted-foreground">
+                <p class="text-foreground text-sm font-medium">Jumlah tiket</p>
+                <p class="text-muted-foreground mt-1 text-sm">
                   Maksimal {maxSelectableQuantity} tiket untuk tier yang dipilih.
                 </p>
               </div>
@@ -316,7 +320,7 @@
               <div class="flex items-center gap-3">
                 <button
                   type="button"
-                  class="flex size-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                  class="border-border bg-card text-muted-foreground flex size-10 items-center justify-center rounded-full border disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Kurangi jumlah tiket"
                   onclick={decreaseQuantity}
                   disabled={Boolean(reservation)}
@@ -334,7 +338,7 @@
                 />
                 <button
                   type="button"
-                  class="flex size-10 items-center justify-center rounded-full border border-border bg-card text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                  class="border-border bg-card text-muted-foreground flex size-10 items-center justify-center rounded-full border disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Tambah jumlah tiket"
                   onclick={increaseQuantity}
                   disabled={Boolean(reservation)}
@@ -371,7 +375,7 @@
           </Button>
 
           {#if reservation}
-            <p class="text-sm leading-6 text-muted-foreground">
+            <p class="text-muted-foreground text-sm leading-6">
               Tier dan jumlah tiket dikunci selama reservasi aktif agar ringkasan checkout tetap
               sesuai dengan slot yang sedang Anda pegang.
             </p>
@@ -382,16 +386,16 @@
 
     <div class="space-y-6">
       <Card
-        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="bg-card/92 rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
-        <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
           Ringkasan Event
         </p>
-        <div class="mt-5 space-y-4 text-sm text-muted-foreground">
+        <div class="text-muted-foreground mt-5 space-y-4 text-sm">
           <div class="flex items-start gap-3">
             <CalendarDays class="mt-1 size-4 text-orange-600" />
             <div>
-              <p class="font-medium text-foreground">{data.event.title}</p>
+              <p class="text-foreground font-medium">{data.event.title}</p>
               <p class="mt-1 leading-6">
                 {formatEventDateRange(data.event.start_at, data.event.end_at)}
               </p>
@@ -400,7 +404,7 @@
           <div class="flex items-start gap-3">
             <MapPinned class="mt-1 size-4 text-sky-600" />
             <div>
-              <p class="font-medium text-foreground">{data.event.venue_name}</p>
+              <p class="text-foreground font-medium">{data.event.venue_name}</p>
               <p class="mt-1 leading-6">{data.event.venue_city}</p>
             </div>
           </div>
@@ -408,14 +412,14 @@
       </Card>
 
       <Card
-        class="rounded-[2rem] border border-white/80 bg-card/92 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
+        class="bg-card/92 rounded-[2rem] border border-white/80 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:p-7"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+            <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
               Reservasi Aktif
             </p>
-            <h2 class="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+            <h2 class="text-foreground mt-2 text-2xl font-semibold tracking-tight">
               Status slot Anda
             </h2>
           </div>
@@ -430,24 +434,24 @@
               <p class="text-xs font-semibold tracking-[0.24em] text-sky-700 uppercase">
                 Waktu Tersisa
               </p>
-              <p class="mt-3 text-4xl font-semibold tracking-tight text-foreground">
+              <p class="text-foreground mt-3 text-4xl font-semibold tracking-tight">
                 {formatCountdown(getRemainingMs())}
               </p>
-              <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              <p class="text-muted-foreground mt-3 text-sm leading-6">
                 Reservasi berakhir pada {formatLongDateTime(reservation.expires_at)}. Lanjutkan ke
                 pembayaran sebelum timer habis.
               </p>
             </div>
 
             {#if activeTier}
-              <div class="rounded-[1.75rem] border border-border bg-muted p-5">
-                <p class="text-sm font-medium text-foreground">Tier dipilih</p>
+              <div class="border-border bg-muted rounded-[1.75rem] border p-5">
+                <p class="text-foreground text-sm font-medium">Tier dipilih</p>
                 <div class="mt-3 flex items-end justify-between gap-4">
                   <div>
-                    <p class="text-xl font-semibold text-foreground">{activeTier.name}</p>
-                    <p class="mt-1 text-sm text-muted-foreground">{quantity} tiket</p>
+                    <p class="text-foreground text-xl font-semibold">{activeTier.name}</p>
+                    <p class="text-muted-foreground mt-1 text-sm">{quantity} tiket</p>
                   </div>
-                  <p class="text-xl font-semibold text-foreground">
+                  <p class="text-foreground text-xl font-semibold">
                     {formatCurrency(activeTier.price * quantity)}
                   </p>
                 </div>
@@ -481,7 +485,7 @@
           </div>
         {:else}
           <div
-            class="mt-5 rounded-[1.75rem] border border-dashed border-border bg-muted px-5 py-6 text-sm leading-7 text-muted-foreground"
+            class="border-border bg-muted text-muted-foreground mt-5 rounded-[1.75rem] border border-dashed px-5 py-6 text-sm leading-7"
           >
             Pilih tier tiket lalu buat reservasi untuk memulai countdown checkout Anda.
           </div>

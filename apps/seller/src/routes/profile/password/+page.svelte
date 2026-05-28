@@ -87,10 +87,10 @@
   <div class="space-y-3">
     <p class="text-sm font-semibold tracking-[0.35em] text-emerald-700/70 uppercase">Security</p>
     <div class="space-y-2">
-      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+      <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
         Ubah Password
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+      <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
         Amankan akun seller dengan password baru yang kuat dan berbeda dari password sebelumnya.
       </p>
     </div>
@@ -118,11 +118,11 @@
     <Card
       title="Perbarui kredensial akun"
       description="Gunakan kombinasi password yang kuat agar akses dashboard seller tetap aman."
-      class="rounded-[2rem] border-emerald-900/10 bg-card/90 shadow-[0_30px_80px_rgba(6,78,59,0.08)]"
+      class="bg-card/90 rounded-[2rem] border-emerald-900/10 shadow-[0_30px_80px_rgba(6,78,59,0.08)]"
     >
       <form class="space-y-6" onsubmit={(event) => event.preventDefault()}>
         <label class="block space-y-2" for="old-password">
-          <span class="text-sm font-medium text-foreground">Old Password</span>
+          <span class="text-foreground text-sm font-medium">Old Password</span>
           <Input
             id="old-password"
             bind:value={form.old_password}
@@ -133,7 +133,7 @@
         </label>
 
         <label class="block space-y-2" for="new-password">
-          <span class="text-sm font-medium text-foreground">New Password</span>
+          <span class="text-foreground text-sm font-medium">New Password</span>
           <Input
             id="new-password"
             bind:value={form.new_password}
@@ -144,7 +144,7 @@
         </label>
 
         <label class="block space-y-2" for="confirm-new-password">
-          <span class="text-sm font-medium text-foreground">Confirm New Password</span>
+          <span class="text-foreground text-sm font-medium">Confirm New Password</span>
           <Input
             id="confirm-new-password"
             bind:value={form.confirm_new_password}
@@ -164,7 +164,7 @@
 
           <a
             href={resolve('/profile')}
-            class="hover:border-jeevatix-300 hover:bg-jeevatix-50 inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition"
+            class="hover:border-jeevatix-300 hover:bg-jeevatix-50 border-border bg-card text-foreground inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold transition"
           >
             Kembali ke Profil
           </a>
@@ -178,18 +178,18 @@
         description="Pedoman singkat agar kredensial seller tetap aman dari reuse atau kebocoran."
         class="rounded-[2rem] bg-[linear-gradient(180deg,rgba(236,253,245,0.9),rgba(255,255,255,1))]"
       >
-        <div class="space-y-4 text-sm leading-6 text-muted-foreground">
+        <div class="text-muted-foreground space-y-4 text-sm leading-6">
           <div
-            class="flex items-start gap-3 rounded-[1.4rem] border border-emerald-200 bg-card/80 px-4 py-4"
+            class="bg-card/80 flex items-start gap-3 rounded-[1.4rem] border border-emerald-200 px-4 py-4"
           >
             <ShieldCheck class="mt-0.5 size-4 text-emerald-700" />
             <p>Gunakan kombinasi huruf besar, huruf kecil, angka, dan simbol jika memungkinkan.</p>
           </div>
 
           <div
-            class="flex items-start gap-3 rounded-[1.4rem] border border-border bg-card/80 px-4 py-4"
+            class="border-border bg-card/80 flex items-start gap-3 rounded-[1.4rem] border px-4 py-4"
           >
-            <KeyRound class="mt-0.5 size-4 text-foreground" />
+            <KeyRound class="text-foreground mt-0.5 size-4" />
             <p>
               Hindari memakai password yang sama dengan email, marketplace, atau dashboard lain.
             </p>

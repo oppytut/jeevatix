@@ -52,15 +52,15 @@
   <Card
     title={undefined}
     description={undefined}
-    class="w-full rounded-[2rem] border border-emerald-200/70 bg-card/90 p-8 shadow-[0_28px_80px_rgba(6,78,59,0.10)] sm:p-10"
+    class="bg-card/90 w-full rounded-[2rem] border border-emerald-200/70 p-8 shadow-[0_28px_80px_rgba(6,78,59,0.10)] sm:p-10"
   >
     <div class="flex items-start justify-between gap-4">
       <div class="space-y-2">
         <p class="text-sm font-semibold tracking-[0.32em] text-emerald-700/70 uppercase">
           New Password
         </p>
-        <h1 class="text-3xl font-semibold tracking-tight text-foreground">Buat password baru</h1>
-        <p class="text-sm leading-6 text-muted-foreground">
+        <h1 class="text-foreground text-3xl font-semibold tracking-tight">Buat password baru</h1>
+        <p class="text-muted-foreground text-sm leading-6">
           Gunakan password baru minimal 8 karakter untuk mengaktifkan kembali akses Seller Studio.
         </p>
       </div>
@@ -80,7 +80,7 @@
     {:else}
       <form class="mt-8 space-y-5" onsubmit={handleSubmit}>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-foreground" for="password">Password Baru</label>
+          <label class="text-foreground text-sm font-medium" for="password">Password Baru</label>
           <Input
             id="password"
             type="password"

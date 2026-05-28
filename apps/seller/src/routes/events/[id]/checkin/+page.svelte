@@ -233,15 +233,15 @@
   {/if}
 
   <div
-    class="rounded-[2rem] border border-border bg-card/90 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
+    class="border-border bg-card/90 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:p-10"
   >
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">S13</p>
-        <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">S13</p>
+        <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
           Check-in scanner untuk {stats?.event_title ?? 'event ini'}
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Scan atau ketik kode tiket, lihat status validasi secara instan, dan pantau progres
           kehadiran event tanpa pindah halaman.
         </p>
@@ -267,11 +267,13 @@
 
   <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
     <div class="space-y-6">
-      <Card class="rounded-[2rem] border border-border bg-card/95 p-8 shadow-sm">
+      <Card class="border-border bg-card/95 rounded-[2rem] border p-8 shadow-sm">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">Scanner</p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+            <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
+              Scanner
+            </p>
+            <h2 class="text-foreground mt-2 text-3xl font-semibold tracking-tight">
               Masukkan kode tiket
             </h2>
           </div>
@@ -290,13 +292,13 @@
           }}
         >
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="ticket-code">Ticket Code</label>
+            <label class="text-foreground text-sm font-medium" for="ticket-code">Ticket Code</label>
             <Input
               id="ticket-code"
               bind:value={ticketCode}
               placeholder="Contoh: JVX-AB12CD34EF56"
               autocomplete="off"
-              class="h-16 rounded-[1.4rem] border-border px-5 font-mono text-lg tracking-[0.12em] uppercase"
+              class="border-border h-16 rounded-[1.4rem] px-5 font-mono text-lg tracking-[0.12em] uppercase"
             />
           </div>
 
@@ -321,7 +323,7 @@
         <Card class={`rounded-[2rem] border p-8 shadow-sm ${tone.card}`}>
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-start gap-4">
-              <div class="mt-1 flex size-12 items-center justify-center rounded-2xl bg-card/70">
+              <div class="bg-card/70 mt-1 flex size-12 items-center justify-center rounded-2xl">
                 <ResultIcon class="size-7" />
               </div>
               <div>
@@ -340,24 +342,26 @@
 
           {#if result.buyer_name || result.tier_name || result.checked_in_at}
             <div class="mt-6 grid gap-4 md:grid-cols-3">
-              <div class="rounded-[1.4rem] bg-card/70 p-4">
-                <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+              <div class="bg-card/70 rounded-[1.4rem] p-4">
+                <p class="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
                   Buyer
                 </p>
-                <p class="mt-2 font-semibold text-foreground">{result.buyer_name ?? '—'}</p>
-                <p class="mt-1 text-sm text-muted-foreground">
+                <p class="text-foreground mt-2 font-semibold">{result.buyer_name ?? '—'}</p>
+                <p class="text-muted-foreground mt-1 text-sm">
                   {result.buyer_email ?? 'Email tidak tersedia'}
                 </p>
               </div>
-              <div class="rounded-[1.4rem] bg-card/70 p-4">
-                <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">Tier</p>
-                <p class="mt-2 font-semibold text-foreground">{result.tier_name ?? '—'}</p>
+              <div class="bg-card/70 rounded-[1.4rem] p-4">
+                <p class="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
+                  Tier
+                </p>
+                <p class="text-foreground mt-2 font-semibold">{result.tier_name ?? '—'}</p>
               </div>
-              <div class="rounded-[1.4rem] bg-card/70 p-4">
-                <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+              <div class="bg-card/70 rounded-[1.4rem] p-4">
+                <p class="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
                   Waktu Check-in
                 </p>
-                <p class="mt-2 font-semibold text-foreground">
+                <p class="text-foreground mt-2 font-semibold">
                   {formatDateTime(result.checked_in_at)}
                 </p>
               </div>
@@ -366,11 +370,13 @@
         </Card>
       {/if}
 
-      <Card class="rounded-[2rem] border border-border bg-card/95 p-8 shadow-sm">
+      <Card class="border-border bg-card/95 rounded-[2rem] border p-8 shadow-sm">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">History</p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+            <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
+              History
+            </p>
+            <h2 class="text-foreground mt-2 text-3xl font-semibold tracking-tight">
               10 check-in terakhir
             </h2>
           </div>
@@ -380,33 +386,33 @@
         </div>
 
         {#if isLoading && !stats}
-          <div class="mt-8 rounded-[1.6rem] bg-muted p-8 text-sm text-muted-foreground">
+          <div class="bg-muted text-muted-foreground mt-8 rounded-[1.6rem] p-8 text-sm">
             Memuat riwayat check-in...
           </div>
         {:else if !stats || stats.recent_checkins.length === 0}
           <div
-            class="mt-8 rounded-[1.6rem] border border-dashed border-border bg-muted p-8 text-sm text-muted-foreground"
+            class="border-border bg-muted text-muted-foreground mt-8 rounded-[1.6rem] border border-dashed p-8 text-sm"
           >
             Belum ada tiket yang berhasil di-check-in untuk event ini.
           </div>
         {:else}
           <div class="mt-8 space-y-3">
             {#each stats.recent_checkins as item (item.id)}
-              <div class="rounded-[1.4rem] border border-border bg-muted p-4">
+              <div class="border-border bg-muted rounded-[1.4rem] border p-4">
                 <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <p class="font-semibold text-foreground">
+                    <p class="text-foreground font-semibold">
                       {item.buyer_name ?? 'Buyer tidak diketahui'}
                     </p>
-                    <p class="mt-1 text-sm text-muted-foreground">
+                    <p class="text-muted-foreground mt-1 text-sm">
                       {item.tier_name} • {item.buyer_email ?? 'Email tidak tersedia'}
                     </p>
-                    <p class="mt-2 font-mono text-xs tracking-[0.18em] text-muted-foreground">
+                    <p class="text-muted-foreground mt-2 font-mono text-xs tracking-[0.18em]">
                       {item.ticket_code}
                     </p>
                   </div>
-                  <div class="text-sm text-muted-foreground lg:text-right">
-                    <p class="font-medium text-foreground">{formatDateTime(item.checked_in_at)}</p>
+                  <div class="text-muted-foreground text-sm lg:text-right">
+                    <p class="text-foreground font-medium">{formatDateTime(item.checked_in_at)}</p>
                     <p class="mt-1">{formatRelativeTime(item.checked_in_at)}</p>
                   </div>
                 </div>
@@ -418,13 +424,13 @@
     </div>
 
     <div class="space-y-6">
-      <Card class="rounded-[2rem] border border-border bg-card/95 p-8 shadow-sm">
+      <Card class="border-border bg-card/95 rounded-[2rem] border p-8 shadow-sm">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-sm font-semibold tracking-[0.26em] text-muted-foreground uppercase">
+            <p class="text-muted-foreground text-sm font-semibold tracking-[0.26em] uppercase">
               Live Stats
             </p>
-            <h2 class="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+            <h2 class="text-foreground mt-2 text-3xl font-semibold tracking-tight">
               Statistik check-in
             </h2>
           </div>
@@ -434,17 +440,17 @@
         </div>
 
         {#if isLoading && !stats}
-          <div class="mt-8 rounded-[1.6rem] bg-muted p-8 text-sm text-muted-foreground">
+          <div class="bg-muted text-muted-foreground mt-8 rounded-[1.6rem] p-8 text-sm">
             Menyiapkan statistik event...
           </div>
         {:else if stats}
           <div class="mt-8 space-y-5">
             <div class="grid gap-4 sm:grid-cols-3">
-              <div class="rounded-[1.4rem] bg-muted p-4">
-                <p class="text-xs font-semibold tracking-[0.22em] text-muted-foreground uppercase">
+              <div class="bg-muted rounded-[1.4rem] p-4">
+                <p class="text-muted-foreground text-xs font-semibold tracking-[0.22em] uppercase">
                   Total Tickets
                 </p>
-                <p class="mt-2 text-3xl font-semibold text-foreground">{stats.total_tickets}</p>
+                <p class="text-foreground mt-2 text-3xl font-semibold">{stats.total_tickets}</p>
               </div>
               <div class="rounded-[1.4rem] bg-emerald-50 p-4">
                 <p class="text-xs font-semibold tracking-[0.22em] text-emerald-700 uppercase">
@@ -460,17 +466,17 @@
               </div>
             </div>
 
-            <div class="rounded-[1.6rem] border border-border bg-muted p-5">
+            <div class="border-border bg-muted rounded-[1.6rem] border p-5">
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="text-sm font-semibold text-foreground">Progress kehadiran</p>
-                  <p class="mt-1 text-sm text-muted-foreground">
+                  <p class="text-foreground text-sm font-semibold">Progress kehadiran</p>
+                  <p class="text-muted-foreground mt-1 text-sm">
                     {stats.checked_in} dari {stats.total_tickets} tiket sudah masuk venue.
                   </p>
                 </div>
-                <p class="text-2xl font-semibold text-foreground">{progress.toFixed(1)}%</p>
+                <p class="text-foreground text-2xl font-semibold">{progress.toFixed(1)}%</p>
               </div>
-              <div class="mt-4 h-3 overflow-hidden rounded-full bg-muted">
+              <div class="bg-muted mt-4 h-3 overflow-hidden rounded-full">
                 <div
                   class="h-full rounded-full bg-linear-to-r from-emerald-500 to-teal-500 transition-all duration-300"
                   style={`width: ${progress}%`}

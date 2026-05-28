@@ -149,24 +149,24 @@
 
 <section class="space-y-8">
   <div
-    class="overflow-hidden rounded-[2rem] border border-emerald-950/10 bg-card/90 shadow-[0_30px_90px_rgba(5,46,34,0.10)]"
+    class="bg-card/90 overflow-hidden rounded-[2rem] border border-emerald-950/10 shadow-[0_30px_90px_rgba(5,46,34,0.10)]"
   >
     <div
       class="grid gap-8 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_38%),linear-gradient(135deg,rgba(15,118,110,0.08),rgba(255,255,255,0.96)_44%,rgba(245,158,11,0.10)_100%)] p-8 sm:p-10 xl:grid-cols-[1.15fr_0.85fr]"
     >
       <div class="space-y-4">
         <p class="text-sm font-semibold tracking-[0.35em] text-emerald-800/70 uppercase">S5</p>
-        <h1 class="max-w-3xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        <h1 class="text-foreground max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           Seller Dashboard
         </h1>
-        <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+        <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
           Lihat performa penjualan, pantau order terbaru, dan baca ritme demand tiket dalam 30 hari
           terakhir dari satu control room.
         </p>
       </div>
 
       <div
-        class="rounded-[1.75rem] border border-emerald-950/10 bg-foreground p-6 text-background shadow-[0_20px_50px_rgba(15,23,42,0.25)]"
+        class="bg-foreground text-background rounded-[1.75rem] border border-emerald-950/10 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.25)]"
       >
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -176,13 +176,13 @@
               tiket terjual dalam 30 hari terakhir, memberi gambaran pace penjualan lintas event.
             </p>
           </div>
-          <div class="rounded-2xl border border-white/10 bg-card/8 p-3">
+          <div class="bg-card/8 rounded-2xl border border-white/10 p-3">
             <ChartSpline class="size-5 text-emerald-300" />
           </div>
         </div>
 
         <div class="mt-6 grid gap-3 sm:grid-cols-2">
-          <div class="rounded-2xl border border-white/10 bg-card/6 p-4">
+          <div class="bg-card/6 rounded-2xl border border-white/10 p-4">
             <p class="text-xs font-medium tracking-[0.25em] text-emerald-100/60 uppercase">
               Revenue
             </p>
@@ -190,7 +190,7 @@
               {formatCurrency(dashboard?.total_revenue ?? 0)}
             </p>
           </div>
-          <div class="rounded-2xl border border-white/10 bg-card/6 p-4">
+          <div class="bg-card/6 rounded-2xl border border-white/10 p-4">
             <p class="text-xs font-medium tracking-[0.25em] text-emerald-100/60 uppercase">
               Upcoming
             </p>
@@ -211,12 +211,12 @@
   {/if}
 
   <div class="grid gap-4 md:grid-cols-2">
-    <div class="rounded-[1.7rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.7rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-medium text-muted-foreground">Total Event</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">{dashboard?.total_events ?? 0}</p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-muted-foreground text-sm font-medium">Total Event</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">{dashboard?.total_events ?? 0}</p>
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Semua event yang saat ini dimiliki seller.
           </p>
         </div>
@@ -226,14 +226,14 @@
       </div>
     </div>
 
-    <div class="rounded-[1.7rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.7rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-medium text-muted-foreground">Total Revenue</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">
+          <p class="text-muted-foreground text-sm font-medium">Total Revenue</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">
             {formatCurrency(dashboard?.total_revenue ?? 0)}
           </p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Akumulasi order confirmed dengan payment sukses.
           </p>
         </div>
@@ -243,14 +243,14 @@
       </div>
     </div>
 
-    <div class="rounded-[1.7rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.7rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-medium text-muted-foreground">Total Tiket Terjual</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">
+          <p class="text-muted-foreground text-sm font-medium">Total Tiket Terjual</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">
             {dashboard?.total_tickets_sold ?? 0}
           </p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Jumlah tiket dari transaksi sukses seluruh event seller.
           </p>
         </div>
@@ -260,14 +260,14 @@
       </div>
     </div>
 
-    <div class="rounded-[1.7rem] border border-border bg-card p-6 shadow-sm">
+    <div class="border-border bg-card rounded-[1.7rem] border p-6 shadow-sm">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <p class="text-sm font-medium text-muted-foreground">Event Mendatang</p>
-          <p class="mt-3 text-3xl font-semibold text-foreground">
+          <p class="text-muted-foreground text-sm font-medium">Event Mendatang</p>
+          <p class="text-foreground mt-3 text-3xl font-semibold">
             {dashboard?.upcoming_events ?? 0}
           </p>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+          <p class="text-muted-foreground mt-2 text-sm leading-6">
             Event future yang masih aktif dalam pipeline penjualan.
           </p>
         </div>
@@ -282,17 +282,17 @@
     <Card
       title="Pesanan terbaru"
       description="Lima order terakhir dari seluruh event seller. Klik order number untuk membuka detail order."
-      class="rounded-[2rem] border border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+      class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       {#if !dashboard || dashboard.recent_orders.length === 0}
         <div
-          class="flex min-h-72 items-center justify-center rounded-[1.5rem] border border-dashed border-border bg-muted text-sm text-muted-foreground"
+          class="border-border bg-muted text-muted-foreground flex min-h-72 items-center justify-center rounded-[1.5rem] border border-dashed text-sm"
         >
           Belum ada pesanan yang bisa ditampilkan.
         </div>
       {:else}
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-border text-left text-sm">
+          <table class="divide-border min-w-full divide-y text-left text-sm">
             <thead>
               <tr class="text-muted-foreground">
                 <th class="px-4 py-3 font-semibold">Order</th>
@@ -303,10 +303,10 @@
                 <th class="px-4 py-3 font-semibold">Tanggal</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-border">
+            <tbody class="divide-border divide-y">
               {#each dashboard.recent_orders as order (order.id)}
-                <tr class="align-top hover:bg-muted/80">
-                  <td class="px-4 py-4 font-medium text-foreground">
+                <tr class="hover:bg-muted/80 align-top">
+                  <td class="text-foreground px-4 py-4 font-medium">
                     <a
                       class="transition hover:text-emerald-700"
                       href={resolve(`/orders/${order.id}` as `/orders/${string}`)}
@@ -314,9 +314,9 @@
                       {order.order_number}
                     </a>
                   </td>
-                  <td class="px-4 py-4 text-foreground">{order.event_title}</td>
-                  <td class="px-4 py-4 text-foreground">{order.buyer_name}</td>
-                  <td class="px-4 py-4 font-medium text-foreground"
+                  <td class="text-foreground px-4 py-4">{order.event_title}</td>
+                  <td class="text-foreground px-4 py-4">{order.buyer_name}</td>
+                  <td class="text-foreground px-4 py-4 font-medium"
                     >{formatCurrency(order.total_amount)}</td
                   >
                   <td class="px-4 py-4">
@@ -324,7 +324,7 @@
                       {getOrderStatusLabel(order.status)}
                     </Badge>
                   </td>
-                  <td class="px-4 py-4 text-foreground">{formatDate(order.created_at)}</td>
+                  <td class="text-foreground px-4 py-4">{formatDate(order.created_at)}</td>
                 </tr>
               {/each}
             </tbody>
@@ -336,10 +336,10 @@
     <Card
       title="Penjualan tiket per hari"
       description="Tren jumlah tiket terjual selama 30 hari terakhir."
-      class="rounded-[2rem] border border-border bg-card/95 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+      class="border-border bg-card/95 rounded-[2rem] border shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
     >
       <div
-        class="rounded-[1.6rem] border border-border bg-[linear-gradient(180deg,rgba(240,253,250,0.7),rgba(255,255,255,1))] p-4 sm:p-5"
+        class="border-border rounded-[1.6rem] border bg-[linear-gradient(180deg,rgba(240,253,250,0.7),rgba(255,255,255,1))] p-4 sm:p-5"
       >
         <svg
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
@@ -395,7 +395,7 @@
         </svg>
 
         <div
-          class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-medium tracking-[0.22em] text-muted-foreground uppercase"
+          class="text-muted-foreground mt-4 flex flex-wrap items-center justify-between gap-3 text-xs font-medium tracking-[0.22em] uppercase"
         >
           {#each chartLabels as label (label.date)}
             <span>{formatDayLabel(label.date)}</span>
@@ -404,17 +404,23 @@
       </div>
 
       <div class="mt-5 grid gap-3 sm:grid-cols-3">
-        <div class="rounded-[1.4rem] border border-border bg-muted/80 p-4">
-          <p class="text-xs font-medium tracking-[0.24em] text-muted-foreground uppercase">Window</p>
-          <p class="mt-2 text-lg font-semibold text-foreground">30 hari</p>
+        <div class="border-border bg-muted/80 rounded-[1.4rem] border p-4">
+          <p class="text-muted-foreground text-xs font-medium tracking-[0.24em] uppercase">
+            Window
+          </p>
+          <p class="text-foreground mt-2 text-lg font-semibold">30 hari</p>
         </div>
-        <div class="rounded-[1.4rem] border border-border bg-muted/80 p-4">
-          <p class="text-xs font-medium tracking-[0.24em] text-muted-foreground uppercase">Peak Daily</p>
-          <p class="mt-2 text-lg font-semibold text-foreground">{maxTicketsSold} tiket</p>
+        <div class="border-border bg-muted/80 rounded-[1.4rem] border p-4">
+          <p class="text-muted-foreground text-xs font-medium tracking-[0.24em] uppercase">
+            Peak Daily
+          </p>
+          <p class="text-foreground mt-2 text-lg font-semibold">{maxTicketsSold} tiket</p>
         </div>
-        <div class="rounded-[1.4rem] border border-border bg-muted/80 p-4">
-          <p class="text-xs font-medium tracking-[0.24em] text-muted-foreground uppercase">Total Sold</p>
-          <p class="mt-2 text-lg font-semibold text-foreground">{totalSalesInWindow} tiket</p>
+        <div class="border-border bg-muted/80 rounded-[1.4rem] border p-4">
+          <p class="text-muted-foreground text-xs font-medium tracking-[0.24em] uppercase">
+            Total Sold
+          </p>
+          <p class="text-foreground mt-2 text-lg font-semibold">{totalSalesInWindow} tiket</p>
         </div>
       </div>
     </Card>

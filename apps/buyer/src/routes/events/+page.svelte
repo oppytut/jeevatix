@@ -26,24 +26,24 @@
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
   <div
-    class="rounded-[2.25rem] border border-border bg-[linear-gradient(135deg,#fff8ef_0%,#eef8ff_100%)] p-7 shadow-[0_26px_80px_rgba(15,23,42,0.08)] sm:p-9"
+    class="border-border rounded-[2.25rem] border bg-[linear-gradient(135deg,#fff8ef_0%,#eef8ff_100%)] p-7 shadow-[0_26px_80px_rgba(15,23,42,0.08)] sm:p-9"
   >
     <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div class="space-y-3">
-        <p class="text-sm font-semibold tracking-[0.28em] text-muted-foreground uppercase">
+        <p class="text-muted-foreground text-sm font-semibold tracking-[0.28em] uppercase">
           Explore Events
         </p>
-        <h1 class="text-4xl font-semibold tracking-tight text-foreground">
+        <h1 class="text-foreground text-4xl font-semibold tracking-tight">
           Temukan event yang paling pas dengan rencana Anda
         </h1>
-        <p class="max-w-2xl text-base leading-7 text-muted-foreground">
+        <p class="text-muted-foreground max-w-2xl text-base leading-7">
           Gunakan pencarian cepat dan kombinasi filter untuk menyaring event berdasarkan kota,
           kategori, waktu, dan budget.
         </p>
       </div>
 
       <div
-        class="inline-flex items-center gap-2 rounded-full bg-card/80 px-4 py-2 text-sm font-medium text-muted-foreground"
+        class="bg-card/80 text-muted-foreground inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
       >
         <SlidersHorizontal class="size-4 text-orange-600" />
         {data.meta.total} event ditemukan
@@ -53,21 +53,21 @@
 
   <div class="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
     <form
-      class="space-y-6 rounded-[2rem] border border-border bg-card/90 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
+      class="border-border bg-card/90 space-y-6 rounded-[2rem] border p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)]"
       method="GET"
     >
       <div
-        class="flex items-center gap-2 text-sm font-semibold tracking-[0.24em] text-muted-foreground uppercase"
+        class="text-muted-foreground flex items-center gap-2 text-sm font-semibold tracking-[0.24em] uppercase"
       >
         <Filter class="size-4" />
         Filter Event
       </div>
 
       <div class="space-y-3">
-        <label class="text-sm font-medium text-foreground" for="search">Search</label>
+        <label class="text-foreground text-sm font-medium" for="search">Search</label>
         <div class="relative">
           <Search
-            class="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground"
+            class="text-muted-foreground pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
           />
           <Input
             id="search"
@@ -80,7 +80,7 @@
       </div>
 
       <div class="space-y-3">
-        <p class="text-sm font-medium text-foreground">Kategori</p>
+        <p class="text-foreground text-sm font-medium">Kategori</p>
         <div class="flex flex-wrap gap-2">
           {#each data.categories as category (category.id)}
             <label
@@ -103,7 +103,7 @@
           {/each}
         </div>
         {#if data.filters.categories.length > 1}
-          <p class="text-xs leading-5 text-muted-foreground">
+          <p class="text-muted-foreground text-xs leading-5">
             Multi-select kategori digabungkan dari endpoint kategori publik lalu dipaginasi di
             portal buyer.
           </p>
@@ -111,11 +111,11 @@
       </div>
 
       <div class="space-y-3">
-        <label class="text-sm font-medium text-foreground" for="city">Kota</label>
+        <label class="text-foreground text-sm font-medium" for="city">Kota</label>
         <select
           id="city"
           name="city"
-          class="h-12 w-full rounded-2xl border border-border bg-card px-4 text-sm text-foreground transition outline-none focus:border-foreground"
+          class="border-border bg-card text-foreground focus:border-foreground h-12 w-full rounded-2xl border px-4 text-sm transition outline-none"
         >
           <option value="">Semua kota</option>
           {#each data.cityOptions as option (option)}
@@ -126,7 +126,7 @@
 
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
         <div class="space-y-3">
-          <label class="text-sm font-medium text-foreground" for="date_from">Tanggal mulai</label>
+          <label class="text-foreground text-sm font-medium" for="date_from">Tanggal mulai</label>
           <Input
             id="date_from"
             name="date_from"
@@ -136,7 +136,7 @@
           />
         </div>
         <div class="space-y-3">
-          <label class="text-sm font-medium text-foreground" for="date_to">Tanggal akhir</label>
+          <label class="text-foreground text-sm font-medium" for="date_to">Tanggal akhir</label>
           <Input
             id="date_to"
             name="date_to"
@@ -148,10 +148,12 @@
       </div>
 
       <div class="space-y-4">
-        <p class="text-sm font-medium text-foreground">Rentang harga</p>
+        <p class="text-foreground text-sm font-medium">Rentang harga</p>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           <div class="space-y-2">
-            <div class="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <div
+              class="text-muted-foreground flex items-center justify-between text-xs font-medium"
+            >
               <label for="price_min">Minimum</label>
               <span>Rp {Number(data.filters.priceMin || 0).toLocaleString('id-ID')}</span>
             </div>
@@ -167,7 +169,9 @@
             />
           </div>
           <div class="space-y-2">
-            <div class="flex items-center justify-between text-xs font-medium text-muted-foreground">
+            <div
+              class="text-muted-foreground flex items-center justify-between text-xs font-medium"
+            >
               <label for="price_max">Maksimum</label>
               <span
                 >Rp {Number(data.filters.priceMax || data.priceBounds.max).toLocaleString(
@@ -195,7 +199,7 @@
         <Button class="flex-1 rounded-full" type="submit">Terapkan Filter</Button>
         <a
           href={resolve('/events')}
-          class="inline-flex flex-1 items-center justify-center rounded-full border border-border px-5 text-sm font-semibold text-foreground transition hover:border-border hover:text-foreground"
+          class="border-border text-foreground hover:border-border hover:text-foreground inline-flex flex-1 items-center justify-center rounded-full border px-5 text-sm font-semibold transition"
         >
           Reset
         </a>
@@ -204,15 +208,17 @@
 
     <div class="space-y-6">
       <div
-        class="flex flex-col gap-3 rounded-[2rem] border border-white/80 bg-card/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between"
+        class="bg-card/85 flex flex-col gap-3 rounded-[2rem] border border-white/80 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <p class="text-sm font-semibold tracking-[0.24em] text-muted-foreground uppercase">Results</p>
-          <p class="mt-2 text-lg font-medium text-foreground">
+          <p class="text-muted-foreground text-sm font-semibold tracking-[0.24em] uppercase">
+            Results
+          </p>
+          <p class="text-foreground mt-2 text-lg font-medium">
             Menampilkan halaman {data.meta.page} dari {Math.max(data.meta.totalPages, 1)}
           </p>
         </div>
-        <p class="text-sm text-muted-foreground">
+        <p class="text-muted-foreground text-sm">
           {data.meta.total} event publik cocok dengan filter saat ini.
         </p>
       </div>
@@ -225,7 +231,7 @@
         </div>
       {:else}
         <div
-          class="rounded-[2rem] border border-dashed border-border bg-card/70 p-10 text-center text-muted-foreground"
+          class="border-border bg-card/70 text-muted-foreground rounded-[2rem] border border-dashed p-10 text-center"
         >
           Tidak ada event yang cocok dengan filter Anda. Coba ubah kriteria pencarian atau reset
           filter.
@@ -250,7 +256,7 @@
                 type="submit"
                 name="page"
                 value={data.meta.page - 1}
-                class="inline-flex items-center rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+                class="border-border bg-card text-foreground inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold"
               >
                 Halaman Sebelumnya
               </button>
@@ -303,7 +309,7 @@
                 type="submit"
                 name="page"
                 value={data.meta.page + 1}
-                class="inline-flex items-center rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground"
+                class="border-border bg-card text-foreground inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold"
               >
                 Halaman Berikutnya
               </button>

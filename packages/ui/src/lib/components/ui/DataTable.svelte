@@ -82,29 +82,29 @@
 
 <section
   class={cn(
-    'overflow-hidden rounded-(--radius-card) border border-border bg-card shadow-sm',
+    'border-border bg-card overflow-hidden rounded-(--radius-card) border shadow-sm',
     className,
   )}
 >
   {#if title || description}
-    <header class="border-b border-border px-6 py-5">
+    <header class="border-border border-b px-6 py-5">
       {#if title}
-        <h3 class="text-lg font-semibold text-foreground">{title}</h3>
+        <h3 class="text-foreground text-lg font-semibold">{title}</h3>
       {/if}
       {#if description}
-        <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+        <p class="text-muted-foreground mt-1 text-sm leading-6">{description}</p>
       {/if}
     </header>
   {/if}
 
   <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-border text-sm">
+    <table class="divide-border min-w-full divide-y text-sm">
       <thead class="bg-muted/80">
         <tr>
           {#each normalizedColumns as column (getColumnKey(column))}
             <th
               class={cn(
-                'px-6 py-4 font-semibold text-muted-foreground',
+                'text-muted-foreground px-6 py-4 font-semibold',
                 getAlignClass(getColumnAlign(column)),
               )}
             >
@@ -112,11 +112,11 @@
             </th>
           {/each}
           {#if rowActions}
-            <th class="px-6 py-4 text-right font-semibold text-muted-foreground">{actionHeader}</th>
+            <th class="text-muted-foreground px-6 py-4 text-right font-semibold">{actionHeader}</th>
           {/if}
         </tr>
       </thead>
-      <tbody class="divide-y divide-border">
+      <tbody class="divide-border divide-y">
         {#if normalizedRows.length > 0}
           {#each normalizedRows as row, index (index)}
             <tr
@@ -127,7 +127,7 @@
               onclick={() => onRowClick?.(row)}
             >
               {#each normalizedColumns as column (getColumnKey(column))}
-                <td class={cn('px-6 py-4 text-foreground', getAlignClass(getColumnAlign(column)))}>
+                <td class={cn('text-foreground px-6 py-4', getAlignClass(getColumnAlign(column)))}>
                   {#if cell}
                     {@render cell(row, column)}
                   {:else}
@@ -145,7 +145,7 @@
         {:else}
           <tr>
             <td
-              class="px-6 py-10 text-center text-muted-foreground"
+              class="text-muted-foreground px-6 py-10 text-center"
               colspan={normalizedColumns.length + (rowActions ? 1 : 0)}
             >
               {emptyMessage}

@@ -16,7 +16,7 @@
 </svelte:head>
 
 <section
-  class="relative overflow-hidden rounded-[2rem] border border-border bg-card shadow-[0_30px_90px_rgba(15,23,42,0.12)]"
+  class="border-border bg-card relative overflow-hidden rounded-[2rem] border shadow-[0_30px_90px_rgba(15,23,42,0.12)]"
 >
   <div
     class="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.18),_transparent_55%),linear-gradient(120deg,_rgba(14,116,144,0.14),_rgba(251,191,36,0.12))]"
@@ -28,7 +28,7 @@
     >
       <div class="space-y-6">
         <div
-          class="inline-flex w-fit items-center gap-3 rounded-full border border-white/10 bg-card/5 px-4 py-2"
+          class="bg-card/5 inline-flex w-fit items-center gap-3 rounded-full border border-white/10 px-4 py-2"
         >
           <span class="size-2.5 rounded-full bg-emerald-400"></span>
           <span class="text-xs font-semibold tracking-[0.35em] uppercase">Jeevatix Admin</span>
@@ -46,18 +46,24 @@
       </div>
 
       <div class="grid gap-4 sm:grid-cols-3">
-        <div class="rounded-[1.5rem] border border-white/10 bg-card/5 p-4">
-          <p class="text-xs font-semibold tracking-[0.25em] text-muted-foreground/70 uppercase">Users</p>
+        <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
+          <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.25em] uppercase">
+            Users
+          </p>
           <p class="mt-3 text-3xl font-semibold">A3</p>
           <p class="mt-2 text-sm text-slate-300">Moderasi akun buyer, seller, dan admin.</p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/10 bg-card/5 p-4">
-          <p class="text-xs font-semibold tracking-[0.25em] text-muted-foreground/70 uppercase">Catalog</p>
+        <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
+          <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.25em] uppercase">
+            Catalog
+          </p>
           <p class="mt-3 text-3xl font-semibold">A13</p>
           <p class="mt-2 text-sm text-slate-300">Kelola kategori event dan kurasi listing.</p>
         </div>
-        <div class="rounded-[1.5rem] border border-white/10 bg-card/5 p-4">
-          <p class="text-xs font-semibold tracking-[0.25em] text-muted-foreground/70 uppercase">Payments</p>
+        <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
+          <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.25em] uppercase">
+            Payments
+          </p>
           <p class="mt-3 text-3xl font-semibold">A11</p>
           <p class="mt-2 text-sm text-slate-300">Pantau order, pembayaran, dan reservasi.</p>
         </div>
@@ -70,15 +76,17 @@
       <Card
         title={undefined}
         description={undefined}
-        class="w-full max-w-xl rounded-[2rem] border border-border bg-card/90 p-7 shadow-[0_28px_80px_rgba(15,23,42,0.08)] sm:p-9"
+        class="border-border bg-card/90 w-full max-w-xl rounded-[2rem] border p-7 shadow-[0_28px_80px_rgba(15,23,42,0.08)] sm:p-9"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="space-y-2">
-            <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">Sign In</p>
-            <h2 class="text-3xl font-semibold tracking-tight text-foreground">
+            <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">
+              Sign In
+            </p>
+            <h2 class="text-foreground text-3xl font-semibold tracking-tight">
               Masuk ke admin console
             </h2>
-            <p class="text-sm leading-6 text-muted-foreground">
+            <p class="text-muted-foreground text-sm leading-6">
               Gunakan akun admin yang memiliki akses ke dashboard internal Jeevatix.
             </p>
           </div>
@@ -90,15 +98,19 @@
           </div>
         </div>
 
-        <form class="mt-8 space-y-5" method="POST" use:enhance={() => {
-      submitting = true;
-      return async ({ update }) => {
-        submitting = false;
-        await update();
-      };
-    }}>
+        <form
+          class="mt-8 space-y-5"
+          method="POST"
+          use:enhance={() => {
+            submitting = true;
+            return async ({ update }) => {
+              submitting = false;
+              await update();
+            };
+          }}
+        >
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="email">Email</label>
+            <label class="text-foreground text-sm font-medium" for="email">Email</label>
             <Input
               id="email"
               name="email"
@@ -111,7 +123,7 @@
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="password">Password</label>
+            <label class="text-foreground text-sm font-medium" for="password">Password</label>
             <Input
               id="password"
               name="password"
@@ -132,19 +144,19 @@
           {/if}
 
           <Button class="w-full" type="submit" disabled={submitting}>
-        {#if submitting}
-          <Loader2 class="mr-2 size-4 animate-spin" />
-          Memproses...
-        {:else}
-          Login
-        {/if}
-      </Button>
+            {#if submitting}
+              <Loader2 class="mr-2 size-4 animate-spin" />
+              Memproses...
+            {:else}
+              Login
+            {/if}
+          </Button>
         </form>
 
         {#snippet footer()}
-          <div class="flex items-center justify-between gap-4 text-sm text-muted-foreground">
+          <div class="text-muted-foreground flex items-center justify-between gap-4 text-sm">
             <p>Portal ini khusus untuk administrator Jeevatix.</p>
-            <p class="font-medium text-foreground">localhost:4302</p>
+            <p class="text-foreground font-medium">localhost:4302</p>
           </div>
         {/snippet}
       </Card>

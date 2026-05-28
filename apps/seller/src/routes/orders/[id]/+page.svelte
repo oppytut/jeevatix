@@ -132,11 +132,11 @@
 <section class="space-y-8">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">S12</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+      <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">S12</p>
+      <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
         Detail pesanan seller
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+      <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
         Audit detail transaksi, profil buyer, item tiket yang dibeli, dan progres pembayaran untuk
         order ini.
       </p>
@@ -162,7 +162,7 @@
       title="Memuat order"
       description="Mohon tunggu, data transaksi seller sedang dipersiapkan."
     >
-      <div class="py-16 text-center text-sm text-muted-foreground">Memuat detail pesanan...</div>
+      <div class="text-muted-foreground py-16 text-center text-sm">Memuat detail pesanan...</div>
     </Card>
   {:else if order}
     <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -170,7 +170,7 @@
         <Card
           title={order.order_number}
           description="Ringkasan utama order yang masuk ke event seller Anda."
-          class="rounded-[2rem] border-border bg-card/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+          class="border-border bg-card/90 rounded-[2rem] shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
         >
           <div class="grid gap-4 md:grid-cols-2">
             <div class="space-y-3">
@@ -180,38 +180,40 @@
                   >{order.payment.status}</Badge
                 >
               </div>
-              <div class="text-sm text-muted-foreground">
-                <p><span class="font-medium text-foreground">Event:</span> {order.event.title}</p>
+              <div class="text-muted-foreground text-sm">
+                <p><span class="text-foreground font-medium">Event:</span> {order.event.title}</p>
                 <p>
-                  <span class="font-medium text-foreground">Venue:</span>
+                  <span class="text-foreground font-medium">Venue:</span>
                   {order.event.venue_city}
                 </p>
                 <p>
-                  <span class="font-medium text-foreground">Mulai event:</span>
+                  <span class="text-foreground font-medium">Mulai event:</span>
                   {formatDate(order.event.start_at)}
                 </p>
               </div>
             </div>
 
-            <div class="space-y-3 rounded-[1.5rem] border border-border bg-muted p-4">
-              <div class="flex items-center justify-between text-sm text-muted-foreground">
+            <div class="border-border bg-muted space-y-3 rounded-[1.5rem] border p-4">
+              <div class="text-muted-foreground flex items-center justify-between text-sm">
                 <span>Total amount</span>
-                <span class="font-semibold text-foreground"
+                <span class="text-foreground font-semibold"
                   >{formatCurrency(order.total_amount)}</span
                 >
               </div>
-              <div class="flex items-center justify-between text-sm text-muted-foreground">
+              <div class="text-muted-foreground flex items-center justify-between text-sm">
                 <span>Service fee</span>
-                <span class="font-semibold text-foreground">{formatCurrency(order.service_fee)}</span
+                <span class="text-foreground font-semibold"
+                  >{formatCurrency(order.service_fee)}</span
                 >
               </div>
-              <div class="flex items-center justify-between text-sm text-muted-foreground">
+              <div class="text-muted-foreground flex items-center justify-between text-sm">
                 <span>Dibuat</span>
-                <span class="font-semibold text-foreground">{formatDate(order.created_at)}</span>
+                <span class="text-foreground font-semibold">{formatDate(order.created_at)}</span>
               </div>
-              <div class="flex items-center justify-between text-sm text-muted-foreground">
+              <div class="text-muted-foreground flex items-center justify-between text-sm">
                 <span>Paid at</span>
-                <span class="font-semibold text-foreground">{formatDate(order.payment.paid_at)}</span
+                <span class="text-foreground font-semibold"
+                  >{formatDate(order.payment.paid_at)}</span
                 >
               </div>
             </div>
@@ -221,10 +223,10 @@
         <Card
           title="Item tiket"
           description="Rincian tier, kuantitas, harga per tiket, dan subtotal transaksi."
-          class="rounded-[2rem] border-border bg-card/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+          class="border-border bg-card/90 rounded-[2rem] shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
         >
           <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-border text-left text-sm">
+            <table class="divide-border min-w-full divide-y text-left text-sm">
               <thead>
                 <tr class="text-muted-foreground">
                   <th class="px-4 py-3 font-semibold">Tier</th>
@@ -233,13 +235,13 @@
                   <th class="px-4 py-3 font-semibold">Subtotal</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-border">
+              <tbody class="divide-border divide-y">
                 {#each order.items as item (item.id)}
                   <tr>
-                    <td class="px-4 py-4 font-medium text-foreground">{item.tier_name}</td>
-                    <td class="px-4 py-4 text-foreground">{item.quantity}</td>
-                    <td class="px-4 py-4 text-foreground">{formatCurrency(item.unit_price)}</td>
-                    <td class="px-4 py-4 font-medium text-foreground"
+                    <td class="text-foreground px-4 py-4 font-medium">{item.tier_name}</td>
+                    <td class="text-foreground px-4 py-4">{item.quantity}</td>
+                    <td class="text-foreground px-4 py-4">{formatCurrency(item.unit_price)}</td>
+                    <td class="text-foreground px-4 py-4 font-medium"
                       >{formatCurrency(item.subtotal)}</td
                     >
                   </tr>
@@ -254,15 +256,13 @@
         <Card
           title="Buyer info"
           description="Data pembeli untuk kebutuhan verifikasi operasional dan support."
-          class="rounded-[2rem] border-border bg-card/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+          class="border-border bg-card/90 rounded-[2rem] shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
         >
-          <div class="space-y-3 text-sm text-muted-foreground">
-            <div
-              class="flex items-start gap-3 rounded-[1.5rem] border border-border bg-muted p-4"
-            >
-              <UserRound class="mt-0.5 size-4 text-muted-foreground/70" />
+          <div class="text-muted-foreground space-y-3 text-sm">
+            <div class="border-border bg-muted flex items-start gap-3 rounded-[1.5rem] border p-4">
+              <UserRound class="text-muted-foreground/70 mt-0.5 size-4" />
               <div>
-                <p class="font-semibold text-foreground">{order.buyer.full_name}</p>
+                <p class="text-foreground font-semibold">{order.buyer.full_name}</p>
                 <p>{order.buyer.email}</p>
                 <p>{order.buyer.phone ?? 'Nomor telepon tidak tersedia'}</p>
               </div>
@@ -273,36 +273,30 @@
         <Card
           title="Payment info"
           description="Status pembayaran, channel yang dipilih, dan referensi eksternal dari gateway."
-          class="rounded-[2rem] border-border bg-card/90 shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
+          class="border-border bg-card/90 rounded-[2rem] shadow-[0_24px_80px_rgba(15,23,42,0.06)]"
         >
-          <div class="space-y-3 text-sm text-muted-foreground">
-            <div
-              class="flex items-center gap-3 rounded-[1.5rem] border border-border bg-muted p-4"
-            >
-              <Wallet class="size-4 text-muted-foreground/70" />
+          <div class="text-muted-foreground space-y-3 text-sm">
+            <div class="border-border bg-muted flex items-center gap-3 rounded-[1.5rem] border p-4">
+              <Wallet class="text-muted-foreground/70 size-4" />
               <div>
-                <p class="font-semibold text-foreground">{order.payment.method}</p>
+                <p class="text-foreground font-semibold">{order.payment.method}</p>
                 <p>Status: {order.payment.status}</p>
                 <p>Amount: {formatCurrency(order.payment.amount)}</p>
               </div>
             </div>
 
-            <div
-              class="flex items-center gap-3 rounded-[1.5rem] border border-border bg-muted p-4"
-            >
-              <ReceiptText class="size-4 text-muted-foreground/70" />
+            <div class="border-border bg-muted flex items-center gap-3 rounded-[1.5rem] border p-4">
+              <ReceiptText class="text-muted-foreground/70 size-4" />
               <div>
-                <p class="font-semibold text-foreground">External Ref</p>
+                <p class="text-foreground font-semibold">External Ref</p>
                 <p>{order.payment.external_ref ?? '-'}</p>
               </div>
             </div>
 
-            <div
-              class="flex items-center gap-3 rounded-[1.5rem] border border-border bg-muted p-4"
-            >
-              <CalendarClock class="size-4 text-muted-foreground/70" />
+            <div class="border-border bg-muted flex items-center gap-3 rounded-[1.5rem] border p-4">
+              <CalendarClock class="text-muted-foreground/70 size-4" />
               <div>
-                <p class="font-semibold text-foreground">Timeline</p>
+                <p class="text-foreground font-semibold">Timeline</p>
                 <p>Expires at: {formatDate(order.expires_at)}</p>
                 <p>Confirmed at: {formatDate(order.confirmed_at)}</p>
               </div>

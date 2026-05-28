@@ -19,7 +19,7 @@
   <Card
     title={undefined}
     description={undefined}
-    class="overflow-hidden rounded-[2rem] border border-emerald-200/70 bg-card/90 shadow-[0_28px_80px_rgba(6,78,59,0.10)]"
+    class="bg-card/90 overflow-hidden rounded-[2rem] border border-emerald-200/70 shadow-[0_28px_80px_rgba(6,78,59,0.10)]"
   >
     <div class="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
       <div
@@ -27,7 +27,7 @@
       >
         <div class="space-y-5">
           <div
-            class="flex size-14 items-center justify-center rounded-2xl bg-card/10 text-amber-200"
+            class="bg-card/10 flex size-14 items-center justify-center rounded-2xl text-amber-200"
           >
             <Building2 class="size-7" />
           </div>
@@ -47,7 +47,7 @@
       <form class="space-y-5 px-8 py-10 sm:px-10" method="POST" use:enhance>
         <div class="grid gap-5 sm:grid-cols-2">
           <div class="space-y-2 sm:col-span-2">
-            <label class="text-sm font-medium text-foreground" for="email">Email</label>
+            <label class="text-foreground text-sm font-medium" for="email">Email</label>
             <Input
               id="email"
               name="email"
@@ -58,7 +58,7 @@
             />
           </div>
           <div class="space-y-2 sm:col-span-2">
-            <label class="text-sm font-medium text-foreground" for="password">Password</label>
+            <label class="text-foreground text-sm font-medium" for="password">Password</label>
             <Input
               id="password"
               name="password"
@@ -68,7 +68,7 @@
             />
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="fullName">Nama Lengkap</label>
+            <label class="text-foreground text-sm font-medium" for="fullName">Nama Lengkap</label>
             <Input
               id="fullName"
               name="full_name"
@@ -78,7 +78,7 @@
             />
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-foreground" for="phone">Nomor Telepon</label>
+            <label class="text-foreground text-sm font-medium" for="phone">Nomor Telepon</label>
             <Input
               id="phone"
               name="phone"
@@ -87,7 +87,7 @@
             />
           </div>
           <div class="space-y-2 sm:col-span-2">
-            <label class="text-sm font-medium text-foreground" for="orgName">Nama Organisasi</label>
+            <label class="text-foreground text-sm font-medium" for="orgName">Nama Organisasi</label>
             <Input
               id="orgName"
               name="org_name"
@@ -97,13 +97,13 @@
             />
           </div>
           <div class="space-y-2 sm:col-span-2">
-            <label class="text-sm font-medium text-foreground" for="orgDescription"
+            <label class="text-foreground text-sm font-medium" for="orgDescription"
               >Deskripsi Organisasi</label
             >
             <textarea
               id="orgDescription"
               name="org_description"
-              class="min-h-28 w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+              class="border-border bg-card text-foreground min-h-28 w-full rounded-xl border px-4 py-3 text-sm transition outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
               placeholder="Ceritakan jenis event yang Anda kelola."
               >{form?.values?.org_description ?? ''}</textarea
             >
@@ -120,7 +120,7 @@
         {/if}
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p class="text-sm text-muted-foreground">
+          <p class="text-muted-foreground text-sm">
             Sudah punya akun?
             <a class="font-medium text-emerald-700 hover:text-emerald-800" href={resolve('/login')}
               >Masuk di sini</a

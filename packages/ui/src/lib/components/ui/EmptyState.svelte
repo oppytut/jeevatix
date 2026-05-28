@@ -9,18 +9,26 @@
     action?: import('svelte').Snippet;
   };
 
-  let { class: className = '', title = 'Tidak ada data', description = '', icon, action }: Props = $props();
+  let {
+    class: className = '',
+    title = 'Tidak ada data',
+    description = '',
+    icon,
+    action,
+  }: Props = $props();
 </script>
 
 <div class={cn('flex flex-col items-center justify-center py-16 text-center', className)}>
   {#if icon}
-    <div class="mb-4 flex size-16 items-center justify-center rounded-full bg-muted text-muted-foreground">
+    <div
+      class="bg-muted text-muted-foreground mb-4 flex size-16 items-center justify-center rounded-full"
+    >
       {@render icon()}
     </div>
   {/if}
-  <h3 class="text-lg font-semibold text-foreground">{title}</h3>
+  <h3 class="text-foreground text-lg font-semibold">{title}</h3>
   {#if description}
-    <p class="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>
+    <p class="text-muted-foreground mt-1 max-w-sm text-sm">{description}</p>
   {/if}
   {#if action}
     <div class="mt-4">

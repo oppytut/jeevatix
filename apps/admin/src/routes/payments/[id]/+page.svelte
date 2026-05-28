@@ -261,14 +261,14 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-4 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="border-border bg-card/85 flex flex-col gap-4 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A12</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+      <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">A12</p>
+      <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
         Detail pembayaran
       </h1>
-      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+      <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
         Rekonsiliasi payment, order terkait, dan tiket terbit sebelum menjalankan perubahan status
         manual.
       </p>
@@ -312,7 +312,7 @@
   {#if isLoading}
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {#each Array.from({ length: 4 }) as _, index (index)}
-        <div class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"></div>
+        <div class="border-border bg-muted h-28 animate-pulse rounded-[1.5rem] border"></div>
       {/each}
     </div>
   {:else if paymentDetail}
@@ -320,9 +320,9 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Status payment</p>
+        <p class="text-muted-foreground text-sm">Status payment</p>
         <div class="mt-3">
           <Badge variant={getPaymentVariant(paymentDetail.status)}
             >{formatStatus(paymentDetail.status)}</Badge
@@ -332,9 +332,9 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Status order</p>
+        <p class="text-muted-foreground text-sm">Status order</p>
         <div class="mt-3">
           <Badge variant={getOrderVariant(paymentDetail.orderStatus)}
             >{formatOrderStatus(paymentDetail.orderStatus)}</Badge
@@ -344,20 +344,20 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Nominal</p>
-        <p class="mt-2 text-3xl font-semibold text-foreground">
+        <p class="text-muted-foreground text-sm">Nominal</p>
+        <p class="text-foreground mt-2 text-3xl font-semibold">
           {formatCurrency(paymentDetail.amount)}
         </p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Jumlah tiket</p>
-        <p class="mt-2 text-3xl font-semibold text-foreground">{totalTickets}</p>
+        <p class="text-muted-foreground text-sm">Jumlah tiket</p>
+        <p class="text-foreground mt-2 text-3xl font-semibold">{totalTickets}</p>
       </Card>
     </div>
 
@@ -365,48 +365,48 @@
       <Card
         title="Ringkasan payment"
         description="Identitas payment, buyer, event, dan relasi ke order platform."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="grid gap-6 md:grid-cols-2">
           <div>
-            <p class="text-sm text-muted-foreground">Payment ID</p>
-            <p class="mt-2 text-base font-medium text-foreground">{paymentDetail.id}</p>
+            <p class="text-muted-foreground text-sm">Payment ID</p>
+            <p class="text-foreground mt-2 text-base font-medium">{paymentDetail.id}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Order number</p>
-            <p class="mt-2 text-base font-medium text-foreground">{paymentDetail.orderNumber}</p>
+            <p class="text-muted-foreground text-sm">Order number</p>
+            <p class="text-foreground mt-2 text-base font-medium">{paymentDetail.orderNumber}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Buyer</p>
-            <p class="mt-2 text-base font-medium text-foreground">{paymentDetail.buyer.fullName}</p>
-            <p class="mt-1 text-sm text-muted-foreground">{paymentDetail.buyer.email}</p>
+            <p class="text-muted-foreground text-sm">Buyer</p>
+            <p class="text-foreground mt-2 text-base font-medium">{paymentDetail.buyer.fullName}</p>
+            <p class="text-muted-foreground mt-1 text-sm">{paymentDetail.buyer.email}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Event</p>
-            <p class="mt-2 text-base font-medium text-foreground">{paymentDetail.event.title}</p>
-            <p class="mt-1 text-sm text-muted-foreground">{paymentDetail.event.venueCity}</p>
+            <p class="text-muted-foreground text-sm">Event</p>
+            <p class="text-foreground mt-2 text-base font-medium">{paymentDetail.event.title}</p>
+            <p class="text-muted-foreground mt-1 text-sm">{paymentDetail.event.venueCity}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Metode</p>
-            <p class="mt-2 text-base font-medium text-foreground">
+            <p class="text-muted-foreground text-sm">Metode</p>
+            <p class="text-foreground mt-2 text-base font-medium">
               {formatMethod(paymentDetail.method)}
             </p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">External ref</p>
-            <p class="mt-2 text-base font-medium text-foreground">
+            <p class="text-muted-foreground text-sm">External ref</p>
+            <p class="text-foreground mt-2 text-base font-medium">
               {paymentDetail.externalRef ?? ' - '}
             </p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Dibuat</p>
-            <p class="mt-2 text-base font-medium text-foreground">
+            <p class="text-muted-foreground text-sm">Dibuat</p>
+            <p class="text-foreground mt-2 text-base font-medium">
               {formatDate(paymentDetail.createdAt)}
             </p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Paid at</p>
-            <p class="mt-2 text-base font-medium text-foreground">
+            <p class="text-muted-foreground text-sm">Paid at</p>
+            <p class="text-foreground mt-2 text-base font-medium">
               {formatDate(paymentDetail.paidAt)}
             </p>
           </div>
@@ -416,23 +416,23 @@
       <Card
         title="Aksi status"
         description="Pilih status yang paling mencerminkan kondisi payment saat ini."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="space-y-3">
           {#each statusActions as action (action.status)}
             <button
               type="button"
-              class="w-full rounded-[1.5rem] border border-border bg-muted/80 px-4 py-4 text-left transition hover:border-border hover:bg-card"
+              class="border-border bg-muted/80 hover:border-border hover:bg-card w-full rounded-[1.5rem] border px-4 py-4 text-left transition"
               onclick={() => requestStatusChange(action.status)}
               disabled={action.status === paymentDetail.status}
             >
               <div class="flex items-center justify-between gap-3">
-                <p class="font-semibold text-foreground">{action.label}</p>
+                <p class="text-foreground font-semibold">{action.label}</p>
                 <Badge variant={getPaymentVariant(action.status)}
                   >{formatStatus(action.status)}</Badge
                 >
               </div>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{action.description}</p>
+              <p class="text-muted-foreground mt-2 text-sm leading-6">{action.description}</p>
             </button>
           {/each}
         </div>
@@ -443,19 +443,19 @@
       <Card
         title="Item order"
         description="Komposisi tier tiket yang ditutup oleh payment ini."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="space-y-3">
           {#each paymentDetail.items as item (item.id)}
-            <div class="rounded-[1.5rem] border border-border bg-muted/80 p-4">
+            <div class="border-border bg-muted/80 rounded-[1.5rem] border p-4">
               <div class="flex items-center justify-between gap-4">
                 <div>
-                  <p class="font-semibold text-foreground">{item.tierName}</p>
-                  <p class="mt-1 text-sm text-muted-foreground">
+                  <p class="text-foreground font-semibold">{item.tierName}</p>
+                  <p class="text-muted-foreground mt-1 text-sm">
                     Qty {item.quantity} x {formatCurrency(item.unitPrice)}
                   </p>
                 </div>
-                <p class="font-semibold text-foreground">{formatCurrency(item.subtotal)}</p>
+                <p class="text-foreground font-semibold">{formatCurrency(item.subtotal)}</p>
               </div>
             </div>
           {/each}
@@ -465,26 +465,28 @@
       <Card
         title="Tiket terbit"
         description="Status tiket yang berhubungan dengan payment ini."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="space-y-3">
           {#if paymentDetail.tickets.length > 0}
             {#each paymentDetail.tickets as ticket (ticket.id)}
-              <div class="rounded-[1.5rem] border border-border bg-muted/80 p-4">
+              <div class="border-border bg-muted/80 rounded-[1.5rem] border p-4">
                 <div class="flex items-center justify-between gap-4">
                   <div>
-                    <p class="font-semibold text-foreground">{ticket.ticketTierName}</p>
-                    <p class="mt-1 text-sm text-muted-foreground">{ticket.ticketCode}</p>
+                    <p class="text-foreground font-semibold">{ticket.ticketTierName}</p>
+                    <p class="text-muted-foreground mt-1 text-sm">{ticket.ticketCode}</p>
                   </div>
                   <Badge variant={ticket.status === 'valid' ? 'success' : 'neutral'}>
                     {ticket.status}
                   </Badge>
                 </div>
-                <p class="mt-3 text-sm text-muted-foreground">Issued at {formatDate(ticket.issuedAt)}</p>
+                <p class="text-muted-foreground mt-3 text-sm">
+                  Issued at {formatDate(ticket.issuedAt)}
+                </p>
               </div>
             {/each}
           {:else}
-            <p class="text-sm text-muted-foreground">Belum ada tiket terbit untuk payment ini.</p>
+            <p class="text-muted-foreground text-sm">Belum ada tiket terbit untuk payment ini.</p>
           {/if}
         </div>
       </Card>
@@ -503,7 +505,7 @@
   >
     <div class="space-y-6">
       <div
-        class="rounded-[1.5rem] border border-border bg-muted/80 p-4 text-sm leading-6 text-foreground"
+        class="border-border bg-muted/80 text-foreground rounded-[1.5rem] border p-4 text-sm leading-6"
       >
         Anda akan mengubah payment <span class="font-semibold">{paymentDetail?.orderNumber}</span>
         menjadi

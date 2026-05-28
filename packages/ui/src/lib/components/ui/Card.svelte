@@ -15,15 +15,15 @@
 </script>
 
 <section
-  class={cn('rounded-(--radius-card) border border-border bg-card p-6 shadow-sm', className)}
+  class={cn('border-border bg-card rounded-(--radius-card) border p-6 shadow-sm', className)}
 >
   {#if title || description}
     <header class="space-y-2">
       {#if title}
-        <h3 class="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+        <h3 class="text-foreground text-lg font-semibold tracking-tight">{title}</h3>
       {/if}
       {#if description}
-        <p class="text-sm leading-6 text-muted-foreground">{description}</p>
+        <p class="text-muted-foreground text-sm leading-6">{description}</p>
       {/if}
     </header>
   {/if}
@@ -35,7 +35,7 @@
   {/if}
 
   {#if footer}
-    <footer class="mt-5 border-t border-border pt-4">
+    <footer class="border-border mt-5 border-t pt-4">
       {@render footer()}
     </footer>
   {/if}

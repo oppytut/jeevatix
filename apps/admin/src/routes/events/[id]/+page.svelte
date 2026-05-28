@@ -283,12 +283,14 @@
 
 <section class="space-y-8">
   <div
-    class="flex flex-col gap-4 rounded-[2rem] border border-border bg-card/85 p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
+    class="border-border bg-card/85 flex flex-col gap-4 rounded-[2rem] border p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-10 lg:flex-row lg:items-end lg:justify-between"
   >
     <div class="space-y-3">
-      <p class="text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">A8</p>
-      <h1 class="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">Detail event</h1>
-      <p class="max-w-3xl text-base leading-7 text-muted-foreground sm:text-lg">
+      <p class="text-muted-foreground text-sm font-semibold tracking-[0.32em] uppercase">A8</p>
+      <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
+        Detail event
+      </h1>
+      <p class="text-muted-foreground max-w-3xl text-base leading-7 sm:text-lg">
         Audit seller, kategori, jadwal penjualan, dan tier tiket sebelum mengambil keputusan status.
       </p>
     </div>
@@ -331,7 +333,7 @@
   {#if isLoading}
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {#each Array.from({ length: 4 }) as _, index (index)}
-        <div class="h-28 animate-pulse rounded-[1.5rem] border border-border bg-muted"></div>
+        <div class="border-border bg-muted h-28 animate-pulse rounded-[1.5rem] border"></div>
       {/each}
     </div>
   {:else if eventDetail}
@@ -339,9 +341,9 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Status</p>
+        <p class="text-muted-foreground text-sm">Status</p>
         <div class="mt-3">
           <Badge variant={getStatusVariant(eventDetail.status)}>
             {formatEventStatus(eventDetail.status)}
@@ -351,26 +353,26 @@
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Order masuk</p>
-        <p class="mt-2 text-3xl font-semibold text-foreground">{eventDetail.stats.orderCount}</p>
+        <p class="text-muted-foreground text-sm">Order masuk</p>
+        <p class="text-foreground mt-2 text-3xl font-semibold">{eventDetail.stats.orderCount}</p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Tiket terjual</p>
-        <p class="mt-2 text-3xl font-semibold text-foreground">{eventDetail.stats.ticketsSold}</p>
+        <p class="text-muted-foreground text-sm">Tiket terjual</p>
+        <p class="text-foreground mt-2 text-3xl font-semibold">{eventDetail.stats.ticketsSold}</p>
       </Card>
       <Card
         title={undefined}
         description={undefined}
-        class="rounded-[1.75rem] border border-border bg-card/90"
+        class="border-border bg-card/90 rounded-[1.75rem] border"
       >
-        <p class="text-sm text-muted-foreground">Gross revenue</p>
-        <p class="mt-2 text-3xl font-semibold text-foreground">
+        <p class="text-muted-foreground text-sm">Gross revenue</p>
+        <p class="text-foreground mt-2 text-3xl font-semibold">
           {formatCurrency(eventDetail.stats.grossRevenue)}
         </p>
       </Card>
@@ -380,7 +382,7 @@
       <Card
         title="Ringkasan event"
         description="Data utama yang terlihat buyer dan seller, termasuk venue dan jendela penjualan."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="space-y-6">
           {#if eventDetail.bannerUrl}
@@ -393,54 +395,54 @@
 
           <div class="grid gap-6 md:grid-cols-2">
             <div class="md:col-span-2">
-              <p class="text-sm text-muted-foreground">Judul event</p>
-              <p class="mt-2 text-xl font-semibold text-foreground">{eventDetail.title}</p>
-              <p class="mt-2 text-sm text-muted-foreground">/{eventDetail.slug}</p>
+              <p class="text-muted-foreground text-sm">Judul event</p>
+              <p class="text-foreground mt-2 text-xl font-semibold">{eventDetail.title}</p>
+              <p class="text-muted-foreground mt-2 text-sm">/{eventDetail.slug}</p>
             </div>
             <div>
-              <p class="text-sm text-muted-foreground">Venue</p>
-              <p class="mt-2 text-base font-medium text-foreground">{eventDetail.venueName}</p>
-              <p class="mt-1 text-sm text-muted-foreground">{eventDetail.venueCity}</p>
+              <p class="text-muted-foreground text-sm">Venue</p>
+              <p class="text-foreground mt-2 text-base font-medium">{eventDetail.venueName}</p>
+              <p class="text-muted-foreground mt-1 text-sm">{eventDetail.venueCity}</p>
             </div>
             <div>
-              <p class="text-sm text-muted-foreground">Maks tiket per order</p>
-              <p class="mt-2 text-base font-medium text-foreground">
+              <p class="text-muted-foreground text-sm">Maks tiket per order</p>
+              <p class="text-foreground mt-2 text-base font-medium">
                 {eventDetail.maxTicketsPerOrder}
               </p>
             </div>
             <div>
-              <p class="text-sm text-muted-foreground">Mulai event</p>
-              <p class="mt-2 text-base font-medium text-foreground">
+              <p class="text-muted-foreground text-sm">Mulai event</p>
+              <p class="text-foreground mt-2 text-base font-medium">
                 {formatDate(eventDetail.startAt)}
               </p>
             </div>
             <div>
-              <p class="text-sm text-muted-foreground">Selesai event</p>
-              <p class="mt-2 text-base font-medium text-foreground">
+              <p class="text-muted-foreground text-sm">Selesai event</p>
+              <p class="text-foreground mt-2 text-base font-medium">
                 {formatDate(eventDetail.endAt)}
               </p>
             </div>
             <div>
-              <p class="text-sm text-muted-foreground">Mulai jual</p>
-              <p class="mt-2 text-base font-medium text-foreground">
+              <p class="text-muted-foreground text-sm">Mulai jual</p>
+              <p class="text-foreground mt-2 text-base font-medium">
                 {formatDate(eventDetail.saleStartAt)}
               </p>
             </div>
             <div>
-              <p class="text-sm text-muted-foreground">Selesai jual</p>
-              <p class="mt-2 text-base font-medium text-foreground">
+              <p class="text-muted-foreground text-sm">Selesai jual</p>
+              <p class="text-foreground mt-2 text-base font-medium">
                 {formatDate(eventDetail.saleEndAt)}
               </p>
             </div>
             <div class="md:col-span-2">
-              <p class="text-sm text-muted-foreground">Alamat venue</p>
-              <p class="mt-2 text-base font-medium text-foreground">
+              <p class="text-muted-foreground text-sm">Alamat venue</p>
+              <p class="text-foreground mt-2 text-base font-medium">
                 {eventDetail.venueAddress ?? 'Alamat venue belum diisi.'}
               </p>
             </div>
             <div class="md:col-span-2">
-              <p class="text-sm text-muted-foreground">Deskripsi</p>
-              <p class="mt-2 text-sm leading-7 text-foreground">
+              <p class="text-muted-foreground text-sm">Deskripsi</p>
+              <p class="text-foreground mt-2 text-sm leading-7">
                 {eventDetail.description ?? 'Deskripsi event belum tersedia.'}
               </p>
             </div>
@@ -451,23 +453,23 @@
       <Card
         title="Aksi admin"
         description="Gunakan aksi berikut untuk mengarahkan status event sesuai hasil review."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="space-y-3">
           {#each statusActions as action (action.status)}
             <button
               type="button"
-              class="w-full rounded-[1.5rem] border border-border bg-muted/80 px-4 py-4 text-left transition hover:border-border hover:bg-card"
+              class="border-border bg-muted/80 hover:border-border hover:bg-card w-full rounded-[1.5rem] border px-4 py-4 text-left transition"
               onclick={() => requestStatusChange(action.status)}
               disabled={action.status === eventDetail.status}
             >
               <div class="flex items-center justify-between gap-3">
-                <p class="font-semibold text-foreground">{action.label}</p>
+                <p class="text-foreground font-semibold">{action.label}</p>
                 <Badge variant={getStatusVariant(action.status)}>
                   {formatEventStatus(action.status)}
                 </Badge>
               </div>
-              <p class="mt-2 text-sm leading-6 text-muted-foreground">{action.description}</p>
+              <p class="text-muted-foreground mt-2 text-sm leading-6">{action.description}</p>
             </button>
           {/each}
         </div>
@@ -478,29 +480,29 @@
       <Card
         title="Seller"
         description="Kontak PIC dan status verifikasi seller pemilik event ini."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="space-y-5">
           <div>
-            <p class="text-sm text-muted-foreground">Organisasi</p>
-            <p class="mt-2 text-lg font-semibold text-foreground">{eventDetail.seller.orgName}</p>
+            <p class="text-muted-foreground text-sm">Organisasi</p>
+            <p class="text-foreground mt-2 text-lg font-semibold">{eventDetail.seller.orgName}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">PIC</p>
-            <p class="mt-2 text-base font-medium text-foreground">{eventDetail.seller.fullName}</p>
+            <p class="text-muted-foreground text-sm">PIC</p>
+            <p class="text-foreground mt-2 text-base font-medium">{eventDetail.seller.fullName}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Email</p>
-            <p class="mt-2 text-base font-medium text-foreground">{eventDetail.seller.email}</p>
+            <p class="text-muted-foreground text-sm">Email</p>
+            <p class="text-foreground mt-2 text-base font-medium">{eventDetail.seller.email}</p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Phone</p>
-            <p class="mt-2 text-base font-medium text-foreground">
+            <p class="text-muted-foreground text-sm">Phone</p>
+            <p class="text-foreground mt-2 text-base font-medium">
               {eventDetail.seller.phone ?? ' - '}
             </p>
           </div>
           <div>
-            <p class="text-sm text-muted-foreground">Verifikasi</p>
+            <p class="text-muted-foreground text-sm">Verifikasi</p>
             <div class="mt-3">
               <Badge variant={eventDetail.seller.isVerified ? 'success' : 'warning'}>
                 {eventDetail.seller.isVerified ? 'Verified' : 'Pending'}
@@ -513,24 +515,24 @@
       <Card
         title="Kategori dan galeri"
         description="Konteks tambahan untuk menilai positioning event dan kualitas materi visual."
-        class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+        class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
       >
         <div class="space-y-6">
           <div>
-            <p class="text-sm text-muted-foreground">Kategori</p>
+            <p class="text-muted-foreground text-sm">Kategori</p>
             <div class="mt-3 flex flex-wrap gap-2">
               {#if eventDetail.categories.length > 0}
                 {#each eventDetail.categories as category (category.id)}
                   <Badge variant="default">{category.name}</Badge>
                 {/each}
               {:else}
-                <p class="text-sm text-muted-foreground">Belum ada kategori terpasang.</p>
+                <p class="text-muted-foreground text-sm">Belum ada kategori terpasang.</p>
               {/if}
             </div>
           </div>
 
           <div>
-            <p class="text-sm text-muted-foreground">Galeri event</p>
+            <p class="text-muted-foreground text-sm">Galeri event</p>
             {#if eventDetail.images.length > 0}
               <div class="mt-3 grid gap-3 sm:grid-cols-2">
                 {#each eventDetail.images as image (image.id)}
@@ -542,7 +544,7 @@
                 {/each}
               </div>
             {:else}
-              <p class="mt-3 text-sm text-muted-foreground">Belum ada galeri tambahan.</p>
+              <p class="text-muted-foreground mt-3 text-sm">Belum ada galeri tambahan.</p>
             {/if}
           </div>
         </div>
@@ -552,22 +554,22 @@
     <Card
       title="Tier tiket"
       description="Pantau quota, harga, dan penjualan per tier untuk memastikan inventory konsisten."
-      class="rounded-[2rem] border border-border bg-card/90 shadow-sm"
+      class="border-border bg-card/90 rounded-[2rem] border shadow-sm"
     >
       <div class="mb-5 grid gap-4 md:grid-cols-3">
-        <div class="rounded-[1.5rem] border border-border bg-muted/80 p-4">
-          <p class="text-sm text-muted-foreground">Total quota</p>
-          <p class="mt-2 text-2xl font-semibold text-foreground">{totalQuota}</p>
+        <div class="border-border bg-muted/80 rounded-[1.5rem] border p-4">
+          <p class="text-muted-foreground text-sm">Total quota</p>
+          <p class="text-foreground mt-2 text-2xl font-semibold">{totalQuota}</p>
         </div>
-        <div class="rounded-[1.5rem] border border-border bg-muted/80 p-4">
-          <p class="text-sm text-muted-foreground">Confirmed order</p>
-          <p class="mt-2 text-2xl font-semibold text-foreground">
+        <div class="border-border bg-muted/80 rounded-[1.5rem] border p-4">
+          <p class="text-muted-foreground text-sm">Confirmed order</p>
+          <p class="text-foreground mt-2 text-2xl font-semibold">
             {eventDetail.stats.confirmedOrderCount}
           </p>
         </div>
-        <div class="rounded-[1.5rem] border border-border bg-muted/80 p-4">
-          <p class="text-sm text-muted-foreground">Featured</p>
-          <p class="mt-2 text-2xl font-semibold text-foreground">
+        <div class="border-border bg-muted/80 rounded-[1.5rem] border p-4">
+          <p class="text-muted-foreground text-sm">Featured</p>
+          <p class="text-foreground mt-2 text-2xl font-semibold">
             {eventDetail.isFeatured ? 'Ya' : 'Tidak'}
           </p>
         </div>
@@ -575,11 +577,11 @@
 
       <div class="grid gap-4 lg:grid-cols-2">
         {#each eventDetail.tiers as tier (tier.id)}
-          <div class="rounded-[1.5rem] border border-border bg-muted/80 p-5">
+          <div class="border-border bg-muted/80 rounded-[1.5rem] border p-5">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <p class="text-lg font-semibold text-foreground">{tier.name}</p>
-                <p class="mt-1 text-sm text-muted-foreground">
+                <p class="text-foreground text-lg font-semibold">{tier.name}</p>
+                <p class="text-muted-foreground mt-1 text-sm">
                   {tier.description ?? 'Tanpa deskripsi tier.'}
                 </p>
               </div>
@@ -595,20 +597,20 @@
             </div>
             <div class="mt-5 grid gap-4 sm:grid-cols-2">
               <div>
-                <p class="text-sm text-muted-foreground">Harga</p>
-                <p class="mt-2 font-medium text-foreground">{formatCurrency(tier.price)}</p>
+                <p class="text-muted-foreground text-sm">Harga</p>
+                <p class="text-foreground mt-2 font-medium">{formatCurrency(tier.price)}</p>
               </div>
               <div>
-                <p class="text-sm text-muted-foreground">Terjual / quota</p>
-                <p class="mt-2 font-medium text-foreground">{tier.soldCount} / {tier.quota}</p>
+                <p class="text-muted-foreground text-sm">Terjual / quota</p>
+                <p class="text-foreground mt-2 font-medium">{tier.soldCount} / {tier.quota}</p>
               </div>
               <div>
-                <p class="text-sm text-muted-foreground">Mulai jual tier</p>
-                <p class="mt-2 font-medium text-foreground">{formatDate(tier.saleStartAt)}</p>
+                <p class="text-muted-foreground text-sm">Mulai jual tier</p>
+                <p class="text-foreground mt-2 font-medium">{formatDate(tier.saleStartAt)}</p>
               </div>
               <div>
-                <p class="text-sm text-muted-foreground">Selesai jual tier</p>
-                <p class="mt-2 font-medium text-foreground">{formatDate(tier.saleEndAt)}</p>
+                <p class="text-muted-foreground text-sm">Selesai jual tier</p>
+                <p class="text-foreground mt-2 font-medium">{formatDate(tier.saleEndAt)}</p>
               </div>
             </div>
           </div>
@@ -629,7 +631,7 @@
   >
     <div class="space-y-6">
       <div
-        class="rounded-[1.5rem] border border-border bg-muted/80 p-4 text-sm leading-6 text-foreground"
+        class="border-border bg-muted/80 text-foreground rounded-[1.5rem] border p-4 text-sm leading-6"
       >
         Anda akan mengubah status <span class="font-semibold">{eventDetail?.title}</span> menjadi
         <span class="font-semibold">
