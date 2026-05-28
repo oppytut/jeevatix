@@ -25,9 +25,7 @@
     </div>
   </div>
 
-  <div
-    class="rounded-[2rem] border border-slate-200/80 bg-white/95 p-6 shadow-sm"
-  >
+  <div class="rounded-[2rem] border border-slate-200/80 bg-white/95 p-6 shadow-sm">
     <div class="mb-6 space-y-2">
       <div class="h-6 w-32 animate-pulse rounded-xl bg-slate-200"></div>
       <div class="h-4 w-full max-w-2xl animate-pulse rounded-lg bg-slate-200"></div>
