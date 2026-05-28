@@ -1,9 +1,77 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-27
+last_updated: 2026-05-28
 status: Active
-phase: Service Binding migration COMPLETE — both W2W bugs eliminated. Track B hardening LIVE. Hono P0 bump landed. External uptime monitor LIVE (Better Stack, 4 endpoints). All portals verified on workers.dev + custom domain. Production deploy still pending 3 user decisions (domain, DB host, launch strategy).
+phase: Staging fully operational. All AI-doable polish work COMPLETE. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
 ---
+
+## ⏭️ Next Session — Pickup Here
+
+**ALL TECHNICAL WORK READY FOR PRODUCTION.** Only user decisions block launch.
+
+### What's Done (Session 2026-05-27 → 2026-05-28)
+
+| # | Deliverable | Commit |
+|---|---|---|
+| 1 | CI fix (Track B build failure — INTERNAL_API_URL passthrough) | `472b153`, `bf1a248` |
+| 2 | Hono P0 bump (11 advisories closed) | `69c90e3` |
+| 3 | Service Binding migration (W2W bugs eliminated) | `07c8001` → `91e0e0f` |
+| 4 | External uptime monitor (Better Stack, 4 endpoints, user setup) | n/a |
+| 5 | Fresh staging DB + realistic demo data (12 events, 2 sellers) | `1b21c8d` |
+| 6 | Auto-reseed after E2E tests | `f556b20` |
+| 7 | E2E workflow fix (pnpm v9) | `73ecdf9` |
+| 8 | Custom error pages (404/500) all portals | `85b0fe5` |
+| 9 | SEO meta tags (og:title, og:image, description) | `3a1ecac` |
+| 10 | Web manifest (PWA-ready) | `53e4ef2` |
+
+### What's Blocked on User Decisions
+
+**Production deploy needs 3 decisions:**
+
+| Decision | AI Recommendation | Reasoning |
+|---|---|---|
+| Production domain | `jeevatix.my.id` (already active for staging) | Soft launch, DNS already configured. Can split staging→`staging.jeevatix.my.id` later. |
+| Production DB host | VPS `168.144.140.206` (same as staging) | Proven stable. Separate DB instance can be added later. |
+| Launch strategy | Invite-only | Limit blast radius, iterate fast based on real user feedback. |
+
+**Once confirmed, ~30 min to launch:**
+1. Run `scripts/generate-production-secrets.sh` (auto-gen JWT, webhook secrets; manual stanzas for DB password, etc.)
+2. Configure GitHub vars/secrets per `PRODUCTION_PREDEPLOY_CHECKLIST.md` (76 checkboxes)
+3. Trigger `Deploy Production` workflow
+4. Verify health + canary
+5. Post-launch monitoring via Better Stack uptime + Cloudflare logs
+
+### Optional Polish (Low Priority)
+
+- Custom Jeevatix logo/favicon (currently using default Svelte logo) — design work needed
+- og-default.png image asset (referenced in meta but not yet uploaded) — design work
+- Status page publik via Better Stack (10 min user setup)
+- Slack alert integration (5 min user setup, needs Slack workspace)
+- Loading skeleton components (UX polish, not blocking)
+- Custom Jeevatix landing page hero (if desired)
+
+### Demo Accounts (Staging)
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@jeevatix.id | Admin123! |
+| Seller 1 (EventPro Indonesia) | seller@jeevatix.id | Seller123! |
+| Seller 2 (Nusantara Events) | seller2@jeevatix.id | Seller123! |
+| Buyer (Rina Wijaya) | buyer@jeevatix.id | Buyer123! |
+
+### Reset Staging DB
+
+Manual workflow available: `Reset Staging DB` (workflow_dispatch). Wipes + reseeds with 12 demo events. Triggered automatically at end of every E2E run via `if: always()` cleanup step.
+
+### Key Architectural Decisions Recorded
+
+- **Service Binding (not HTTP)** for SSR API calls — see section "Service Binding Migration" below for full rationale
+- **Custom domain** routing works via Service Binding regardless of W2W bugs
+- **Staging DB shared with CI tests** — local PG service in CI handles unit tests, staging DB only used for deploy + E2E
+
+---
+
+
 
 # Handoff Progress
 

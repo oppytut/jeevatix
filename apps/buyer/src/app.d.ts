@@ -4,6 +4,8 @@ declare global {
   interface Env {
     Api: { fetch: typeof globalThis.fetch };
     INTERNAL_API_URL?: string;
+    PUBLIC_API_BASE_URL?: string;
+    PUBLIC_PARTYKIT_HOST?: string;
   }
 
   namespace App {
