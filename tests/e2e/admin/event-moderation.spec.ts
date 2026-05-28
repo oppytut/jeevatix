@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import {
+  API_URL,
   createSellerViaApi,
   loginApi,
   createEventViaSellerApi,
@@ -33,7 +34,17 @@ test.describe('Admin Event Moderation', () => {
         secondEventId = secondEvent.id;
         await submitEventForReview(request, secondEventId, sellerToken);
       });
-      fixtureReady = true;
+
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const res = await request.get(`${API_URL}/admin/events/${eventId}`, {
+          headers: { Accept: 'application/json' },
+        });
+        if (res.ok()) {
+          fixtureReady = true;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 2000));
+      }
     } catch (error) {
       console.error('Event moderation fixture creation failed:', error);
       fixtureReady = false;
