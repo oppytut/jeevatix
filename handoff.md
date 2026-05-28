@@ -2,39 +2,67 @@
 title: Handoff Progress
 last_updated: 2026-05-28
 status: Active
-phase: Staging fully operational. UI bug fixed (invisible buttons). Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
+phase: UI/UX overhaul complete. E2E green. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**ALL TECHNICAL WORK READY FOR PRODUCTION.** Only user decisions block launch.
+**UI/UX OVERHAUL COMPLETE. E2E FULLY GREEN. STAGING CLEAN.**
 
-### What's Done (Session 2026-05-28 ~02:00-03:14 UTC)
+Only user decisions block production launch.
 
-| # | Deliverable | Commit |
+### What's Done (Session 2026-05-28 ~08:00-14:20 UTC)
+
+| # | Deliverable | Status |
 |---|---|---|
-| 1 | Revert dotenv-cli hack + add INTERNAL_API_URL to .env.example | `d796ba0` |
-| 2 | Loading skeleton components (shared primitive + buyer/seller/admin) | `1952a3c` |
-| 3 | Fix invisible buttons — add jeevatix theme tokens to all portal layout.css | (commit in deploy run) |
-| 4 | Fix invisible buttons — add `@source` for shared UI package (Tailwind v4 content scan) | (commit in deploy run) |
-| 5 | Prettier format fixes for CI | (2 commits) |
+| 1 | Shared `tokens.css` — single source of truth for all 3 portals | ✅ |
+| 2 | ~360 hardcoded neutral colors → semantic tokens (48 pages + 8 components) | ✅ |
+| 3 | 5 new shared components: Select, Textarea, EmptyState, LoadingState, StatusBadge | ✅ |
+| 4 | Fix all shared UI components (Button, Input, Card, DataTable, Modal, Toast, Badge, Skeleton) | ✅ |
+| 5 | Dark mode toggle (all 3 portals, localStorage persist) | ✅ |
+| 6 | Gradient CSS custom properties (dark-mode-aware) | ✅ |
+| 7 | Navigation loading bar ($navigating) all 3 portals | ✅ |
+| 8 | Mobile hamburger nav (buyer) | ✅ |
+| 9 | Sold-out guard on event detail CTA | ✅ |
+| 10 | Wire EmptyState to all pages with inline empty states | ✅ |
+| 11 | Wire Textarea to 6 seller/admin form pages | ✅ |
+| 12 | Breadcrumbs on detail pages | ✅ |
+| 13 | Password strength indicator (buyer register) | ✅ |
+| 14 | Real-time countdown (admin reservations) | ✅ |
+| 15 | Language consistency fix (buyer profile + notifications → Indonesian) | ✅ |
+| 16 | E2E trigger changed to manual + PR only (no more staging pollution) | ✅ |
+| 17 | E2E flaky tests fixed (event-moderation, category-browse, reservation-flow) | ✅ |
+| 18 | E2E workflow_dispatch condition fixed | ✅ |
+| 19 | `db:seed:staging` script shortcut added | ✅ |
 
-**Root cause of invisible login button:**
-- Tailwind v4 CSS-first mode does not scan `node_modules` by default
-- `Button.svelte` in `packages/ui` uses `bg-jeevatix-600` but Tailwind never generated the CSS rule
-- Fix required TWO changes:
-  1. `@theme inline` block needed `--color-jeevatix-*` token definitions (so Tailwind knows the color values)
-  2. `@source "../../../../packages/ui/src"` directive needed (so Tailwind scans shared UI files for class usage)
+**E2E Result: 58 passed, 0 failed, 38 skipped**
 
-### What's Done (Session 2026-05-27 → 2026-05-28)
+### Planning — Next Tasks (AI-executable, no user decisions needed)
 
-| # | Deliverable | Commit |
+| # | Task | Effort | Impact | Notes |
+|---|------|--------|--------|-------|
+| 1 | **Landing page hero redesign** (buyer homepage) | 1-2h | First impression | More engaging CTA, better visual hierarchy |
+| 2 | **Wire Select component ke admin filter dropdowns** | 1h | Consistency | Component ready, not yet adopted |
+| 3 | **og-default.png** — generate OG image | 30 min | Social sharing | Referenced in meta but not uploaded |
+| 4 | **Dark mode gradient polish** — seller/admin inline gradients | 1h | Dark mode completeness | Buyer done, seller/admin still hardcoded |
+| 5 | **Favicon + logo SVG** — generate brand assets | 30 min | Brand polish | Currently using default Svelte logo |
+| 6 | **Reduce E2E skipped tests** (38 skipped) | 2h | Test coverage | Some skips are fixable |
+| 7 | **Performance audit** — bundle size, lazy loading, images | 1-2h | Speed | Lighthouse audit + fixes |
+
+### Production Launch — 3 Decisions Needed (BLOCKING)
+
+| Decision | Recommendation | Rationale |
 |---|---|---|
-| 1 | CI fix (Track B build failure — INTERNAL_API_URL passthrough) | `472b153`, `bf1a248` |
-| 2 | Hono P0 bump (11 advisories closed) | `69c90e3` |
-| 3 | Service Binding migration (W2W bugs eliminated) | `07c8001` → `91e0e0f` |
-| 4 | External uptime monitor (Better Stack, 4 endpoints, user setup) | n/a |
-| 5 | Fresh staging DB + realistic demo data (12 events, 2 sellers) | `1b21c8d` |
+| Production domain | `jeevatix.my.id` (already active for staging) | DNS already configured |
+| Production DB host | VPS `168.144.140.206` (same as staging) | Proven stable |
+| Launch strategy | Invite-only | Limit blast radius |
+
+**Once confirmed, ~30 min to launch:**
+1. Run `scripts/generate-production-secrets.sh`
+2. Configure GitHub vars/secrets per `PRODUCTION_PREDEPLOY_CHECKLIST.md`
+3. Trigger `Deploy Production` workflow
+4. Verify health + canary
+5. Post-launch monitoring via Better Stack uptime + Cloudflare logsistic demo data (12 events, 2 sellers) | `1b21c8d` |
 | 6 | Auto-reseed after E2E tests | `f556b20` |
 | 7 | E2E workflow fix (pnpm v9) | `73ecdf9` |
 | 8 | Custom error pages (404/500) all portals | `85b0fe5` |
@@ -60,13 +88,13 @@ phase: Staging fully operational. UI bug fixed (invisible buttons). Production d
 
 ### Optional Polish (Low Priority)
 
-- Custom Jeevatix logo/favicon (currently using default Svelte logo) — design work needed
-- og-default.png image asset (referenced in meta but not yet uploaded) — design work
 - Status page publik via Better Stack (10 min user setup)
 - Slack alert integration (5 min user setup, needs Slack workspace)
-- ~~Loading skeleton components (UX polish, not blocking)~~ ✅ DONE
-- Custom Jeevatix landing page hero (if desired)
-- Integrate skeleton components into actual page loading states (wire `{#await}` or SvelteKit `+loading.svelte`)
+- ~~Loading skeleton components~~ ✅ DONE
+- ~~Custom Jeevatix landing page hero~~ → moved to Planning table #1
+- ~~Integrate skeleton components into page loading states~~ ✅ DONE ($navigating bar)
+- ~~og-default.png~~ → moved to Planning table #3
+- ~~Favicon/logo~~ → moved to Planning table #5
 
 ### Demo Accounts (Staging)
 
@@ -79,7 +107,12 @@ phase: Staging fully operational. UI bug fixed (invisible buttons). Production d
 
 ### Reset Staging DB
 
-Manual workflow available: `Reset Staging DB` (workflow_dispatch). Wipes + reseeds with 12 demo events. Triggered automatically at end of every E2E run via `if: always()` cleanup step.
+Manual workflow available: `Reset Staging DB` (workflow_dispatch). Wipes + reseeds with 12 demo events. Also runs at end of every E2E run via `if: always()` cleanup step.
+
+**E2E no longer auto-triggers on push.** Only runs on PRs or manual `workflow_dispatch`. To trigger manually:
+```bash
+gh workflow run e2e-tests.yml --ref main
+```
 
 ### Key Architectural Decisions Recorded
 
@@ -87,6 +120,8 @@ Manual workflow available: `Reset Staging DB` (workflow_dispatch). Wipes + resee
 - **Custom domain** routing works via Service Binding regardless of W2W bugs
 - **Staging DB shared with CI tests** — local PG service in CI handles unit tests, staging DB only used for deploy + E2E
 - **Tailwind v4 `@source` required for monorepo shared packages** — without it, classes used in `packages/ui` are not generated in portal CSS output
+- **Semantic design tokens** (`packages/ui/src/lib/styles/tokens.css`) — single source of truth for all 3 portals. Dark mode via `.dark` class on `<html>`. Gradient tokens defined as CSS custom properties.
+- **E2E trigger: manual + PR only** — prevents staging DB pollution from auto-triggered E2E after every push to main
 
 ### Penting saat resume
 
