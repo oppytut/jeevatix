@@ -7,6 +7,24 @@
   let { form }: import('./$types').PageProps = $props();
   let submitting = $state(false);
   let password = $state('');
+  let email = $state(form?.values?.email ?? '');
+  let fullName = $state(form?.values?.full_name ?? '');
+  let emailTouched = $state(false);
+  let fullNameTouched = $state(false);
+
+  const emailError = $derived(
+    emailTouched && !email.trim()
+      ? 'Email wajib diisi'
+      : emailTouched && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+        ? 'Format email tidak valid'
+        : '',
+  );
+  const fullNameError = $derived(
+    fullNameTouched && !fullName.trim() ? 'Nama lengkap wajib diisi' : '',
+  );
+  const passwordHint = $derived(
+    password.length > 0 && password.length < 8 ? 'Minimal 8 karakter' : '',
+  );
 
   function getStrengthLevel(pwd: string): number {
     if (pwd.length === 0) return 0;
@@ -96,10 +114,21 @@
           name="email"
           type="email"
           placeholder="nama@domain.com"
-          value={form?.values?.email ?? ''}
+          value={email}
+          oninput={(e) => {
+            email = e.currentTarget.value;
+          }}
+          onblur={() => {
+            emailTouched = true;
+          }}
           autocomplete="email"
           required
+          aria-invalid={emailError ? true : undefined}
+          aria-describedby={emailError ? 'reg-email-error' : undefined}
         />
+        {#if emailError}
+          <p id="reg-email-error" class="text-xs text-rose-600">{emailError}</p>
+        {/if}
       </div>
 
       <div class="space-y-2 sm:col-span-2">
@@ -112,6 +141,8 @@
           autocomplete="new-password"
           bind:value={password}
           required
+          aria-describedby={passwordHint ? 'reg-password-hint' : undefined}
+        />
         />
         {#if password.length > 0}
           <div class="mt-2 space-y-1">
@@ -153,10 +184,21 @@
           id="full_name"
           name="full_name"
           placeholder="Nama lengkap"
-          value={form?.values?.full_name ?? ''}
+          value={fullName}
+          oninput={(e) => {
+            fullName = e.currentTarget.value;
+          }}
+          onblur={() => {
+            fullNameTouched = true;
+          }}
           autocomplete="name"
           required
+          aria-invalid={fullNameError ? true : undefined}
+          aria-describedby={fullNameError ? 'reg-name-error' : undefined}
         />
+        {#if fullNameError}
+          <p id="reg-name-error" class="text-xs text-rose-600">{fullNameError}</p>
+        {/if}
       </div>
 
       <div class="space-y-2 sm:col-span-2">

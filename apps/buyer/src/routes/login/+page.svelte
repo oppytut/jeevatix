@@ -6,6 +6,19 @@
 
   let { form }: import('./$types').PageProps = $props();
   let submitting = $state(false);
+  let emailTouched = $state(false);
+  let passwordTouched = $state(false);
+  let email = $state(form?.values?.email ?? '');
+  let password = $state('');
+
+  const emailError = $derived(
+    emailTouched && !email.trim()
+      ? 'Email wajib diisi'
+      : emailTouched && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+        ? 'Format email tidak valid'
+        : '',
+  );
+  const passwordError = $derived(passwordTouched && !password ? 'Password wajib diisi' : '');
 </script>
 
 <svelte:head>
@@ -109,10 +122,21 @@
           name="email"
           type="email"
           placeholder="buyer@jeevatix.id"
-          value={form?.values?.email ?? ''}
+          value={email}
+          oninput={(e) => {
+            email = e.currentTarget.value;
+          }}
+          onblur={() => {
+            emailTouched = true;
+          }}
           autocomplete="email"
           required
+          aria-invalid={emailError ? true : undefined}
+          aria-describedby={emailError ? 'email-error' : undefined}
         />
+        {#if emailError}
+          <p id="email-error" class="text-xs text-rose-600">{emailError}</p>
+        {/if}
       </div>
 
       <div class="space-y-2">
@@ -130,9 +154,21 @@
           name="password"
           type="password"
           placeholder="Masukkan password"
+          value={password}
+          oninput={(e) => {
+            password = e.currentTarget.value;
+          }}
+          onblur={() => {
+            passwordTouched = true;
+          }}
           autocomplete="current-password"
           required
+          aria-invalid={passwordError ? true : undefined}
+          aria-describedby={passwordError ? 'password-error' : undefined}
         />
+        {#if passwordError}
+          <p id="password-error" class="text-xs text-rose-600">{passwordError}</p>
+        {/if}
       </div>
 
       {#if form?.error}
