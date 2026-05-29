@@ -2,12 +2,12 @@
 title: Handoff Progress
 last_updated: 2026-05-29
 status: Active
-phase: UI/UX overhaul + brand + perf + SEO + form validation + dark mode QA complete. 43 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
+phase: UI/UX overhaul + brand + perf + SEO + QA complete. 46 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**43 DELIVERABLES SHIPPED. STAGING CLEAN. PRODUCTION BLOCKED ON USER DECISIONS.**
+**46 DELIVERABLES SHIPPED. STAGING CLEAN. PRODUCTION BLOCKED ON USER DECISIONS.**
 
 Only user decisions block production launch.
 
@@ -22,6 +22,9 @@ Only user decisions block production launch.
 | 38 | **Admin notification badge** — unread count on Notifications nav item | ✅ |
 | 39 | **Seller wizard audit** — confirmed already 5-step with validation, no changes needed | ✅ |
 | 40 | **Dark mode QA** — replaced hardcoded bg-white + text-slate in EventCard, LiveAvailability, Skeletons | ✅ |
+| 41 | **Responsive QA** — scanned all portals, seller/admin dark mode clean, a11y clean | ✅ |
+| 42 | **Mobile nav (seller)** — hamburger toggle with slide-down nav, close on link click | ✅ |
+| 43 | **Mobile nav (admin)** — same pattern, notification badge preserved | ✅ |
 
 ### What's Done (Session 2026-05-28 ~22:00-23:45 UTC — Brand, Polish, E2E, Perf & A11y)
 
@@ -72,13 +75,13 @@ Only user decisions block production launch.
 
 | # | Task | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
-| 1 | **Admin bulk actions** — DataTable checkbox + batch operations | 2h | Admin efficiency | Requires shared component change, test carefully |
+| 1 | **Admin bulk actions** — DataTable checkbox + batch operations | 2h | Admin efficiency | Shared component change, test carefully |
 | 2 | **Buyer order history UX** — status badges, filter by status | 1h | Buyer experience | Better order tracking |
 | 3 | **Seller check-in UX** — QR scanner flow polish | 1h | Seller experience | Event day operations |
 | 4 | **Admin event moderation UX** — inline approve/reject actions | 1h | Admin efficiency | Quick moderation without page nav |
 | 5 | **Form validation UX (seller)** — inline errors on event create/edit | 1h | Seller experience | Same pattern as buyer login/register |
-| 6 | **Dark mode QA** — visual sweep of all pages in dark mode | 1h | Polish | Catch any remaining hardcoded colors |
-| 7 | **Mobile responsive QA** — test all pages at 375px/768px | 1h | Mobile UX | Catch layout breaks |
+| 6 | **SEO: sitemap.xml** — auto-generate from published events | 30 min | SEO | Crawlability |
+| 7 | **Buyer checkout UX** — inline validation, better error feedback | 1h | Conversion | Reduce checkout abandonment |
 
 ### Production Launch — 3 Decisions Needed (BLOCKING)
 
