@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
   import { navigating } from '$app/stores';
   import { page } from '$app/state';
@@ -7,8 +8,11 @@
   import favicon from '$lib/assets/favicon.svg';
 
   import { logout } from '$lib/auth';
+  import { apiGetEnvelope } from '$lib/api';
   import type { LayoutData } from './$types';
   import { DarkModeToggle } from '@jeevatix/ui';
+
+  let unreadCount = $state(0);
 
   const menuItems = [
     {
@@ -73,6 +77,22 @@
     await logout();
     window.location.replace('/login');
   }
+
+  async function fetchUnreadCount() {
+    if (!browser || !currentUser) return;
+    try {
+      const result = await apiGetEnvelope<{ notifications: unknown[]; unread_count: number }>(
+        '/notifications?limit=1',
+      );
+      unreadCount = result.unread_count;
+    } catch {
+      // Non-critical
+    }
+  }
+
+  $effect(() => {
+    fetchUnreadCount();
+  });
 </script>
 
 <svelte:head>
@@ -124,7 +144,14 @@
               class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
             >
               <span>{item.label}</span>
-              <span class="text-muted-foreground text-xs tracking-[0.3em] uppercase">Go</span>
+              {#if item.label === 'Notifications' && unreadCount > 0}
+                <span
+                  class="inline-flex min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] leading-none font-bold text-white"
+                  >{unreadCount > 99 ? '99+' : unreadCount}</span
+                >
+              {:else}
+                <span class="text-muted-foreground text-xs tracking-[0.3em] uppercase">Go</span>
+              {/if}
             </a>
           {/each}
         </nav>

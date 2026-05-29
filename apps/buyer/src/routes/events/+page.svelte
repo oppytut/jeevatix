@@ -60,6 +60,21 @@
       ...data.filters.categories,
     ].filter(Boolean).length,
   );
+
+  const jsonLdScript = $derived(
+    `<script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Event di Jeevatix',
+      numberOfItems: data.meta.total,
+      itemListElement: data.events.map((event, index) => ({
+        '@type': 'ListItem',
+        position: (data.meta.page - 1) * data.filters.limit + index + 1,
+        url: `https://jeevatix.my.id/events/${event.slug}`,
+        name: event.title,
+      })),
+    })}<\/script>`,
+  );
 </script>
 
 <svelte:head>
@@ -74,6 +89,7 @@
     property="og:description"
     content="Jelajahi semua event yang tersedia di Jeevatix. Musik, festival, workshop, seminar, dan lainnya."
   />
+  {@html jsonLdScript}
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
