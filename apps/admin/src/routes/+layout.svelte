@@ -11,8 +11,10 @@
   import { apiGetEnvelope } from '$lib/api';
   import type { LayoutData } from './$types';
   import { DarkModeToggle } from '@jeevatix/ui';
+  import { Menu, X } from '@lucide/svelte';
 
   let unreadCount = $state(0);
+  let mobileNavOpen = $state(false);
 
   const menuItems = [
     {
@@ -126,7 +128,31 @@
     <aside
       class="border-border border-b bg-slate-950 text-slate-50 lg:min-h-screen lg:border-r lg:border-b-0"
     >
-      <div class="flex h-full flex-col px-6 py-8">
+      <!-- Mobile header bar -->
+      <div class="flex items-center justify-between px-6 py-4 lg:hidden">
+        <div>
+          <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.35em] uppercase">
+            Jeevatix
+          </p>
+          <p class="text-lg font-semibold text-slate-50">Admin Console</p>
+        </div>
+        <button
+          class="inline-flex size-10 items-center justify-center rounded-full border border-white/10 text-slate-50 transition hover:bg-white/10"
+          onclick={() => (mobileNavOpen = !mobileNavOpen)}
+          aria-label={mobileNavOpen ? 'Tutup menu' : 'Buka menu'}
+          aria-expanded={mobileNavOpen}
+          type="button"
+        >
+          {#if mobileNavOpen}
+            <X class="size-5" />
+          {:else}
+            <Menu class="size-5" />
+          {/if}
+        </button>
+      </div>
+
+      <!-- Desktop sidebar content -->
+      <div class="hidden h-full flex-col px-6 py-8 lg:flex">
         <div class="space-y-2 border-b border-white/10 pb-6">
           <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.35em] uppercase">
             Jeevatix
@@ -177,6 +203,52 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile nav (when open) -->
+      {#if mobileNavOpen}
+        <div class="border-t border-white/10 px-6 py-6 lg:hidden">
+          <nav class="space-y-2">
+            {#each menuItems as item (item.label)}
+              <a
+                href={resolve(item.href)}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-white' : 'border-white/5 text-slate-300 hover:border-white/15 hover:bg-white/5 hover:text-white'}`}
+                onclick={() => (mobileNavOpen = false)}
+              >
+                <span>{item.label}</span>
+                {#if item.label === 'Notifications' && unreadCount > 0}
+                  <span
+                    class="inline-flex min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] leading-none font-bold text-white"
+                    >{unreadCount > 99 ? '99+' : unreadCount}</span
+                  >
+                {:else}
+                  <span class="text-muted-foreground text-xs tracking-[0.3em] uppercase">Go</span>
+                {/if}
+              </a>
+            {/each}
+          </nav>
+
+          <div class="mt-6 space-y-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+            <div>
+              <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.3em] uppercase">
+                Session
+              </p>
+              <p class="mt-2 text-sm font-medium text-white">{currentUser?.full_name}</p>
+              <p class="text-muted-foreground/70 text-sm">{currentUser?.email}</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <DarkModeToggle />
+              <button
+                class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-slate-200 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+                onclick={handleLogout}
+                type="button"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      {/if}
     </aside>
 
     <main class="min-w-0 bg-[var(--gradient-section-alt)]">

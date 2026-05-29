@@ -4,7 +4,7 @@
   import { resolve } from '$app/paths';
   import { navigating } from '$app/stores';
   import { page } from '$app/state';
-  import { Bell } from '@lucide/svelte';
+  import { Bell, Menu, X } from '@lucide/svelte';
   import { onMount } from 'svelte';
   import type { Snippet } from 'svelte';
 
@@ -39,6 +39,7 @@
   const isAuthRoute = $derived(authRoutes.has(String(page.url.pathname)));
   const currentUser = $derived(data.currentUser ?? null);
   let unreadCount = $state(0);
+  let mobileNavOpen = $state(false);
 
   async function loadUnreadCount() {
     if (!browser || isAuthRoute) {
@@ -123,7 +124,31 @@
     <aside
       class="border-b border-emerald-950/20 bg-[radial-gradient(circle_at_top,#134e4a_0%,#052e2b_55%,#021918_100%)] text-emerald-50 lg:min-h-screen lg:border-r lg:border-b-0"
     >
-      <div class="flex h-full flex-col px-6 py-8">
+      <!-- Mobile header -->
+      <div class="flex items-center justify-between px-6 py-4 lg:hidden">
+        <div>
+          <p class="text-xs font-semibold tracking-[0.35em] text-emerald-200/70 uppercase">
+            Jeevatix
+          </p>
+          <p class="text-lg font-semibold">Seller Studio</p>
+        </div>
+        <button
+          class="inline-flex size-10 items-center justify-center rounded-full border border-white/10 text-emerald-50 transition hover:bg-white/10"
+          onclick={() => (mobileNavOpen = !mobileNavOpen)}
+          aria-label={mobileNavOpen ? 'Tutup menu' : 'Buka menu'}
+          aria-expanded={mobileNavOpen}
+          type="button"
+        >
+          {#if mobileNavOpen}
+            <X class="size-5" />
+          {:else}
+            <Menu class="size-5" />
+          {/if}
+        </button>
+      </div>
+
+      <!-- Desktop sidebar content -->
+      <div class="hidden h-full flex-col px-6 py-8 lg:flex">
         <div class="space-y-3 border-b border-white/10 pb-6">
           <div class="flex items-start justify-between gap-4">
             <div class="space-y-3">
@@ -243,6 +268,102 @@
           </div>
         </div>
       </div>
+
+      <!-- Mobile nav (conditional) -->
+      {#if mobileNavOpen}
+        <div class="flex flex-col gap-4 px-6 pb-6 lg:hidden">
+          <nav class="space-y-2">
+            {#each menuItems as item (item.href)}
+              {#if item.enabled}
+                {#if item.href === '/'}
+                  <a
+                    href={resolve('/')}
+                    class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
+                    onclick={() => (mobileNavOpen = false)}
+                  >
+                    <span>{item.label}</span>
+                    <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                  </a>
+                {:else if item.href === '/events'}
+                  <a
+                    href={resolve('/events')}
+                    class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
+                    onclick={() => (mobileNavOpen = false)}
+                  >
+                    <span>{item.label}</span>
+                    <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                  </a>
+                {:else if item.href === '/orders'}
+                  <a
+                    href={resolve('/orders')}
+                    class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
+                    onclick={() => (mobileNavOpen = false)}
+                  >
+                    <span>{item.label}</span>
+                    <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                  </a>
+                {:else if item.href === '/notifications'}
+                  <a
+                    href={resolve('/notifications')}
+                    class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
+                    onclick={() => (mobileNavOpen = false)}
+                  >
+                    <span>{item.label}</span>
+                    {#if unreadCount > 0}
+                      <span
+                        class="inline-flex min-w-6 items-center justify-center rounded-full bg-rose-500 px-1.5 py-1 text-[0.7rem] leading-none font-semibold text-white"
+                      >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    {:else}
+                      <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                    {/if}
+                  </a>
+                {:else}
+                  <a
+                    href={resolve('/profile')}
+                    class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item.href) ? 'bg-card/12 border-white/20 text-white' : 'bg-card/5 hover:bg-card/10 border-white/10 text-emerald-50/85 hover:border-amber-300/30 hover:text-white'}`}
+                    onclick={() => (mobileNavOpen = false)}
+                  >
+                    <span>{item.label}</span>
+                    <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Live</span>
+                  </a>
+                {/if}
+              {:else}
+                <div
+                  class="bg-card/5 flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3 text-sm font-medium text-emerald-50/85"
+                >
+                  <span>{item.label}</span>
+                  <span class="text-xs tracking-[0.3em] text-amber-200/60 uppercase">Soon</span>
+                </div>
+              {/if}
+            {/each}
+          </nav>
+
+          <div
+            class="bg-card/8 space-y-4 rounded-[1.75rem] border border-white/10 p-4 backdrop-blur-sm"
+          >
+            <div>
+              <p class="text-xs font-semibold tracking-[0.3em] text-amber-200/70 uppercase">
+                Session
+              </p>
+              <p class="mt-2 text-sm font-medium text-white">{currentUser?.full_name}</p>
+              <p class="text-sm text-emerald-100/75">{currentUser?.email}</p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <DarkModeToggle />
+              <button
+                class="hover:bg-card/10 flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-emerald-50 transition hover:border-white/20 hover:text-white"
+                onclick={handleLogout}
+                type="button"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      {/if}
     </aside>
 
     <main class="min-w-0 bg-[var(--gradient-page)]">
