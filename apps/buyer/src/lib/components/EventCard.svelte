@@ -22,7 +22,7 @@
 <a
   href={resolve('/events/[slug]', { slug: event.slug })}
   class={cn(
-    'group focus-visible:ring-ring/40 block overflow-hidden rounded-[1.75rem] border border-white/80 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_80px_rgba(15,23,42,0.16)] focus-visible:ring-4 focus-visible:outline-none',
+    'group focus-visible:ring-ring/40 bg-card/90 dark:border-border block overflow-hidden rounded-[1.75rem] border border-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_80px_rgba(15,23,42,0.16)] focus-visible:ring-4 focus-visible:outline-none',
     compact ? 'h-full' : '',
     className,
   )}
@@ -70,7 +70,7 @@
   </div>
 
   <div class="space-y-4 p-5 sm:p-6">
-    <div class="flex flex-wrap gap-3 text-sm text-slate-600">
+    <div class="text-muted-foreground flex flex-wrap gap-3 text-sm">
       <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5">
         <CalendarDays class="size-4 text-orange-600" />
         {formatShortEventDate(event.start_at)}
@@ -81,21 +81,23 @@
       </span>
     </div>
 
-    <p class="line-clamp-2 text-sm leading-6 text-slate-600">
+    <p class="text-muted-foreground line-clamp-2 text-sm leading-6">
       {event.description ??
         `Event di ${event.venue_name} dengan akses tiket hingga ${event.max_tickets_per_order} per order.`}
     </p>
 
     <div class="flex items-end justify-between gap-4 border-t border-slate-100 pt-4">
       <div>
-        <p class="text-xs font-semibold tracking-[0.24em] text-slate-500 uppercase">Mulai dari</p>
-        <p class="mt-1 text-lg font-semibold text-slate-950 sm:text-xl">
+        <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+          Mulai dari
+        </p>
+        <p class="text-foreground mt-1 text-lg font-semibold sm:text-xl">
           {formatCurrency(event.min_price)}
         </p>
       </div>
 
       <span
-        class="inline-flex items-center gap-2 text-sm font-medium text-slate-700 transition group-hover:text-slate-950"
+        class="text-muted-foreground group-hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition"
       >
         <Ticket class="size-4 text-orange-600" />
         Lihat Detail

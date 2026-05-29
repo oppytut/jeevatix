@@ -87,7 +87,7 @@
 
     <div class="space-y-6">
       <div
-        class="border-border flex flex-col gap-3 rounded-[2rem] border bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between"
+        class="border-border bg-card/85 flex flex-col gap-3 rounded-[2rem] border p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between"
       >
         <div class="space-y-3">
           <div class="bg-muted h-4 w-16 animate-pulse rounded"></div>

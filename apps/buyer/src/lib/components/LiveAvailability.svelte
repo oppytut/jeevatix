@@ -128,15 +128,15 @@
 <div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 sm:p-5">
   <div class="flex items-center justify-between gap-4">
     <div>
-      <p class="text-sm font-semibold tracking-[0.24em] text-slate-500 uppercase">
+      <p class="text-muted-foreground text-sm font-semibold tracking-[0.24em] uppercase">
         Live Availability
       </p>
-      <p class="mt-2 text-sm leading-6 text-slate-600">
+      <p class="text-muted-foreground mt-2 text-sm leading-6">
         Ketersediaan tiket diperbarui otomatis tanpa refresh halaman.
       </p>
     </div>
     <div
-      class="rounded-full bg-white px-3 py-1 text-xs font-semibold tracking-[0.2em] text-slate-600 uppercase"
+      class="bg-card text-muted-foreground rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase"
     >
       Live
     </div>
@@ -145,11 +145,11 @@
   <div class="mt-4 grid gap-3">
     {#each tiers as tier (tier.tierId)}
       <div
-        class="flex items-center justify-between gap-4 rounded-[1.25rem] border border-white bg-white px-4 py-3 shadow-sm"
+        class="border-border bg-card flex items-center justify-between gap-4 rounded-[1.25rem] border px-4 py-3 shadow-sm"
       >
         <div>
-          <p class="text-sm font-semibold text-slate-950">{tier.name}</p>
-          <p class="mt-1 text-sm text-slate-600">Sisa: {tier.remaining} tiket</p>
+          <p class="text-foreground text-sm font-semibold">{tier.name}</p>
+          <p class="text-muted-foreground mt-1 text-sm">Sisa: {tier.remaining} tiket</p>
         </div>
         <span
           class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${getTone(tier.remaining, tier.quota)}`}

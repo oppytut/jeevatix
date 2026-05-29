@@ -35,7 +35,7 @@
   <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
     {#each Array(4) as _, i (i)}
       <div
-        class="border-border rounded-[1.75rem] border bg-white/85 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]"
+        class="border-border bg-card/85 rounded-[1.75rem] border p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)]"
       >
         <div class="bg-muted size-12 animate-pulse rounded-2xl"></div>
         <div class="mt-5 space-y-3">
