@@ -1,13 +1,65 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
+  import { page as pageStore } from '$app/stores';
   import { Filter, Search, SlidersHorizontal } from '@lucide/svelte';
 
-  import { Button, EmptyState, Input } from '@jeevatix/ui';
+  import { Button, EmptyState, Input, Select } from '@jeevatix/ui';
 
   import EventCard from '$lib/components/EventCard.svelte';
   import { cn } from '$lib/utils';
 
   let { data }: import('./$types').PageProps = $props();
+
+  let searchValue = $state('');
+  let priceMinValue = $state(0);
+  let priceMaxValue = $state(0);
+  let searchTimeout: ReturnType<typeof setTimeout>;
+
+  $effect(() => {
+    searchValue = data.filters.search;
+    priceMinValue = Number(data.filters.priceMin || 0);
+    priceMaxValue = Number(data.filters.priceMax || data.priceBounds.max);
+  });
+
+  function buildFilterUrl(overrides: Record<string, string> = {}) {
+    const params = new URLSearchParams();
+    const current = {
+      search: searchValue,
+      city: data.filters.city,
+      date_from: data.filters.dateFrom,
+      date_to: data.filters.dateTo,
+      price_min: String(priceMinValue),
+      price_max: String(priceMaxValue),
+      limit: String(data.filters.limit),
+      page: '1',
+      ...overrides,
+    };
+    for (const [key, value] of Object.entries(current)) {
+      if (value) params.set(key, value);
+    }
+    data.filters.categories.forEach((cat) => params.append('category', cat));
+    return `${resolve('/events')}?${params.toString()}`;
+  }
+
+  function debouncedSearch(value: string) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      goto(buildFilterUrl({ search: value, page: '1' }), { keepFocus: true, noScroll: true });
+    }, 500);
+  }
+
+  const activeFilterCount = $derived(
+    [
+      data.filters.search,
+      data.filters.city,
+      data.filters.dateFrom,
+      data.filters.dateTo,
+      data.filters.priceMin,
+      data.filters.priceMax,
+      ...data.filters.categories,
+    ].filter(Boolean).length,
+  );
 </script>
 
 <svelte:head>
@@ -61,6 +113,12 @@
       >
         <Filter class="size-4" />
         Filter Event
+        {#if activeFilterCount > 0}
+          <span
+            class="inline-flex size-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold tracking-normal text-white normal-case"
+            >{activeFilterCount}</span
+          >
+        {/if}
       </div>
 
       <div class="space-y-3">
@@ -73,7 +131,11 @@
             id="search"
             name="search"
             placeholder="Cari judul atau keyword event"
-            value={data.filters.search}
+            value={searchValue}
+            oninput={(e) => {
+              searchValue = e.currentTarget.value;
+              debouncedSearch(searchValue);
+            }}
             class="h-12 rounded-full pl-11"
           />
         </div>
@@ -112,16 +174,12 @@
 
       <div class="space-y-3">
         <label class="text-foreground text-sm font-medium" for="city">Kota</label>
-        <select
-          id="city"
-          name="city"
-          class="border-border bg-card text-foreground focus:border-foreground h-12 w-full rounded-2xl border px-4 text-sm transition outline-none"
-        >
+        <Select id="city" name="city" class="h-12 rounded-full">
           <option value="">Semua kota</option>
           {#each data.cityOptions as option (option)}
             <option value={option} selected={data.filters.city === option}>{option}</option>
           {/each}
-        </select>
+        </Select>
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -155,7 +213,7 @@
               class="text-muted-foreground flex items-center justify-between text-xs font-medium"
             >
               <label for="price_min">Minimum</label>
-              <span>Rp {Number(data.filters.priceMin || 0).toLocaleString('id-ID')}</span>
+              <span>Rp {priceMinValue.toLocaleString('id-ID')}</span>
             </div>
             <input
               id="price_min"
@@ -165,7 +223,10 @@
               max={data.priceBounds.max}
               step="50000"
               name="price_min"
-              value={data.filters.priceMin || 0}
+              value={priceMinValue}
+              oninput={(e) => {
+                priceMinValue = Number(e.currentTarget.value);
+              }}
             />
           </div>
           <div class="space-y-2">
@@ -173,11 +234,7 @@
               class="text-muted-foreground flex items-center justify-between text-xs font-medium"
             >
               <label for="price_max">Maksimum</label>
-              <span
-                >Rp {Number(data.filters.priceMax || data.priceBounds.max).toLocaleString(
-                  'id-ID',
-                )}</span
-              >
+              <span>Rp {priceMaxValue.toLocaleString('id-ID')}</span>
             </div>
             <input
               id="price_max"
@@ -187,7 +244,10 @@
               max={data.priceBounds.max}
               step="50000"
               name="price_max"
-              value={data.filters.priceMax || data.priceBounds.max}
+              value={priceMaxValue}
+              oninput={(e) => {
+                priceMaxValue = Number(e.currentTarget.value);
+              }}
             />
           </div>
         </div>
@@ -239,79 +299,37 @@
       {#if data.meta.totalPages > 1}
         <div class="flex flex-wrap items-center gap-3">
           {#if data.meta.page > 1}
-            <form method="GET">
-              <input type="hidden" name="search" value={data.filters.search} />
-              <input type="hidden" name="city" value={data.filters.city} />
-              <input type="hidden" name="date_from" value={data.filters.dateFrom} />
-              <input type="hidden" name="date_to" value={data.filters.dateTo} />
-              <input type="hidden" name="price_min" value={data.filters.priceMin} />
-              <input type="hidden" name="price_max" value={data.filters.priceMax} />
-              <input type="hidden" name="limit" value={data.filters.limit} />
-              {#each data.filters.categories as category (category)}
-                <input type="hidden" name="category" value={category} />
-              {/each}
-              <button
-                type="submit"
-                name="page"
-                value={data.meta.page - 1}
-                class="border-border bg-card text-foreground inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold"
-              >
-                Halaman Sebelumnya
-              </button>
-            </form>
+            <a
+              href={buildFilterUrl({ page: String(data.meta.page - 1) })}
+              class="border-border bg-card text-foreground hover:bg-muted inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition"
+            >
+              Halaman Sebelumnya
+            </a>
           {/if}
 
           <div class="flex flex-wrap gap-2">
             {#each Array.from({ length: data.meta.totalPages }, (_, index) => index + 1) as pageNumber (pageNumber)}
-              <form method="GET">
-                <input type="hidden" name="search" value={data.filters.search} />
-                <input type="hidden" name="city" value={data.filters.city} />
-                <input type="hidden" name="date_from" value={data.filters.dateFrom} />
-                <input type="hidden" name="date_to" value={data.filters.dateTo} />
-                <input type="hidden" name="price_min" value={data.filters.priceMin} />
-                <input type="hidden" name="price_max" value={data.filters.priceMax} />
-                <input type="hidden" name="limit" value={data.filters.limit} />
-                {#each data.filters.categories as category (category)}
-                  <input type="hidden" name="category" value={category} />
-                {/each}
-                <button
-                  type="submit"
-                  name="page"
-                  value={pageNumber}
-                  class={cn(
-                    'inline-flex size-11 items-center justify-center rounded-full border text-sm font-semibold transition',
-                    data.meta.page === pageNumber
-                      ? 'border-foreground bg-foreground text-background'
-                      : 'border-border bg-card text-foreground hover:border-border hover:text-foreground',
-                  )}
-                >
-                  {pageNumber}
-                </button>
-              </form>
+              <a
+                href={buildFilterUrl({ page: String(pageNumber) })}
+                class={cn(
+                  'inline-flex size-11 items-center justify-center rounded-full border text-sm font-semibold transition',
+                  data.meta.page === pageNumber
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border bg-card text-foreground hover:border-border hover:text-foreground',
+                )}
+              >
+                {pageNumber}
+              </a>
             {/each}
           </div>
 
           {#if data.meta.page < data.meta.totalPages}
-            <form method="GET">
-              <input type="hidden" name="search" value={data.filters.search} />
-              <input type="hidden" name="city" value={data.filters.city} />
-              <input type="hidden" name="date_from" value={data.filters.dateFrom} />
-              <input type="hidden" name="date_to" value={data.filters.dateTo} />
-              <input type="hidden" name="price_min" value={data.filters.priceMin} />
-              <input type="hidden" name="price_max" value={data.filters.priceMax} />
-              <input type="hidden" name="limit" value={data.filters.limit} />
-              {#each data.filters.categories as category (category)}
-                <input type="hidden" name="category" value={category} />
-              {/each}
-              <button
-                type="submit"
-                name="page"
-                value={data.meta.page + 1}
-                class="border-border bg-card text-foreground inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold"
-              >
-                Halaman Berikutnya
-              </button>
-            </form>
+            <a
+              href={buildFilterUrl({ page: String(data.meta.page + 1) })}
+              class="border-border bg-card text-foreground hover:bg-muted inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition"
+            >
+              Halaman Berikutnya
+            </a>
           {/if}
         </div>
       {/if}
