@@ -1,15 +1,26 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-28
+last_updated: 2026-05-29
 status: Active
-phase: UI/UX overhaul + brand polish + perf optimization complete. Staging clean. Production deploy BLOCKED on 3 user decisions (domain, DB host, launch strategy).
+phase: UI/UX overhaul + brand + perf + SEO + form validation complete. 42 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**UI/UX + BRAND + PERF COMPLETE. 28 DELIVERABLES. STAGING CLEAN.**
+**42 DELIVERABLES SHIPPED. STAGING CLEAN. PRODUCTION BLOCKED ON USER DECISIONS.**
 
 Only user decisions block production launch.
+
+### What's Done (Session 2026-05-29 ~03:00-03:27 UTC — SEO, Validation & UX)
+
+| # | Deliverable | Status |
+|---|---|---|
+| 34 | **JSON-LD fix** — moved to $derived to fix ESLint parse error | ✅ |
+| 35 | **Buyer search/filter UX** — debounced search, Select for city, live price labels, filter badge, `<a>` pagination | ✅ |
+| 36 | **Form validation UX** — inline field errors on blur (login + register), aria-invalid, aria-describedby | ✅ |
+| 37 | **JSON-LD ItemList** — Schema.org ItemList on events listing page | ✅ |
+| 38 | **Admin notification badge** — unread count on Notifications nav item | ✅ |
+| 39 | **Seller wizard audit** — confirmed already 5-step with validation, no changes needed | ✅ |
 
 ### What's Done (Session 2026-05-28 ~22:00-23:45 UTC — Brand, Polish, E2E, Perf & A11y)
 
@@ -60,13 +71,13 @@ Only user decisions block production launch.
 
 | # | Task | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
-| 1 | **Seller event wizard UX** — improve multi-step form flow | 2-3h | Seller experience | Wizard steps, validation feedback |
-| 2 | **Buyer search/filter UX** — improve event discovery filters | 1-2h | Buyer experience | Better filter UI, URL state sync |
-| 3 | **Admin bulk actions** — select multiple items for batch operations | 2h | Admin efficiency | DataTable checkbox + bulk action bar |
-| 4 | **Form validation UX** — inline error messages, field-level feedback | 1-2h | UX | Buyer checkout, seller event create |
-| 5 | **Error boundary polish** — custom error pages for seller/admin | 30 min | UX | Buyer already done, seller/admin need refresh |
-| 6 | **Notification badge** — unread count on nav (buyer/seller) | 1h | Engagement | Real-time via PartyKit already available |
-| 7 | **SEO: structured data** — JSON-LD for events (buyer) | 1h | SEO | Event schema for Google rich results |
+| 1 | **Admin bulk actions** — DataTable checkbox + batch operations | 2h | Admin efficiency | Requires shared component change, test carefully |
+| 2 | **Buyer order history UX** — status badges, filter by status | 1h | Buyer experience | Better order tracking |
+| 3 | **Seller check-in UX** — QR scanner flow polish | 1h | Seller experience | Event day operations |
+| 4 | **Admin event moderation UX** — inline approve/reject actions | 1h | Admin efficiency | Quick moderation without page nav |
+| 5 | **Form validation UX (seller)** — inline errors on event create/edit | 1h | Seller experience | Same pattern as buyer login/register |
+| 6 | **Dark mode QA** — visual sweep of all pages in dark mode | 1h | Polish | Catch any remaining hardcoded colors |
+| 7 | **Mobile responsive QA** — test all pages at 375px/768px | 1h | Mobile UX | Catch layout breaks |
 
 ### Production Launch — 3 Decisions Needed (BLOCKING)
 
