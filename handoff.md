@@ -2,12 +2,12 @@
 title: Handoff Progress
 last_updated: 2026-05-29
 status: Active
-phase: UI/UX overhaul + brand + perf + SEO + form validation complete. 42 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
+phase: UI/UX overhaul + brand + perf + SEO + form validation + dark mode QA complete. 43 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**42 DELIVERABLES SHIPPED. STAGING CLEAN. PRODUCTION BLOCKED ON USER DECISIONS.**
+**43 DELIVERABLES SHIPPED. STAGING CLEAN. PRODUCTION BLOCKED ON USER DECISIONS.**
 
 Only user decisions block production launch.
 
@@ -21,6 +21,7 @@ Only user decisions block production launch.
 | 37 | **JSON-LD ItemList** — Schema.org ItemList on events listing page | ✅ |
 | 38 | **Admin notification badge** — unread count on Notifications nav item | ✅ |
 | 39 | **Seller wizard audit** — confirmed already 5-step with validation, no changes needed | ✅ |
+| 40 | **Dark mode QA** — replaced hardcoded bg-white + text-slate in EventCard, LiveAvailability, Skeletons | ✅ |
 
 ### What's Done (Session 2026-05-28 ~22:00-23:45 UTC — Brand, Polish, E2E, Perf & A11y)
 
