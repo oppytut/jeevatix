@@ -33,6 +33,11 @@ export function resolveAllowedOrigins(rawOrigins?: string) {
 }
 
 export const corsMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
+  if (c.req.path === '/csp-report') {
+    await next();
+    return;
+  }
+
   const allowedOrigins = resolveAllowedOrigins(
     c.env.CORS_ALLOWED_ORIGINS || getProcessEnv('CORS_ALLOWED_ORIGINS'),
   );

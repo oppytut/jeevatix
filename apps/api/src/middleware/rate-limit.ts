@@ -337,3 +337,11 @@ export const uploadRateLimitMiddleware = createRateLimitMiddleware({
   methods: ['POST'],
   keyGenerator: (c) => c.var.user?.id ?? getClientIp(c.req.raw.headers),
 });
+
+export const cspReportRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'csp-report',
+  limit: 10,
+  windowMs: 1_000,
+  methods: ['POST'],
+  keyGenerator: (c) => getClientIp(c.req.raw.headers),
+});

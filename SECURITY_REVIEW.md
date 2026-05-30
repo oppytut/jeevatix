@@ -293,9 +293,11 @@ worker-src    'self' blob:
 manifest-src  'self'
 ```
 
-- **Buyer** uses `csp.reportOnly` so the LiveAvailability PartyKit traffic
-  can be observed against the policy before enforcement. Switch to
-  `csp.directives` after staging confirms zero violations.
+- **Buyer** uses `csp.reportOnly` with the `report-uri` directive pointing
+  at `POST /csp-report` on the API origin (see "CSP report endpoint"
+  below). Browsers send violation telemetry but the policy is not enforced
+  yet. Switch to `csp.directives` after Cloudflare Logs confirm zero
+  legitimate violations from real traffic.
 - **Seller** and **admin** enforce the same policy directly.
 
 `'unsafe-inline'` is retained on `style-src` because shadcn-svelte still
@@ -361,3 +363,70 @@ Expected on every response:
 - `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
 - `Content-Security-Policy-Report-Only: ...` on buyer
 - `Content-Security-Policy: ...` on seller and admin
+
+### CSP report endpoint
+
+`POST /csp-report` on the API worker (`apps/api/src/routes/csp-report.ts`)
+collects browser violation reports for the buyer portal's report-only
+policy. The endpoint is wired into the Hono app at the root path so it
+sits next to `/health` and is intentionally exempt from the strict portal
+CORS allowlist (CSP reports come from cross-origin browsers).
+
+Endpoint contract:
+
+- `POST /csp-report` accepts both `application/csp-report` (legacy
+  WebKit/Chromium format) and `application/reports+json` (Reporting API
+  batch format). Unknown content types receive 204 silently.
+- Response is always `204 No Content`. The handler never reveals whether
+  parsing succeeded; this avoids leaking a probe oracle.
+- `OPTIONS /csp-report` answers preflight with
+  `Access-Control-Allow-Origin: *`,
+  `Access-Control-Allow-Methods: POST, OPTIONS`,
+  `Access-Control-Allow-Headers: Content-Type`.
+- Body size is capped at 16 KB. Larger bodies are dropped silently.
+
+Redaction guarantee:
+
+Every string field extracted from the report (`document-uri`,
+`violated-directive`, `blocked-uri`, `source-file`, `disposition`,
+`referrer`, `portal`) is passed through `redact()` from
+`apps/api/src/lib/observability.ts` before logging. `redact()` strips
+JWTs, `Bearer ...` headers, `access_token=`/`refresh_token=`/
+`reset_token=`/`verify_token=` query values, and bare email addresses.
+Numeric fields (`line-number`, `column-number`, `status-code`) are
+emitted as-is.
+
+Log destination and shape:
+
+Reports are emitted via `logWarnWithContext('csp.violation_report', ...)`,
+which writes a JSON line to Cloudflare Workers Logs at WARN level. The
+log record contains `portal`, `documentUri`, `violatedDirective`,
+`blockedUri`, `sourceFile`, `lineNumber`, `columnNumber`, `disposition`,
+`statusCode`, and `referrer`. No additional database table is used; the
+existing Workers Logs retention is the system of record.
+
+Rate limit:
+
+`cspReportRateLimitMiddleware` caps the endpoint at 10 POSTs per second
+per client IP using the existing Durable Object limiter (with in-memory
+fallback for local/test). This prevents a single misbehaving browser or
+attacker from flooding logs.
+
+Why buyer is report-only while seller and admin are enforced:
+
+The buyer portal includes the LiveAvailability PartyKit WebSocket and
+third-party-driven flows (login, profile, ticket viewer) that touch the
+broadest set of script and connect sources. Running it in report-only
+mode collects evidence of any directive that needs adjusting before
+enforcement, without breaking real users. Seller and admin portals have
+narrower internal surfaces and were vetted manually before PR #12, so
+they remain enforced.
+
+The `report-to` header is intentionally out of scope. Browser support is
+narrower and the legacy `report-uri` directive is enough for current
+needs.
+
+After staging traffic produces a clean window in Cloudflare Logs (no
+unexpected violations), buyer can be flipped back to `csp.directives`
+and the report endpoint kept as a passive telemetry sink for any future
+regressions.
