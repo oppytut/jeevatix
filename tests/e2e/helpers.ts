@@ -385,6 +385,141 @@ export async function createPublishedEventFixture(request: APIRequestContext) {
   };
 }
 
+export async function createSmallQuotaEventFixture(
+  request: APIRequestContext,
+  options: { quota?: number; titlePrefix?: string } = {},
+) {
+  const quota = options.quota ?? 2;
+  const seller = await createSellerViaApi(request);
+  const sellerSession = await loginApi(request, seller.email, seller.password);
+  const categoryIds = await getCategoryIds(request);
+  const now = new Date();
+  const saleStart = new Date(now.getTime() - 60 * 60 * 1000);
+  const saleEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  const startAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const endAt = new Date(startAt.getTime() + 3 * 60 * 60 * 1000);
+  const title = `${options.titlePrefix ?? 'Tier3 Small Quota Event'} ${uniqueSuffix()}`;
+  const result = await apiRequest<SellerEventDetail>(request, 'POST', '/seller/events', {
+    token: sellerSession.access_token,
+    data: {
+      title,
+      description: 'Tier 3 fixture: small-quota tier for concurrent purchase tests.',
+      venue_name: 'Tier3 Test Venue',
+      venue_address: 'Jl. Tier3 No.1, Jakarta',
+      venue_city: 'Jakarta',
+      start_at: startAt.toISOString(),
+      end_at: endAt.toISOString(),
+      sale_start_at: saleStart.toISOString(),
+      sale_end_at: saleEnd.toISOString(),
+      max_tickets_per_order: 1,
+      category_ids: categoryIds.slice(0, 1),
+      images: [],
+      tiers: [
+        {
+          name: 'Limited',
+          description: 'Limited inventory tier for race condition tests.',
+          price: 100000,
+          quota,
+          sort_order: 0,
+          sale_start_at: saleStart.toISOString(),
+          sale_end_at: saleEnd.toISOString(),
+        },
+      ],
+    },
+  });
+  await publishEventAsAdmin(request, result.data.id, 'published');
+
+  return {
+    seller,
+    sellerSession,
+    event: result.data,
+    ticketTierId: result.data.tiers[0]!.id,
+    quota,
+  };
+}
+
+export async function createBuyerWithSession(request: APIRequestContext) {
+  const buyer = await createBuyerViaApi(request);
+  const session = await loginApi(request, buyer.email, buyer.password);
+  return { buyer, session };
+}
+
+type ReserveOutcome =
+  | { ok: true; status: number; reservation_id: string; expires_at: string }
+  | { ok: false; status: number; code: string; message: string };
+
+export async function tryReserveTicket(
+  request: APIRequestContext,
+  accessToken: string,
+  ticketTierId: string,
+  quantity = 1,
+): Promise<ReserveOutcome> {
+  const response = await request.post(`${API_URL}/reservations`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    data: {
+      ticket_tier_id: ticketTierId,
+      quantity,
+    },
+  });
+
+  const status = response.status();
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return { ok: false, status, code: 'NON_JSON_RESPONSE', message: 'Non-JSON response' };
+  }
+
+  const body = payload as
+    | { success: true; data: { reservation_id: string; expires_at: string } }
+    | { success: false; error: { code: string; message: string } };
+
+  if (response.ok() && 'success' in body && body.success === true) {
+    return {
+      ok: true,
+      status,
+      reservation_id: body.data.reservation_id,
+      expires_at: body.data.expires_at,
+    };
+  }
+
+  const error = (body as { error?: { code?: string; message?: string } }).error;
+  return {
+    ok: false,
+    status,
+    code: error?.code ?? 'UNKNOWN',
+    message: error?.message ?? `HTTP ${status}`,
+  };
+}
+
+export async function sendPaymentWebhook(
+  request: APIRequestContext,
+  body: Record<string, unknown>,
+) {
+  const rawBody = JSON.stringify(body);
+  const signature = await signPaymentWebhookPayload(rawBody);
+  const response = await request.post(`${API_URL}/webhooks/payment`, {
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'x-payment-signature': signature,
+    },
+    data: rawBody,
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+  return { status: response.status(), body: payload };
+}
+
 export async function createConfirmedOrderFixture(
   request: APIRequestContext,
   eventId: string,
