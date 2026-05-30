@@ -2,6 +2,18 @@ import adapter from '@sveltejs/adapter-cloudflare';
 import { relative, sep } from 'node:path';
 
 const partykitHost = process.env.PUBLIC_PARTYKIT_HOST?.trim();
+const apiBaseUrl = process.env.PUBLIC_API_BASE_URL?.trim();
+
+function resolveCspReportUri() {
+  if (!apiBaseUrl) {
+    return '/csp-report';
+  }
+  try {
+    return new URL('/csp-report', apiBaseUrl).toString();
+  } catch {
+    return '/csp-report';
+  }
+}
 
 const cspDirectives = {
   'default-src': ['self'],
@@ -21,6 +33,7 @@ const cspDirectives = {
   'object-src': ['none'],
   'worker-src': ['self', 'blob:'],
   'manifest-src': ['self'],
+  'report-uri': [resolveCspReportUri()],
 };
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -39,7 +52,7 @@ const config = {
     adapter: process.env.PLAYWRIGHT_E2E ? undefined : adapter(),
     csp: {
       mode: 'auto',
-      directives: cspDirectives,
+      reportOnly: cspDirectives,
     },
   },
 };
