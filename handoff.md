@@ -1,15 +1,42 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-29
+last_updated: 2026-05-30
 status: Active
 phase: UI/UX overhaul + brand + perf + SEO + QA complete. 46 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**46 DELIVERABLES SHIPPED. STAGING CLEAN. PRODUCTION BLOCKED ON USER DECISIONS.**
+**46 DELIVERABLES SHIPPED. STAGING CLEAN. ALL QA PASSED. PRODUCTION BLOCKED ON USER DECISIONS.**
 
-Only user decisions block production launch.
+### Quick Context for New Session
+- Monorepo: 3 SvelteKit portals (buyer/seller/admin) + 1 Hono API, deployed to Cloudflare Workers
+- Shared UI: `packages/ui` with tokens.css, dark mode, semantic colors
+- E2E: 58 passed, 0 failed, 31 skipped (valid guards)
+- CI: lint + format + typecheck green
+- All portals have: dark mode, mobile nav, loading bar, semantic tokens, OG meta, manifest
+
+### Immediate Next Tasks (AI-executable, no user decisions needed)
+
+| # | Task | Effort | Impact | Notes |
+|---|------|--------|--------|-------|
+| 1 | **SEO: sitemap.xml** — auto-generate from published events | 30 min | SEO | Crawlability |
+| 2 | **Buyer order history UX** — status badges, filter by status | 1h | Buyer experience | Better order tracking |
+| 3 | **Form validation UX (seller)** — inline errors on event create/edit | 1h | Seller experience | Same pattern as buyer login/register |
+| 4 | **Admin event moderation UX** — inline approve/reject actions | 1h | Admin efficiency | Quick moderation without page nav |
+| 5 | **Seller check-in UX** — QR scanner flow polish | 1h | Seller experience | Event day operations |
+| 6 | **Admin bulk actions** — DataTable checkbox + batch operations | 2h | Admin efficiency | Shared component change, test carefully |
+| 7 | **Buyer checkout UX** — inline validation, better error feedback | 1h | Conversion | Reduce checkout abandonment |
+
+### BLOCKED — Needs User Decisions
+
+| Decision | Options | Impact |
+|----------|---------|--------|
+| Domain | `jeevatix.my.id`? | Production URL |
+| DB host | VPS `168.144.140.206`? | Database connection |
+| Launch strategy | Invite-only? | Go-live approach |
+
+Once answered → 30 min to production live.
 
 ### What's Done (Session 2026-05-29 ~03:00-03:27 UTC — SEO, Validation & UX)
 
