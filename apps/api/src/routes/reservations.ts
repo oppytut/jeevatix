@@ -2,7 +2,10 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import { resolveDatabaseUrl } from '../lib/database-url';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
-import { createRateLimitMiddleware } from '../middleware/rate-limit';
+import {
+  authenticatedMutationRateLimitMiddleware,
+  createRateLimitMiddleware,
+} from '../middleware/rate-limit';
 import { errorResponseSchema } from '../schemas/auth.schema';
 import {
   getReservationLoadTestProfile,
@@ -37,6 +40,7 @@ const reservationRateLimitMiddleware = createRateLimitMiddleware({
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('buyer'));
 app.use('/', reservationRateLimitMiddleware);
+app.use('/:id', authenticatedMutationRateLimitMiddleware);
 adminApp.use('*', authMiddleware, roleMiddleware('admin'));
 
 function jsonError(code: string, message: string) {

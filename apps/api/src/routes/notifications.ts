@@ -2,6 +2,10 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 
 import { authMiddleware, type AuthEnv, roleMiddleware } from '../middleware/auth';
 import {
+  adminMutationRateLimitMiddleware,
+  authenticatedMutationRateLimitMiddleware,
+} from '../middleware/rate-limit';
+import {
   adminNotificationListQuerySchema,
   adminNotificationsListResponseSchema,
 } from '../schemas/admin.schema';
@@ -22,7 +26,9 @@ const app = new OpenAPIHono<AuthEnv>();
 const adminApp = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
+app.use('*', authenticatedMutationRateLimitMiddleware);
 adminApp.use('*', authMiddleware, roleMiddleware('admin'));
+adminApp.use('*', adminMutationRateLimitMiddleware);
 
 function jsonError(code: string, message: string) {
   return {

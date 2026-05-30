@@ -3,6 +3,7 @@ import type { Context } from 'hono';
 
 import { messageResponseSchema } from '../../schemas/auth.schema';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
+import { authenticatedMutationRateLimitMiddleware } from '../../middleware/rate-limit';
 import {
   createTierSchema,
   sellerEventTierByIdParamsSchema,
@@ -23,6 +24,7 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('seller'));
+app.use('*', authenticatedMutationRateLimitMiddleware);
 
 function jsonError(code: string, message: string) {
   return {

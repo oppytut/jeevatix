@@ -2,7 +2,12 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 
 import type { AuthEnv } from '../middleware/auth';
-import { createRateLimitMiddleware, getClientIp } from '../middleware/rate-limit';
+import {
+  createRateLimitMiddleware,
+  getClientIp,
+  sensitiveAuthRateLimitMiddleware,
+  verifyEmailRateLimitMiddleware,
+} from '../middleware/rate-limit';
 import {
   authResponseSchema,
   errorResponseSchema,
@@ -41,6 +46,10 @@ const loginRateLimitMiddleware = createRateLimitMiddleware({
 app.use('/register', registerRateLimitMiddleware);
 app.use('/register/seller', registerRateLimitMiddleware);
 app.use('/login', loginRateLimitMiddleware);
+app.use('/forgot-password', sensitiveAuthRateLimitMiddleware);
+app.use('/reset-password', sensitiveAuthRateLimitMiddleware);
+app.use('/verify-email', verifyEmailRateLimitMiddleware);
+app.use('/logout', sensitiveAuthRateLimitMiddleware);
 
 app.get('/verify-email', async (c) => {
   const secret = getJwtSecret(c.env.JWT_SECRET);

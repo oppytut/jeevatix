@@ -290,3 +290,50 @@ export function createRateLimitMiddleware({
 export function resetRateLimitState() {
   rateLimitStore.clear();
 }
+
+export const sensitiveAuthRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'auth-sensitive',
+  limit: 5,
+  windowMs: 60_000,
+  methods: ['POST'],
+  keyGenerator: (c) => getClientIp(c.req.raw.headers),
+});
+
+export const verifyEmailRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'auth-verify-email',
+  limit: 10,
+  windowMs: 60_000,
+  keyGenerator: (c) => getClientIp(c.req.raw.headers),
+});
+
+export const paymentWebhookRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'payment-webhook',
+  limit: 30,
+  windowMs: 60_000,
+  methods: ['POST'],
+  keyGenerator: (c) => getClientIp(c.req.raw.headers),
+});
+
+export const authenticatedMutationRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'authenticated-mutation',
+  limit: 30,
+  windowMs: 60_000,
+  methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
+  keyGenerator: (c) => c.var.user?.id ?? getClientIp(c.req.raw.headers),
+});
+
+export const adminMutationRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'admin-mutation',
+  limit: 60,
+  windowMs: 60_000,
+  methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
+  keyGenerator: (c) => c.var.user?.id ?? getClientIp(c.req.raw.headers),
+});
+
+export const uploadRateLimitMiddleware = createRateLimitMiddleware({
+  name: 'upload',
+  limit: 20,
+  windowMs: 60_000,
+  methods: ['POST'],
+  keyGenerator: (c) => c.var.user?.id ?? getClientIp(c.req.raw.headers),
+});

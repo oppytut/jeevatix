@@ -2,6 +2,10 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../middleware/auth';
+import {
+  authenticatedMutationRateLimitMiddleware,
+  paymentWebhookRateLimitMiddleware,
+} from '../middleware/rate-limit';
 import { errorResponseSchema } from '../schemas/auth.schema';
 import {
   initiatePaymentResponseSchema,
@@ -16,6 +20,8 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('/payments/*', authMiddleware);
 app.use('/payments/*', roleMiddleware('buyer'));
+app.use('/payments/*', authenticatedMutationRateLimitMiddleware);
+app.use('/webhooks/payment', paymentWebhookRateLimitMiddleware);
 
 function jsonError(code: string, message: string) {
   return {
