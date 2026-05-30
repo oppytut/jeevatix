@@ -20,6 +20,7 @@ import {
   registerSchema,
   registerSellerSchema,
   resetPasswordSchema,
+  verifyEmailQuerySchema,
   verifyEmailSchema,
 } from '../schemas/auth.schema';
 import { AuthServiceError, authService } from '../services/auth.service';
@@ -58,14 +59,20 @@ app.get('/verify-email', async (c) => {
     return c.html(renderVerifyEmailPage('JWT secret is not configured.', false), 500);
   }
 
-  const token = new URL(c.req.raw.url).searchParams.get('token') ?? '';
+  const parsed = verifyEmailQuerySchema.safeParse({
+    token: new URL(c.req.raw.url).searchParams.get('token') ?? '',
+  });
 
-  if (!token) {
-    return c.html(renderVerifyEmailPage('Token verifikasi email tidak ditemukan.', false), 400);
+  if (!parsed.success) {
+    return c.html(renderVerifyEmailPage('Token verifikasi email tidak valid.', false), 400);
   }
 
   try {
-    const result = await authService.verifyEmail(token, secret, resolveDatabaseUrl(c.env));
+    const result = await authService.verifyEmail(
+      parsed.data.token,
+      secret,
+      resolveDatabaseUrl(c.env),
+    );
     return c.html(renderVerifyEmailPage(result.message, true), 200);
   } catch (error) {
     if (error instanceof AuthServiceError) {

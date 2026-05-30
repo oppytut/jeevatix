@@ -57,6 +57,16 @@ export const verifyEmailSchema = z
   })
   .openapi('VerifyEmailInput');
 
+export const verifyEmailQuerySchema = z
+  .object({
+    token: z
+      .string()
+      .min(1, 'Token is required')
+      .max(4096, 'Token is too long')
+      .openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+  })
+  .openapi('VerifyEmailQuery');
+
 export const logoutSchema = z
   .object({
     refresh_token: z
