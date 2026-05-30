@@ -30,9 +30,26 @@
 
   let now = $state(Date.now());
   let countdownInterval: ReturnType<typeof setInterval> | null = null;
-  let selectedMethod = $derived(
-    form?.selectedMethod ?? data.order.payment.method ?? 'bank_transfer',
+  let methodTouched = $state(false);
+  let isSubmitting = $state(false);
+  let selectedMethod = $state('');
+
+  $effect(() => {
+    selectedMethod = form?.selectedMethod ?? data.order.payment.method ?? 'bank_transfer';
+  });
+
+  const methodError = $derived(
+    methodTouched && !selectedMethod ? 'Pilih metode pembayaran' : '',
   );
+
+  const mappedPaymentError = $derived.by(() => {
+    if (!form?.paymentError) return '';
+    const errorMsg = form.paymentError;
+    if (errorMsg.includes('tidak valid') || errorMsg.includes('kedaluwarsa')) {
+      return 'Pesanan sudah tidak valid atau kedaluwarsa';
+    }
+    return errorMsg;
+  });
 
   const paymentMethods = [
     {
@@ -176,43 +193,62 @@
         </div>
       </div>
 
-      <form class="mt-8 space-y-5" method="POST" action="?/initiatePayment">
-        <div class="space-y-4">
-          {#each paymentMethods as paymentMethod (paymentMethod.value)}
-            <label
-              class={`block cursor-pointer rounded-[1.75rem] border p-5 transition ${selectedMethod === paymentMethod.value ? 'border-sky-400 bg-sky-50/80 shadow-[0_16px_38px_rgba(14,165,233,0.12)]' : 'border-border bg-muted hover:border-border hover:bg-card'}`}
-            >
-              <input
-                class="sr-only"
-                type="radio"
-                name="method"
-                value={paymentMethod.value}
-                bind:group={selectedMethod}
-                checked={selectedMethod === paymentMethod.value}
-              />
+      <form
+        class="mt-8 space-y-5"
+        method="POST"
+        action="?/initiatePayment"
+        onsubmit={() => {
+          isSubmitting = true;
+        }}
+      >
+        <div class="space-y-2">
+          <div class="space-y-4">
+            {#each paymentMethods as paymentMethod (paymentMethod.value)}
+              <label
+                class={`block cursor-pointer rounded-[1.75rem] border p-5 transition ${selectedMethod === paymentMethod.value ? 'border-sky-400 bg-sky-50/80 shadow-[0_16px_38px_rgba(14,165,233,0.12)]' : 'border-border bg-muted hover:border-border hover:bg-card'}`}
+              >
+                <input
+                  class="sr-only"
+                  type="radio"
+                  name="method"
+                  value={paymentMethod.value}
+                  bind:group={selectedMethod}
+                  checked={selectedMethod === paymentMethod.value}
+                  onblur={() => {
+                    methodTouched = true;
+                  }}
+                />
 
-              <div class="flex items-start gap-4">
-                <div
-                  class="bg-card text-foreground flex size-12 items-center justify-center rounded-2xl shadow-sm"
-                >
-                  <paymentMethod.icon class="size-5" />
+                <div class="flex items-start gap-4">
+                  <div
+                    class="bg-card text-foreground flex size-12 items-center justify-center rounded-2xl shadow-sm"
+                  >
+                    <paymentMethod.icon class="size-5" />
+                  </div>
+                  <div>
+                    <p class="text-foreground text-lg font-semibold">{paymentMethod.label}</p>
+                    <p class="text-muted-foreground mt-1 text-sm leading-6">
+                      {paymentMethod.description}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-foreground text-lg font-semibold">{paymentMethod.label}</p>
-                  <p class="text-muted-foreground mt-1 text-sm leading-6">
-                    {paymentMethod.description}
-                  </p>
-                </div>
-              </div>
-            </label>
-          {/each}
+              </label>
+            {/each}
+          </div>
+          {#if methodError}
+            <p id="method-error" class="text-xs text-rose-600 dark:text-rose-400" aria-live="polite">
+              {methodError}
+            </p>
+          {/if}
         </div>
 
-        {#if form?.paymentError}
+        {#if mappedPaymentError}
           <div
-            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+            role="alert"
+            aria-live="assertive"
+            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-400"
           >
-            {form.paymentError}
+            {mappedPaymentError}
           </div>
         {/if}
 
@@ -227,7 +263,7 @@
         <Button
           type="submit"
           class="w-full rounded-full px-6 py-3"
-          disabled={getRemainingMs() <= 0 || data.order.status !== 'pending'}
+          disabled={getRemainingMs() <= 0 || data.order.status !== 'pending' || !selectedMethod || isSubmitting}
         >
           Bayar Sekarang
           <ArrowRight class="size-4" />

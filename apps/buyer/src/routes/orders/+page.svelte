@@ -1,9 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
-  import { CalendarDays, ChevronLeft, ChevronRight, ReceiptText, Wallet } from '@lucide/svelte';
+  import { CalendarDays, ChevronLeft, ChevronRight, ReceiptText, Wallet, X } from '@lucide/svelte';
 
-  import { Button, Card, EmptyState } from '@jeevatix/ui';
+  import { Button, Card, EmptyState, Select, StatusBadge } from '@jeevatix/ui';
 
   import type { OrderListItem, PaginationMeta } from '$lib/api';
   import { formatCurrency, formatLongDateTime, formatRelativeTime } from '$lib/utils';
@@ -11,22 +11,25 @@
   type OrdersPageData = {
     orders: OrderListItem[];
     meta: PaginationMeta;
+    filters: {
+      status: string;
+    };
   };
 
   let { data }: { data: OrdersPageData } = $props();
 
-  function getStatusTone(status: OrderListItem['status']) {
+  function getStatusVariant(status: OrderListItem['status']) {
     switch (status) {
       case 'confirmed':
-        return 'bg-emerald-100 text-emerald-700';
+        return 'success';
       case 'expired':
-        return 'bg-muted text-foreground';
+        return 'neutral';
       case 'cancelled':
-        return 'bg-rose-100 text-rose-700';
+        return 'error';
       case 'refunded':
-        return 'bg-sky-100 text-sky-700';
+        return 'info';
       default:
-        return 'bg-amber-100 text-amber-700';
+        return 'warning';
     }
   }
 
@@ -34,12 +37,39 @@
     void goto(resolve('/orders/[id]', { id: orderId }));
   }
 
+  function buildFilterUrl(overrides: Record<string, string> = {}) {
+    const params = new URLSearchParams();
+    const current = {
+      status: data.filters.status,
+      page: String(data.meta.page),
+      ...overrides,
+    };
+
+    for (const [key, value] of Object.entries(current)) {
+      if (value && value !== 'all') {
+        params.set(key, value);
+      }
+    }
+
+    const query = params.toString();
+    return query ? `${resolve('/orders')}?${query}` : resolve('/orders');
+  }
+
   function goToPage(page: number) {
     if (page < 1 || page > data.meta.totalPages || page === data.meta.page) {
       return;
     }
 
-    void goto(resolve(`/orders?page=${page}`));
+    void goto(buildFilterUrl({ page: String(page) }));
+  }
+
+  function handleStatusChange(event: Event) {
+    const target = event.currentTarget as HTMLSelectElement;
+    void goto(buildFilterUrl({ status: target.value, page: '1' }));
+  }
+
+  function clearStatusFilter() {
+    void goto(buildFilterUrl({ status: 'all', page: '1' }));
   }
 
   function getVisiblePages() {
@@ -114,6 +144,36 @@
       </div>
     </div>
 
+    <div class="mt-6 flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-2">
+        <label class="text-foreground text-sm font-medium" for="status-filter">Status:</label>
+        <Select
+          id="status-filter"
+          class="h-10 w-48 rounded-full"
+          value={data.filters.status}
+          onchange={handleStatusChange}
+        >
+          <option value="all">Semua Status</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="expired">Expired</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="refunded">Refunded</option>
+        </Select>
+      </div>
+
+      {#if data.filters.status !== 'all'}
+        <button
+          type="button"
+          class="bg-card border-border text-foreground hover:bg-muted inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition"
+          onclick={clearStatusFilter}
+        >
+          <span class="capitalize">{data.filters.status}</span>
+          <X class="size-3.5" />
+        </button>
+      {/if}
+    </div>
+
     {#if data.orders.length === 0}
       <div class="mt-8">
         <EmptyState
@@ -145,11 +205,11 @@
                   Dibuat {formatRelativeTime(order.created_at)}
                 </p>
               </div>
-              <span
-                class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${getStatusTone(order.status)}`}
-              >
-                {order.status}
-              </span>
+              <StatusBadge
+                variant={getStatusVariant(order.status)}
+                label={order.status.toUpperCase()}
+                class="tracking-[0.2em]"
+              />
             </div>
 
             <div class="mt-5 grid gap-3 sm:grid-cols-2">
@@ -219,11 +279,11 @@
                       {formatCurrency(order.total_amount)}
                     </div>
                     <div>
-                      <span
-                        class={`inline-flex rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${getStatusTone(order.status)}`}
-                      >
-                        {order.status}
-                      </span>
+                      <StatusBadge
+                        variant={getStatusVariant(order.status)}
+                        label={order.status.toUpperCase()}
+                        class="tracking-[0.2em]"
+                      />
                     </div>
                   </button>
                 </td>

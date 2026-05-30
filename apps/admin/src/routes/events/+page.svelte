@@ -2,10 +2,10 @@
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
-  import { CalendarRange, RefreshCw, Search, Ticket } from '@lucide/svelte';
+  import { CalendarRange, RefreshCw, Search, Ticket, CheckCircle, XCircle, X } from '@lucide/svelte';
   import { Button, Card, DataTable, Input, Select, Toast } from '@jeevatix/ui';
 
-  import { apiGetEnvelope, ApiError } from '$lib/api';
+  import { apiGetEnvelope, apiPatch, ApiError } from '$lib/api';
 
   type EventStatus =
     | 'draft'
@@ -77,6 +77,9 @@
   let isRefreshing = $state(false);
   let pageError = $state('');
   let toast = $state<ToastState | null>(null);
+  let selectedIds = $state<string[]>([]);
+  let isBulkProcessing = $state(false);
+  let bulkProgress = $state({ current: 0, total: 0 });
 
   function setToast(nextToast: ToastState) {
     toast = nextToast;
@@ -197,6 +200,68 @@
   const publishedCount = $derived(events.filter((event) => event.status === 'published').length);
   const ticketsSold = $derived(events.reduce((total, event) => total + event.totalSold, 0));
 
+  const selectedPendingEvents = $derived(
+    events.filter((event) => selectedIds.includes(event.id) && event.status === 'pending_review'),
+  );
+
+  const selectedNonPendingCount = $derived(
+    selectedIds.filter((id) => {
+      const event = events.find((e) => e.id === id);
+      return event && event.status !== 'pending_review';
+    }).length,
+  );
+
+  function clearSelection() {
+    selectedIds = [];
+  }
+
+  async function bulkUpdateStatus(targetStatus: 'published' | 'rejected') {
+    if (selectedPendingEvents.length === 0) {
+      setToast({
+        title: 'Tidak ada event',
+        description: 'Tidak ada event pending_review yang dipilih.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    isBulkProcessing = true;
+    bulkProgress = { current: 0, total: selectedPendingEvents.length };
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const event of selectedPendingEvents) {
+      try {
+        await apiPatch(`/admin/events/${event.id}/status`, { status: targetStatus });
+        successCount++;
+      } catch (error) {
+        failCount++;
+        console.error(`Failed to update event ${event.id}:`, error);
+      }
+      bulkProgress.current++;
+    }
+
+    isBulkProcessing = false;
+    clearSelection();
+
+    if (failCount === 0) {
+      setToast({
+        title: 'Berhasil',
+        description: `${successCount} event berhasil diperbarui.`,
+        variant: 'success',
+      });
+    } else {
+      setToast({
+        title: 'Selesai dengan error',
+        description: `${successCount} berhasil, ${failCount} gagal.`,
+        variant: 'warning',
+      });
+    }
+
+    await loadEvents(meta.page, true);
+  }
+
   onMount(async () => {
     await loadEvents();
   });
@@ -243,6 +308,63 @@
       description={toast.description}
       variant={toast.variant}
     />
+  {/if}
+
+  {#if selectedIds.length > 0}
+    <div
+      class="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 sticky top-4 z-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border p-3 shadow-lg"
+    >
+      <div class="flex items-center gap-3">
+        <p class="text-foreground text-sm font-semibold">
+          {selectedPendingEvents.length} event dipilih
+        </p>
+        {#if selectedNonPendingCount > 0}
+          <p class="text-muted-foreground text-xs">
+            ({selectedPendingEvents.length} dari {selectedIds.length} dapat dimoderasi)
+          </p>
+        {/if}
+        {#if isBulkProcessing}
+          <p class="text-muted-foreground text-xs">
+            Memproses {bulkProgress.current}/{bulkProgress.total}...
+          </p>
+        {/if}
+      </div>
+
+      <div class="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          type="button"
+          onclick={clearSelection}
+          disabled={isBulkProcessing}
+        >
+          <X class="mr-1 size-4" />
+          Batal
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          type="button"
+          onclick={() => bulkUpdateStatus('published')}
+          disabled={isBulkProcessing || selectedPendingEvents.length === 0}
+          class="bg-green-600 hover:bg-green-700"
+        >
+          <CheckCircle class="mr-1 size-4" />
+          Setujui Semua
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          type="button"
+          onclick={() => bulkUpdateStatus('rejected')}
+          disabled={isBulkProcessing || selectedPendingEvents.length === 0}
+          class="bg-red-600 hover:bg-red-700"
+        >
+          <XCircle class="mr-1 size-4" />
+          Tolak Semua
+        </Button>
+      </div>
+    </div>
   {/if}
 
   <div class="grid gap-4 md:grid-cols-3">
@@ -359,6 +481,8 @@
         rows={tableRows}
         emptyMessage="Tidak ada event yang cocok dengan filter saat ini."
         actionHeader="Review"
+        selectable={true}
+        bind:selectedIds
       >
         {#snippet rowActions(row)}
           <Button variant="outline" size="sm" type="button" onclick={() => openEventDetail(row)}>

@@ -748,15 +748,19 @@ export const orderService = {
       await expirePendingOrder(env, expiredOrder.id);
     }
 
+    const baseConditions = query.status
+      ? and(eq(orders.userId, userId), eq(orders.status, query.status))
+      : eq(orders.userId, userId);
+
     const [aggregate] = await database
       .select({
         count: sql<number>`count(*)::int`,
       })
       .from(orders)
-      .where(eq(orders.userId, userId));
+      .where(baseConditions);
 
     const rows = await database.query.orders.findMany({
-      where: eq(orders.userId, userId),
+      where: baseConditions,
       columns: {
         id: true,
         reservationId: true,

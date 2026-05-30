@@ -43,6 +43,9 @@
   let formStateInitialized = $state(false);
   let showSoldOutModal = $state(false);
   let countdownInterval: ReturnType<typeof setInterval> | null = null;
+  let tierTouched = $state(false);
+  let quantityTouched = $state(false);
+  let isSubmitting = $state(false);
 
   const availableTiers = $derived(liveTiers.filter((tier: EventTier) => tier.remaining > 0));
   const reservation = $derived(form?.reservation ?? null);
@@ -56,6 +59,28 @@
     activeTier ? Math.max(1, Math.min(activeTier.remaining, data.event.max_tickets_per_order)) : 1,
   );
   let quantity = $state(1);
+
+  const tierError = $derived(
+    tierTouched && !selectedTierId ? 'Pilih tier tiket' : '',
+  );
+  const quantityError = $derived(
+    quantityTouched && quantity < 1
+      ? 'Jumlah minimal 1'
+      : quantityTouched && activeTier && quantity > activeTier.remaining
+        ? 'Melebihi sisa tiket'
+        : '',
+  );
+
+  const hasFormErrors = $derived(Boolean(tierError || quantityError));
+
+  const mappedReservationError = $derived.by(() => {
+    if (!form?.reservationError) return '';
+    const errorMsg = form.reservationError;
+    if (errorMsg.includes('Tiket habis')) return 'Maaf, tiket sudah habis';
+    if (errorMsg.includes('reservasi aktif')) return 'Anda sudah memiliki reservasi aktif untuk event ini';
+    if (errorMsg.includes('melebihi batas')) return 'Jumlah melebihi batas maksimal pembelian';
+    return errorMsg;
+  });
 
   function getInitialSelectedTierId() {
     return (
@@ -263,12 +288,20 @@
           Tier tiket belum tersedia untuk event ini.
         </div>
       {:else}
-        <form class="mt-8 space-y-6" method="POST" action="?/reserve">
-          <div class="space-y-4">
-            {#each liveTiers as tier (tier.id)}
-              <label
-                class={`block cursor-pointer rounded-[1.75rem] border p-5 transition ${selectedTierId === tier.id ? 'border-orange-400 bg-orange-50/80 shadow-[0_16px_38px_rgba(249,115,22,0.12)]' : 'border-border bg-muted hover:border-border hover:bg-card'}`}
-              >
+        <form
+          class="mt-8 space-y-6"
+          method="POST"
+          action="?/reserve"
+          onsubmit={() => {
+            isSubmitting = true;
+          }}
+        >
+          <div class="space-y-2">
+            <div class="space-y-4">
+              {#each liveTiers as tier (tier.id)}
+                <label
+                  class={`block cursor-pointer rounded-[1.75rem] border p-5 transition ${selectedTierId === tier.id ? 'border-orange-400 bg-orange-50/80 shadow-[0_16px_38px_rgba(249,115,22,0.12)]' : 'border-border bg-muted hover:border-border hover:bg-card'}`}
+                >
                 <input
                   class="sr-only"
                   type="radio"
@@ -277,42 +310,51 @@
                   bind:group={selectedTierId}
                   checked={selectedTierId === tier.id}
                   disabled={Boolean(reservation) || tier.remaining === 0}
+                  onblur={() => {
+                    tierTouched = true;
+                  }}
                 />
 
-                <div class="flex items-start justify-between gap-4">
-                  <div>
-                    <div class="flex items-center gap-3">
-                      <h3 class="text-foreground text-lg font-semibold">{tier.name}</h3>
-                      <span
-                        class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${tier.remaining > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}
-                      >
-                        {tier.remaining > 0 ? 'Available' : 'Sold Out'}
-                      </span>
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <div class="flex items-center gap-3">
+                        <h3 class="text-foreground text-lg font-semibold">{tier.name}</h3>
+                        <span
+                          class={`rounded-full px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase ${tier.remaining > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}
+                        >
+                          {tier.remaining > 0 ? 'Available' : 'Sold Out'}
+                        </span>
+                      </div>
+                      {#if tier.description}
+                        <p class="text-muted-foreground mt-2 text-sm leading-6">{tier.description}</p>
+                      {/if}
                     </div>
-                    {#if tier.description}
-                      <p class="text-muted-foreground mt-2 text-sm leading-6">{tier.description}</p>
-                    {/if}
+
+                    <p class="text-foreground text-right text-xl font-semibold">
+                      {formatCurrency(tier.price)}
+                    </p>
                   </div>
 
-                  <p class="text-foreground text-right text-xl font-semibold">
-                    {formatCurrency(tier.price)}
-                  </p>
-                </div>
-
-                <div class="text-muted-foreground mt-4 flex flex-wrap items-center gap-3 text-sm">
-                  <span class="bg-card inline-flex items-center gap-2 rounded-full px-3 py-1.5">
-                    <ShieldCheck class="size-4 text-emerald-600" />
-                    Sisa {tier.remaining} tiket
-                  </span>
-                  <span class="bg-card inline-flex items-center gap-2 rounded-full px-3 py-1.5">
-                    <CalendarDays class="size-4 text-sky-600" />
-                    Penjualan ditutup {formatLongDateTime(
-                      tier.sale_end_at ?? data.event.sale_end_at,
-                    )}
-                  </span>
-                </div>
-              </label>
-            {/each}
+                  <div class="text-muted-foreground mt-4 flex flex-wrap items-center gap-3 text-sm">
+                    <span class="bg-card inline-flex items-center gap-2 rounded-full px-3 py-1.5">
+                      <ShieldCheck class="size-4 text-emerald-600" />
+                      Sisa {tier.remaining} tiket
+                    </span>
+                    <span class="bg-card inline-flex items-center gap-2 rounded-full px-3 py-1.5">
+                      <CalendarDays class="size-4 text-sky-600" />
+                      Penjualan ditutup {formatLongDateTime(
+                        tier.sale_end_at ?? data.event.sale_end_at,
+                      )}
+                    </span>
+                  </div>
+                </label>
+              {/each}
+            </div>
+            {#if tierError}
+              <p id="tier-error" class="text-xs text-rose-600 dark:text-rose-400" aria-live="polite">
+                {tierError}
+              </p>
+            {/if}
           </div>
 
           <div class="border-border bg-muted rounded-[1.75rem] border p-5">
@@ -342,6 +384,11 @@
                   bind:value={quantity}
                   class="w-20 text-center"
                   disabled={Boolean(reservation)}
+                  onblur={() => {
+                    quantityTouched = true;
+                  }}
+                  aria-invalid={quantityError ? true : undefined}
+                  aria-describedby={quantityError ? 'quantity-error' : undefined}
                 />
                 <button
                   type="button"
@@ -354,13 +401,24 @@
                 </button>
               </div>
             </div>
+            {#if quantityError}
+              <p
+                id="quantity-error"
+                class="mt-2 text-xs text-rose-600 dark:text-rose-400"
+                aria-live="polite"
+              >
+                {quantityError}
+              </p>
+            {/if}
           </div>
 
-          {#if form?.reservationError}
+          {#if mappedReservationError}
             <div
-              class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+              role="alert"
+              aria-live="assertive"
+              class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-400"
             >
-              {form.reservationError}
+              {mappedReservationError}
             </div>
           {/if}
 
@@ -375,7 +433,7 @@
           <Button
             type="submit"
             class="w-full rounded-full px-6 py-3"
-            disabled={Boolean(reservation) || !activeTier || activeTier.remaining === 0}
+            disabled={Boolean(reservation) || !activeTier || activeTier.remaining === 0 || hasFormErrors || isSubmitting}
           >
             Reservasi Tiket
             <MoveRight class="size-4" />

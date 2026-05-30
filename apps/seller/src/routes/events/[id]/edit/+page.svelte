@@ -80,6 +80,9 @@
     sort_order: number;
     sale_start_at: string;
     sale_end_at: string;
+    nameTouched?: boolean;
+    priceTouched?: boolean;
+    quotaTouched?: boolean;
   };
 
   type EventFormState = {
@@ -147,6 +150,69 @@
     tiers: [],
   });
 
+  // Touched flags for inline validation
+  let titleTouched = $state(false);
+  let descriptionTouched = $state(false);
+  let categoryTouched = $state(false);
+  let venueNameTouched = $state(false);
+  let venueCityTouched = $state(false);
+  let startAtTouched = $state(false);
+  let endAtTouched = $state(false);
+
+  // Derived inline errors
+  const titleError = $derived(
+    titleTouched && form.title.trim().length < 5 ? 'Judul minimal 5 karakter' : '',
+  );
+  const descriptionError = $derived(
+    descriptionTouched && form.description.trim().length > 0 && form.description.trim().length < 20
+      ? 'Deskripsi minimal 20 karakter'
+      : '',
+  );
+  const categoryError = $derived(
+    categoryTouched && form.category_ids.length === 0 ? 'Pilih kategori' : '',
+  );
+  const venueNameError = $derived(
+    venueNameTouched && !form.venue_name.trim() ? 'Lokasi wajib diisi' : '',
+  );
+  const venueCityError = $derived(
+    venueCityTouched && !form.venue_city.trim() ? 'Kota wajib diisi' : '',
+  );
+  const startAtError = $derived(startAtTouched && !form.start_at ? 'Pilih tanggal mulai' : '');
+  const endAtError = $derived(
+    endAtTouched && form.end_at && form.start_at && new Date(form.end_at) < new Date(form.start_at)
+      ? 'Tanggal selesai harus setelah tanggal mulai'
+      : endAtTouched && !form.end_at
+        ? 'Pilih tanggal selesai'
+        : '',
+  );
+
+  const step1HasErrors = $derived(!!titleError || !!descriptionError || !!categoryError);
+  const step2HasErrors = $derived(
+    !!venueNameError || !!venueCityError || !!startAtError || !!endAtError,
+  );
+
+  function getTierNameError(tier: TicketTierInput) {
+    return tier.nameTouched && !tier.name.trim() ? 'Nama tier wajib diisi' : '';
+  }
+
+  function getTierPriceError(tier: TicketTierInput) {
+    return tier.priceTouched && (!tier.price || Number(tier.price) < 0)
+      ? 'Harga tidak valid'
+      : '';
+  }
+
+  function getTierQuotaError(tier: TicketTierInput) {
+    return tier.quotaTouched && (!tier.quota || Number(tier.quota) < 1)
+      ? 'Kuota minimal 1'
+      : '';
+  }
+
+  const step4HasErrors = $derived(
+    form.tiers.some(
+      (tier) => !!getTierNameError(tier) || !!getTierPriceError(tier) || !!getTierQuotaError(tier),
+    ),
+  );
+
   function createClientId() {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
@@ -161,6 +227,9 @@
       sort_order: sortOrder,
       sale_start_at: '',
       sale_end_at: '',
+      nameTouched: false,
+      priceTouched: false,
+      quotaTouched: false,
     };
   }
 
@@ -321,6 +390,9 @@
         sort_order: index,
         sale_start_at: toDateTimeLocal(tier.sale_start_at),
         sale_end_at: toDateTimeLocal(tier.sale_end_at),
+        nameTouched: false,
+        priceTouched: false,
+        quotaTouched: false,
       })),
     };
   }
@@ -564,7 +636,15 @@
                 bind:value={form.title}
                 placeholder="Festival Musik Nusantara"
                 required
+                onblur={() => {
+                  titleTouched = true;
+                }}
+                aria-invalid={titleError ? true : undefined}
+                aria-describedby={titleError ? 'title-error' : undefined}
               />
+              {#if titleError}
+                <p id="title-error" class="text-xs text-rose-600 dark:text-rose-400">{titleError}</p>
+              {/if}
             </div>
 
             <div class="space-y-2">
@@ -574,12 +654,37 @@
                 bind:value={form.description}
                 class="min-h-36"
                 placeholder="Tuliskan konsep event, headline performer, dan pengalaman yang akan didapat pembeli tiket."
+                onblur={() => {
+                  descriptionTouched = true;
+                }}
+                aria-invalid={descriptionError ? true : undefined}
+                aria-describedby={descriptionError ? 'description-error' : undefined}
               />
+              {#if descriptionError}
+                <p id="description-error" class="text-xs text-rose-600 dark:text-rose-400">
+                  {descriptionError}
+                </p>
+              {/if}
             </div>
 
             <div class="space-y-2">
               <label class="text-foreground text-sm font-medium" for="venue-city">Kota Event</label>
-              <Input id="venue-city" bind:value={form.venue_city} placeholder="Jakarta" required />
+              <Input
+                id="venue-city"
+                bind:value={form.venue_city}
+                placeholder="Jakarta"
+                required
+                onblur={() => {
+                  venueCityTouched = true;
+                }}
+                aria-invalid={venueCityError ? true : undefined}
+                aria-describedby={venueCityError ? 'venue-city-error' : undefined}
+              />
+              {#if venueCityError}
+                <p id="venue-city-error" class="text-xs text-rose-600 dark:text-rose-400">
+                  {venueCityError}
+                </p>
+              {/if}
             </div>
 
             <div class="space-y-3">
@@ -593,13 +698,21 @@
                 {#each categoryOptions as category (category.id)}
                   <button
                     class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-border bg-card text-muted-foreground hover:text-foreground'}`}
-                    onclick={() => toggleCategory(category.id)}
+                    onclick={() => {
+                      toggleCategory(category.id);
+                      categoryTouched = true;
+                    }}
                     type="button"
                   >
                     {category.name}
                   </button>
                 {/each}
               </div>
+              {#if categoryError}
+                <p id="category-error" class="text-xs text-rose-600 dark:text-rose-400">
+                  {categoryError}
+                </p>
+              {/if}
             </div>
           </div>
         {:else if currentStep === 2}
@@ -611,7 +724,17 @@
                 bind:value={form.venue_name}
                 placeholder="Istora Senayan"
                 required
+                onblur={() => {
+                  venueNameTouched = true;
+                }}
+                aria-invalid={venueNameError ? true : undefined}
+                aria-describedby={venueNameError ? 'venue-name-error' : undefined}
               />
+              {#if venueNameError}
+                <p id="venue-name-error" class="text-xs text-rose-600 dark:text-rose-400">
+                  {venueNameError}
+                </p>
+              {/if}
             </div>
             <div class="space-y-2">
               <label class="text-foreground text-sm font-medium" for="venue-address"
@@ -645,11 +768,41 @@
             <div class="grid gap-4 sm:grid-cols-2">
               <div class="space-y-2">
                 <label class="text-foreground text-sm font-medium" for="start-at">Start At</label>
-                <Input id="start-at" type="datetime-local" bind:value={form.start_at} required />
+                <Input
+                  id="start-at"
+                  type="datetime-local"
+                  bind:value={form.start_at}
+                  required
+                  onblur={() => {
+                    startAtTouched = true;
+                  }}
+                  aria-invalid={startAtError ? true : undefined}
+                  aria-describedby={startAtError ? 'start-at-error' : undefined}
+                />
+                {#if startAtError}
+                  <p id="start-at-error" class="text-xs text-rose-600 dark:text-rose-400">
+                    {startAtError}
+                  </p>
+                {/if}
               </div>
               <div class="space-y-2">
                 <label class="text-foreground text-sm font-medium" for="end-at">End At</label>
-                <Input id="end-at" type="datetime-local" bind:value={form.end_at} required />
+                <Input
+                  id="end-at"
+                  type="datetime-local"
+                  bind:value={form.end_at}
+                  required
+                  onblur={() => {
+                    endAtTouched = true;
+                  }}
+                  aria-invalid={endAtError ? true : undefined}
+                  aria-describedby={endAtError ? 'end-at-error' : undefined}
+                />
+                {#if endAtError}
+                  <p id="end-at-error" class="text-xs text-rose-600 dark:text-rose-400">
+                    {endAtError}
+                  </p>
+                {/if}
               </div>
               <div class="space-y-2">
                 <label class="text-foreground text-sm font-medium" for="sale-start"
@@ -838,7 +991,18 @@
                       bind:value={tier.name}
                       placeholder="VIP Early Bird"
                       required
+                      onblur={() => {
+                        tier.nameTouched = true;
+                        form.tiers = [...form.tiers];
+                      }}
+                      aria-invalid={getTierNameError(tier) ? true : undefined}
+                      aria-describedby={getTierNameError(tier) ? `tier-name-error-${tier.clientId}` : undefined}
                     />
+                    {#if getTierNameError(tier)}
+                      <p id={`tier-name-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                        {getTierNameError(tier)}
+                      </p>
+                    {/if}
                   </div>
                   <div class="space-y-2 sm:col-span-2">
                     <label
@@ -864,7 +1028,18 @@
                       bind:value={tier.price}
                       placeholder="350000"
                       required
+                      onblur={() => {
+                        tier.priceTouched = true;
+                        form.tiers = [...form.tiers];
+                      }}
+                      aria-invalid={getTierPriceError(tier) ? true : undefined}
+                      aria-describedby={getTierPriceError(tier) ? `tier-price-error-${tier.clientId}` : undefined}
                     />
+                    {#if getTierPriceError(tier)}
+                      <p id={`tier-price-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                        {getTierPriceError(tier)}
+                      </p>
+                    {/if}
                   </div>
                   <div class="space-y-2">
                     <label
@@ -878,7 +1053,18 @@
                       bind:value={tier.quota}
                       placeholder="100"
                       required
+                      onblur={() => {
+                        tier.quotaTouched = true;
+                        form.tiers = [...form.tiers];
+                      }}
+                      aria-invalid={getTierQuotaError(tier) ? true : undefined}
+                      aria-describedby={getTierQuotaError(tier) ? `tier-quota-error-${tier.clientId}` : undefined}
                     />
+                    {#if getTierQuotaError(tier)}
+                      <p id={`tier-quota-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                        {getTierQuotaError(tier)}
+                      </p>
+                    {/if}
                   </div>
                   <div class="space-y-2">
                     <label
@@ -954,21 +1140,25 @@
             Kembali
           </Button>
 
-          {#if currentStep < 5}
-            <Button type="button" onclick={goToNextStep}>
-              Lanjut
-              <ArrowRight class="ml-2 size-4" />
-            </Button>
-          {:else}
-            <Button type="button" onclick={submitForm} disabled={isSubmitting}>
-              {#if isSubmitting}
-                <LoaderCircle class="mr-2 size-4 animate-spin" />
-                Menyimpan...
-              {:else}
-                Simpan Perubahan
-              {/if}
-            </Button>
-          {/if}
+        {#if currentStep < 5}
+          <Button type="button" onclick={goToNextStep} disabled={
+            (currentStep === 1 && step1HasErrors) ||
+            (currentStep === 2 && step2HasErrors) ||
+            (currentStep === 4 && step4HasErrors)
+          }>
+            Lanjut
+            <ArrowRight class="ml-2 size-4" />
+          </Button>
+        {:else}
+          <Button type="button" onclick={submitForm} disabled={isSubmitting}>
+            {#if isSubmitting}
+              <LoaderCircle class="mr-2 size-4 animate-spin" />
+              Menyimpan...
+            {:else}
+              Simpan Perubahan
+            {/if}
+          </Button>
+        {/if}
         </div>
       </Card>
 

@@ -22,14 +22,33 @@ function normalizePage(value: string | null) {
   return page;
 }
 
+function normalizeStatus(value: string | null) {
+  if (!value || value === 'all') {
+    return '';
+  }
+
+  const validStatuses = ['pending', 'confirmed', 'expired', 'cancelled', 'refunded'];
+  return validStatuses.includes(value) ? value : '';
+}
+
 export const load = (async ({ fetch, cookies, locals, url }) => {
   requireBuyerSession(locals);
 
   const page = normalizePage(url.searchParams.get('page'));
+  const status = normalizeStatus(url.searchParams.get('status'));
 
   try {
+    const queryParams = new URLSearchParams({
+      page: String(page),
+      limit: String(DEFAULT_LIMIT),
+    });
+
+    if (status) {
+      queryParams.set('status', status);
+    }
+
     const response = await apiGetResponse<OrderListItem[], PaginationMeta>(
-      `/orders?page=${page}&limit=${DEFAULT_LIMIT}`,
+      `/orders?${queryParams.toString()}`,
       {
         fetchFn: fetch,
         cookies,
@@ -44,6 +63,9 @@ export const load = (async ({ fetch, cookies, locals, url }) => {
         page,
         limit: DEFAULT_LIMIT,
         totalPages: 0,
+      },
+      filters: {
+        status: status || 'all',
       },
     };
   } catch (caughtError) {
