@@ -8,6 +8,9 @@ import {
   observabilityMiddleware,
 } from './lib/observability';
 import { buildSentryOptions } from './lib/sentry';
+import { resolveDatabaseUrl } from './lib/database-url';
+import { getDb } from '@jeevatix/core';
+import { sql } from 'drizzle-orm';
 import { sentryTagsMiddleware } from './lib/sentry-context';
 import { RateLimiter } from './durable-objects/rate-limiter';
 import { TicketReserver } from './durable-objects/ticket-reserver';
@@ -53,6 +56,20 @@ function jsonError(code: string, message: string) {
   };
 }
 
+async function probeDatabaseLatency(env: AuthEnv['Bindings']): Promise<number | null> {
+  try {
+    const url = resolveDatabaseUrl(env);
+    if (!url) return null;
+    const db = getDb(url);
+    if (!db) return null;
+    const startedAt = Date.now();
+    await db.execute(sql`select 1`);
+    return Date.now() - startedAt;
+  } catch {
+    return null;
+  }
+}
+
 app.use('*', observabilityMiddleware);
 app.use('*', sentryTagsMiddleware);
 app.use('*', corsMiddleware);
@@ -63,9 +80,11 @@ app.onError((error, c) => {
   return c.json(jsonError('INTERNAL_SERVER_ERROR', 'Unexpected error occurred.'), 500);
 });
 
-app.get('/health', (c) => {
+app.get('/health', async (c) => {
   c.header('Cache-Control', 'no-store');
-  return c.json(buildHealthPayload(c.env));
+  const base = buildHealthPayload(c.env);
+  const dbLatencyMs = await probeDatabaseLatency(c.env);
+  return c.json({ ...base, db_latency_ms: dbLatencyMs });
 });
 
 app.doc('/doc', {

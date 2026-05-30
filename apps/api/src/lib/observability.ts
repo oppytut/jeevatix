@@ -159,6 +159,12 @@ export function getAppEnvironment(env?: Partial<AuthEnv['Bindings']>) {
   return env?.APP_ENVIRONMENT ?? getProcessEnv('APP_ENVIRONMENT') ?? 'development';
 }
 
+const WORKER_STARTED_AT_MS = Date.now();
+
+export function getWorkerUptimeMs() {
+  return Math.max(0, Date.now() - WORKER_STARTED_AT_MS);
+}
+
 export function buildHealthPayload(env?: Partial<AuthEnv['Bindings']>) {
   return {
     status: 'ok' as const,
@@ -166,6 +172,7 @@ export function buildHealthPayload(env?: Partial<AuthEnv['Bindings']>) {
     environment: getAppEnvironment(env),
     version: getAppVersion(env),
     timestamp: new Date().toISOString(),
+    uptime_ms: getWorkerUptimeMs(),
   };
 }
 
