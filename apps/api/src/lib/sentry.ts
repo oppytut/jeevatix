@@ -36,6 +36,48 @@ function parseSampleRate(raw: string | undefined, fallback: number) {
   return n;
 }
 
+const HIGH_VALUE_PATH_PATTERNS = [/^\/payments(\/|$)/, /^\/webhooks\/payment(\/|$)/];
+const LOW_VALUE_PATH_PATTERNS = [
+  /^\/health(\/|$)/,
+  /^\/favicon\.ico$/,
+  /^\/robots\.txt$/,
+  /^\/_app\//,
+];
+
+function getRouteSampleRate(path: string | undefined, defaultRate: number): number {
+  if (!path) return defaultRate;
+  for (const pattern of HIGH_VALUE_PATH_PATTERNS) {
+    if (pattern.test(path)) return 1.0;
+  }
+  for (const pattern of LOW_VALUE_PATH_PATTERNS) {
+    if (pattern.test(path)) return 0.01;
+  }
+  return defaultRate;
+}
+
+function extractPathFromSamplingContext(samplingContext: unknown): string | undefined {
+  if (!samplingContext || typeof samplingContext !== 'object') return undefined;
+  const ctx = samplingContext as Record<string, unknown>;
+  const attrs = ctx.attributes as Record<string, unknown> | undefined;
+  const httpTarget = attrs?.['http.target'];
+  if (typeof httpTarget === 'string') return httpTarget;
+  const url = attrs?.['url.path'] ?? attrs?.['url.full'];
+  if (typeof url === 'string') {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return url;
+    }
+  }
+  const name = ctx.name;
+  if (typeof name === 'string') {
+    const match = /(?:GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)\s+(.+)/.exec(name);
+    if (match) return match[1];
+    return name;
+  }
+  return undefined;
+}
+
 /**
  * Returns Sentry options derived from Worker env, or null if Sentry is disabled
  * (no DSN configured). Callers should bail out when null is returned.
@@ -52,16 +94,20 @@ export function buildSentryOptions(env: AuthEnv['Bindings']): CloudflareOptions 
   }
 
   const environment = getAppEnvironment(env);
+  const defaultSampleRate = parseSampleRate(
+    env.SENTRY_TRACES_SAMPLE_RATE,
+    environment === 'production' ? 0.1 : 1.0,
+  );
 
   return {
     dsn,
     environment,
     release: getAppVersion(env),
-    // Default 10% in production, 100% elsewhere; override via env.
-    tracesSampleRate: parseSampleRate(
-      env.SENTRY_TRACES_SAMPLE_RATE,
-      environment === 'production' ? 0.1 : 1.0,
-    ),
+    // Per-route sampling: payments at 100%, health/static at 1%, default elsewhere.
+    tracesSampler(samplingContext) {
+      const path = extractPathFromSamplingContext(samplingContext);
+      return getRouteSampleRate(path, defaultSampleRate);
+    },
     sendDefaultPii: false,
     beforeSend(event) {
       return scrubEvent(event);
