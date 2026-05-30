@@ -115,6 +115,9 @@
         <img
           src={data.event.banner_url}
           alt={data.event.title}
+          width="1600"
+          height="800"
+          fetchpriority="high"
           decoding="async"
           class="h-full w-full object-cover"
         />
@@ -177,6 +180,8 @@
                 <img
                   src={image.image_url}
                   alt={data.event.title}
+                  width="600"
+                  height="450"
                   loading="lazy"
                   decoding="async"
                   class="aspect-4/3 h-full w-full object-cover"
@@ -351,6 +356,8 @@
               <img
                 src={data.event.seller.logo_url}
                 alt={data.event.seller.org_name}
+                width="64"
+                height="64"
                 loading="lazy"
                 decoding="async"
                 class="h-full w-full object-cover"

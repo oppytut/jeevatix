@@ -12,6 +12,15 @@
   import type { LayoutData } from './$types';
   import { DarkModeToggle } from '@jeevatix/ui';
   import { Menu, X } from '@lucide/svelte';
+  import { PUBLIC_API_BASE_URL } from '$env/static/public';
+
+  const apiOrigin = (() => {
+    try {
+      return PUBLIC_API_BASE_URL ? new URL(PUBLIC_API_BASE_URL).origin : '';
+    } catch {
+      return '';
+    }
+  })();
 
   let unreadCount = $state(0);
   let mobileNavOpen = $state(false);
@@ -105,6 +114,10 @@
   />
   <link rel="icon" href={favicon} />
   <link rel="manifest" href="/manifest.webmanifest" />
+  {#if apiOrigin}
+    <link rel="preconnect" href={apiOrigin} crossorigin="anonymous" />
+    <link rel="dns-prefetch" href={apiOrigin} />
+  {/if}
   <meta name="theme-color" content="#f97316" />
   <meta property="og:site_name" content="Jeevatix" />
   <meta property="og:type" content="website" />
