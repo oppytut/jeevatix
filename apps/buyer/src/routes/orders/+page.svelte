@@ -37,7 +37,7 @@
     void goto(resolve('/orders/[id]', { id: orderId }));
   }
 
-  function buildFilterUrl(overrides: Record<string, string> = {}) {
+  function buildOrdersQuery(overrides: Record<string, string> = {}) {
     const params = new URLSearchParams();
     const current = {
       status: data.filters.status,
@@ -51,8 +51,7 @@
       }
     }
 
-    const query = params.toString();
-    return query ? `${resolve('/orders')}?${query}` : resolve('/orders');
+    return params.toString();
   }
 
   function goToPage(page: number) {
@@ -60,16 +59,22 @@
       return;
     }
 
-    void goto(buildFilterUrl({ page: String(page) }));
+    const query = buildOrdersQuery({ page: String(page) });
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() is invoked inside the conditional expression
+    void goto(query ? `${resolve('/orders')}?${query}` : resolve('/orders'));
   }
 
   function handleStatusChange(event: Event) {
     const target = event.currentTarget as HTMLSelectElement;
-    void goto(buildFilterUrl({ status: target.value, page: '1' }));
+    const query = buildOrdersQuery({ status: target.value, page: '1' });
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() is invoked inside the conditional expression
+    void goto(query ? `${resolve('/orders')}?${query}` : resolve('/orders'));
   }
 
   function clearStatusFilter() {
-    void goto(buildFilterUrl({ status: 'all', page: '1' }));
+    const query = buildOrdersQuery({ status: 'all', page: '1' });
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() is invoked inside the conditional expression
+    void goto(query ? `${resolve('/orders')}?${query}` : resolve('/orders'));
   }
 
   function getVisiblePages() {

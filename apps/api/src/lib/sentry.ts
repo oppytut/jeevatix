@@ -1,5 +1,5 @@
 import type { CloudflareOptions } from '@sentry/cloudflare';
-import type { ErrorEvent } from '@sentry/core';
+import type { ErrorEvent } from '@sentry/cloudflare';
 
 import type { AuthEnv } from '../middleware/auth';
 import { getAppEnvironment, getAppVersion } from './observability';
@@ -115,7 +115,7 @@ function scrubEvent(event: ErrorEvent): ErrorEvent {
         if (typeof crumb.data.url === 'string') crumb.data.url = redact(crumb.data.url);
         if (typeof crumb.data.input === 'string') crumb.data.input = redact(crumb.data.input);
         if (Array.isArray(crumb.data.arguments)) {
-          crumb.data.arguments = crumb.data.arguments.map((arg) =>
+          crumb.data.arguments = crumb.data.arguments.map((arg: unknown) =>
             typeof arg === 'string' ? redact(arg) : arg,
           );
         }

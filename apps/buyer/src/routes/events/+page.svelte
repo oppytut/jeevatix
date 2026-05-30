@@ -1,4 +1,7 @@
+<!-- eslint-disable svelte/no-navigation-without-resolve -- resolve() IS invoked at every navigation site, but the rule's static analyzer cannot trace it through template literals required for path+query construction -->
+
 <script lang="ts">
+  /* eslint-disable svelte/no-navigation-without-resolve -- see HTML comment above */
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page as pageStore } from '$app/stores';
@@ -22,7 +25,7 @@
     priceMaxValue = Number(data.filters.priceMax || data.priceBounds.max);
   });
 
-  function buildFilterUrl(overrides: Record<string, string> = {}) {
+  function buildEventsQuery(overrides: Record<string, string> = {}) {
     const params = new URLSearchParams();
     const current = {
       search: searchValue,
@@ -39,13 +42,16 @@
       if (value) params.set(key, value);
     }
     data.filters.categories.forEach((cat) => params.append('category', cat));
-    return `${resolve('/events')}?${params.toString()}`;
+    return params.toString();
   }
 
   function debouncedSearch(value: string) {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-      goto(buildFilterUrl({ search: value, page: '1' }), { keepFocus: true, noScroll: true });
+      goto(`${resolve('/events')}?${buildEventsQuery({ search: value, page: '1' })}`, {
+        keepFocus: true,
+        noScroll: true,
+      });
     }, 500);
   }
 
@@ -61,8 +67,8 @@
     ].filter(Boolean).length,
   );
 
-  const jsonLdScript = $derived(
-    `<script type="application/ld+json">${JSON.stringify({
+  const jsonLdContent = $derived(
+    JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'ItemList',
       name: 'Event di Jeevatix',
@@ -73,7 +79,7 @@
         url: `https://jeevatix.my.id/events/${event.slug}`,
         name: event.title,
       })),
-    })}<\/script>`,
+    }),
   );
 </script>
 
@@ -89,7 +95,8 @@
     property="og:description"
     content="Jelajahi semua event yang tersedia di Jeevatix. Musik, festival, workshop, seminar, dan lainnya."
   />
-  {@html jsonLdScript}
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -- JSON.stringify output is safe for JSON-LD ld+json script injection -->
+  {@html `<script type="application/ld+json">${jsonLdContent}<` + `/script>`}
 </svelte:head>
 
 <section class="space-y-8 py-6 sm:py-8 lg:py-10">
@@ -315,8 +322,9 @@
       {#if data.meta.totalPages > 1}
         <div class="flex flex-wrap items-center gap-3">
           {#if data.meta.page > 1}
+            {@const prevHref = `${resolve('/events')}?${buildEventsQuery({ page: String(data.meta.page - 1) })}`}
             <a
-              href={buildFilterUrl({ page: String(data.meta.page - 1) })}
+              href={prevHref}
               class="border-border bg-card text-foreground hover:bg-muted inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition"
             >
               Halaman Sebelumnya
@@ -325,8 +333,9 @@
 
           <div class="flex flex-wrap gap-2">
             {#each Array.from({ length: data.meta.totalPages }, (_, index) => index + 1) as pageNumber (pageNumber)}
+              {@const pageHref = `${resolve('/events')}?${buildEventsQuery({ page: String(pageNumber) })}`}
               <a
-                href={buildFilterUrl({ page: String(pageNumber) })}
+                href={pageHref}
                 class={cn(
                   'inline-flex size-11 items-center justify-center rounded-full border text-sm font-semibold transition',
                   data.meta.page === pageNumber
@@ -340,8 +349,9 @@
           </div>
 
           {#if data.meta.page < data.meta.totalPages}
+            {@const nextHref = `${resolve('/events')}?${buildEventsQuery({ page: String(data.meta.page + 1) })}`}
             <a
-              href={buildFilterUrl({ page: String(data.meta.page + 1) })}
+              href={nextHref}
               class="border-border bg-card text-foreground hover:bg-muted inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition"
             >
               Halaman Berikutnya

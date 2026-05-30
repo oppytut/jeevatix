@@ -32,11 +32,9 @@
   let countdownInterval: ReturnType<typeof setInterval> | null = null;
   let methodTouched = $state(false);
   let isSubmitting = $state(false);
-  let selectedMethod = $state('');
-
-  $effect(() => {
-    selectedMethod = form?.selectedMethod ?? data.order.payment.method ?? 'bank_transfer';
-  });
+  let selectedMethod = $derived(
+    form?.selectedMethod ?? data.order.payment.method ?? 'bank_transfer',
+  );
 
   const methodError = $derived(methodTouched && !selectedMethod ? 'Pilih metode pembayaran' : '');
 
