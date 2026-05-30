@@ -70,6 +70,10 @@ test.describe('Reservation Flow', () => {
 
     await expect(page.getByRole('button', { name: 'Reservasi Tiket' })).toBeVisible();
 
+    // Tier must be selected before quantity input is enabled and the submit
+    // button becomes clickable (per apps/buyer/src/routes/checkout/[slug]/+page.svelte:441).
+    await page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`).check({ force: true });
+
     const quantityInput = page.locator('input[name="quantity"]');
     if (await quantityInput.isVisible().catch(() => false)) {
       await quantityInput.fill('2');
