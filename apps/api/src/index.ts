@@ -1,11 +1,13 @@
 import { apiReference } from '@scalar/hono-api-reference';
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { withSentry } from '@sentry/cloudflare';
 
 import {
   buildHealthPayload,
   logUnhandledRequestError,
   observabilityMiddleware,
 } from './lib/observability';
+import { buildSentryOptions } from './lib/sentry';
 import { RateLimiter } from './durable-objects/rate-limiter';
 import { TicketReserver } from './durable-objects/ticket-reserver';
 import authRoutes from './routes/auth';
@@ -99,24 +101,47 @@ app.route('/tickets', ticketRoutes);
 app.route('/upload', uploadRoutes);
 app.route('/users', usersRoutes);
 
-const worker = Object.assign(app, {
-  async queue(
+type ApiWorker = {
+  fetch: typeof app.fetch;
+  queue: (
     batch: MessageBatch<ReservationCleanupMessage>,
     env: ReservationCleanupEnv,
     ctx: ExecutionContext,
-  ) {
-    await reservationCleanupQueueHandler(batch, env, ctx);
-  },
-
-  async scheduled(
+  ) => Promise<void>;
+  scheduled: (
     controller: ScheduledController,
     env: ReservationCleanupEnv,
     ctx: ExecutionContext,
-  ) {
-    ctx.waitUntil(enqueueReservationCleanup(env, controller.scheduledTime));
-  },
-});
+  ) => Promise<void>;
+};
 
-export default worker;
-export { app };
+async function queueHandler(
+  batch: MessageBatch<ReservationCleanupMessage>,
+  env: ReservationCleanupEnv,
+  ctx: ExecutionContext,
+) {
+  await reservationCleanupQueueHandler(batch, env, ctx);
+}
+
+async function scheduledHandler(
+  controller: ScheduledController,
+  env: ReservationCleanupEnv,
+  ctx: ExecutionContext,
+) {
+  ctx.waitUntil(enqueueReservationCleanup(env, controller.scheduledTime));
+}
+
+const worker: ApiWorker = {
+  fetch: app.fetch,
+  queue: queueHandler,
+  scheduled: scheduledHandler,
+};
+
+const wrappedWorker = withSentry(
+  (env: AuthEnv['Bindings']) => buildSentryOptions(env) ?? undefined,
+  worker as unknown as ExportedHandler<AuthEnv['Bindings']>,
+) as unknown as ApiWorker;
+
+export default wrappedWorker;
+export { app, queueHandler, scheduledHandler };
 export { RateLimiter, TicketReserver };

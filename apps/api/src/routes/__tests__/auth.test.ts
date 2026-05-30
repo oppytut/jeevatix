@@ -3,7 +3,7 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { inArray, like } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import app from '../../index';
+import { app } from '../../index';
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
 import { resetRateLimitState } from '../../middleware/rate-limit';
 

@@ -30,6 +30,8 @@ type AuthBindings = {
   CORS_ALLOWED_ORIGINS?: string;
   AUTH_EXPOSE_DEBUG_TOKENS?: string;
   PLAYWRIGHT_E2E?: string;
+  SENTRY_DSN?: string;
+  SENTRY_TRACES_SAMPLE_RATE?: string;
 };
 
 export type AuthUser = Pick<TokenPayload, 'id' | 'email' | 'role'>;

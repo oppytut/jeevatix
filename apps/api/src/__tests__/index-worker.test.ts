@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import worker from '../index';
+import { queueHandler, scheduledHandler } from '../index';
 import type { ReservationCleanupMessage } from '../queues/reservation-cleanup';
 import { createTransactionTestContext } from './transaction-test-helpers';
 
@@ -17,7 +17,7 @@ describe('api worker wrappers', () => {
   it('forwards queue batches to the reservation cleanup handler', async () => {
     const ackAll = vi.fn();
 
-    await worker.queue?.(
+    await queueHandler(
       {
         messages: [{ body: { action: 'other-action' } as unknown as ReservationCleanupMessage }],
         ackAll,
@@ -33,7 +33,7 @@ describe('api worker wrappers', () => {
     const send = vi.fn(async () => undefined);
     const waitUntil = vi.fn(async (promise: Promise<unknown>) => promise);
 
-    await worker.scheduled?.(
+    await scheduledHandler(
       {
         scheduledTime: 1_775_560_000_000,
       } as ScheduledController,

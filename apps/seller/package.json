@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@jeevatix/ui": "workspace:*",
+    "@sentry/sveltekit": "^10.55.0",
     "jsqr": "^1.4.0"
   },
   "devDependencies": {

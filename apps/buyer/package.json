@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@jeevatix/ui": "workspace:*",
+    "@sentry/sveltekit": "^10.55.0",
     "partysocket": "^1.1.16",
     "qrcode": "^1.5.4"
   },

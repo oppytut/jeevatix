@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import app from '../index';
+import { app } from '../index';
 import { UploadServiceError, uploadService } from '../services/upload.service';
 import { createTransactionTestContext } from './transaction-test-helpers';
 

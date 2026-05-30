@@ -1,0 +1,39 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "settings": {
+        "preset": "desktop",
+        "chromeFlags": "--no-sandbox --headless=new --disable-gpu --disable-dev-shm-usage",
+        "skipAudits": [
+          "is-on-https",
+          "uses-http2",
+          "redirects-http",
+          "canonical"
+        ]
+      },
+      "url": [
+        "https://jeevatix-staging-buyer.ariefna95.workers.dev/",
+        "https://jeevatix-staging-buyer.ariefna95.workers.dev/events",
+        "https://jeevatix-staging-buyer.ariefna95.workers.dev/login",
+        "https://jeevatix-staging-seller.ariefna95.workers.dev/login",
+        "https://jeevatix-staging-admin.ariefna95.workers.dev/login"
+      ]
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["warn", { "minScore": 0.7 }],
+        "categories:accessibility": ["error", { "minScore": 0.85 }],
+        "categories:best-practices": ["warn", { "minScore": 0.85 }],
+        "categories:seo": ["warn", { "minScore": 0.85 }],
+        "uses-text-compression": "off",
+        "render-blocking-resources": "off",
+        "unused-javascript": "off",
+        "unused-css-rules": "off"
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}
