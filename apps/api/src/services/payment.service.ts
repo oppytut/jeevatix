@@ -2,8 +2,10 @@ import { getDb, schema } from '@jeevatix/core';
 import { and, eq } from 'drizzle-orm';
 
 import {
+  buildETicketEmail,
   buildOrderConfirmationEmail,
   createEmailService,
+  type ETicketItem,
   type OrderConfirmationItem,
 } from './email';
 import { logErrorWithContext } from '../lib/observability';
@@ -54,6 +56,7 @@ type SuccessfulPaymentFulfillmentPayload = {
   eventId: string;
   eventTitle: string;
   items: OrderConfirmationItem[];
+  tierNameByTierId: Record<string, string>;
 };
 
 export class PaymentServiceError extends Error {
@@ -325,6 +328,7 @@ async function sendNotification(
 async function enqueuePostPaymentEffects(
   env: PaymentServiceEnv,
   payload: SuccessfulPaymentFulfillmentPayload,
+  eTicketItems: ETicketItem[],
 ) {
   const databaseUrl = resolveDatabaseUrl(env);
   const emailService = createEmailService({
@@ -337,6 +341,7 @@ async function enqueuePostPaymentEffects(
     payload.orderNumber,
     payload.items,
   );
+  const eTicketEmail = buildETicketEmail(payload.buyerName, eTicketItems);
 
   await Promise.allSettled([
     sendNotification(
@@ -364,6 +369,7 @@ async function enqueuePostPaymentEffects(
       databaseUrl,
     ),
     emailService.sendEmail(payload.buyerEmail, orderEmail.subject, orderEmail.html),
+    emailService.sendEmail(payload.buyerEmail, eTicketEmail.subject, eTicketEmail.html),
   ]);
 }
 
@@ -385,6 +391,7 @@ async function loadSuccessfulPaymentFulfillmentPayload(orderId: string, database
       },
       orderItems: {
         columns: {
+          ticketTierId: true,
           quantity: true,
           unitPrice: true,
         },
@@ -436,6 +443,11 @@ async function loadSuccessfulPaymentFulfillmentPayload(orderId: string, database
         quantity: item.quantity,
         price: Number(item.unitPrice),
       })),
+    tierNameByTierId: Object.fromEntries(
+      order.orderItems
+        .filter((item) => item.ticketTier)
+        .map((item) => [item.ticketTierId, item.ticketTier!.name]),
+    ),
   } satisfies SuccessfulPaymentFulfillmentPayload;
 }
 
@@ -445,8 +457,15 @@ async function fulfillSuccessfulPayment(
   databaseUrl?: string,
 ) {
   const fulfillmentPayload = await loadSuccessfulPaymentFulfillmentPayload(orderId, databaseUrl);
-  await generateTickets(orderId, databaseUrl);
-  await enqueuePostPaymentEffects(env, fulfillmentPayload);
+  const issuedTickets = await generateTickets(orderId, databaseUrl);
+
+  const eTicketItems: ETicketItem[] = issuedTickets.map((ticket) => ({
+    code: ticket.ticket_code,
+    event_name: fulfillmentPayload.eventTitle,
+    tier_name: fulfillmentPayload.tierNameByTierId[ticket.ticket_tier_id],
+  }));
+
+  await enqueuePostPaymentEffects(env, fulfillmentPayload, eTicketItems);
 }
 
 export const paymentService = {

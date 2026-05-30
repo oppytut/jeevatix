@@ -7,6 +7,8 @@ import type {
   AdminPaymentListQuery,
   UpdateAdminPaymentStatusInput,
 } from '../schemas/admin.schema';
+import { buildETicketEmail, createEmailService, type ETicketItem } from './email';
+import { logErrorWithContext } from '../lib/observability';
 import { notificationService } from './notification.service';
 import {
   confirmReservation,
@@ -22,6 +24,9 @@ type AdminPaymentServiceEnv = {
   DATABASE_URL?: string;
   Hyperdrive?: Hyperdrive;
   TICKET_RESERVER?: DurableObjectNamespace;
+  EMAIL_API_KEY?: string;
+  EMAIL_FROM?: string;
+  EMAIL_DRY_RUN?: string;
 };
 
 export class AdminPaymentServiceError extends Error {
@@ -494,6 +499,39 @@ export const adminPaymentService = {
 
       if (payment.order.tickets.length === 0) {
         await generateTickets(payment.orderId, resolveDatabaseUrl(env));
+      }
+
+      try {
+        const databaseUrl = resolveDatabaseUrl(env);
+        const db = getDatabase(databaseUrl);
+        const issuedTickets = await db.query.tickets.findMany({
+          where: eq(tickets.orderId, payment.orderId),
+          columns: { ticketCode: true, ticketTierId: true },
+          with: { ticketTier: { columns: { name: true } } },
+        });
+
+        if (issuedTickets.length > 0) {
+          const eTicketItems: ETicketItem[] = issuedTickets.map((t) => ({
+            code: t.ticketCode,
+            event_name: primaryEvent?.title ?? 'Event Jeevatix',
+            tier_name: t.ticketTier?.name,
+          }));
+          const eTicketEmail = buildETicketEmail(payment.order.user.fullName, eTicketItems);
+          const emailService = createEmailService({
+            EMAIL_API_KEY: env.EMAIL_API_KEY,
+            EMAIL_FROM: env.EMAIL_FROM,
+            EMAIL_DRY_RUN: env.EMAIL_DRY_RUN,
+          });
+          await emailService.sendEmail(
+            payment.order.user.email,
+            eTicketEmail.subject,
+            eTicketEmail.html,
+          );
+        }
+      } catch (error) {
+        logErrorWithContext('admin_payment.eticket_email_failed', error, {
+          order_id: payment.orderId,
+        });
       }
 
       await Promise.all([

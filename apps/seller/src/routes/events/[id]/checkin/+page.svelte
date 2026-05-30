@@ -2,17 +2,19 @@
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import {
     ArrowLeft,
     CheckCircle2,
     CircleAlert,
     CircleX,
+    Keyboard,
     LoaderCircle,
     QrCode,
     RefreshCw,
     TicketCheck,
     UserRound,
+    Video,
   } from '@lucide/svelte';
   import { Button, Card, EmptyState, Input, Toast } from '@jeevatix/ui';
 
@@ -67,6 +69,23 @@
   let pageError = $state('');
   let result = $state<CheckinResult | null>(null);
   let toast = $state<ToastState | null>(null);
+
+  // Scanner mode state
+  type ScannerMode = 'manual' | 'camera';
+  let scannerMode = $state<ScannerMode>('manual');
+  let videoElement = $state<HTMLVideoElement | null>(null);
+  let canvasElement = $state<HTMLCanvasElement | null>(null);
+  let mediaStream = $state<MediaStream | null>(null);
+  let scanningActive = $state(false);
+  let cameraError = $state('');
+  let animationFrameId = $state<number | null>(null);
+
+  $effect(() => {
+    if (scannerMode === 'manual') {
+      const input = document.getElementById('ticket-code') as HTMLInputElement | null;
+      input?.focus();
+    }
+  });
 
   function setToast(nextToast: ToastState) {
     toast = nextToast;
@@ -156,8 +175,9 @@
     }
   }
 
-  async function submitCheckin() {
-    if (!ticketCode.trim() || isSubmitting) {
+  async function submitCheckin(code?: string) {
+    const codeToSubmit = code ?? ticketCode;
+    if (!codeToSubmit.trim() || isSubmitting) {
       return;
     }
 
@@ -166,15 +186,29 @@
 
     try {
       result = await apiPost<CheckinResult>(`/seller/events/${eventId}/checkin`, {
-        ticket_code: ticketCode.trim().toUpperCase(),
+        ticket_code: codeToSubmit.trim().toUpperCase(),
       });
 
+      // Haptic feedback based on result
       if (result.status === 'SUCCESS') {
+        navigator.vibrate?.(200);
         ticketCode = '';
+        // Re-focus input after success
+        if (scannerMode === 'manual') {
+          setTimeout(() => {
+            const input = document.getElementById('ticket-code') as HTMLInputElement | null;
+            input?.focus();
+          }, 100);
+        }
+      } else if (result.status === 'ALREADY_USED') {
+        navigator.vibrate?.([100, 50, 100]);
+      } else {
+        navigator.vibrate?.([300, 100, 300]);
       }
 
       await loadStats(true);
     } catch (error) {
+      navigator.vibrate?.([300, 100, 300]);
       setToast({
         title: 'Gagal memproses check-in',
         description:
@@ -187,6 +221,100 @@
   }
 
   const progress = $derived(stats ? Math.max(0, Math.min(100, stats.percentage)) : 0);
+
+  async function startCamera() {
+    cameraError = '';
+    scanningActive = false;
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
+      mediaStream = stream;
+
+      if (videoElement) {
+        videoElement.srcObject = stream;
+        await videoElement.play();
+        scanningActive = true;
+        startQRScanning();
+      }
+    } catch (error) {
+      cameraError = 'Izinkan akses kamera untuk scan QR';
+      console.error('Camera access error:', error);
+    }
+  }
+
+  function stopCamera() {
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
+    }
+
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+      mediaStream = null;
+    }
+
+    if (videoElement) {
+      videoElement.srcObject = null;
+    }
+
+    scanningActive = false;
+    cameraError = '';
+  }
+
+  async function startQRScanning() {
+    if (!videoElement || !canvasElement || !scanningActive) {
+      return;
+    }
+
+    const jsQR = (await import('jsqr')).default;
+    const canvas = canvasElement;
+    const video = videoElement;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (!context) {
+      return;
+    }
+
+    function tick() {
+      if (!scanningActive || !video || video.readyState !== video.HAVE_ENOUGH_DATA || !context) {
+        animationFrameId = requestAnimationFrame(tick);
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'dontInvert',
+      });
+
+      if (code && code.data && !isSubmitting) {
+        void submitCheckin(code.data);
+      }
+
+      animationFrameId = requestAnimationFrame(tick);
+    }
+
+    animationFrameId = requestAnimationFrame(tick);
+  }
+
+  function switchToManual() {
+    stopCamera();
+    scannerMode = 'manual';
+    setTimeout(() => {
+      const input = document.getElementById('ticket-code') as HTMLInputElement | null;
+      input?.focus();
+    }, 100);
+  }
+
+  function switchToCamera() {
+    scannerMode = 'camera';
+    void startCamera();
+  }
 
   onMount(() => {
     let intervalId: number | undefined;
@@ -202,6 +330,10 @@
         window.clearInterval(intervalId);
       }
     };
+  });
+
+  onDestroy(() => {
+    stopCamera();
   });
 </script>
 
@@ -294,37 +426,100 @@
           </div>
         </div>
 
-        <form
-          class="mt-8 space-y-4"
-          onsubmit={(event) => {
-            event.preventDefault();
-            void submitCheckin();
-          }}
-        >
-          <div class="space-y-2">
-            <label class="text-foreground text-sm font-medium" for="ticket-code">Ticket Code</label>
-            <Input
-              id="ticket-code"
-              bind:value={ticketCode}
-              placeholder="Contoh: JVX-AB12CD34EF56"
-              autocomplete="off"
-              class="border-border h-16 rounded-[1.4rem] px-5 font-mono text-lg tracking-[0.12em] uppercase"
-            />
-          </div>
-
+        <!-- Mode Toggle -->
+        <div class="mt-6 flex gap-2">
           <Button
-            class="h-14 w-full rounded-[1.4rem] text-base"
-            type="submit"
-            disabled={isSubmitting || !ticketCode.trim()}
+            variant={scannerMode === 'manual' ? 'default' : 'outline'}
+            size="default"
+            type="button"
+            onclick={switchToManual}
+            class="flex-1"
           >
-            {#if isSubmitting}
-              <LoaderCircle class="mr-2 size-4 animate-spin" />
-            {:else}
-              <TicketCheck class="mr-2 size-4" />
-            {/if}
-            Check-in
+            <Keyboard class="mr-2 size-4" />
+            Manual
           </Button>
-        </form>
+          <Button
+            variant={scannerMode === 'camera' ? 'default' : 'outline'}
+            size="default"
+            type="button"
+            onclick={switchToCamera}
+            class="flex-1"
+          >
+            <Video class="mr-2 size-4" />
+            Kamera
+          </Button>
+        </div>
+
+        {#if scannerMode === 'manual'}
+          <form
+            class="mt-6 space-y-4"
+            onsubmit={(event) => {
+              event.preventDefault();
+              void submitCheckin();
+            }}
+          >
+            <div class="space-y-2">
+              <label class="text-foreground text-sm font-medium" for="ticket-code"
+                >Ticket Code</label
+              >
+              <Input
+                id="ticket-code"
+                bind:value={ticketCode}
+                placeholder="Contoh: JVX-AB12CD34EF56"
+                autocomplete="off"
+                class="border-border h-16 rounded-[1.4rem] px-5 font-mono text-lg tracking-[0.12em] uppercase"
+              />
+            </div>
+
+            <Button
+              class="h-14 w-full rounded-[1.4rem] text-base"
+              type="submit"
+              disabled={isSubmitting || !ticketCode.trim()}
+            >
+              {#if isSubmitting}
+                <LoaderCircle class="mr-2 size-4 animate-spin" />
+              {:else}
+                <TicketCheck class="mr-2 size-4" />
+              {/if}
+              Check-in
+            </Button>
+          </form>
+        {:else}
+          <div class="mt-6 space-y-4">
+            {#if cameraError}
+              <div
+                class="bg-card relative flex aspect-[4/3] max-w-md mx-auto items-center justify-center overflow-hidden rounded-2xl border-2 border-rose-200 bg-rose-50"
+              >
+                <div class="text-center p-6">
+                  <Video class="mx-auto size-12 text-rose-600 mb-3" />
+                  <p class="text-rose-900 font-medium">{cameraError}</p>
+                </div>
+              </div>
+            {:else}
+              <div class="relative mx-auto max-w-md">
+                <video
+                  bind:this={videoElement}
+                  class="aspect-[4/3] w-full rounded-2xl bg-black"
+                  playsinline
+                  muted
+                ></video>
+                <canvas bind:this={canvasElement} class="hidden"></canvas>
+                {#if scanningActive}
+                  <div
+                    class="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  >
+                    <div
+                      class="h-1 w-3/4 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-pulse"
+                    ></div>
+                  </div>
+                {/if}
+              </div>
+            {/if}
+            <p class="text-muted-foreground text-center text-sm">
+              Arahkan kamera ke QR code tiket untuk scan otomatis
+            </p>
+          </div>
+        {/if}
       </Card>
 
       {#if result}

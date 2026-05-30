@@ -4,7 +4,7 @@
   import { resolve } from '$app/paths';
   import { ArrowLeft, Download, MapPin, QrCode, Ticket, TicketCheck } from '@lucide/svelte';
 
-  import { Button, Card } from '@jeevatix/ui';
+  import { Button, Card, StatusBadge } from '@jeevatix/ui';
 
   import type { BuyerTicketDetail } from '$lib/api';
   import { formatEventDateRange, formatLongDateTime } from '$lib/utils';
@@ -18,16 +18,18 @@
   let qrImageUrl = $state('');
   let qrError = $state('');
 
-  function getStatusTone(status: BuyerTicketDetail['status']) {
+  function getStatusVariant(status: BuyerTicketDetail['status']) {
     switch (status) {
+      case 'valid':
+        return 'success';
       case 'used':
-        return 'bg-muted text-foreground';
+        return 'neutral';
       case 'cancelled':
-        return 'bg-rose-100 text-rose-700';
+        return 'error';
       case 'refunded':
-        return 'bg-sky-100 text-sky-700';
+        return 'info';
       default:
-        return 'bg-emerald-100 text-emerald-700';
+        return 'neutral';
     }
   }
 
@@ -125,14 +127,14 @@
 
       <div class="grid gap-3 sm:grid-cols-2">
         <div class="bg-card/80 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
-          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
-            Status
-          </p>
-          <p
-            class={`mt-2 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusTone(data.ticket.status)}`}
-          >
-            {data.ticket.status}
-          </p>
+           <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+             Status
+           </p>
+           <StatusBadge
+             variant={getStatusVariant(data.ticket.status)}
+             label={data.ticket.status.toUpperCase()}
+             class="mt-2"
+           />
         </div>
         <div class="bg-card/80 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
           <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
