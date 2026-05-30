@@ -9,6 +9,7 @@ import type {
 } from '../schemas/order.schema';
 import { logErrorWithContext } from '../lib/observability';
 import { resolveDatabaseUrl } from '../lib/database-url';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 import {
   cacheReservationTicketTier,
   OrderReservationServiceError,
@@ -701,6 +702,17 @@ export const orderService = {
       },
       steps,
     );
+
+    recordBusinessEvent('order.created', {
+      order_id: createdOrder.order.id,
+      order_number: createdOrder.order.orderNumber,
+      reservation_id: createdOrder.reservation.id,
+      event_id: createdOrder.reservation.eventId,
+      ticket_tier_id: createdOrder.reservation.ticketTierId,
+      quantity: createdOrder.orderItem.quantity,
+      total_amount: createdOrder.order.totalAmount,
+      payment_method: createdOrder.payment.method,
+    });
 
     return buildCreatedOrderDetail({
       order: createdOrder.order,

@@ -39,6 +39,25 @@ const sentryInit: Handle | null = sentryDsn
     })
   : null;
 
+function deriveFeatureArea(routeId: string | null): string {
+  if (!routeId) return 'unknown';
+  if (
+    routeId.startsWith('/login') ||
+    routeId.startsWith('/forgot-password') ||
+    routeId.startsWith('/reset-password') ||
+    routeId.startsWith('/logout')
+  )
+    return 'auth';
+  if (routeId.startsWith('/orders')) return 'orders';
+  if (routeId.startsWith('/payments')) return 'payments';
+  if (routeId.startsWith('/reservations')) return 'reservations';
+  if (routeId.startsWith('/events') || routeId.startsWith('/categories')) return 'events';
+  if (routeId.startsWith('/users') || routeId.startsWith('/dashboard')) return 'admin';
+  if (routeId.startsWith('/notifications')) return 'notifications';
+  if (routeId.startsWith('/session')) return 'infra';
+  return 'home';
+}
+
 const adminHandle: Handle = async ({ event, resolve }) => {
   setApiBinding(event.platform?.env?.Api);
 
@@ -46,7 +65,34 @@ const adminHandle: Handle = async ({ event, resolve }) => {
   event.locals.adminRefreshToken = event.cookies.get(ADMIN_REFRESH_TOKEN_COOKIE) ?? null;
   event.locals.currentUser = parseStoredUserCookie(event.cookies.get(ADMIN_USER_COOKIE));
 
-  return resolve(event);
+  if (sentryDsn) {
+    try {
+      Sentry.setTag('portal', 'admin');
+      Sentry.setTag('route', event.route.id ?? event.url.pathname);
+      Sentry.setTag('feature_area', deriveFeatureArea(event.route.id));
+      const appVersion = getEnv('APP_VERSION');
+      if (appVersion) Sentry.setTag('app_version', appVersion);
+    } catch {
+      // Defense in depth: never let observability instrumentation break the request.
+    }
+
+    if (event.locals.currentUser) {
+      Sentry.setUser({
+        id: event.locals.currentUser.id,
+        segment: event.locals.currentUser.role,
+      });
+      Sentry.setTag('user.role', event.locals.currentUser.role);
+    }
+  }
+
+  try {
+    return await resolve(event);
+  } finally {
+    if (sentryDsn) {
+      // Clear user context to prevent leaking across requests on a single Worker isolate.
+      Sentry.setUser(null);
+    }
+  }
 };
 
 export const handle = sentryInit

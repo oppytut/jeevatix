@@ -1,4 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import { sign, verify } from 'hono/jwt';
 
@@ -408,6 +409,8 @@ export const authService = {
         sendVerificationEmail(result.user, result.verifyEmailToken, options),
       );
 
+      recordBusinessEvent('user.registered', { role: 'buyer' });
+
       return shouldExposeDebugTokens(options)
         ? {
             ...result.auth,
@@ -484,6 +487,8 @@ export const authService = {
       scheduleBackgroundTask(options, 'register-seller.verify-email', () =>
         sendVerificationEmail(result.user, result.verifyEmailToken, options),
       );
+
+      recordBusinessEvent('user.registered', { role: 'seller' });
 
       return shouldExposeDebugTokens(options)
         ? {

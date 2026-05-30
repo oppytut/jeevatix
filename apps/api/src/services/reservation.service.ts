@@ -10,6 +10,7 @@ import type {
 } from '../schemas/reservation.schema';
 import type { AdminReservationItem, AdminReservationListQuery } from '../schemas/admin.schema';
 import { resolveDatabaseUrl } from '../lib/database-url';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 
 const { events, orderItems, orders, reservations, ticketTiers, users } = schema;
 
@@ -621,6 +622,19 @@ export const reservationService = {
       steps,
     );
 
+    recordBusinessEvent('reservation.created', {
+      reservation_id: result.reservation_id,
+      ticket_tier_id: input.ticket_tier_id,
+      quantity: input.quantity,
+      expires_at: result.expires_at,
+    });
+
+    recordBusinessEvent('ticket.reserved', {
+      reservation_id: result.reservation_id,
+      ticket_tier_id: input.ticket_tier_id,
+      qty: input.quantity,
+    });
+
     return {
       reservation_id: result.reservation_id,
       expires_at: result.expires_at,
@@ -848,6 +862,11 @@ export const reservationService = {
         result.message ?? 'Unable to cancel reservation.',
       );
     }
+
+    recordBusinessEvent('reservation.cancelled', {
+      reservation_id: result.reservation_id,
+      status: result.status,
+    });
 
     return {
       reservation_id: result.reservation_id,

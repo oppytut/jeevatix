@@ -8,6 +8,7 @@ import {
   sensitiveAuthRateLimitMiddleware,
   verifyEmailRateLimitMiddleware,
 } from '../middleware/rate-limit';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 import {
   authResponseSchema,
   errorResponseSchema,
@@ -726,6 +727,7 @@ app.openapi(loginRoute, async (c) => {
 
     const body = c.req.valid('json');
     const result = await authService.login(body, secret, resolveDatabaseUrl(c.env));
+    recordBusinessEvent('auth.login', { user_id: result.user.id, role: result.user.role });
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;
@@ -742,6 +744,7 @@ app.openapi(refreshRoute, async (c) => {
 
     const body = c.req.valid('json');
     const result = await authService.refresh(body, secret, resolveDatabaseUrl(c.env));
+    recordBusinessEvent('auth.refresh', { user_id: result.user.id, role: result.user.role });
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;
@@ -811,6 +814,7 @@ app.openapi(logoutRoute, async (c) => {
 
     const body = c.req.valid('json');
     const result = await authService.logout(body.refresh_token, secret, resolveDatabaseUrl(c.env));
+    recordBusinessEvent('auth.logout', { user_id: c.var.user?.id });
     return c.json({ success: true, data: result }, 200);
   } catch (error) {
     return handleError(c, error) as never;

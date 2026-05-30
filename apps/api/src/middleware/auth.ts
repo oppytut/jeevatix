@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/cloudflare';
 import { createMiddleware } from 'hono/factory';
 
 import {
@@ -229,7 +230,15 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
       role: payload.role,
     });
 
-    await next();
+    Sentry.setUser({ id: payload.id, segment: payload.role });
+    Sentry.setTag('user.role', payload.role);
+
+    try {
+      await next();
+    } finally {
+      // Clear user context to prevent leaking across requests on a single Worker isolate.
+      Sentry.setUser(null);
+    }
 
     if (profile.enabled) {
       logTimedSteps(

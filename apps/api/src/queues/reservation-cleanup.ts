@@ -2,6 +2,7 @@ import { getDb, schema } from '@jeevatix/core';
 import { and, eq, gt, gte, lte, sql } from 'drizzle-orm';
 
 import { resolveDatabaseUrl } from '../lib/database-url';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 import { notificationService } from '../services/notification.service';
 
 const { events, notifications, orderItems, orders, reservations, ticketTiers } = schema;
@@ -265,6 +266,12 @@ export async function cleanupExpiredReservations(env: ReservationCleanupEnv) {
       const result = await expireReservation(env, reservation.id, reservation.ticketTierId);
 
       if (result.status === 'expired') {
+        recordBusinessEvent('reservation.expired', {
+          reservation_id: reservation.id,
+          event_id: reservation.ticketTier.event?.id ?? null,
+          expires_at: reservation.expiresAt.toISOString(),
+        });
+
         await notificationService.sendNotification(
           reservation.userId,
           'info',
@@ -282,6 +289,13 @@ export async function cleanupExpiredReservations(env: ReservationCleanupEnv) {
       return result;
     }),
   );
+
+  recordBusinessEvent('reservation.cleanup_processed', {
+    payment_reminders: paymentReminderCount,
+    event_reminders: eventReminderCount,
+    processed: results.filter((result) => result.status === 'expired').length,
+    skipped: results.filter((result) => result.status !== 'expired').length,
+  });
 
   return {
     payment_reminders: paymentReminderCount,
