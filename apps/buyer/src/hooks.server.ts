@@ -39,6 +39,18 @@ const sentryInit: Handle | null = sentryDsn
     })
   : null;
 
+function deriveFeatureArea(routeId: string | null): string {
+  if (!routeId) return 'unknown';
+  if (routeId.startsWith('/login') || routeId.startsWith('/register') || routeId.startsWith('/forgot-password') || routeId.startsWith('/reset-password') || routeId.startsWith('/verify-email') || routeId.startsWith('/logout') || routeId.startsWith('/profile')) return 'auth';
+  if (routeId.startsWith('/orders')) return 'orders';
+  if (routeId.startsWith('/checkout') || routeId.startsWith('/payment')) return 'payments';
+  if (routeId.startsWith('/tickets')) return 'tickets';
+  if (routeId.startsWith('/events')) return 'events';
+  if (routeId.startsWith('/notifications')) return 'notifications';
+  if (routeId.startsWith('/sitemap') || routeId.startsWith('/robots') || routeId.startsWith('/session')) return 'infra';
+  return 'home';
+}
+
 const buyerHandle: Handle = async ({ event, resolve }) => {
   setApiBinding(event.platform?.env?.Api);
 
@@ -46,8 +58,20 @@ const buyerHandle: Handle = async ({ event, resolve }) => {
   event.locals.buyerRefreshToken = event.cookies.get(BUYER_REFRESH_TOKEN_COOKIE) ?? null;
   event.locals.currentUser = parseStoredUserCookie(event.cookies.get(BUYER_USER_COOKIE));
 
-  if (sentryDsn && event.locals.currentUser) {
-    Sentry.setUser({ id: event.locals.currentUser.id });
+  if (sentryDsn) {
+    try {
+      Sentry.setTag('portal', 'buyer');
+      Sentry.setTag('route', event.route.id ?? event.url.pathname);
+      Sentry.setTag('feature_area', deriveFeatureArea(event.route.id));
+      const appVersion = getEnv('APP_VERSION');
+      if (appVersion) Sentry.setTag('app_version', appVersion);
+    } catch {
+      // Defense in depth: never let observability instrumentation break the request.
+    }
+
+    if (event.locals.currentUser) {
+      Sentry.setUser({ id: event.locals.currentUser.id });
+    }
   }
 
   try {
