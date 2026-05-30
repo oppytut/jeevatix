@@ -8,6 +8,7 @@ import {
   observabilityMiddleware,
 } from './lib/observability';
 import { buildSentryOptions } from './lib/sentry';
+import { sentryTagsMiddleware } from './lib/sentry-context';
 import { RateLimiter } from './durable-objects/rate-limiter';
 import { TicketReserver } from './durable-objects/ticket-reserver';
 import authRoutes from './routes/auth';
@@ -53,6 +54,7 @@ function jsonError(code: string, message: string) {
 }
 
 app.use('*', observabilityMiddleware);
+app.use('*', sentryTagsMiddleware);
 app.use('*', corsMiddleware);
 
 app.onError((error, c) => {
