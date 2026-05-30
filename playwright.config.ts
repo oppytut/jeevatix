@@ -6,19 +6,13 @@ const useStaging = e2eTarget === 'staging';
 
 const buyerURL =
   process.env.E2E_BUYER_URL ??
-  (useStaging
-    ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
-    : 'http://localhost:4301');
+  (useStaging ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev' : 'http://localhost:4301');
 const adminURL =
   process.env.E2E_ADMIN_URL ??
-  (useStaging
-    ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
-    : 'http://localhost:4302');
+  (useStaging ? 'https://jeevatix-staging-admin.ariefna95.workers.dev' : 'http://localhost:4302');
 const sellerURL =
   process.env.E2E_SELLER_URL ??
-  (useStaging
-    ? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
-    : 'http://localhost:4303');
+  (useStaging ? 'https://jeevatix-staging-seller.ariefna95.workers.dev' : 'http://localhost:4303');
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -171,6 +165,14 @@ export default defineConfig({
         baseURL: sellerURL,
       },
       testMatch: /seller\/.*\.spec\.ts/,
+    },
+    {
+      name: 'tier3',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: buyerURL,
+      },
+      testMatch: /tier3\/.*\.spec\.ts/,
     },
   ],
   webServer: useStaging
