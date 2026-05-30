@@ -20,7 +20,7 @@ test.describe('Tier 3 — admin moderation gates public visibility', () => {
     request,
   }) => {
     const seller = await withRetry(() => createSellerViaApi(request));
-    const sellerSession = await loginApi(request, seller.email, seller.password);
+    const sellerSession = await withRetry(() => loginApi(request, seller.email, seller.password));
     const event = await createEventViaSellerApi(
       request,
       sellerSession.access_token,
@@ -55,7 +55,7 @@ test.describe('Tier 3 — admin moderation gates public visibility', () => {
 
   test('rejected event remains hidden from public buyer endpoints', async ({ request }) => {
     const seller = await withRetry(() => createSellerViaApi(request));
-    const sellerSession = await loginApi(request, seller.email, seller.password);
+    const sellerSession = await withRetry(() => loginApi(request, seller.email, seller.password));
     const event = await createEventViaSellerApi(
       request,
       sellerSession.access_token,
@@ -71,7 +71,7 @@ test.describe('Tier 3 — admin moderation gates public visibility', () => {
     expect(publicResponse.ok()).toBe(false);
     expect([403, 404]).toContain(publicResponse.status());
 
-    const adminSession = await loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD);
+    const adminSession = await withRetry(() => loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD));
     const adminDetail = await request.get(`${API_URL}/admin/events/${event.id}`, {
       headers: {
         Authorization: `Bearer ${adminSession.access_token}`,
@@ -87,7 +87,7 @@ test.describe('Tier 3 — admin moderation gates public visibility', () => {
     request,
   }) => {
     const seller = await withRetry(() => createSellerViaApi(request));
-    const sellerSession = await loginApi(request, seller.email, seller.password);
+    const sellerSession = await withRetry(() => loginApi(request, seller.email, seller.password));
     const event = await createEventViaSellerApi(
       request,
       sellerSession.access_token,
@@ -110,7 +110,7 @@ test.describe('Tier 3 — admin moderation gates public visibility', () => {
     request,
   }) => {
     const seller = await withRetry(() => createSellerViaApi(request));
-    const sellerSession = await loginApi(request, seller.email, seller.password);
+    const sellerSession = await withRetry(() => loginApi(request, seller.email, seller.password));
 
     const events = await Promise.all([
       createEventViaSellerApi(request, sellerSession.access_token, 'Tier3 Bulk Approve'),
@@ -137,7 +137,7 @@ test.describe('Tier 3 — admin moderation gates public visibility', () => {
     expect([403, 404]).toContain(checks[1]!.status());
     expect([403, 404]).toContain(checks[2]!.status());
 
-    const adminSession = await loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD);
+    const adminSession = await withRetry(() => loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD));
     for (const event of events) {
       const adminDetail = await request.get(`${API_URL}/admin/events/${event.id}`, {
         headers: {

@@ -154,7 +154,9 @@ test.describe('Tier 3 — reservation lifecycle (expiry, cancel, ownership)', ()
     expect(strangerDelete.ok()).toBe(false);
     expect([403, 404]).toContain(strangerDelete.status());
 
-    const ownerSession = await loginApi(request, owner.buyer.email, owner.buyer.password);
+    const ownerSession = await withRetry(() =>
+      loginApi(request, owner.buyer.email, owner.buyer.password),
+    );
     const ownerGet = await request.get(`${API_URL}/reservations/${reserve.reservation_id}`, {
       headers: {
         Authorization: `Bearer ${ownerSession.access_token}`,

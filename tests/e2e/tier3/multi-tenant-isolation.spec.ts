@@ -21,15 +21,17 @@ test.describe('Tier 3 — multi-tenant isolation across roles', () => {
     request,
   }) => {
     const sellerA = await withRetry(() => createSellerViaApi(request));
-    const sellerASession = await loginApi(request, sellerA.email, sellerA.password);
-    const sellerAEvent = await createEventViaSellerApi(
-      request,
-      sellerASession.access_token,
-      'Tier3 Seller A Private',
+    const sellerASession = await withRetry(() =>
+      loginApi(request, sellerA.email, sellerA.password),
+    );
+    const sellerAEvent = await withRetry(() =>
+      createEventViaSellerApi(request, sellerASession.access_token, 'Tier3 Seller A Private'),
     );
 
     const sellerB = await withRetry(() => createSellerViaApi(request));
-    const sellerBSession = await loginApi(request, sellerB.email, sellerB.password);
+    const sellerBSession = await withRetry(() =>
+      loginApi(request, sellerB.email, sellerB.password),
+    );
 
     const crossReadResponse = await request.get(`${API_URL}/seller/events/${sellerAEvent.id}`, {
       headers: {
@@ -79,7 +81,9 @@ test.describe('Tier 3 — multi-tenant isolation across roles', () => {
     expect(ownerListResponse.ok()).toBeTruthy();
 
     const otherSeller = await withRetry(() => createSellerViaApi(request));
-    const otherSellerSession = await loginApi(request, otherSeller.email, otherSeller.password);
+    const otherSellerSession = await withRetry(() =>
+      loginApi(request, otherSeller.email, otherSeller.password),
+    );
 
     const otherSellerDetailResponse = await request.get(
       `${API_URL}/seller/orders/${orderFixture.order.id}`,
@@ -157,7 +161,7 @@ test.describe('Tier 3 — multi-tenant isolation across roles', () => {
     expect([401, 403]).toContain(buyerToSellerOrders.status());
 
     const seller = await withRetry(() => createSellerViaApi(request));
-    const sellerSession = await loginApi(request, seller.email, seller.password);
+    const sellerSession = await withRetry(() => loginApi(request, seller.email, seller.password));
     const sellerToOrders = await request.get(`${API_URL}/orders`, {
       headers: {
         Authorization: `Bearer ${sellerSession.access_token}`,
@@ -176,7 +180,7 @@ test.describe('Tier 3 — multi-tenant isolation across roles', () => {
     expect(sellerToAdmin.ok()).toBe(false);
     expect([401, 403]).toContain(sellerToAdmin.status());
 
-    const adminSession = await loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD);
+    const adminSession = await withRetry(() => loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD));
     const adminToAdmin = await request.get(`${API_URL}/admin/events?page=1&limit=5`, {
       headers: {
         Authorization: `Bearer ${adminSession.access_token}`,
