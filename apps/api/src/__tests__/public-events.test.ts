@@ -2,7 +2,7 @@ import { getDb, schema } from '@jeevatix/core';
 import { inArray, like, or } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import app from '../index';
+import { app } from '../index';
 import { hashPassword } from '../lib/password';
 
 const globalScope = globalThis as typeof globalThis & {

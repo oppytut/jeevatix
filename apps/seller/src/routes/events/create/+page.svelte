@@ -156,15 +156,11 @@
   }
 
   function getTierPriceError(tier: TicketTierInput) {
-    return tier.priceTouched && (!tier.price || Number(tier.price) < 0)
-      ? 'Harga tidak valid'
-      : '';
+    return tier.priceTouched && (!tier.price || Number(tier.price) < 0) ? 'Harga tidak valid' : '';
   }
 
   function getTierQuotaError(tier: TicketTierInput) {
-    return tier.quotaTouched && (!tier.quota || Number(tier.quota) < 1)
-      ? 'Kuota minimal 1'
-      : '';
+    return tier.quotaTouched && (!tier.quota || Number(tier.quota) < 1) ? 'Kuota minimal 1' : '';
   }
 
   const step4HasErrors = $derived(
@@ -489,94 +485,94 @@
       class="border-border bg-card/95 rounded-[2rem] border"
     >
       {#if currentStep === 1}
-          <div class="space-y-5">
-            <div class="space-y-2">
-              <label class="text-foreground text-sm font-medium" for="title">Title Event</label>
-              <Input
-                id="title"
-                bind:value={form.title}
-                placeholder="Festival Musik Nusantara"
-                required
-                onblur={() => {
-                  titleTouched = true;
-                }}
-                aria-invalid={titleError ? true : undefined}
-                aria-describedby={titleError ? 'title-error' : undefined}
-              />
-              {#if titleError}
-                <p id="title-error" class="text-xs text-rose-600 dark:text-rose-400">{titleError}</p>
-              {/if}
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-foreground text-sm font-medium" for="description">Deskripsi</label>
-              <Textarea
-                id="description"
-                bind:value={form.description}
-                class="min-h-36"
-                placeholder="Tuliskan konsep event, headline performer, dan pengalaman yang akan didapat pembeli tiket."
-                onblur={() => {
-                  descriptionTouched = true;
-                }}
-                aria-invalid={descriptionError ? true : undefined}
-                aria-describedby={descriptionError ? 'description-error' : undefined}
-              />
-              {#if descriptionError}
-                <p id="description-error" class="text-xs text-rose-600 dark:text-rose-400">
-                  {descriptionError}
-                </p>
-              {/if}
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-foreground text-sm font-medium" for="venue-city">Kota Event</label>
-              <Input
-                id="venue-city"
-                bind:value={form.venue_city}
-                placeholder="Jakarta"
-                required
-                onblur={() => {
-                  venueCityTouched = true;
-                }}
-                aria-invalid={venueCityError ? true : undefined}
-                aria-describedby={venueCityError ? 'venue-city-error' : undefined}
-              />
-              {#if venueCityError}
-                <p id="venue-city-error" class="text-xs text-rose-600 dark:text-rose-400">
-                  {venueCityError}
-                </p>
-              {/if}
-            </div>
-
-            <div class="space-y-3">
-              <p class="text-foreground text-sm font-medium">Kategori</p>
-              <div class="flex flex-wrap gap-2">
-                {#if isCategoriesLoading}
-                  <span class="text-muted-foreground text-sm">Memuat kategori...</span>
-                {:else if categoryOptions.length === 0}
-                  <span class="text-muted-foreground text-sm">Gagal memuat kategori.</span>
-                {:else}
-                  {#each categoryOptions as category (category.id)}
-                    <button
-                      class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-border bg-card text-muted-foreground hover:text-foreground'}`}
-                      onclick={() => {
-                        toggleCategory(category.id);
-                        categoryTouched = true;
-                      }}
-                      type="button"
-                    >
-                      {category.name}
-                    </button>
-                  {/each}
-                {/if}
-              </div>
-              {#if categoryError}
-                <p id="category-error" class="text-xs text-rose-600 dark:text-rose-400">
-                  {categoryError}
-                </p>
-              {/if}
-            </div>
+        <div class="space-y-5">
+          <div class="space-y-2">
+            <label class="text-foreground text-sm font-medium" for="title">Title Event</label>
+            <Input
+              id="title"
+              bind:value={form.title}
+              placeholder="Festival Musik Nusantara"
+              required
+              onblur={() => {
+                titleTouched = true;
+              }}
+              aria-invalid={titleError ? true : undefined}
+              aria-describedby={titleError ? 'title-error' : undefined}
+            />
+            {#if titleError}
+              <p id="title-error" class="text-xs text-rose-600 dark:text-rose-400">{titleError}</p>
+            {/if}
           </div>
+
+          <div class="space-y-2">
+            <label class="text-foreground text-sm font-medium" for="description">Deskripsi</label>
+            <Textarea
+              id="description"
+              bind:value={form.description}
+              class="min-h-36"
+              placeholder="Tuliskan konsep event, headline performer, dan pengalaman yang akan didapat pembeli tiket."
+              onblur={() => {
+                descriptionTouched = true;
+              }}
+              aria-invalid={descriptionError ? true : undefined}
+              aria-describedby={descriptionError ? 'description-error' : undefined}
+            />
+            {#if descriptionError}
+              <p id="description-error" class="text-xs text-rose-600 dark:text-rose-400">
+                {descriptionError}
+              </p>
+            {/if}
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-foreground text-sm font-medium" for="venue-city">Kota Event</label>
+            <Input
+              id="venue-city"
+              bind:value={form.venue_city}
+              placeholder="Jakarta"
+              required
+              onblur={() => {
+                venueCityTouched = true;
+              }}
+              aria-invalid={venueCityError ? true : undefined}
+              aria-describedby={venueCityError ? 'venue-city-error' : undefined}
+            />
+            {#if venueCityError}
+              <p id="venue-city-error" class="text-xs text-rose-600 dark:text-rose-400">
+                {venueCityError}
+              </p>
+            {/if}
+          </div>
+
+          <div class="space-y-3">
+            <p class="text-foreground text-sm font-medium">Kategori</p>
+            <div class="flex flex-wrap gap-2">
+              {#if isCategoriesLoading}
+                <span class="text-muted-foreground text-sm">Memuat kategori...</span>
+              {:else if categoryOptions.length === 0}
+                <span class="text-muted-foreground text-sm">Gagal memuat kategori.</span>
+              {:else}
+                {#each categoryOptions as category (category.id)}
+                  <button
+                    class={`rounded-full border px-4 py-2 text-sm font-medium transition ${form.category_ids.includes(category.id) ? 'border-jeevatix-600 bg-jeevatix-600 text-white' : 'hover:border-jeevatix-300 hover:bg-jeevatix-50 border-border bg-card text-muted-foreground hover:text-foreground'}`}
+                    onclick={() => {
+                      toggleCategory(category.id);
+                      categoryTouched = true;
+                    }}
+                    type="button"
+                  >
+                    {category.name}
+                  </button>
+                {/each}
+              {/if}
+            </div>
+            {#if categoryError}
+              <p id="category-error" class="text-xs text-rose-600 dark:text-rose-400">
+                {categoryError}
+              </p>
+            {/if}
+          </div>
+        </div>
       {:else if currentStep === 2}
         <div class="space-y-5">
           <div class="space-y-2">
@@ -861,10 +857,15 @@
                       form.tiers = [...form.tiers];
                     }}
                     aria-invalid={getTierNameError(tier) ? true : undefined}
-                    aria-describedby={getTierNameError(tier) ? `tier-name-error-${tier.clientId}` : undefined}
+                    aria-describedby={getTierNameError(tier)
+                      ? `tier-name-error-${tier.clientId}`
+                      : undefined}
                   />
                   {#if getTierNameError(tier)}
-                    <p id={`tier-name-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                    <p
+                      id={`tier-name-error-${tier.clientId}`}
+                      class="text-xs text-rose-600 dark:text-rose-400"
+                    >
                       {getTierNameError(tier)}
                     </p>
                   {/if}
@@ -898,10 +899,15 @@
                       form.tiers = [...form.tiers];
                     }}
                     aria-invalid={getTierPriceError(tier) ? true : undefined}
-                    aria-describedby={getTierPriceError(tier) ? `tier-price-error-${tier.clientId}` : undefined}
+                    aria-describedby={getTierPriceError(tier)
+                      ? `tier-price-error-${tier.clientId}`
+                      : undefined}
                   />
                   {#if getTierPriceError(tier)}
-                    <p id={`tier-price-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                    <p
+                      id={`tier-price-error-${tier.clientId}`}
+                      class="text-xs text-rose-600 dark:text-rose-400"
+                    >
                       {getTierPriceError(tier)}
                     </p>
                   {/if}
@@ -923,10 +929,15 @@
                       form.tiers = [...form.tiers];
                     }}
                     aria-invalid={getTierQuotaError(tier) ? true : undefined}
-                    aria-describedby={getTierQuotaError(tier) ? `tier-quota-error-${tier.clientId}` : undefined}
+                    aria-describedby={getTierQuotaError(tier)
+                      ? `tier-quota-error-${tier.clientId}`
+                      : undefined}
                   />
                   {#if getTierQuotaError(tier)}
-                    <p id={`tier-quota-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                    <p
+                      id={`tier-quota-error-${tier.clientId}`}
+                      class="text-xs text-rose-600 dark:text-rose-400"
+                    >
                       {getTierQuotaError(tier)}
                     </p>
                   {/if}
@@ -1048,11 +1059,13 @@
         </Button>
 
         {#if currentStep < 5}
-          <Button type="button" onclick={goToNextStep} disabled={
-            (currentStep === 1 && step1HasErrors) ||
-            (currentStep === 2 && step2HasErrors) ||
-            (currentStep === 4 && step4HasErrors)
-          }>
+          <Button
+            type="button"
+            onclick={goToNextStep}
+            disabled={(currentStep === 1 && step1HasErrors) ||
+              (currentStep === 2 && step2HasErrors) ||
+              (currentStep === 4 && step4HasErrors)}
+          >
             Lanjut
             <ArrowRight class="ml-2 size-4" />
           </Button>

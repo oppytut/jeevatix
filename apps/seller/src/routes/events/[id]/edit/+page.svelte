@@ -196,15 +196,11 @@
   }
 
   function getTierPriceError(tier: TicketTierInput) {
-    return tier.priceTouched && (!tier.price || Number(tier.price) < 0)
-      ? 'Harga tidak valid'
-      : '';
+    return tier.priceTouched && (!tier.price || Number(tier.price) < 0) ? 'Harga tidak valid' : '';
   }
 
   function getTierQuotaError(tier: TicketTierInput) {
-    return tier.quotaTouched && (!tier.quota || Number(tier.quota) < 1)
-      ? 'Kuota minimal 1'
-      : '';
+    return tier.quotaTouched && (!tier.quota || Number(tier.quota) < 1) ? 'Kuota minimal 1' : '';
   }
 
   const step4HasErrors = $derived(
@@ -643,7 +639,9 @@
                 aria-describedby={titleError ? 'title-error' : undefined}
               />
               {#if titleError}
-                <p id="title-error" class="text-xs text-rose-600 dark:text-rose-400">{titleError}</p>
+                <p id="title-error" class="text-xs text-rose-600 dark:text-rose-400">
+                  {titleError}
+                </p>
               {/if}
             </div>
 
@@ -996,10 +994,15 @@
                         form.tiers = [...form.tiers];
                       }}
                       aria-invalid={getTierNameError(tier) ? true : undefined}
-                      aria-describedby={getTierNameError(tier) ? `tier-name-error-${tier.clientId}` : undefined}
+                      aria-describedby={getTierNameError(tier)
+                        ? `tier-name-error-${tier.clientId}`
+                        : undefined}
                     />
                     {#if getTierNameError(tier)}
-                      <p id={`tier-name-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                      <p
+                        id={`tier-name-error-${tier.clientId}`}
+                        class="text-xs text-rose-600 dark:text-rose-400"
+                      >
                         {getTierNameError(tier)}
                       </p>
                     {/if}
@@ -1033,10 +1036,15 @@
                         form.tiers = [...form.tiers];
                       }}
                       aria-invalid={getTierPriceError(tier) ? true : undefined}
-                      aria-describedby={getTierPriceError(tier) ? `tier-price-error-${tier.clientId}` : undefined}
+                      aria-describedby={getTierPriceError(tier)
+                        ? `tier-price-error-${tier.clientId}`
+                        : undefined}
                     />
                     {#if getTierPriceError(tier)}
-                      <p id={`tier-price-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                      <p
+                        id={`tier-price-error-${tier.clientId}`}
+                        class="text-xs text-rose-600 dark:text-rose-400"
+                      >
                         {getTierPriceError(tier)}
                       </p>
                     {/if}
@@ -1058,10 +1066,15 @@
                         form.tiers = [...form.tiers];
                       }}
                       aria-invalid={getTierQuotaError(tier) ? true : undefined}
-                      aria-describedby={getTierQuotaError(tier) ? `tier-quota-error-${tier.clientId}` : undefined}
+                      aria-describedby={getTierQuotaError(tier)
+                        ? `tier-quota-error-${tier.clientId}`
+                        : undefined}
                     />
                     {#if getTierQuotaError(tier)}
-                      <p id={`tier-quota-error-${tier.clientId}`} class="text-xs text-rose-600 dark:text-rose-400">
+                      <p
+                        id={`tier-quota-error-${tier.clientId}`}
+                        class="text-xs text-rose-600 dark:text-rose-400"
+                      >
                         {getTierQuotaError(tier)}
                       </p>
                     {/if}
@@ -1140,25 +1153,27 @@
             Kembali
           </Button>
 
-        {#if currentStep < 5}
-          <Button type="button" onclick={goToNextStep} disabled={
-            (currentStep === 1 && step1HasErrors) ||
-            (currentStep === 2 && step2HasErrors) ||
-            (currentStep === 4 && step4HasErrors)
-          }>
-            Lanjut
-            <ArrowRight class="ml-2 size-4" />
-          </Button>
-        {:else}
-          <Button type="button" onclick={submitForm} disabled={isSubmitting}>
-            {#if isSubmitting}
-              <LoaderCircle class="mr-2 size-4 animate-spin" />
-              Menyimpan...
-            {:else}
-              Simpan Perubahan
-            {/if}
-          </Button>
-        {/if}
+          {#if currentStep < 5}
+            <Button
+              type="button"
+              onclick={goToNextStep}
+              disabled={(currentStep === 1 && step1HasErrors) ||
+                (currentStep === 2 && step2HasErrors) ||
+                (currentStep === 4 && step4HasErrors)}
+            >
+              Lanjut
+              <ArrowRight class="ml-2 size-4" />
+            </Button>
+          {:else}
+            <Button type="button" onclick={submitForm} disabled={isSubmitting}>
+              {#if isSubmitting}
+                <LoaderCircle class="mr-2 size-4 animate-spin" />
+                Menyimpan...
+              {:else}
+                Simpan Perubahan
+              {/if}
+            </Button>
+          {/if}
         </div>
       </Card>
 

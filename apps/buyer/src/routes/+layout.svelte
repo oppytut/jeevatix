@@ -18,7 +18,7 @@
     try {
       const result = await apiGet<{ notifications: unknown[]; unread_count: number }>(
         '/notifications?limit=1',
-        { requiresAuth: true },
+        { requiresAuth: true, fetchFn: fetch },
       );
       unreadCount = result.unread_count;
     } catch {

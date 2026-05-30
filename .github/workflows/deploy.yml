@@ -89,6 +89,11 @@ jobs:
           HYPERDRIVE_CA_CERT_ID: ${{ secrets.HYPERDRIVE_CA_CERT_ID }}
           HYPERDRIVE_SSLMODE: ${{ vars.HYPERDRIVE_SSLMODE }}
           INTERNAL_API_URL: ${{ vars.STAGING_INTERNAL_API_URL || 'https://jeevatix-staging-api.ariefna95.workers.dev' }}
+          SENTRY_DSN_API: ${{ secrets.STAGING_SENTRY_DSN_API }}
+          SENTRY_DSN_BUYER: ${{ secrets.STAGING_SENTRY_DSN_BUYER }}
+          SENTRY_DSN_SELLER: ${{ secrets.STAGING_SENTRY_DSN_SELLER }}
+          SENTRY_DSN_ADMIN: ${{ secrets.STAGING_SENTRY_DSN_ADMIN }}
+          SENTRY_TRACES_SAMPLE_RATE: ${{ vars.STAGING_SENTRY_TRACES_SAMPLE_RATE }}
       - name: Smoke Test
         run: |
           health_payload="$(curl -fsS https://jeevatix-staging-api.ariefna95.workers.dev/health)"

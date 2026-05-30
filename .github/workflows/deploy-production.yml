@@ -52,6 +52,13 @@ jobs:
       # and the build fails before deploy. Empty fallback retained: production
       # deploy without PRODUCTION_INTERNAL_API_URL set is intended hard-fail.
       INTERNAL_API_URL: ${{ vars.PRODUCTION_INTERNAL_API_URL || '' }}
+      PUBLIC_SENTRY_DSN: ${{ secrets.PRODUCTION_PUBLIC_SENTRY_DSN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+      SENTRY_PROJECT_API: ${{ vars.SENTRY_PROJECT_API }}
+      SENTRY_PROJECT_BUYER: ${{ vars.SENTRY_PROJECT_BUYER }}
+      SENTRY_PROJECT_SELLER: ${{ vars.SENTRY_PROJECT_SELLER }}
+      SENTRY_PROJECT_ADMIN: ${{ vars.SENTRY_PROJECT_ADMIN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -106,6 +113,11 @@ jobs:
           HYPERDRIVE_CA_CERT_ID: ${{ secrets.PRODUCTION_HYPERDRIVE_CA_CERT_ID }}
           HYPERDRIVE_SSLMODE: ${{ vars.PRODUCTION_HYPERDRIVE_SSLMODE }}
           INTERNAL_API_URL: ${{ vars.PRODUCTION_INTERNAL_API_URL || '' }}
+          SENTRY_DSN_API: ${{ secrets.PRODUCTION_SENTRY_DSN_API }}
+          SENTRY_DSN_BUYER: ${{ secrets.PRODUCTION_SENTRY_DSN_BUYER }}
+          SENTRY_DSN_SELLER: ${{ secrets.PRODUCTION_SENTRY_DSN_SELLER }}
+          SENTRY_DSN_ADMIN: ${{ secrets.PRODUCTION_SENTRY_DSN_ADMIN }}
+          SENTRY_TRACES_SAMPLE_RATE: ${{ vars.PRODUCTION_SENTRY_TRACES_SAMPLE_RATE }}
       - name: Smoke Test
         run: |
           API_URL="${{ vars.PRODUCTION_API_URL || 'https://api.jeevatix.com' }}"

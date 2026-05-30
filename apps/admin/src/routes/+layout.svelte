@@ -86,7 +86,7 @@
       const result = await apiGetEnvelope<{ notifications: unknown[]; unread_count: number }>(
         '/notifications?limit=1',
       );
-      unreadCount = result.unread_count;
+      unreadCount = result.data.unread_count;
     } catch {
       // Non-critical
     }

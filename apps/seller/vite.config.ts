@@ -1,9 +1,24 @@
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { sentrySvelteKit } from '@sentry/sveltekit';
 import { defineConfig } from 'vite';
 
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = process.env.SENTRY_PROJECT_SELLER;
+
+const sentryPlugin =
+  sentryAuthToken && sentryOrg && sentryProject
+    ? sentrySvelteKit({
+        org: sentryOrg,
+        project: sentryProject,
+        authToken: sentryAuthToken,
+        adapter: 'cloudflare',
+      })
+    : null;
+
 export default defineConfig({
-  plugins: [tailwindcss(), sveltekit()],
+  plugins: [tailwindcss(), ...(sentryPlugin ? [sentryPlugin] : []), sveltekit()],
   server: {
     port: 4303,
   },

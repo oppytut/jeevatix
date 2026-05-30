@@ -1,7 +1,7 @@
 import { getDb, schema } from '@jeevatix/core';
 import { eq, inArray, like } from 'drizzle-orm';
 
-import app from '../index';
+import { app } from '../index';
 import { TicketReserver } from '../durable-objects/ticket-reserver';
 import { generateAccessToken } from '../lib/jwt';
 import { hashPassword } from '../lib/password';

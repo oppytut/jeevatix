@@ -191,6 +191,12 @@ function createApiEnvironment() {
     'AUTH_EXPOSE_DEBUG_TOKENS',
     maybeEnv('AUTH_EXPOSE_DEBUG_TOKENS'),
   );
+  setOptionalEnvironmentValue(environment, 'SENTRY_DSN', maybeEnv('SENTRY_DSN_API'));
+  setOptionalEnvironmentValue(
+    environment,
+    'SENTRY_TRACES_SAMPLE_RATE',
+    maybeEnv('SENTRY_TRACES_SAMPLE_RATE'),
+  );
   if (isStagingStage()) {
     environment.PLAYWRIGHT_E2E = '1';
     environment.AUTH_EXPOSE_DEBUG_TOKENS = '1';
@@ -377,7 +383,7 @@ function applyPortalWorkerTransform(args: WorkerTransformArgs, scriptName: strin
   args.compatibilityFlags = portalCompatibilityFlags;
 }
 
-function createPortalEnvironment() {
+function createPortalEnvironment(portal: 'buyer' | 'seller' | 'admin') {
   const internalApiUrl = maybeEnv('INTERNAL_API_URL');
 
   if (!internalApiUrl && (isStagingStage() || isProductionStage())) {
@@ -391,7 +397,16 @@ function createPortalEnvironment() {
 
   const environment: Record<string, string> = {
     INTERNAL_API_URL: internalApiUrl ?? '',
+    APP_ENVIRONMENT: getStage(),
+    APP_VERSION: buildAppVersion(),
   };
+
+  const portalSentryEnvKey = `SENTRY_DSN_${portal.toUpperCase()}` as
+    | 'SENTRY_DSN_BUYER'
+    | 'SENTRY_DSN_SELLER'
+    | 'SENTRY_DSN_ADMIN';
+
+  setOptionalEnvironmentValue(environment, 'SENTRY_DSN', maybeEnv(portalSentryEnvKey));
 
   return environment;
 }
@@ -522,7 +537,7 @@ export default $config({
       assets: {
         directory: 'apps/buyer/.svelte-kit/cloudflare',
       },
-      environment: createPortalEnvironment(),
+      environment: createPortalEnvironment('buyer'),
       url: !usesCustomDomains(),
       domain: deployedDomains?.buyer,
       link: [api],
@@ -538,7 +553,7 @@ export default $config({
       assets: {
         directory: 'apps/admin/.svelte-kit/cloudflare',
       },
-      environment: createPortalEnvironment(),
+      environment: createPortalEnvironment('admin'),
       url: !usesCustomDomains(),
       domain: deployedDomains?.admin,
       link: [api],
@@ -564,7 +579,7 @@ export default $config({
           },
         ],
       },
-      environment: createPortalEnvironment(),
+      environment: createPortalEnvironment('seller'),
       url: !usesCustomDomains(),
       domain: deployedDomains?.seller,
       link: [api],

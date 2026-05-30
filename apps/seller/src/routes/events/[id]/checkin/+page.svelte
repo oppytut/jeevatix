@@ -488,11 +488,11 @@
           <div class="mt-6 space-y-4">
             {#if cameraError}
               <div
-                class="bg-card relative flex aspect-[4/3] max-w-md mx-auto items-center justify-center overflow-hidden rounded-2xl border-2 border-rose-200 bg-rose-50"
+                class="bg-card relative mx-auto flex aspect-[4/3] max-w-md items-center justify-center overflow-hidden rounded-2xl border-2 border-rose-200 bg-rose-50"
               >
-                <div class="text-center p-6">
-                  <Video class="mx-auto size-12 text-rose-600 mb-3" />
-                  <p class="text-rose-900 font-medium">{cameraError}</p>
+                <div class="p-6 text-center">
+                  <Video class="mx-auto mb-3 size-12 text-rose-600" />
+                  <p class="font-medium text-rose-900">{cameraError}</p>
                 </div>
               </div>
             {:else}
@@ -506,10 +506,10 @@
                 <canvas bind:this={canvasElement} class="hidden"></canvas>
                 {#if scanningActive}
                   <div
-                    class="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    class="pointer-events-none absolute inset-0 flex items-center justify-center"
                   >
                     <div
-                      class="h-1 w-3/4 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-pulse"
+                      class="h-1 w-3/4 animate-pulse bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
                     ></div>
                   </div>
                 {/if}

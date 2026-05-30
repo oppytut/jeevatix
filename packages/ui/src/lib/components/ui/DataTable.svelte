@@ -70,9 +70,7 @@
   const allSelected = $derived(
     selectable && allRowIds.length > 0 && allRowIds.every((id) => selectedIds.includes(id)),
   );
-  const someSelected = $derived(
-    selectable && selectedIds.length > 0 && !allSelected,
-  );
+  const someSelected = $derived(selectable && selectedIds.length > 0 && !allSelected);
 
   function toggleSelectAll() {
     if (allSelected) {
@@ -136,7 +134,7 @@
                 checked={allSelected}
                 indeterminate={someSelected}
                 onchange={toggleSelectAll}
-                class="border-border accent-jeevatix-600 size-4 cursor-pointer rounded border transition focus:ring-2 focus:ring-jeevatix-600/20"
+                class="border-border accent-jeevatix-600 focus:ring-jeevatix-600/20 size-4 cursor-pointer rounded border transition focus:ring-2"
                 aria-label="Pilih semua"
               />
             </th>
@@ -172,7 +170,7 @@
                     checked={selectedIds.includes(String(row.id))}
                     onchange={() => toggleSelectRow(String(row.id))}
                     onclick={(e) => e.stopPropagation()}
-                    class="border-border accent-jeevatix-600 size-4 cursor-pointer rounded border transition focus:ring-2 focus:ring-jeevatix-600/20"
+                    class="border-border accent-jeevatix-600 focus:ring-jeevatix-600/20 size-4 cursor-pointer rounded border transition focus:ring-2"
                     aria-label="Pilih baris"
                   />
                 </td>

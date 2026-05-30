@@ -36,10 +36,7 @@ async function fetchAllPublishedEvents(fetchFn: typeof fetch): Promise<PublicEve
 }
 
 function generateSitemapXml(baseUrl: string, events: PublicEventListItem[]): string {
-  const urls: Array<{ loc: string; lastmod?: string }> = [
-    { loc: '/' },
-    { loc: '/events' },
-  ];
+  const urls: Array<{ loc: string; lastmod?: string }> = [{ loc: '/' }, { loc: '/events' }];
 
   for (const event of events) {
     urls.push({

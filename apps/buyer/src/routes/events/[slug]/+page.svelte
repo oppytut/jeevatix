@@ -96,6 +96,7 @@
     property="og:image"
     content={data.event.banner_url ?? 'https://jeevatix.my.id/og-default.png'}
   />
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -- JSON.stringify output is safe for JSON-LD ld+json script injection -->
   {@html jsonLdScript}
 </svelte:head>
 

@@ -6,6 +6,9 @@ declare global {
     INTERNAL_API_URL?: string;
     PUBLIC_API_BASE_URL?: string;
     PUBLIC_PARTYKIT_HOST?: string;
+    SENTRY_DSN?: string;
+    APP_ENVIRONMENT?: string;
+    APP_VERSION?: string;
   }
 
   namespace App {
