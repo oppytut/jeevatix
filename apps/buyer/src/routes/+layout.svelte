@@ -2,12 +2,22 @@
   import { browser } from '$app/environment';
   import { resolve } from '$app/paths';
   import { navigating } from '$app/stores';
+  import { PUBLIC_API_BASE_URL, PUBLIC_PARTYKIT_HOST } from '$env/static/public';
   import './layout.css';
   import { Button, DarkModeToggle } from '@jeevatix/ui';
   import favicon from '$lib/assets/favicon.svg';
   import { Menu, X } from '@lucide/svelte';
 
   import { apiGet } from '$lib/api';
+
+  const apiOrigin = (() => {
+    try {
+      return PUBLIC_API_BASE_URL ? new URL(PUBLIC_API_BASE_URL).origin : '';
+    } catch {
+      return '';
+    }
+  })();
+  const partykitOrigin = PUBLIC_PARTYKIT_HOST ? `https://${PUBLIC_PARTYKIT_HOST}` : '';
 
   let { data, children }: import('./$types').LayoutProps = $props();
   let mobileMenuOpen = $state(false);
@@ -39,6 +49,14 @@
   />
   <link rel="icon" href={favicon} />
   <link rel="manifest" href="/manifest.webmanifest" />
+  {#if apiOrigin}
+    <link rel="preconnect" href={apiOrigin} crossorigin="anonymous" />
+    <link rel="dns-prefetch" href={apiOrigin} />
+  {/if}
+  {#if partykitOrigin}
+    <link rel="preconnect" href={partykitOrigin} crossorigin="anonymous" />
+    <link rel="dns-prefetch" href={partykitOrigin} />
+  {/if}
   <meta name="theme-color" content="#f97316" />
   <meta property="og:site_name" content="Jeevatix" />
   <meta property="og:type" content="website" />
