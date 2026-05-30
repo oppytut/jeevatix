@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 
 import { authMiddleware, type AuthEnv } from '../middleware/auth';
+import { uploadRateLimitMiddleware } from '../middleware/rate-limit';
 import {
   uploadErrorResponseSchema,
   uploadFormSchema,
@@ -12,6 +13,7 @@ import { UploadServiceError, uploadService } from '../services/upload.service';
 const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
+app.use('*', uploadRateLimitMiddleware);
 
 function jsonError(code: string, message: string) {
   return {

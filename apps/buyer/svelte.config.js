@@ -1,6 +1,28 @@
 import adapter from '@sveltejs/adapter-cloudflare';
 import { relative, sep } from 'node:path';
 
+const partykitHost = process.env.PUBLIC_PARTYKIT_HOST?.trim();
+
+const cspDirectives = {
+  'default-src': ['self'],
+  'script-src': ['self', 'wasm-unsafe-eval'],
+  'style-src': ['self', 'unsafe-inline'],
+  'img-src': ['self', 'https:', 'data:', 'blob:'],
+  'font-src': ['self', 'data:'],
+  'connect-src': [
+    'self',
+    'https://*.sentry.io',
+    'https://*.ingest.sentry.io',
+    ...(partykitHost ? [`wss://${partykitHost}`, `https://${partykitHost}`] : ['wss:', 'ws:']),
+  ],
+  'frame-ancestors': ['none'],
+  'base-uri': ['self'],
+  'form-action': ['self'],
+  'object-src': ['none'],
+  'worker-src': ['self', 'blob:'],
+  'manifest-src': ['self'],
+};
+
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   compilerOptions: {
@@ -15,6 +37,10 @@ const config = {
   },
   kit: {
     adapter: process.env.PLAYWRIGHT_E2E ? undefined : adapter(),
+    csp: {
+      mode: 'auto',
+      reportOnly: cspDirectives,
+    },
   },
 };
 

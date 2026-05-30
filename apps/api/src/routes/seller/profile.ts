@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono } from '@hono/zod-openapi';
 import type { Context } from 'hono';
 
 import { authMiddleware, roleMiddleware, type AuthEnv } from '../../middleware/auth';
+import { authenticatedMutationRateLimitMiddleware } from '../../middleware/rate-limit';
 import { resolveDatabaseUrl } from '../../lib/database-url';
 import {
   sellerProfileErrorResponseSchema,
@@ -17,6 +18,7 @@ const app = new OpenAPIHono<AuthEnv>();
 
 app.use('*', authMiddleware);
 app.use('*', roleMiddleware('seller'));
+app.use('*', authenticatedMutationRateLimitMiddleware);
 
 function jsonError(code: string, message: string) {
   return {
