@@ -71,7 +71,11 @@ const adminHandle: Handle = async ({ event, resolve }) => {
     }
 
     if (event.locals.currentUser) {
-      Sentry.setUser({ id: event.locals.currentUser.id });
+      Sentry.setUser({
+        id: event.locals.currentUser.id,
+        segment: event.locals.currentUser.role,
+      });
+      Sentry.setTag('user.role', event.locals.currentUser.role);
     }
   }
 

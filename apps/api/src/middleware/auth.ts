@@ -230,7 +230,8 @@ export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
       role: payload.role,
     });
 
-    Sentry.setUser({ id: payload.id });
+    Sentry.setUser({ id: payload.id, segment: payload.role });
+    Sentry.setTag('user.role', payload.role);
 
     try {
       await next();
