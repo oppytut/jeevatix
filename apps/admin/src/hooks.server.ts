@@ -41,7 +41,13 @@ const sentryInit: Handle | null = sentryDsn
 
 function deriveFeatureArea(routeId: string | null): string {
   if (!routeId) return 'unknown';
-  if (routeId.startsWith('/login') || routeId.startsWith('/forgot-password') || routeId.startsWith('/reset-password') || routeId.startsWith('/logout')) return 'auth';
+  if (
+    routeId.startsWith('/login') ||
+    routeId.startsWith('/forgot-password') ||
+    routeId.startsWith('/reset-password') ||
+    routeId.startsWith('/logout')
+  )
+    return 'auth';
   if (routeId.startsWith('/orders')) return 'orders';
   if (routeId.startsWith('/payments')) return 'payments';
   if (routeId.startsWith('/reservations')) return 'reservations';

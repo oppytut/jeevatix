@@ -84,7 +84,8 @@ app.get('/health', async (c) => {
   c.header('Cache-Control', 'no-store');
   const base = buildHealthPayload(c.env);
   const dbLatencyMs = await probeDatabaseLatency(c.env);
-  return c.json({ ...base, db_latency_ms: dbLatencyMs });
+  const sentryStatus = c.env.SENTRY_DSN?.trim() ? 'enabled' : 'disabled';
+  return c.json({ ...base, db_latency_ms: dbLatencyMs, sentry_status: sentryStatus });
 });
 
 app.doc('/doc', {

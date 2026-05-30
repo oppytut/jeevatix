@@ -41,13 +41,27 @@ const sentryInit: Handle | null = sentryDsn
 
 function deriveFeatureArea(routeId: string | null): string {
   if (!routeId) return 'unknown';
-  if (routeId.startsWith('/login') || routeId.startsWith('/register') || routeId.startsWith('/forgot-password') || routeId.startsWith('/reset-password') || routeId.startsWith('/verify-email') || routeId.startsWith('/logout') || routeId.startsWith('/profile')) return 'auth';
+  if (
+    routeId.startsWith('/login') ||
+    routeId.startsWith('/register') ||
+    routeId.startsWith('/forgot-password') ||
+    routeId.startsWith('/reset-password') ||
+    routeId.startsWith('/verify-email') ||
+    routeId.startsWith('/logout') ||
+    routeId.startsWith('/profile')
+  )
+    return 'auth';
   if (routeId.startsWith('/orders')) return 'orders';
   if (routeId.startsWith('/checkout') || routeId.startsWith('/payment')) return 'payments';
   if (routeId.startsWith('/tickets')) return 'tickets';
   if (routeId.startsWith('/events')) return 'events';
   if (routeId.startsWith('/notifications')) return 'notifications';
-  if (routeId.startsWith('/sitemap') || routeId.startsWith('/robots') || routeId.startsWith('/session')) return 'infra';
+  if (
+    routeId.startsWith('/sitemap') ||
+    routeId.startsWith('/robots') ||
+    routeId.startsWith('/session')
+  )
+    return 'infra';
   return 'home';
 }
 
