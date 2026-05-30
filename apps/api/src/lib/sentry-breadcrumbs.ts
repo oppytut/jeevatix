@@ -1,16 +1,11 @@
 import * as Sentry from '@sentry/cloudflare';
 
-export type BreadcrumbData = Record<
-  string,
-  string | number | boolean | null | undefined
->;
+export type BreadcrumbData = Record<string, string | number | boolean | null | undefined>;
 
 const PII_KEY_PATTERN =
   /^(email|phone|password|full_name|name|ip|address|user_id|userId|customer_email|customer_id|seller_id|sellerId|raw_token|token|cookie|authorization)$/i;
 
-function sanitize(
-  data: BreadcrumbData,
-): Record<string, string | number | boolean | null> {
+function sanitize(data: BreadcrumbData): Record<string, string | number | boolean | null> {
   const out: Record<string, string | number | boolean | null> = {};
 
   for (const [key, value] of Object.entries(data)) {
@@ -40,10 +35,7 @@ export type BusinessEventName =
   | 'auth.logout'
   | 'auth.refresh';
 
-export function recordBusinessEvent(
-  name: BusinessEventName,
-  data: BreadcrumbData = {},
-) {
+export function recordBusinessEvent(name: BusinessEventName, data: BreadcrumbData = {}) {
   try {
     Sentry.addBreadcrumb({
       category: 'business',
