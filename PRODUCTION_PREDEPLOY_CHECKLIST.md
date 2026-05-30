@@ -107,12 +107,17 @@ These are referenced at the top-level `env:` block of `deploy-production.yml` an
 - [ ] Alert rule set: incident after 2 consecutive failures OR response timeout exceeding 10 seconds
 - [ ] Notification channel attached: at least operations email (Slack / PagerDuty optional)
 - [ ] Monitors are paused / pre-staged so they do not page on the first cold-start window; ready to be enabled the moment deploy completes
+- [ ] /health response shape verified — body contains `status`, `service`, `environment`, `version`, `timestamp`, `uptime_ms`, `db_latency_ms`, `sentry_status` (per PR #13). Monitor should match on `status: ok` substring, NOT exact body equality, since `version`, `timestamp`, `uptime_ms`, and `db_latency_ms` change every request.
+- [ ] Optional advanced rule: alert if `db_latency_ms > 200` for >5 minutes (DB performance early warning); alert if `sentry_status: error` (Sentry init failure post-DSN-set).
 
 ## 8. Pre-Deploy Smoke (state of staging right now)
 
 - [ ] Latest staging deploy on `main` is green end-to-end (lint, format, typecheck, test, build, deploy, smoke, canary)
 - [ ] Staging post-deploy SSR canary 5/5 PASS on the most recent run (real coverage via workers.dev URLs + Origin header)
-- [ ] `curl -fsS https://api.jeevatix.my.id/health` returns `status: ok` and a recent `version`
+- [ ] `curl -fsS https://api.jeevatix.my.id/health` returns `status: ok` and a recent `version` matching the most recent commit SHA on `main`
+- [ ] `curl -fsS https://api.jeevatix.my.id/health | jq '.db_latency_ms'` returns a number under 100ms during normal load (Hyperdrive + Postgres healthy)
+- [ ] `curl -fsS https://api.jeevatix.my.id/health | jq '.sentry_status'` returns `disabled` if Sentry DSN unset, OR `ok` if Sentry is wired and initialized successfully (NEVER `error` — that means DSN is malformed)
+- [ ] Buyer, seller, admin SSR canary `/login` returns 200 AND emits `content-security-policy` (or `content-security-policy-report-only` for buyer), `x-frame-options: DENY`, `x-content-type-options: nosniff`, `referrer-policy`, `permissions-policy` headers (regression check post-PR #14 buyer CSP fix)
 - [ ] No in-flight database migration is running on the production VPS (schema push from section 2 has fully completed)
 - [ ] No load test, bulk seed, or synthetic cleanup task is currently touching staging or production
 - [ ] Working tree on the deploy branch matches the intended release SHA (`git rev-parse HEAD` recorded for the release log)
