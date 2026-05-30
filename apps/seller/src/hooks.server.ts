@@ -11,6 +11,7 @@ import {
 } from '$lib/auth';
 import { setApiBinding } from '$lib/api-binding';
 import { redact, scrubSentryEvent } from '$lib/sentry-scrub';
+import { securityHeadersHandle } from '$lib/security-headers';
 
 function getEnv(key: string): string | undefined {
   return typeof process !== 'undefined' ? process.env?.[key] : undefined;
@@ -19,9 +20,7 @@ function getEnv(key: string): string | undefined {
 const sentryDsn = getEnv('SENTRY_DSN') ?? '';
 const appEnvironment = getEnv('APP_ENVIRONMENT') ?? 'development';
 
-const passThroughHandle: Handle = ({ event, resolve }) => resolve(event);
-
-const sentryInit: Handle = sentryDsn
+const sentryInit: Handle | null = sentryDsn
   ? initCloudflareSentryHandle({
       dsn: sentryDsn,
       environment: appEnvironment,
@@ -38,7 +37,7 @@ const sentryInit: Handle = sentryDsn
         return breadcrumb;
       },
     })
-  : passThroughHandle;
+  : null;
 
 const sellerHandle: Handle = async ({ event, resolve }) => {
   setApiBinding(event.platform?.env?.Api);
@@ -50,6 +49,8 @@ const sellerHandle: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
-export const handle = sentryDsn ? sequence(sentryInit, sentryHandle(), sellerHandle) : sellerHandle;
+export const handle = sentryInit
+  ? sequence(sentryInit, sentryHandle(), sellerHandle, securityHeadersHandle)
+  : sequence(sellerHandle, securityHeadersHandle);
 
 export const handleError = sentryDsn ? Sentry.handleErrorWithSentry() : undefined;
