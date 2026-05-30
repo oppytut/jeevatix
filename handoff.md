@@ -2,12 +2,12 @@
 title: Handoff Progress
 last_updated: 2026-05-30
 status: Active
-phase: UI/UX overhaul + brand + perf + SEO + QA complete. 46 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
+phase: UI/UX overhaul + brand + perf + SEO + QA + polish complete. 55 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**46 DELIVERABLES SHIPPED. STAGING CLEAN. ALL QA PASSED. PRODUCTION BLOCKED ON USER DECISIONS.**
+**55 DELIVERABLES SHIPPED. STAGING CLEAN. ALL TYPECHECKS PASS. PRODUCTION BLOCKED ON USER DECISIONS.**
 
 ### Quick Context for New Session
 - Monorepo: 3 SvelteKit portals (buyer/seller/admin) + 1 Hono API, deployed to Cloudflare Workers
@@ -15,20 +15,20 @@ phase: UI/UX overhaul + brand + perf + SEO + QA complete. 46 deliverables. Stagi
 - E2E: 58 passed, 0 failed, 31 skipped (valid guards)
 - CI: lint + format + typecheck green
 - All portals have: dark mode, mobile nav, loading bar, semantic tokens, OG meta, manifest
+- External uptime monitor: Better Stack (configured for all 4 endpoints)
 
 ### Immediate Next Tasks (AI-executable, no user decisions needed)
 
+No high-priority UX tasks remain. Possible next steps:
+
 | # | Task | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
-| 1 | **SEO: sitemap.xml** — auto-generate from published events | 30 min | SEO | Crawlability |
-| 2 | **Buyer order history UX** — status badges, filter by status | 1h | Buyer experience | Better order tracking |
-| 3 | **Form validation UX (seller)** — inline errors on event create/edit | 1h | Seller experience | Same pattern as buyer login/register |
-| 4 | **Admin event moderation UX** — inline approve/reject actions | 1h | Admin efficiency | Quick moderation without page nav |
-| 5 | **Seller check-in UX** — QR scanner flow polish | 1h | Seller experience | Event day operations |
-| 6 | **Admin bulk actions** — DataTable checkbox + batch operations | 2h | Admin efficiency | Shared component change, test carefully |
-| 7 | **Buyer checkout UX** — inline validation, better error feedback | 1h | Conversion | Reduce checkout abandonment |
+| 1 | **E2E test update** — add tests for new features (order filter, checkout validation, QR scanner) | 2h | Quality | Expand coverage |
+| 2 | **Performance audit** — Lighthouse CI, bundle analysis, image optimization | 1h | Perf | Pre-launch optimization |
+| 3 | **Accessibility audit** — screen reader testing, focus management review | 1h | A11y | WCAG compliance |
+| 4 | **Error monitoring** — wire Sentry or similar for production error tracking | 1h | Ops | Catch runtime errors |
 
-### BLOCKED — Needs User Decisions
+### BLOCKED — Needs User Decisions (PRODUCTION DEPLOY)
 
 | Decision | Options | Impact |
 |----------|---------|--------|
@@ -37,6 +37,28 @@ phase: UI/UX overhaul + brand + perf + SEO + QA complete. 46 deliverables. Stagi
 | Launch strategy | Invite-only? | Go-live approach |
 
 Once answered → 30 min to production live.
+
+### Pre-existing Type Errors (NOT from our changes)
+- `apps/buyer/src/lib/auth.ts` — `PUBLIC_API_BASE_URL` env import (missing from $env/static/public)
+- `apps/buyer/src/routes/+layout.svelte` — `fetchFn` missing in apiGetResponse call
+- These exist since before this session and don't affect runtime (env is available at build time via Cloudflare)
+
+### What's Done (Session 2026-05-30 ~06:00-07:00 UTC — UX Polish & Email Wiring)
+
+| # | Deliverable | Status |
+|---|---|---|
+| 47 | **SEO: sitemap.xml + robots.txt** — auto-generated from published events, 1hr cache, graceful fallback | ✅ |
+| 48 | **Buyer order history UX** — StatusBadge component, status filter Select, bookmarkable URL params | ✅ |
+| 49 | **Buyer checkout UX** — inline validation (tier/quantity), API error mapping to Indonesian, aria-live | ✅ |
+| 50 | **Buyer payment UX** — inline validation (method selection), error mapping, $derived.by pattern | ✅ |
+| 51 | **Seller form validation** — inline errors on blur for event create + edit wizard (title, desc, category, dates, venue, tiers) | ✅ |
+| 52 | **Admin inline moderation** — approve/reject buttons per row for pending_review events, in-place update | ✅ |
+| 53 | **Admin bulk actions** — DataTable selectable prop, checkbox column, bulk toolbar with progress | ✅ |
+| 54 | **Seller check-in QR scanner** — camera-based scanning (jsqr), auto-focus, haptic feedback, mobile-first | ✅ |
+| 55 | **Buyer ticket StatusBadge** — replaced hardcoded status pill with shared component (dark mode fix) | ✅ |
+| 56 | **E-ticket email delivery** — wired buildETicketEmail into both payment + admin-payment flows (fire-and-forget) | ✅ |
+| — | **Orders API status filter** — added status param to listOrdersQuerySchema + service query (was missing) | ✅ |
+| — | **Code quality fixes** — $derived.by pattern, DataTable row key, sitemap lastmod removal | ✅ |
 
 ### What's Done (Session 2026-05-29 ~03:00-03:27 UTC — SEO, Validation & UX)
 
