@@ -9,6 +9,7 @@ import {
   type OrderConfirmationItem,
 } from './email';
 import { logErrorWithContext } from '../lib/observability';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 import { notificationService } from './notification.service';
 import {
   OrderReservationServiceError,
@@ -542,6 +543,13 @@ export const paymentService = {
       throw new PaymentServiceError('PAYMENT_NOT_FOUND', 'Payment not found.');
     }
 
+    recordBusinessEvent('payment.initiated', {
+      order_id: order.id,
+      payment_id: updatedPayment.id,
+      method: updatedPayment.method,
+      external_ref: updatedPayment.externalRef,
+    });
+
     return {
       order_id: order.id,
       payment_id: updatedPayment.id,
@@ -795,6 +803,18 @@ export const paymentService = {
         steps,
       );
 
+      recordBusinessEvent('payment.failed', {
+        order_id: transitionResult.orderId,
+        payment_id: transitionResult.paymentId,
+        external_ref: transitionResult.externalRef,
+      });
+
+      recordBusinessEvent('payment.received', {
+        order_id: transitionResult.orderId,
+        payment_provider: 'webhook',
+        status: 'failed',
+      });
+
       return {
         order_id: transitionResult.orderId,
         payment_id: transitionResult.paymentId,
@@ -898,6 +918,19 @@ export const paymentService = {
       },
       steps,
     );
+
+    recordBusinessEvent('payment.succeeded', {
+      order_id: transitionResult.orderId,
+      payment_id: transitionResult.paymentId,
+      external_ref: transitionResult.externalRef,
+      reservation_id: transitionResult.reservationId,
+    });
+
+    recordBusinessEvent('payment.received', {
+      order_id: transitionResult.orderId,
+      payment_provider: 'webhook',
+      status: 'success',
+    });
 
     return {
       order_id: transitionResult.orderId,

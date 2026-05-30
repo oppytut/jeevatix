@@ -1,4 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 import { and, countDistinct, desc, eq, ilike, or, sql } from 'drizzle-orm';
 
 import type {
@@ -394,6 +395,12 @@ export const adminEventService = {
         },
         databaseUrl,
       );
+    }
+
+    if (updated.status === 'published') {
+      recordBusinessEvent('event.published', {
+        event_id: updated.id,
+      });
     }
 
     return {

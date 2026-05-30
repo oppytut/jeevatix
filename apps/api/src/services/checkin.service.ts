@@ -1,4 +1,5 @@
 import { getDb, schema } from '@jeevatix/core';
+import { recordBusinessEvent } from '../lib/sentry-breadcrumbs';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
 import type { CheckinResult, CheckinStats } from '../schemas/checkin.schema';
@@ -180,6 +181,11 @@ export const checkinService = {
         .returning({
           checkedInAt: ticketCheckins.checkedInAt,
         });
+
+      recordBusinessEvent('ticket.checked_in', {
+        event_id: eventId,
+        ticket_id: candidate.ticketId,
+      });
 
       return {
         status: 'SUCCESS',
