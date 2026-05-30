@@ -38,9 +38,7 @@
     selectedMethod = form?.selectedMethod ?? data.order.payment.method ?? 'bank_transfer';
   });
 
-  const methodError = $derived(
-    methodTouched && !selectedMethod ? 'Pilih metode pembayaran' : '',
-  );
+  const methodError = $derived(methodTouched && !selectedMethod ? 'Pilih metode pembayaran' : '');
 
   const mappedPaymentError = $derived.by(() => {
     if (!form?.paymentError) return '';
@@ -236,7 +234,11 @@
             {/each}
           </div>
           {#if methodError}
-            <p id="method-error" class="text-xs text-rose-600 dark:text-rose-400" aria-live="polite">
+            <p
+              id="method-error"
+              class="text-xs text-rose-600 dark:text-rose-400"
+              aria-live="polite"
+            >
               {methodError}
             </p>
           {/if}
@@ -263,7 +265,10 @@
         <Button
           type="submit"
           class="w-full rounded-full px-6 py-3"
-          disabled={getRemainingMs() <= 0 || data.order.status !== 'pending' || !selectedMethod || isSubmitting}
+          disabled={getRemainingMs() <= 0 ||
+            data.order.status !== 'pending' ||
+            !selectedMethod ||
+            isSubmitting}
         >
           Bayar Sekarang
           <ArrowRight class="size-4" />

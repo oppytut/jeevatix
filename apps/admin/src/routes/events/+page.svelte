@@ -2,7 +2,15 @@
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { onMount } from 'svelte';
-  import { CalendarRange, RefreshCw, Search, Ticket, CheckCircle, XCircle, X } from '@lucide/svelte';
+  import {
+    CalendarRange,
+    RefreshCw,
+    Search,
+    Ticket,
+    CheckCircle,
+    XCircle,
+    X,
+  } from '@lucide/svelte';
   import { Button, Card, DataTable, Input, Select, Toast } from '@jeevatix/ui';
 
   import { apiGetEnvelope, apiPatch, ApiError } from '$lib/api';
@@ -312,7 +320,7 @@
 
   {#if selectedIds.length > 0}
     <div
-      class="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 sticky top-4 z-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border p-3 shadow-lg"
+      class="sticky top-4 z-10 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-3 shadow-lg dark:border-blue-800 dark:bg-blue-900/20"
     >
       <div class="flex items-center gap-3">
         <p class="text-foreground text-sm font-semibold">

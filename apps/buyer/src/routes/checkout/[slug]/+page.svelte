@@ -60,9 +60,7 @@
   );
   let quantity = $state(1);
 
-  const tierError = $derived(
-    tierTouched && !selectedTierId ? 'Pilih tier tiket' : '',
-  );
+  const tierError = $derived(tierTouched && !selectedTierId ? 'Pilih tier tiket' : '');
   const quantityError = $derived(
     quantityTouched && quantity < 1
       ? 'Jumlah minimal 1'
@@ -77,7 +75,8 @@
     if (!form?.reservationError) return '';
     const errorMsg = form.reservationError;
     if (errorMsg.includes('Tiket habis')) return 'Maaf, tiket sudah habis';
-    if (errorMsg.includes('reservasi aktif')) return 'Anda sudah memiliki reservasi aktif untuk event ini';
+    if (errorMsg.includes('reservasi aktif'))
+      return 'Anda sudah memiliki reservasi aktif untuk event ini';
     if (errorMsg.includes('melebihi batas')) return 'Jumlah melebihi batas maksimal pembelian';
     return errorMsg;
   });
@@ -302,18 +301,18 @@
                 <label
                   class={`block cursor-pointer rounded-[1.75rem] border p-5 transition ${selectedTierId === tier.id ? 'border-orange-400 bg-orange-50/80 shadow-[0_16px_38px_rgba(249,115,22,0.12)]' : 'border-border bg-muted hover:border-border hover:bg-card'}`}
                 >
-                <input
-                  class="sr-only"
-                  type="radio"
-                  name="ticket_tier_id"
-                  value={tier.id}
-                  bind:group={selectedTierId}
-                  checked={selectedTierId === tier.id}
-                  disabled={Boolean(reservation) || tier.remaining === 0}
-                  onblur={() => {
-                    tierTouched = true;
-                  }}
-                />
+                  <input
+                    class="sr-only"
+                    type="radio"
+                    name="ticket_tier_id"
+                    value={tier.id}
+                    bind:group={selectedTierId}
+                    checked={selectedTierId === tier.id}
+                    disabled={Boolean(reservation) || tier.remaining === 0}
+                    onblur={() => {
+                      tierTouched = true;
+                    }}
+                  />
 
                   <div class="flex items-start justify-between gap-4">
                     <div>
@@ -326,7 +325,9 @@
                         </span>
                       </div>
                       {#if tier.description}
-                        <p class="text-muted-foreground mt-2 text-sm leading-6">{tier.description}</p>
+                        <p class="text-muted-foreground mt-2 text-sm leading-6">
+                          {tier.description}
+                        </p>
                       {/if}
                     </div>
 
@@ -351,7 +352,11 @@
               {/each}
             </div>
             {#if tierError}
-              <p id="tier-error" class="text-xs text-rose-600 dark:text-rose-400" aria-live="polite">
+              <p
+                id="tier-error"
+                class="text-xs text-rose-600 dark:text-rose-400"
+                aria-live="polite"
+              >
                 {tierError}
               </p>
             {/if}
@@ -433,7 +438,11 @@
           <Button
             type="submit"
             class="w-full rounded-full px-6 py-3"
-            disabled={Boolean(reservation) || !activeTier || activeTier.remaining === 0 || hasFormErrors || isSubmitting}
+            disabled={Boolean(reservation) ||
+              !activeTier ||
+              activeTier.remaining === 0 ||
+              hasFormErrors ||
+              isSubmitting}
           >
             Reservasi Tiket
             <MoveRight class="size-4" />

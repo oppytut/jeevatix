@@ -127,14 +127,14 @@
 
       <div class="grid gap-3 sm:grid-cols-2">
         <div class="bg-card/80 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
-           <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
-             Status
-           </p>
-           <StatusBadge
-             variant={getStatusVariant(data.ticket.status)}
-             label={data.ticket.status.toUpperCase()}
-             class="mt-2"
-           />
+          <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
+            Status
+          </p>
+          <StatusBadge
+            variant={getStatusVariant(data.ticket.status)}
+            label={data.ticket.status.toUpperCase()}
+            class="mt-2"
+          />
         </div>
         <div class="bg-card/80 rounded-[1.5rem] border border-white/70 px-5 py-4 backdrop-blur">
           <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
