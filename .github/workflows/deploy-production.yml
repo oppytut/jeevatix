@@ -143,6 +143,29 @@ jobs:
           echo "Waiting 30s for Cloudflare propagation..."
           sleep 30
 
+          # ----------------------------------------------------------------
+          # WHY THIS STEP HAS TWO LAYERS (status + security headers):
+          #
+          # PR #14 hotfixed a buyer 500 caused by a CSP misconfiguration
+          # (reportOnly without report-uri) that landed via PR #12. That bug
+          # class — a security/CSP/auth header misconfig that builds cleanly
+          # but breaks SSR — was caught by accident via the 5xx status code.
+          # The canary couldn't tell us WHICH portal/header diverged, only
+          # that something was on fire.
+          #
+          # These explicit security-header assertions catch the next misconfig
+          # at the source, naming the missing header on the failing portal
+          # before any user sees a 5xx. Status-code checks remain (they catch
+          # SSR/W2W routing breakage); header checks add defense in depth.
+          # Production additionally asserts HSTS with a long max-age and
+          # includeSubDomains, since this is the only environment that should
+          # be locking browsers into HTTPS.
+          #
+          # API /health is intentionally NOT subject to security header
+          # checks: it's a JSON endpoint, not a browser-rendered surface, and
+          # has a different policy by design.
+          # ----------------------------------------------------------------
+
           # NOTE: Use workers.dev URLs to bypass Cloudflare's IP-based block
           # of GitHub Actions runner egress (Microsoft Azure ASN). Custom
           # domains return 403 Cloudflare challenge to GH Actions IPs.
@@ -211,11 +234,151 @@ jobs:
             fi
           done
 
+          # ----------------------------------------------------------------
+          # Security header smoke checks on each portal /login.
+          #
+          # Required (any missing/invalid header => fail):
+          #   - content-security-policy OR content-security-policy-report-only
+          #   - x-frame-options: DENY (exact)
+          #   - x-content-type-options: nosniff (exact)
+          #   - referrer-policy: <any non-empty value>
+          #   - permissions-policy: <any non-empty value>
+          #   - strict-transport-security: max-age >= 10000000 AND
+          #     includeSubDomains keyword present (production only)
+          #
+          # Failures collected (not bail-on-first) so one run names every
+          # missing header on every portal — much faster triage than fix-rerun.
+          # ----------------------------------------------------------------
+          declare -a HEADER_FAILURES=()
+
+          fetch_lower_headers() {
+            curl -sS -I --max-time 30 "$1" 2>/dev/null | tr -d '\r' | tr 'A-Z' 'a-z' || true
+          }
+
+          has_header() {
+            printf '%s\n' "$1" | grep -qE "^$2:"
+          }
+
+          header_value() {
+            printf '%s\n' "$1" | grep -iE "^$2:" | head -n1 | sed -E "s/^$2:[[:space:]]*//I"
+          }
+
+          check_portal_headers() {
+            local portal="$1" url="$2"
+            local headers
+            headers="$(fetch_lower_headers "$url")"
+
+            if [ -z "$headers" ]; then
+              HEADER_FAILURES+=("$portal: could not fetch headers from $url")
+              echo "  ❌ $portal: no headers returned"
+              return
+            fi
+
+            echo "Security headers for $portal ($url):"
+
+            # CSP: enforced OR report-only — at least one must exist.
+            if has_header "$headers" "content-security-policy" \
+              || has_header "$headers" "content-security-policy-report-only"; then
+              echo "  ✅ content-security-policy[-report-only]"
+            else
+              HEADER_FAILURES+=("$portal: missing content-security-policy and content-security-policy-report-only")
+              echo "  ❌ content-security-policy[-report-only] missing"
+            fi
+
+            # X-Frame-Options: must be DENY exactly.
+            local xfo
+            xfo="$(header_value "$headers" "x-frame-options")"
+            if [ -z "$xfo" ]; then
+              HEADER_FAILURES+=("$portal: missing x-frame-options")
+              echo "  ❌ x-frame-options missing"
+            elif [ "$xfo" != "deny" ]; then
+              HEADER_FAILURES+=("$portal: x-frame-options is '$xfo', expected 'DENY'")
+              echo "  ❌ x-frame-options is '$xfo' (expected DENY)"
+            else
+              echo "  ✅ x-frame-options: DENY"
+            fi
+
+            # X-Content-Type-Options: must be nosniff exactly.
+            local xcto
+            xcto="$(header_value "$headers" "x-content-type-options")"
+            if [ -z "$xcto" ]; then
+              HEADER_FAILURES+=("$portal: missing x-content-type-options")
+              echo "  ❌ x-content-type-options missing"
+            elif [ "$xcto" != "nosniff" ]; then
+              HEADER_FAILURES+=("$portal: x-content-type-options is '$xcto', expected 'nosniff'")
+              echo "  ❌ x-content-type-options is '$xcto' (expected nosniff)"
+            else
+              echo "  ✅ x-content-type-options: nosniff"
+            fi
+
+            # Referrer-Policy: any non-empty value.
+            local rp
+            rp="$(header_value "$headers" "referrer-policy")"
+            if [ -z "$rp" ]; then
+              HEADER_FAILURES+=("$portal: missing referrer-policy")
+              echo "  ❌ referrer-policy missing"
+            else
+              echo "  ✅ referrer-policy: $rp"
+            fi
+
+            # Permissions-Policy: any non-empty value.
+            local pp
+            pp="$(header_value "$headers" "permissions-policy")"
+            if [ -z "$pp" ]; then
+              HEADER_FAILURES+=("$portal: missing permissions-policy")
+              echo "  ❌ permissions-policy missing"
+            else
+              echo "  ✅ permissions-policy present"
+            fi
+
+            # HSTS (production only): max-age >= 10_000_000 and includeSubDomains.
+            local hsts
+            hsts="$(header_value "$headers" "strict-transport-security")"
+            if [ -z "$hsts" ]; then
+              HEADER_FAILURES+=("$portal: missing strict-transport-security")
+              echo "  ❌ strict-transport-security missing"
+            else
+              local max_age
+              max_age="$(echo "$hsts" | grep -oE 'max-age=[0-9]+' | head -n1 | sed 's/max-age=//')"
+              if [ -z "$max_age" ]; then
+                HEADER_FAILURES+=("$portal: strict-transport-security missing max-age (got '$hsts')")
+                echo "  ❌ strict-transport-security missing max-age: '$hsts'"
+              elif [ "$max_age" -lt 10000000 ]; then
+                HEADER_FAILURES+=("$portal: strict-transport-security max-age=$max_age < 10000000")
+                echo "  ❌ strict-transport-security max-age=$max_age (must be >= 10000000)"
+              elif ! echo "$hsts" | grep -qi 'includesubdomains'; then
+                HEADER_FAILURES+=("$portal: strict-transport-security missing includeSubDomains (got '$hsts')")
+                echo "  ❌ strict-transport-security missing includeSubDomains: '$hsts'"
+              else
+                echo "  ✅ strict-transport-security: max-age=$max_age, includeSubDomains"
+              fi
+            fi
+          }
+
+          echo ""
+          echo "===== Security header smoke checks (production) ====="
+          check_portal_headers "buyer"  "$BUYER_URL/login"
+          check_portal_headers "seller" "$SELLER_URL/login"
+          check_portal_headers "admin"  "$ADMIN_URL/login"
+          echo "====================================================="
+
+          if [ ${#HEADER_FAILURES[@]} -ne 0 ]; then
+            echo ""
+            echo "❌ Security header smoke FAILED:"
+            for f in "${HEADER_FAILURES[@]}"; do
+              echo "  - $f"
+            done
+            fail=1
+          else
+            echo "✅ Security header smoke passed: all required headers present on every portal"
+          fi
+
           if [ $fail -ne 0 ]; then
-            echo "Canary failed. Recent same-zone W2W 522 fix may have regressed."
+            echo ""
+            echo "Canary failed. SSR routing OR security header regression detected."
             exit 1
           fi
-          echo "✅ Canary passed: all SSR routes responding without 5xx"
+          echo "✅ Canary passed: SSR + security headers green on every portal"
         env:
           API_WORKERS_DEV_URL: ${{ vars.PRODUCTION_API_WORKERS_DEV_URL }}
           BUYER_WORKERS_DEV_URL: ${{ vars.PRODUCTION_BUYER_WORKERS_DEV_URL }}
