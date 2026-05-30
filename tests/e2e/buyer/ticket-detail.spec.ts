@@ -88,7 +88,11 @@ test.describe('Buyer Ticket Detail', () => {
       return;
     }
     await page.goto(`/tickets/${ticketId}`);
+    // The QR image is gated on `{#if qrImageUrl}` (apps/buyer/src/routes/tickets/[id]/+page.svelte:259)
+    // and qrImageUrl is set inside an async renderQrCode() that runs after mount.
+    // Wait for attachment, then visibility — 10s is too tight on cold staging.
     const qrImage = page.locator('img[alt*="QR"], img[alt*="qr"]');
+    await qrImage.waitFor({ state: 'attached', timeout: 30_000 });
     await expect(qrImage).toBeVisible({ timeout: 10_000 });
 
     const downloadButton = page.getByRole('button', { name: /download qr/i });
