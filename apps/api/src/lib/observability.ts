@@ -187,6 +187,14 @@ export function logErrorWithContext(
   });
 }
 
+export function logWarnWithContext(event: string, payload: Record<string, unknown> = {}) {
+  writeLog('warn', event, payload);
+}
+
+export function redact(value: string): string {
+  return redactSensitiveString(value);
+}
+
 export const observabilityMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
   const requestId = getRequestIdFromHeaders(c.req.raw.headers);
   const startedAt = Date.now();
