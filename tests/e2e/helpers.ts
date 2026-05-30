@@ -9,22 +9,17 @@ export const API_URL =
 
 const BUYER_BASE_URL =
   process.env.E2E_BUYER_URL ??
-  (useStaging
-    ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev'
-    : 'http://localhost:4301');
+  (useStaging ? 'https://jeevatix-staging-buyer.ariefna95.workers.dev' : 'http://localhost:4301');
 
 const SELLER_BASE_URL =
   process.env.E2E_SELLER_URL ??
-  (useStaging
-    ? 'https://jeevatix-staging-seller.ariefna95.workers.dev'
-    : 'http://localhost:4303');
+  (useStaging ? 'https://jeevatix-staging-seller.ariefna95.workers.dev' : 'http://localhost:4303');
 
 const ADMIN_BASE_URL =
   process.env.E2E_ADMIN_URL ??
-  (useStaging
-    ? 'https://jeevatix-staging-admin.ariefna95.workers.dev'
-    : 'http://localhost:4302');
-const PAYMENT_WEBHOOK_SECRET = process.env.PAYMENT_WEBHOOK_SECRET ?? 'local-e2e-payment-webhook-secret';
+  (useStaging ? 'https://jeevatix-staging-admin.ariefna95.workers.dev' : 'http://localhost:4302');
+const PAYMENT_WEBHOOK_SECRET =
+  process.env.PAYMENT_WEBHOOK_SECRET ?? 'local-e2e-payment-webhook-secret';
 
 export const ADMIN_EMAIL = 'admin@jeevatix.id';
 export const ADMIN_PASSWORD = 'Admin123!';
@@ -256,8 +251,14 @@ export async function loginApi(request: APIRequestContext, email: string, passwo
 }
 
 export async function getCategoryIds(request: APIRequestContext) {
-  const result = await apiRequest<CategoryRecord[]>(request, 'GET', '/categories');
-  return result.data.map((category) => category.id);
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const result = await apiRequest<CategoryRecord[]>(request, 'GET', '/categories');
+    if (result.data.length > 0) {
+      return result.data.map((category) => category.id);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+  }
+  throw new Error('getCategoryIds: /categories returned empty list after 5 attempts');
 }
 
 export async function listCategories(request: APIRequestContext) {
@@ -494,6 +495,33 @@ export async function tryReserveTicket(
     code: error?.code ?? 'UNKNOWN',
     message: error?.message ?? `HTTP ${status}`,
   };
+}
+
+export async function reserveOrThrow(
+  request: APIRequestContext,
+  accessToken: string,
+  ticketTierId: string,
+  quantity = 1,
+): Promise<Extract<ReserveOutcome, { ok: true }>> {
+  let lastFailure: ReserveOutcome | null = null;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const outcome = await tryReserveTicket(request, accessToken, ticketTierId, quantity);
+    if (outcome.ok) return outcome;
+    lastFailure = outcome;
+    if (
+      outcome.code === 'SOLD_OUT' ||
+      outcome.code === 'ACTIVE_RESERVATION_EXISTS' ||
+      outcome.code === 'MAX_TICKETS_EXCEEDED'
+    ) {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+  }
+  throw new Error(
+    `reserveOrThrow: failed after retries — status=${lastFailure?.status} code=${
+      lastFailure && !lastFailure.ok ? lastFailure.code : 'n/a'
+    } message=${lastFailure && !lastFailure.ok ? lastFailure.message : 'n/a'}`,
+  );
 }
 
 export async function sendPaymentWebhook(

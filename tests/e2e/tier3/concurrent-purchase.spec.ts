@@ -4,6 +4,7 @@ import {
   API_URL,
   createBuyerWithSession,
   createSmallQuotaEventFixture,
+  reserveOrThrow,
   tryReserveTicket,
   withRetry,
 } from '../helpers';
@@ -56,13 +57,7 @@ test.describe('Tier 3 — concurrent purchase / overselling prevention', () => {
     );
 
     const winner = await createBuyerWithSession(request);
-    const winnerOutcome = await tryReserveTicket(
-      request,
-      winner.session.access_token,
-      fixture.ticketTierId,
-      1,
-    );
-    expect(winnerOutcome.ok).toBeTruthy();
+    await reserveOrThrow(request, winner.session.access_token, fixture.ticketTierId, 1);
 
     const loser = await createBuyerWithSession(request);
     const loserOutcome = await tryReserveTicket(
@@ -90,14 +85,12 @@ test.describe('Tier 3 — concurrent purchase / overselling prevention', () => {
     );
 
     const first = await createBuyerWithSession(request);
-    const firstOutcome = await tryReserveTicket(
+    const firstOutcome = await reserveOrThrow(
       request,
       first.session.access_token,
       fixture.ticketTierId,
       1,
     );
-    expect(firstOutcome.ok).toBeTruthy();
-    if (!firstOutcome.ok) return;
 
     const cancelResponse = await request.delete(
       `${API_URL}/reservations/${firstOutcome.reservation_id}`,
@@ -114,15 +107,6 @@ test.describe('Tier 3 — concurrent purchase / overselling prevention', () => {
     expect(cancelBody.data.status).toBe('cancelled');
 
     const second = await createBuyerWithSession(request);
-    const secondOutcome = await tryReserveTicket(
-      request,
-      second.session.access_token,
-      fixture.ticketTierId,
-      1,
-    );
-    expect(
-      secondOutcome.ok,
-      `Stock should have been released after cancel, but reservation failed: ${JSON.stringify(secondOutcome)}`,
-    ).toBeTruthy();
+    await reserveOrThrow(request, second.session.access_token, fixture.ticketTierId, 1);
   });
 });

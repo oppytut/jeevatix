@@ -6,7 +6,7 @@ import {
   createPublishedEventFixture,
   createSmallQuotaEventFixture,
   loginApi,
-  tryReserveTicket,
+  reserveOrThrow,
   withRetry,
 } from '../helpers';
 
@@ -18,14 +18,12 @@ test.describe('Tier 3 — reservation lifecycle (expiry, cancel, ownership)', ()
     const fixture = await withRetry(() => createPublishedEventFixture(request));
     const buyer = await createBuyerWithSession(request);
 
-    const outcome = await tryReserveTicket(
+    const outcome = await reserveOrThrow(
       request,
       buyer.session.access_token,
       fixture.event.tiers[0]!.id,
       1,
     );
-    expect(outcome.ok).toBeTruthy();
-    if (!outcome.ok) return;
 
     const expiresAt = new Date(outcome.expires_at);
     expect(expiresAt.getTime()).toBeGreaterThan(Date.now());
@@ -55,14 +53,12 @@ test.describe('Tier 3 — reservation lifecycle (expiry, cancel, ownership)', ()
     );
     const buyer = await createBuyerWithSession(request);
 
-    const reserve = await tryReserveTicket(
+    const reserve = await reserveOrThrow(
       request,
       buyer.session.access_token,
       fixture.ticketTierId,
       1,
     );
-    expect(reserve.ok).toBeTruthy();
-    if (!reserve.ok) return;
 
     const cancelResponse = await request.delete(
       `${API_URL}/reservations/${reserve.reservation_id}`,
@@ -89,16 +85,7 @@ test.describe('Tier 3 — reservation lifecycle (expiry, cancel, ownership)', ()
     expect(detail.data.status).toBe('cancelled');
 
     const next = await createBuyerWithSession(request);
-    const reReserve = await tryReserveTicket(
-      request,
-      next.session.access_token,
-      fixture.ticketTierId,
-      1,
-    );
-    expect(
-      reReserve.ok,
-      `Inventory should be freed after cancel, got: ${JSON.stringify(reReserve)}`,
-    ).toBeTruthy();
+    await reserveOrThrow(request, next.session.access_token, fixture.ticketTierId, 1);
   });
 
   test('cancel is idempotent — second cancel returns 4xx with no inventory change', async ({
@@ -109,14 +96,12 @@ test.describe('Tier 3 — reservation lifecycle (expiry, cancel, ownership)', ()
     );
     const buyer = await createBuyerWithSession(request);
 
-    const reserve = await tryReserveTicket(
+    const reserve = await reserveOrThrow(
       request,
       buyer.session.access_token,
       fixture.ticketTierId,
       1,
     );
-    expect(reserve.ok).toBeTruthy();
-    if (!reserve.ok) return;
 
     const firstCancel = await request.delete(`${API_URL}/reservations/${reserve.reservation_id}`, {
       headers: {
@@ -141,14 +126,12 @@ test.describe('Tier 3 — reservation lifecycle (expiry, cancel, ownership)', ()
     const owner = await createBuyerWithSession(request);
     const stranger = await createBuyerWithSession(request);
 
-    const reserve = await tryReserveTicket(
+    const reserve = await reserveOrThrow(
       request,
       owner.session.access_token,
       fixture.event.tiers[0]!.id,
       1,
     );
-    expect(reserve.ok).toBeTruthy();
-    if (!reserve.ok) return;
 
     const strangerGet = await request.get(`${API_URL}/reservations/${reserve.reservation_id}`, {
       headers: {
