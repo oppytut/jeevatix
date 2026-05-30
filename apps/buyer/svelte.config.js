@@ -39,7 +39,7 @@ const config = {
     adapter: process.env.PLAYWRIGHT_E2E ? undefined : adapter(),
     csp: {
       mode: 'auto',
-      reportOnly: cspDirectives,
+      directives: cspDirectives,
     },
   },
 };
