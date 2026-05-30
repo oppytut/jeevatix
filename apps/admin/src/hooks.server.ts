@@ -46,7 +46,18 @@ const adminHandle: Handle = async ({ event, resolve }) => {
   event.locals.adminRefreshToken = event.cookies.get(ADMIN_REFRESH_TOKEN_COOKIE) ?? null;
   event.locals.currentUser = parseStoredUserCookie(event.cookies.get(ADMIN_USER_COOKIE));
 
-  return resolve(event);
+  if (sentryDsn && event.locals.currentUser) {
+    Sentry.setUser({ id: event.locals.currentUser.id });
+  }
+
+  try {
+    return await resolve(event);
+  } finally {
+    if (sentryDsn) {
+      // Clear user context to prevent leaking across requests on a single Worker isolate.
+      Sentry.setUser(null);
+    }
+  }
 };
 
 export const handle = sentryInit

@@ -46,7 +46,18 @@ const sellerHandle: Handle = async ({ event, resolve }) => {
   event.locals.sellerRefreshToken = event.cookies.get(SELLER_REFRESH_TOKEN_COOKIE) ?? null;
   event.locals.currentUser = parseStoredUserCookie(event.cookies.get(SELLER_USER_COOKIE));
 
-  return resolve(event);
+  if (sentryDsn && event.locals.currentUser) {
+    Sentry.setUser({ id: event.locals.currentUser.id });
+  }
+
+  try {
+    return await resolve(event);
+  } finally {
+    if (sentryDsn) {
+      // Clear user context to prevent leaking across requests on a single Worker isolate.
+      Sentry.setUser(null);
+    }
+  }
 };
 
 export const handle = sentryInit
