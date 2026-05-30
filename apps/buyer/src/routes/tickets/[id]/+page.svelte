@@ -260,6 +260,10 @@
           <img
             src={qrImageUrl}
             alt={`QR code untuk tiket ${data.ticket.ticket_code}`}
+            width="320"
+            height="320"
+            loading="lazy"
+            decoding="async"
             class="bg-card mx-auto w-full max-w-[320px] rounded-[1.5rem] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
           />
         {:else}

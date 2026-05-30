@@ -135,6 +135,8 @@
               <img
                 src={getAvatarSrc() ?? undefined}
                 alt={getProfile().full_name}
+                width="96"
+                height="96"
                 loading="lazy"
                 decoding="async"
                 class="h-full w-full object-cover"
