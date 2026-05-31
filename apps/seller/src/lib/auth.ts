@@ -30,6 +30,17 @@ function readInternalApiUrlEnv(): string | undefined {
 }
 
 function resolveInternalApiUrl(): string {
+  // Browser bundle never uses INTERNAL_API_URL — client code calls API_BASE_URL
+  // (public CORS endpoint) and routes that need SSR-only fetches live in
+  // +page.server.ts. Returning a sentinel here keeps the security guard intact
+  // for SSR (where `browser === false`) while preventing module-load crashes
+  // during client hydration. If browser code accidentally references this
+  // sentinel as a URL, fetch will surface a clear parse error instead of a
+  // silent fallback.
+  if (browser) {
+    return '__INTERNAL_API_URL_SERVER_ONLY__';
+  }
+
   const fromEnv = readInternalApiUrlEnv();
 
   if (fromEnv) {
