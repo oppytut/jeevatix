@@ -25,7 +25,7 @@
 
   <div class="relative grid min-h-[calc(100vh-4rem)] gap-0 lg:grid-cols-[1.05fr_0.95fr]">
     <div
-      class="flex flex-col justify-between bg-slate-950 px-8 py-10 text-slate-50 sm:px-10 lg:px-12 lg:py-12"
+      class="flex flex-col justify-between bg-foreground px-8 py-10 text-background sm:px-10 lg:px-12 lg:py-12"
     >
       <div class="space-y-6">
         <div
@@ -39,7 +39,7 @@
           <h1 class="max-w-lg text-4xl font-semibold tracking-tight sm:text-5xl">
             Kontrol operasional platform dari satu ruang kerja yang ketat.
           </h1>
-          <p class="max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
+          <p class="max-w-xl text-base leading-7 text-background/80 sm:text-lg">
             Login admin dipisahkan dari portal buyer dan seller untuk menjaga review event, moderasi
             akun, serta monitoring transaksi tetap terpusat dan aman.
           </p>
@@ -52,21 +52,21 @@
             Users
           </p>
           <p class="mt-3 text-3xl font-semibold">A3</p>
-          <p class="mt-2 text-sm text-slate-300">Moderasi akun buyer, seller, dan admin.</p>
+          <p class="mt-2 text-sm text-background/80">Moderasi akun buyer, seller, dan admin.</p>
         </div>
         <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
           <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.25em] uppercase">
             Catalog
           </p>
           <p class="mt-3 text-3xl font-semibold">A13</p>
-          <p class="mt-2 text-sm text-slate-300">Kelola kategori event dan kurasi listing.</p>
+          <p class="mt-2 text-sm text-background/80">Kelola kategori event dan kurasi listing.</p>
         </div>
         <div class="bg-card/5 rounded-[1.5rem] border border-white/10 p-4">
           <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.25em] uppercase">
             Payments
           </p>
           <p class="mt-3 text-3xl font-semibold">A11</p>
-          <p class="mt-2 text-sm text-slate-300">Pantau order, pembayaran, dan reservasi.</p>
+          <p class="mt-2 text-sm text-background/80">Pantau order, pembayaran, dan reservasi.</p>
         </div>
       </div>
     </div>

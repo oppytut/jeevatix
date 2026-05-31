@@ -43,7 +43,7 @@
     {/if}
 
     <div
-      class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/10 to-transparent"
+      class="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/10 to-transparent"
     ></div>
 
     <div class="absolute top-4 left-4 flex flex-wrap gap-2">
@@ -55,7 +55,7 @@
         </span>
       {/if}
       <span
-        class="rounded-full border border-white/30 bg-slate-950/30 px-3 py-1 text-[11px] font-semibold tracking-[0.2em] text-white uppercase backdrop-blur"
+        class="rounded-full border border-white/30 bg-foreground/30 px-3 py-1 text-[11px] font-semibold tracking-[0.2em] text-white uppercase backdrop-blur"
       >
         {event.status === 'ongoing' ? 'Ongoing' : 'Published'}
       </span>
@@ -73,11 +73,11 @@
 
   <div class="space-y-4 p-5 sm:p-6">
     <div class="text-muted-foreground flex flex-wrap gap-3 text-sm">
-      <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5">
+      <span class="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
         <CalendarDays class="size-4 text-orange-600" />
         {formatShortEventDate(event.start_at)}
       </span>
-      <span class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5">
+      <span class="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5">
         <MapPin class="size-4 text-sky-600" />
         {event.venue_city}
       </span>
@@ -88,7 +88,7 @@
         `Event di ${event.venue_name} dengan akses tiket hingga ${event.max_tickets_per_order} per order.`}
     </p>
 
-    <div class="flex items-end justify-between gap-4 border-t border-slate-100 pt-4">
+    <div class="flex items-end justify-between gap-4 border-t border-border pt-4">
       <div>
         <p class="text-muted-foreground text-xs font-semibold tracking-[0.24em] uppercase">
           Mulai dari

@@ -123,7 +123,7 @@
         />
       {/if}
       <div
-        class="absolute inset-0 bg-linear-to-t from-slate-950/75 via-slate-950/10 to-transparent"
+        class="absolute inset-0 bg-linear-to-t from-foreground/75 via-foreground/10 to-transparent"
       ></div>
 
       <div class="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8 lg:p-10">

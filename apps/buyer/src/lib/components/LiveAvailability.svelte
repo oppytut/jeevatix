@@ -64,7 +64,7 @@
 
   function getTone(remaining: number, quota?: number) {
     if (remaining <= 0) {
-      return 'bg-slate-950 text-white';
+      return 'bg-foreground text-background';
     }
 
     const ratio = quota && quota > 0 ? remaining / quota : 1;
@@ -125,7 +125,7 @@
   });
 </script>
 
-<div class="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 sm:p-5">
+<div class="rounded-[1.5rem] border border-border bg-muted p-4 sm:p-5">
   <div class="flex items-center justify-between gap-4">
     <div>
       <p class="text-muted-foreground text-sm font-semibold tracking-[0.24em] uppercase">

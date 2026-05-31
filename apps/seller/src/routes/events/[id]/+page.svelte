@@ -280,7 +280,7 @@
           </div>
         {/if}
         <div
-          class="absolute inset-0 bg-linear-to-t from-slate-950/80 via-slate-950/20 to-transparent"
+          class="absolute inset-0 bg-linear-to-t from-foreground/80 via-foreground/20 to-transparent"
         ></div>
         <div class="absolute inset-x-0 bottom-0 p-8 sm:p-10">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

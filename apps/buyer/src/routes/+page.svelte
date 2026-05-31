@@ -252,7 +252,7 @@
         class="group border-border bg-card/85 rounded-[1.75rem] border p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
       >
         <div
-          class={`inline-flex size-12 items-center justify-center rounded-2xl bg-linear-to-br ${categoryAccentMap[category.slug] ?? 'from-slate-700 to-slate-400'} text-white`}
+          class={`inline-flex size-12 items-center justify-center rounded-2xl bg-linear-to-br ${categoryAccentMap[category.slug] ?? 'from-muted to-muted-foreground'} text-white`}
         >
           {#if category.slug === 'musik'}
             <Music2 class="size-6" />

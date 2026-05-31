@@ -16,15 +16,15 @@
 
     <div class="absolute top-4 left-4 flex flex-wrap gap-2">
       <div
-        class="h-7 w-20 animate-pulse rounded-full border border-white/30 bg-white/15 backdrop-blur"
+        class="h-7 w-20 animate-pulse rounded-full border border-white/30 bg-card/15 backdrop-blur"
       ></div>
     </div>
 
     <div class="absolute inset-x-0 bottom-0 space-y-3 p-4 sm:p-5">
-      <div class="h-3 w-24 animate-pulse rounded-full bg-white/30"></div>
+      <div class="h-3 w-24 animate-pulse rounded-full bg-card/30"></div>
       <div class="space-y-2">
-        <div class="h-6 w-3/4 animate-pulse rounded-lg bg-white/40"></div>
-        <div class="h-6 w-1/2 animate-pulse rounded-lg bg-white/40"></div>
+        <div class="h-6 w-3/4 animate-pulse rounded-lg bg-card/40"></div>
+        <div class="h-6 w-1/2 animate-pulse rounded-lg bg-card/40"></div>
       </div>
     </div>
   </div>
@@ -40,7 +40,7 @@
       <div class="bg-muted/80 h-4 w-5/6 animate-pulse rounded"></div>
     </div>
 
-    <div class="flex items-end justify-between gap-4 border-t border-slate-100 pt-4">
+    <div class="flex items-end justify-between gap-4 border-t border-border pt-4">
       <div class="space-y-2">
         <div class="bg-muted/80 h-3 w-20 animate-pulse rounded"></div>
         <div class="bg-muted h-6 w-28 animate-pulse rounded"></div>
