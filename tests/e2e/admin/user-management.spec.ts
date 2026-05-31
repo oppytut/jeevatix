@@ -129,7 +129,16 @@ test.describe('Admin User Management', () => {
     }
 
     await page.goto(`/users/${targetUserId}`);
-    await page.waitForLoadState('networkidle');
+    // networkidle is brittle on the admin user-detail page (long-lived
+    // connections from notifications + Sentry hold the network busy past 30s).
+    // Wait for a stable UI marker — the user heading or any status badge —
+    // which signals SSR-rendered content is ready.
+    await page
+      .locator('body')
+      .getByText(/aktif|active|ditangguhkan|suspended/i)
+      .first()
+      .waitFor({ state: 'visible', timeout: 30_000 })
+      .catch(() => {});
 
     // Click activate button
     const activateButton = page.getByRole('button', { name: /Activate/i });
@@ -150,8 +159,14 @@ test.describe('Admin User Management', () => {
       await confirmButton.click();
     }
 
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    // Wait for the post-action body to reflect the new status (active text)
+    // instead of relying on networkidle, which can hang on long connections.
+    await page
+      .locator('body')
+      .getByText(/aktif|active/i)
+      .first()
+      .waitFor({ state: 'visible', timeout: 15_000 })
+      .catch(() => {});
 
     // Verify status restored
     const bodyText = await page.locator('body').textContent();
