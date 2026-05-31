@@ -81,7 +81,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <a href={resolve('/events')} class="group">
             <Button
-              class="h-14 rounded-full bg-[var(--gradient-brand)] px-8 text-base font-bold shadow-[var(--shadow-float)] transition-all hover:scale-105 hover:shadow-[0_20px_60px_rgba(232,93,63,0.28)]"
+              class="h-14 rounded-full bg-[var(--gradient-brand)] px-8 text-base font-bold text-slate-900 shadow-[var(--shadow-float)] transition-all hover:scale-105 hover:shadow-[0_20px_60px_rgba(232,93,63,0.28)] dark:text-white"
             >
               Jelajah Event Sekarang
               <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
@@ -99,7 +99,7 @@
           <div
             class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
           >
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Featured
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
@@ -112,7 +112,7 @@
           <div
             class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
           >
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Kategori
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
@@ -123,7 +123,7 @@
           <div
             class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
           >
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Upcoming
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
@@ -141,12 +141,12 @@
       >
         <div class="flex items-start gap-4">
           <div
-            class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-white shadow-lg"
+            class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-slate-900 shadow-lg dark:text-white"
           >
             <CalendarRange class="size-7" />
           </div>
           <div>
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Agenda Cerdas
             </p>
             <h2 class="text-foreground mt-1 text-xl leading-tight font-bold">
@@ -175,7 +175,7 @@
               <MapPin class="size-7" />
             </div>
             <div>
-              <p class="text-[0.65rem] font-bold tracking-[0.26em] text-white/50 uppercase">
+              <p class="text-[0.7rem] font-bold tracking-[0.22em] text-white/70 uppercase">
                 Kota Populer
               </p>
               <h2 class="mt-1 text-xl leading-tight font-bold">
@@ -252,7 +252,7 @@
         class="group border-border bg-card/85 rounded-[1.75rem] border p-5 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
       >
         <div
-          class={`inline-flex size-12 items-center justify-center rounded-2xl bg-linear-to-br ${categoryAccentMap[category.slug] ?? 'from-slate-700 to-slate-400'} text-white`}
+          class={`inline-flex size-12 items-center justify-center rounded-2xl bg-linear-to-br ${categoryAccentMap[category.slug] ?? 'from-muted to-muted-foreground'} text-white`}
         >
           {#if category.slug === 'musik'}
             <Music2 class="size-6" />
