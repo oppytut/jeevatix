@@ -125,7 +125,7 @@
   });
 </script>
 
-<div class="rounded-[1.5rem] border border-border bg-muted p-4 sm:p-5">
+<div class="border-border bg-muted rounded-[1.5rem] border p-4 sm:p-5">
   <div class="flex items-center justify-between gap-4">
     <div>
       <p class="text-muted-foreground text-sm font-semibold tracking-[0.24em] uppercase">
