@@ -6,20 +6,7 @@ import { fileURLToPath } from 'node:url';
 const currentDir = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(currentDir, '../../../../.env') });
 
-import {
-  categories,
-  eventCategories,
-  events,
-  notifications,
-  orderItems,
-  orders,
-  refreshTokens,
-  reservations,
-  sellerProfiles,
-  ticketTiers,
-  tickets,
-  users,
-} from './schema';
+import { categories, events, sellerProfiles, ticketTiers, users } from './schema';
 
 const { closeDb, db: importedDb } = await import('./index');
 
@@ -67,31 +54,25 @@ async function seedE2EData() {
   await db.insert(categories).values(categoryData);
 
   console.log('👤 Creating test users...');
-  const [adminUser] = await db
-    .insert(users)
-    .values({
-      email: 'admin@jeevatix.id',
-      passwordHash: adminPassword,
-      fullName: 'Admin Jeevatix',
-      phone: '081111111111',
-      role: 'admin',
-      status: 'active',
-      emailVerifiedAt: new Date(),
-    })
-    .returning();
+  await db.insert(users).values({
+    email: 'admin@jeevatix.id',
+    passwordHash: adminPassword,
+    fullName: 'Admin Jeevatix',
+    phone: '081111111111',
+    role: 'admin',
+    status: 'active',
+    emailVerifiedAt: new Date(),
+  });
 
-  const [buyerUser] = await db
-    .insert(users)
-    .values({
-      email: 'buyer@jeevatix.id',
-      passwordHash: hashedPassword,
-      fullName: 'Test Buyer',
-      phone: '081234567890',
-      role: 'buyer',
-      status: 'active',
-      emailVerifiedAt: new Date(),
-    })
-    .returning();
+  await db.insert(users).values({
+    email: 'buyer@jeevatix.id',
+    passwordHash: hashedPassword,
+    fullName: 'Test Buyer',
+    phone: '081234567890',
+    role: 'buyer',
+    status: 'active',
+    emailVerifiedAt: new Date(),
+  });
 
   const [sellerUser] = await db
     .insert(users)
