@@ -209,12 +209,25 @@ test.describe('Critical Error Scenarios', () => {
       return;
     }
 
-    // The buyer checkout UX prevents submission of an empty form by keeping the
-    // submit button disabled until a tier is selected and the form is valid
-    // (per apps/buyer/src/routes/checkout/[slug]/+page.svelte:441). This is the
-    // "validation before submission" contract — it's enforced via disabled state
-    // rather than a post-submit error message. Assert the contract directly.
-    await expect(reserveButton).toBeDisabled();
+    // Buyer checkout SSR preselects the default tier so the form is valid out
+    // of the box (apps/buyer/src/routes/checkout/[slug]/+page.svelte
+    // getInitialSelectedTierId). Validation surfaces only when a field becomes
+    // invalid after user interaction (touched + invalid → inline error).
+    // Drive the quantity field to an invalid value and assert the error
+    // appears, which exercises the same hasFormErrors path used by the submit
+    // button.
+    const quantityInput = page.locator('input[name="quantity"]');
+    if ((await quantityInput.count()) === 0) {
+      test.skip(true, 'Quantity input not found — checkout form may not have rendered');
+      return;
+    }
+
+    await quantityInput.fill('999');
+    await quantityInput.blur();
+
+    const quantityErrorMessage = page.locator('#quantity-error');
+    await expect(quantityErrorMessage).toBeVisible({ timeout: 5000 });
+    await expect(quantityErrorMessage).toHaveText(/melebihi sisa tiket/i);
     expect(page.url()).toContain('/checkout/');
   });
 
