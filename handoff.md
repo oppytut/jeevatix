@@ -1,15 +1,137 @@
 ---
 title: Handoff Progress
-last_updated: 2026-05-30
+last_updated: 2026-05-31
 status: Active
-phase: UI/UX overhaul + brand + perf + SEO + QA + polish complete. 55 deliverables. Staging clean. Production deploy BLOCKED on 3 user decisions.
+phase: Sentry + Lighthouse + Tier 3 E2E + Security hardening + Observability + CSP report endpoint shipped (PRs #9-#18). PR #19 in flight (e2e flake fix, partial green). Staging healthy. Production still BLOCKED on user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**55 DELIVERABLES SHIPPED. STAGING CLEAN. ALL TYPECHECKS PASS. PRODUCTION BLOCKED ON USER DECISIONS.**
+**Session of 2026-05-30 → 2026-05-31 (UTC). 8 PRs merged tonight. Staging green. PR #19 partial-fix open. Read `## 2026-05-31 Session Snapshot` below before doing anything.**
+
+### Quick Pickup Checklist (do this in order)
+
+1. **Read `## 2026-05-31 Session Snapshot`** — full context of what shipped, what broke, what's still pending.
+2. **Decide PR #19**: merge as-is (partial fix) OR finish the deeper investigation (tier radio attachment bug).
+3. **Decide PR #15**: merge if e2e is now green (pure docs PR; no code risk).
+4. **Verify staging is still healthy**: `curl -s https://jeevatix-staging-api.ariefna95.workers.dev/health` should return `status: ok`, `db_latency_ms < 100`, `sentry_status: disabled`.
+5. **Then continue with**: production secrets setup OR more pre-launch hardening (see "What's left" below).
+
+---
+
+## 2026-05-31 Session Snapshot
+
+### What shipped this session (8 PRs merged to `main`)
+
+| #   | Title                                                    | Sha (squash) | Notes                                                         |
+| --- | -------------------------------------------------------- | ------------ | ------------------------------------------------------------- |
+| #9  | feat: Sentry error monitoring + Lighthouse CI            | 24b87a5      | DSN-gated no-op until env set                                 |
+| #11 | feat: tier 3 E2E coverage                                | 2d58ec7      | Concurrency, idempotency, isolation, moderation               |
+| #12 | feat: pre-launch security hardening                      | 467f8c6      | CSP + headers + hono bump + rate-limit + input-validation     |
+| #13 | feat: observability extensions for sentry                | e75cecc      | User context, business event breadcrumbs, /health enrichment  |
+| #14 | fix(buyer): switch CSP from reportOnly to enforced mode  | c075db7      | Hotfix: PR #12 broke buyer SSR (CSP threw without report-uri) |
+| #16 | feat: security header smoke checks in post-deploy canary | ccfca6a      | Catches the next CSP-misconfig regression class explicitly    |
+| #17 | feat: pre-Lighthouse performance optimizations           | 9e0fea6      | Image lazy load + preconnect + bundle hints                   |
+| #18 | feat: CSP report endpoint and buyer report-only mode     | 945fd6c      | Re-enables buyer reportOnly with /csp-report endpoint         |
+
+PR #10 closed as duplicate of #11 (parallel agent spawn artifact).
+
+### What's still in flight
+
+| PR  | Branch                                     | Status                                     | Action needed                                                                      |
+| --- | ------------------------------------------ | ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| #15 | docs/predeploy-checklist-health-enrichment | docs only; e2e was failing for env reasons | Merge if e2e flakes resolved on next run, else admin-merge (zero code risk)        |
+| #19 | fix/e2e-tier-selection-baseline            | Partial fix landed, 3 tests still failing  | Either merge partial + file follow-up, OR root-cause the tier-radio attachment bug |
+
+### Critical learnings from this session
+
+1. **PR #12 → buyer SSR 500 (caught by canary, fixed in PR #14)**: SvelteKit's CSP runtime throws when `csp.reportOnly` is set without `report-to` or `report-uri`. The security agent missed this because `pnpm run build` doesn't exercise SSR — only deploy + curl does. PR #16 added explicit security-header assertions to the post-deploy canary so the next regression of this class is named, not just observed as a 5xx.
+
+2. **PR #17 → ticket-detail e2e fail**: Performance agent applied `loading="lazy"` blanket-style to all images, including the QR image which is the **primary content** of `/tickets/[id]`. Lazy-loading critical-path images hurts LCP, defeats the purpose of the page, and makes Playwright `toBeVisible` flaky. Reverted in PR #19.
+
+3. **Pre-existing E2E test bugs surfaced**: Until this session, CI hit Turbo cache for the e2e step on most PRs, hiding several pre-existing test failures:
+   - `critical-errors.spec.ts:198` clicked the submit button without selecting a tier (button is disabled by `!activeTier` since commit `cdf7a4f`). Fixed in PR #19 commit `7b9b64b`.
+   - `payment-methods.spec.ts:58` and `reservation-flow.spec.ts:57` had the same omission. Partially fixed in PR #19; the deeper "tier radio never attaches" issue is still open.
+   - `ticket-detail.spec.ts:85` had a 10s timeout that's too tight on staging cold start. Loosened in PR #19 commit `d0a9d65`.
+
+4. **The "agents auto-merge their own PRs" anomaly**: When 3 deep agents ran in parallel for the Tier 1 work (security canary, perf, CSP report endpoint), each one merged its own PR upon completion without waiting for explicit approval. This is the agent system's default behavior, not a bug per se, but be aware that delegating with `run_in_background=true` means the work lands on main without you reviewing first. Use this only when you trust the agent's output unconditionally.
+
+5. **Staging /health response shape grew**: PR #13 enriched `/health` with `db_latency_ms`, `uptime_ms`, `sentry_status`. Update any external uptime monitors so they match on `status: ok` substring, NOT exact body equality (PR #15 docs cover this).
+
+### What's left (no user decisions needed — AI-executable)
+
+| #   | Task                                                                                                                                                                                                                                                                               | Effort | Impact      |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ----------- |
+| 1   | **Finish PR #19**: root-cause why fixture-created tier IDs don't reach the rendered DOM. Hypothesis: fixture event isn't propagated to public `/events/<slug>` API by test load time. Read `tests/e2e/helpers/` + `apps/buyer/src/routes/checkout/[slug]/+page.server.ts`. ~30min. | M      | Quality     |
+| 2   | **Tier 2 hardening** — OpenAPI doc gen, Storybook for `packages/ui`, runbook expansion, Sentry quota guard.                                                                                                                                                                        | 4-5h   | Ops         |
+| 3   | **Audit Lighthouse scores** post-PR-17 perf changes; document baseline + identify follow-up optimizations.                                                                                                                                                                         | 1h     | Perf        |
+| 4   | **Multi-tenant E2E flake** — when `/categories` returns empty (env race after staging DB reset), fix the test or the reset timing.                                                                                                                                                 | 1h     | Quality     |
+| 5   | **Bump GitHub Actions Node 20 → 24** (deprecation warning fired in CI). Mostly mechanical.                                                                                                                                                                                         | 30min  | Maintenance |
+
+### What's BLOCKED on user (cannot be done by AI)
+
+| Decision/Task                                                  | Why blocked                      | Where it lands                                   |
+| -------------------------------------------------------------- | -------------------------------- | ------------------------------------------------ |
+| Sentry org + project IDs + DSNs                                | Need user to create at sentry.io | GH secrets/vars per environment                  |
+| Better Stack uptime monitor (or alternative)                   | Need user account + URLs         | External, no code change                         |
+| VPS production DB (`jeevatix_production` DB + role)            | Need SSH + decide DB host        | section 2 of `PRODUCTION_PREDEPLOY_CHECKLIST.md` |
+| Cloudflare production domain + DNS                             | Need user account access         | section 3 of same                                |
+| Domain decision (`jeevatix.my.id` subdomain vs `jeevatix.com`) | User business call               | sst.config.ts already wired both                 |
+| Launch strategy (invite-only vs open)                          | User business call               | n/a until decided                                |
+
+### Files changed this session (representative — not exhaustive)
+
+- `.github/workflows/{deploy,deploy-production}.yml` — security-header canary + new env vars
+- `.github/workflows/lighthouse.yml` — created
+- `apps/api/src/lib/{sentry,observability,sentry-breadcrumbs}.ts` — Sentry init + business events
+- `apps/api/src/middleware/{auth,sentry-tags}.ts` — user context attach + tag middleware
+- `apps/api/src/routes/{health,csp-report}.ts` — health enrichment + CSP report endpoint
+- `apps/{buyer,seller,admin}/src/lib/{security-headers,sentry-scrub}.ts` — shared headers + PII scrubbing
+- `apps/{buyer,seller,admin}/svelte.config.js` — CSP directives (buyer reportOnly, seller/admin enforced)
+- `apps/{buyer,seller,admin}/src/hooks.{server,client}.ts` — Sentry init + user context per portal
+- `apps/buyer/src/routes/tickets/[id]/+page.svelte` — removed loading=lazy from QR (PR #19)
+- `tests/e2e/tier3/*.spec.ts` — concurrency, payment idempotency, reservation expiry, multi-tenant, admin moderation
+- `tests/e2e/{checkout,buyer,critical-errors}/*.spec.ts` — tier selection + hydration waits (PR #19)
+- `lighthouserc.json` — created
+- `PRODUCTION_PREDEPLOY_CHECKLIST.md` — section 7+8 expanded for /health + canary header invariants (PR #15)
+- `SECURITY_REVIEW.md` — CSP + new endpoint documented
+
+### Useful commands for picking up
+
+```bash
+# Health check staging
+curl -s https://jeevatix-staging-api.ariefna95.workers.dev/health | jq
+
+# Verify security headers
+curl -sI https://jeevatix-staging-buyer.ariefna95.workers.dev/login | grep -iE 'csp|x-frame|x-content|referrer|permissions'
+
+# See open PRs
+gh pr list --state open
+
+# Check PR #19 progress
+gh pr checks 19
+
+# Inspect last failed e2e run
+gh run view <run-id> --log-failed | grep -E '✘.*should '
+
+# Verify worktree state
+git worktree list
+```
+
+### Branches still on origin (cleanup candidates)
+
+- `chore/drop-db-disable-cache` — old, no PR
+- `feat/e2e-coverage-tier1`, `feat/e2e-coverage-tier2`, `feat/tier-3-e2e` — obsolete, predate #11
+- `feat/observability-extensions`, `feat/perf-pre-lighthouse`, `feat/security-canary-checks`, `feat/tier3-e2e-coverage` — agent branches, PRs already merged
+- `feat/ssr-canary-and-internal-api-env`, `fix/canary-bypass-cf-block`, `fix/ci-postgres-service`, `fix/e2e-3-remaining-failures` — old fix branches
+- `fix/buyer-csp-report-only-throws` — PR #14 merged, can delete
+
+Run `git push origin --delete <branch>` for each, or leave for the next session.
+
+---
 
 ### Quick Context for New Session
+
 - Monorepo: 3 SvelteKit portals (buyer/seller/admin) + 1 Hono API, deployed to Cloudflare Workers
 - Shared UI: `packages/ui` with tokens.css, dark mode, semantic colors
 - E2E: 58 passed, 0 failed, 31 skipped (valid guards)
@@ -21,148 +143,151 @@ phase: UI/UX overhaul + brand + perf + SEO + QA + polish complete. 55 deliverabl
 
 No high-priority UX tasks remain. Possible next steps:
 
-| # | Task | Effort | Impact | Notes |
-|---|------|--------|--------|-------|
-| 1 | **E2E test update** — add tests for new features (order filter, checkout validation, QR scanner) | 2h | Quality | Expand coverage |
-| 2 | **Performance audit** — Lighthouse CI, bundle analysis, image optimization | 1h | Perf | Pre-launch optimization |
-| 3 | **Accessibility audit** — screen reader testing, focus management review | 1h | A11y | WCAG compliance |
-| 4 | **Error monitoring** — wire Sentry or similar for production error tracking | 1h | Ops | Catch runtime errors |
+| #   | Task                                                                                             | Effort | Impact  | Notes                   |
+| --- | ------------------------------------------------------------------------------------------------ | ------ | ------- | ----------------------- |
+| 1   | **E2E test update** — add tests for new features (order filter, checkout validation, QR scanner) | 2h     | Quality | Expand coverage         |
+| 2   | **Performance audit** — Lighthouse CI, bundle analysis, image optimization                       | 1h     | Perf    | Pre-launch optimization |
+| 3   | **Accessibility audit** — screen reader testing, focus management review                         | 1h     | A11y    | WCAG compliance         |
+| 4   | **Error monitoring** — wire Sentry or similar for production error tracking                      | 1h     | Ops     | Catch runtime errors    |
 
 ### BLOCKED — Needs User Decisions (PRODUCTION DEPLOY)
 
-| Decision | Options | Impact |
-|----------|---------|--------|
-| Domain | `jeevatix.my.id`? | Production URL |
-| DB host | VPS `168.144.140.206`? | Database connection |
-| Launch strategy | Invite-only? | Go-live approach |
+| Decision        | Options                | Impact              |
+| --------------- | ---------------------- | ------------------- |
+| Domain          | `jeevatix.my.id`?      | Production URL      |
+| DB host         | VPS `168.144.140.206`? | Database connection |
+| Launch strategy | Invite-only?           | Go-live approach    |
 
 Once answered → 30 min to production live.
 
 ### Pre-existing Type Errors (NOT from our changes)
+
 - `apps/buyer/src/lib/auth.ts` — `PUBLIC_API_BASE_URL` env import (missing from $env/static/public)
 - `apps/buyer/src/routes/+layout.svelte` — `fetchFn` missing in apiGetResponse call
 - These exist since before this session and don't affect runtime (env is available at build time via Cloudflare)
 
 ### What's Done (Session 2026-05-30 ~06:00-07:00 UTC — UX Polish & Email Wiring)
 
-| # | Deliverable | Status |
-|---|---|---|
-| 47 | **SEO: sitemap.xml + robots.txt** — auto-generated from published events, 1hr cache, graceful fallback | ✅ |
-| 48 | **Buyer order history UX** — StatusBadge component, status filter Select, bookmarkable URL params | ✅ |
-| 49 | **Buyer checkout UX** — inline validation (tier/quantity), API error mapping to Indonesian, aria-live | ✅ |
-| 50 | **Buyer payment UX** — inline validation (method selection), error mapping, $derived.by pattern | ✅ |
-| 51 | **Seller form validation** — inline errors on blur for event create + edit wizard (title, desc, category, dates, venue, tiers) | ✅ |
-| 52 | **Admin inline moderation** — approve/reject buttons per row for pending_review events, in-place update | ✅ |
-| 53 | **Admin bulk actions** — DataTable selectable prop, checkbox column, bulk toolbar with progress | ✅ |
-| 54 | **Seller check-in QR scanner** — camera-based scanning (jsqr), auto-focus, haptic feedback, mobile-first | ✅ |
-| 55 | **Buyer ticket StatusBadge** — replaced hardcoded status pill with shared component (dark mode fix) | ✅ |
-| 56 | **E-ticket email delivery** — wired buildETicketEmail into both payment + admin-payment flows (fire-and-forget) | ✅ |
-| — | **Orders API status filter** — added status param to listOrdersQuerySchema + service query (was missing) | ✅ |
-| — | **Code quality fixes** — $derived.by pattern, DataTable row key, sitemap lastmod removal | ✅ |
+| #   | Deliverable                                                                                                                    | Status |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 47  | **SEO: sitemap.xml + robots.txt** — auto-generated from published events, 1hr cache, graceful fallback                         | ✅     |
+| 48  | **Buyer order history UX** — StatusBadge component, status filter Select, bookmarkable URL params                              | ✅     |
+| 49  | **Buyer checkout UX** — inline validation (tier/quantity), API error mapping to Indonesian, aria-live                          | ✅     |
+| 50  | **Buyer payment UX** — inline validation (method selection), error mapping, $derived.by pattern                                | ✅     |
+| 51  | **Seller form validation** — inline errors on blur for event create + edit wizard (title, desc, category, dates, venue, tiers) | ✅     |
+| 52  | **Admin inline moderation** — approve/reject buttons per row for pending_review events, in-place update                        | ✅     |
+| 53  | **Admin bulk actions** — DataTable selectable prop, checkbox column, bulk toolbar with progress                                | ✅     |
+| 54  | **Seller check-in QR scanner** — camera-based scanning (jsqr), auto-focus, haptic feedback, mobile-first                       | ✅     |
+| 55  | **Buyer ticket StatusBadge** — replaced hardcoded status pill with shared component (dark mode fix)                            | ✅     |
+| 56  | **E-ticket email delivery** — wired buildETicketEmail into both payment + admin-payment flows (fire-and-forget)                | ✅     |
+| —   | **Orders API status filter** — added status param to listOrdersQuerySchema + service query (was missing)                       | ✅     |
+| —   | **Code quality fixes** — $derived.by pattern, DataTable row key, sitemap lastmod removal                                       | ✅     |
 
 ### What's Done (Session 2026-05-29 ~03:00-03:27 UTC — SEO, Validation & UX)
 
-| # | Deliverable | Status |
-|---|---|---|
-| 34 | **JSON-LD fix** — moved to $derived to fix ESLint parse error | ✅ |
-| 35 | **Buyer search/filter UX** — debounced search, Select for city, live price labels, filter badge, `<a>` pagination | ✅ |
-| 36 | **Form validation UX** — inline field errors on blur (login + register), aria-invalid, aria-describedby | ✅ |
-| 37 | **JSON-LD ItemList** — Schema.org ItemList on events listing page | ✅ |
-| 38 | **Admin notification badge** — unread count on Notifications nav item | ✅ |
-| 39 | **Seller wizard audit** — confirmed already 5-step with validation, no changes needed | ✅ |
-| 40 | **Dark mode QA** — replaced hardcoded bg-white + text-slate in EventCard, LiveAvailability, Skeletons | ✅ |
-| 41 | **Responsive QA** — scanned all portals, seller/admin dark mode clean, a11y clean | ✅ |
-| 42 | **Mobile nav (seller)** — hamburger toggle with slide-down nav, close on link click | ✅ |
-| 43 | **Mobile nav (admin)** — same pattern, notification badge preserved | ✅ |
+| #   | Deliverable                                                                                                       | Status |
+| --- | ----------------------------------------------------------------------------------------------------------------- | ------ |
+| 34  | **JSON-LD fix** — moved to $derived to fix ESLint parse error                                                     | ✅     |
+| 35  | **Buyer search/filter UX** — debounced search, Select for city, live price labels, filter badge, `<a>` pagination | ✅     |
+| 36  | **Form validation UX** — inline field errors on blur (login + register), aria-invalid, aria-describedby           | ✅     |
+| 37  | **JSON-LD ItemList** — Schema.org ItemList on events listing page                                                 | ✅     |
+| 38  | **Admin notification badge** — unread count on Notifications nav item                                             | ✅     |
+| 39  | **Seller wizard audit** — confirmed already 5-step with validation, no changes needed                             | ✅     |
+| 40  | **Dark mode QA** — replaced hardcoded bg-white + text-slate in EventCard, LiveAvailability, Skeletons             | ✅     |
+| 41  | **Responsive QA** — scanned all portals, seller/admin dark mode clean, a11y clean                                 | ✅     |
+| 42  | **Mobile nav (seller)** — hamburger toggle with slide-down nav, close on link click                               | ✅     |
+| 43  | **Mobile nav (admin)** — same pattern, notification badge preserved                                               | ✅     |
 
 ### What's Done (Session 2026-05-28 ~22:00-23:45 UTC — Brand, Polish, E2E, Perf & A11y)
 
-| # | Deliverable | Status |
-|---|---|---|
-| 20 | **Hero redesign** — gradient headline, larger CTA, semantic tokens, hover animations | ✅ |
-| 21 | **Wire Select component** ke 12 admin filter dropdowns (7 pages) | ✅ |
-| 22 | **Dark mode gradient migration** — seller/admin hardcoded gradients → `var(--gradient-*)` tokens (10 files) | ✅ |
-| 23 | **Favicon SVG** — Jeevatix brand (orange→yellow gradient, ticket + J) all 3 portals | ✅ |
-| 24 | **og-default.png** — 1200x630 OG image for social sharing | ✅ |
-| 25 | **Prettier formatting** — all files formatted, CI format:check green | ✅ |
-| 26 | **Wire Select** ke 3 seller filter dropdowns (tiers + orders) | ✅ |
-| 27 | **OG meta + manifest** — seller/admin portals (og:image, theme-color, twitter:card, manifest.webmanifest) | ✅ |
-| 28 | **E2E W2W skip removal** — 7 graceful skip blocks removed (Service Binding now active) | ✅ |
-| 29 | **Performance: lazy loading** — `loading="lazy" decoding="async"` on 15 images across all portals | ✅ |
-| 30 | **Performance: QR code splitting** — dynamic `import('qrcode')` on ticket detail (reduces buyer bundle) | ✅ |
-| 31 | **A11y: focus-visible** — keyboard focus rings on EventCard, text links (login/register) | ✅ |
-| 32 | **A11y: aria-live** — form error messages announced to screen readers (login/register) | ✅ |
-| 33 | **Skeleton audit** — existing skeletons ready, no wiring needed (loading bar sufficient for SSR) | ✅ |
+| #   | Deliverable                                                                                                 | Status |
+| --- | ----------------------------------------------------------------------------------------------------------- | ------ |
+| 20  | **Hero redesign** — gradient headline, larger CTA, semantic tokens, hover animations                        | ✅     |
+| 21  | **Wire Select component** ke 12 admin filter dropdowns (7 pages)                                            | ✅     |
+| 22  | **Dark mode gradient migration** — seller/admin hardcoded gradients → `var(--gradient-*)` tokens (10 files) | ✅     |
+| 23  | **Favicon SVG** — Jeevatix brand (orange→yellow gradient, ticket + J) all 3 portals                         | ✅     |
+| 24  | **og-default.png** — 1200x630 OG image for social sharing                                                   | ✅     |
+| 25  | **Prettier formatting** — all files formatted, CI format:check green                                        | ✅     |
+| 26  | **Wire Select** ke 3 seller filter dropdowns (tiers + orders)                                               | ✅     |
+| 27  | **OG meta + manifest** — seller/admin portals (og:image, theme-color, twitter:card, manifest.webmanifest)   | ✅     |
+| 28  | **E2E W2W skip removal** — 7 graceful skip blocks removed (Service Binding now active)                      | ✅     |
+| 29  | **Performance: lazy loading** — `loading="lazy" decoding="async"` on 15 images across all portals           | ✅     |
+| 30  | **Performance: QR code splitting** — dynamic `import('qrcode')` on ticket detail (reduces buyer bundle)     | ✅     |
+| 31  | **A11y: focus-visible** — keyboard focus rings on EventCard, text links (login/register)                    | ✅     |
+| 32  | **A11y: aria-live** — form error messages announced to screen readers (login/register)                      | ✅     |
+| 33  | **Skeleton audit** — existing skeletons ready, no wiring needed (loading bar sufficient for SSR)            | ✅     |
 
 **E2E Result: 58 passed, 0 failed, 31 skipped** (was 38 skipped)
 
 ### What's Done (Session 2026-05-28 ~08:00-14:20 UTC — UI/UX Overhaul)
 
-| # | Deliverable | Status |
-|---|---|---|
-| 1 | Shared `tokens.css` — single source of truth for all 3 portals | ✅ |
-| 2 | ~360 hardcoded neutral colors → semantic tokens (48 pages + 8 components) | ✅ |
-| 3 | 5 new shared components: Select, Textarea, EmptyState, LoadingState, StatusBadge | ✅ |
-| 4 | Fix all shared UI components (Button, Input, Card, DataTable, Modal, Toast, Badge, Skeleton) | ✅ |
-| 5 | Dark mode toggle (all 3 portals, localStorage persist) | ✅ |
-| 6 | Gradient CSS custom properties (dark-mode-aware) | ✅ |
-| 7 | Navigation loading bar ($navigating) all 3 portals | ✅ |
-| 8 | Mobile hamburger nav (buyer) | ✅ |
-| 9 | Sold-out guard on event detail CTA | ✅ |
-| 10 | Wire EmptyState to all pages with inline empty states | ✅ |
-| 11 | Wire Textarea to 6 seller/admin form pages | ✅ |
-| 12 | Breadcrumbs on detail pages | ✅ |
-| 13 | Password strength indicator (buyer register) | ✅ |
-| 14 | Real-time countdown (admin reservations) | ✅ |
-| 15 | Language consistency fix (buyer profile + notifications → Indonesian) | ✅ |
-| 16 | E2E trigger changed to manual + PR only (no more staging pollution) | ✅ |
-| 17 | E2E flaky tests fixed (event-moderation, category-browse, reservation-flow) | ✅ |
-| 18 | E2E workflow_dispatch condition fixed | ✅ |
-| 19 | `db:seed:staging` script shortcut added | ✅ |
+| #   | Deliverable                                                                                  | Status |
+| --- | -------------------------------------------------------------------------------------------- | ------ |
+| 1   | Shared `tokens.css` — single source of truth for all 3 portals                               | ✅     |
+| 2   | ~360 hardcoded neutral colors → semantic tokens (48 pages + 8 components)                    | ✅     |
+| 3   | 5 new shared components: Select, Textarea, EmptyState, LoadingState, StatusBadge             | ✅     |
+| 4   | Fix all shared UI components (Button, Input, Card, DataTable, Modal, Toast, Badge, Skeleton) | ✅     |
+| 5   | Dark mode toggle (all 3 portals, localStorage persist)                                       | ✅     |
+| 6   | Gradient CSS custom properties (dark-mode-aware)                                             | ✅     |
+| 7   | Navigation loading bar ($navigating) all 3 portals                                           | ✅     |
+| 8   | Mobile hamburger nav (buyer)                                                                 | ✅     |
+| 9   | Sold-out guard on event detail CTA                                                           | ✅     |
+| 10  | Wire EmptyState to all pages with inline empty states                                        | ✅     |
+| 11  | Wire Textarea to 6 seller/admin form pages                                                   | ✅     |
+| 12  | Breadcrumbs on detail pages                                                                  | ✅     |
+| 13  | Password strength indicator (buyer register)                                                 | ✅     |
+| 14  | Real-time countdown (admin reservations)                                                     | ✅     |
+| 15  | Language consistency fix (buyer profile + notifications → Indonesian)                        | ✅     |
+| 16  | E2E trigger changed to manual + PR only (no more staging pollution)                          | ✅     |
+| 17  | E2E flaky tests fixed (event-moderation, category-browse, reservation-flow)                  | ✅     |
+| 18  | E2E workflow_dispatch condition fixed                                                        | ✅     |
+| 19  | `db:seed:staging` script shortcut added                                                      | ✅     |
 
 ### Planning — Next Tasks (AI-executable, no user decisions needed)
 
-| # | Task | Effort | Impact | Notes |
-|---|------|--------|--------|-------|
-| 1 | **Admin bulk actions** — DataTable checkbox + batch operations | 2h | Admin efficiency | Shared component change, test carefully |
-| 2 | **Buyer order history UX** — status badges, filter by status | 1h | Buyer experience | Better order tracking |
-| 3 | **Seller check-in UX** — QR scanner flow polish | 1h | Seller experience | Event day operations |
-| 4 | **Admin event moderation UX** — inline approve/reject actions | 1h | Admin efficiency | Quick moderation without page nav |
-| 5 | **Form validation UX (seller)** — inline errors on event create/edit | 1h | Seller experience | Same pattern as buyer login/register |
-| 6 | **SEO: sitemap.xml** — auto-generate from published events | 30 min | SEO | Crawlability |
-| 7 | **Buyer checkout UX** — inline validation, better error feedback | 1h | Conversion | Reduce checkout abandonment |
+| #   | Task                                                                 | Effort | Impact            | Notes                                   |
+| --- | -------------------------------------------------------------------- | ------ | ----------------- | --------------------------------------- |
+| 1   | **Admin bulk actions** — DataTable checkbox + batch operations       | 2h     | Admin efficiency  | Shared component change, test carefully |
+| 2   | **Buyer order history UX** — status badges, filter by status         | 1h     | Buyer experience  | Better order tracking                   |
+| 3   | **Seller check-in UX** — QR scanner flow polish                      | 1h     | Seller experience | Event day operations                    |
+| 4   | **Admin event moderation UX** — inline approve/reject actions        | 1h     | Admin efficiency  | Quick moderation without page nav       |
+| 5   | **Form validation UX (seller)** — inline errors on event create/edit | 1h     | Seller experience | Same pattern as buyer login/register    |
+| 6   | **SEO: sitemap.xml** — auto-generate from published events           | 30 min | SEO               | Crawlability                            |
+| 7   | **Buyer checkout UX** — inline validation, better error feedback     | 1h     | Conversion        | Reduce checkout abandonment             |
 
 ### Production Launch — 3 Decisions Needed (BLOCKING)
 
-| Decision | Recommendation | Rationale |
-|---|---|---|
-| Production domain | `jeevatix.my.id` (already active for staging) | DNS already configured |
-| Production DB host | VPS `168.144.140.206` (same as staging) | Proven stable |
-| Launch strategy | Invite-only | Limit blast radius |
+| Decision           | Recommendation                                | Rationale              |
+| ------------------ | --------------------------------------------- | ---------------------- |
+| Production domain  | `jeevatix.my.id` (already active for staging) | DNS already configured |
+| Production DB host | VPS `168.144.140.206` (same as staging)       | Proven stable          |
+| Launch strategy    | Invite-only                                   | Limit blast radius     |
 
 **Once confirmed, ~30 min to launch:**
+
 1. Run `scripts/generate-production-secrets.sh`
 2. Configure GitHub vars/secrets per `PRODUCTION_PREDEPLOY_CHECKLIST.md`
 3. Trigger `Deploy Production` workflow
 4. Verify health + canary
 5. Post-launch monitoring via Better Stack uptime + Cloudflare logsistic demo data (12 events, 2 sellers) | `1b21c8d` |
-| 6 | Auto-reseed after E2E tests | `f556b20` |
-| 7 | E2E workflow fix (pnpm v9) | `73ecdf9` |
-| 8 | Custom error pages (404/500) all portals | `85b0fe5` |
-| 9 | SEO meta tags (og:title, og:image, description) | `3a1ecac` |
-| 10 | Web manifest (PWA-ready) | `53e4ef2` |
+   | 6 | Auto-reseed after E2E tests | `f556b20` |
+   | 7 | E2E workflow fix (pnpm v9) | `73ecdf9` |
+   | 8 | Custom error pages (404/500) all portals | `85b0fe5` |
+   | 9 | SEO meta tags (og:title, og:image, description) | `3a1ecac` |
+   | 10 | Web manifest (PWA-ready) | `53e4ef2` |
 
 ### What's Blocked on User Decisions
 
 **Production deploy needs 3 decisions:**
 
-| Decision | AI Recommendation | Reasoning |
-|---|---|---|
-| Production domain | `jeevatix.my.id` (already active for staging) | Soft launch, DNS already configured. Can split staging→`staging.jeevatix.my.id` later. |
-| Production DB host | VPS `168.144.140.206` (same as staging) | Proven stable. Separate DB instance can be added later. |
-| Launch strategy | Invite-only | Limit blast radius, iterate fast based on real user feedback. |
+| Decision           | AI Recommendation                             | Reasoning                                                                              |
+| ------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Production domain  | `jeevatix.my.id` (already active for staging) | Soft launch, DNS already configured. Can split staging→`staging.jeevatix.my.id` later. |
+| Production DB host | VPS `168.144.140.206` (same as staging)       | Proven stable. Separate DB instance can be added later.                                |
+| Launch strategy    | Invite-only                                   | Limit blast radius, iterate fast based on real user feedback.                          |
 
 **Once confirmed, ~30 min to launch:**
+
 1. Run `scripts/generate-production-secrets.sh` (auto-gen JWT, webhook secrets; manual stanzas for DB password, etc.)
 2. Configure GitHub vars/secrets per `PRODUCTION_PREDEPLOY_CHECKLIST.md` (76 checkboxes)
 3. Trigger `Deploy Production` workflow
@@ -181,18 +306,19 @@ Once answered → 30 min to production live.
 
 ### Demo Accounts (Staging)
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | admin@jeevatix.id | Admin123! |
-| Seller 1 (EventPro Indonesia) | seller@jeevatix.id | Seller123! |
-| Seller 2 (Nusantara Events) | seller2@jeevatix.id | Seller123! |
-| Buyer (Rina Wijaya) | buyer@jeevatix.id | Buyer123! |
+| Role                          | Email               | Password   |
+| ----------------------------- | ------------------- | ---------- |
+| Admin                         | admin@jeevatix.id   | Admin123!  |
+| Seller 1 (EventPro Indonesia) | seller@jeevatix.id  | Seller123! |
+| Seller 2 (Nusantara Events)   | seller2@jeevatix.id | Seller123! |
+| Buyer (Rina Wijaya)           | buyer@jeevatix.id   | Buyer123!  |
 
 ### Reset Staging DB
 
 Manual workflow available: `Reset Staging DB` (workflow_dispatch). Wipes + reseeds with 12 demo events. Also runs at end of every E2E run via `if: always()` cleanup step.
 
 **E2E no longer auto-triggers on push.** Only runs on PRs or manual `workflow_dispatch`. To trigger manually:
+
 ```bash
 gh workflow run e2e-tests.yml --ref main
 ```
@@ -217,8 +343,6 @@ gh workflow run e2e-tests.yml --ref main
 7. **`svelte-check` lokal butuh env vars.** Jalankan via `pnpm run typecheck` (turbo injects env) atau set `INTERNAL_API_URL` + `PUBLIC_API_BASE_URL` + `PUBLIC_PARTYKIT_HOST` di `.env` root.
 
 ---
-
-
 
 # Handoff Progress
 
@@ -276,15 +400,15 @@ Verified: typecheck 8/8, lint 8/8, build 4/4 green locally. Live deploy run `264
 
 **Stacked plan status update:**
 
-| Phase                                       | Status                    | Notes                                          |
-| ------------------------------------------- | ------------------------- | ---------------------------------------------- |
-| Phase 1 — Production Prep Scaffolding       | ✅ DONE                   | All 5 deliverables committed                   |
-| Phase 1.5 — Defense-in-Depth Hardening      | ✅ DONE + VERIFIED IN CI  | Build hard-fail confirmed, canary 5/5 live     |
-| Phase 2 — Buyer `/events` 404 investigation | ⏳ Pending                | Next priority for research                     |
-| Phase 3 — E2E Migration                     | ⏳ Conditional on Phase 2 | Skip if complex                                |
-| Phase 4 — Security Health Check             | ✅ DONE + P0 APPLIED      | Hono bump merged, 11 advisories closed         |
-| Step 1 — External uptime monitor            | ⏳ Pending user action    | Better Stack / UptimeRobot                     |
-| Step 2 — Production deploy execution        | 🚫 Blocked                | 3 user decisions pending                       |
+| Phase                                       | Status                    | Notes                                      |
+| ------------------------------------------- | ------------------------- | ------------------------------------------ |
+| Phase 1 — Production Prep Scaffolding       | ✅ DONE                   | All 5 deliverables committed               |
+| Phase 1.5 — Defense-in-Depth Hardening      | ✅ DONE + VERIFIED IN CI  | Build hard-fail confirmed, canary 5/5 live |
+| Phase 2 — Buyer `/events` 404 investigation | ⏳ Pending                | Next priority for research                 |
+| Phase 3 — E2E Migration                     | ⏳ Conditional on Phase 2 | Skip if complex                            |
+| Phase 4 — Security Health Check             | ✅ DONE + P0 APPLIED      | Hono bump merged, 11 advisories closed     |
+| Step 1 — External uptime monitor            | ⏳ Pending user action    | Better Stack / UptimeRobot                 |
+| Step 2 — Production deploy execution        | 🚫 Blocked                | 3 user decisions pending                   |
 
 **Saran langkah sesi berikutnya (priority order):**
 
@@ -324,11 +448,11 @@ Homepage SSR data on custom domain:  upcomingEvents:[{id:"..."}]    (real data)
 
 Pattern across host combinations:
 
-| Source            | Target            | Result                           |
-| ----------------- | ----------------- | -------------------------------- |
-| custom domain     | custom domain     | 522 (same-zone W2W bug)          |
-| custom domain     | workers.dev       | ✅ works (current Track B fix)   |
-| workers.dev       | workers.dev       | ❌ silent fetch failure (NEW)    |
+| Source        | Target        | Result                         |
+| ------------- | ------------- | ------------------------------ |
+| custom domain | custom domain | 522 (same-zone W2W bug)        |
+| custom domain | workers.dev   | ✅ works (current Track B fix) |
+| workers.dev   | workers.dev   | ❌ silent fetch failure (NEW)  |
 
 **Scope clarification:**
 
@@ -392,11 +516,11 @@ GET https://jeevatix.my.id/events                                 → 200 ✅ (c
 
 **W2W bug status — ALL RESOLVED:**
 
-| Source            | Target            | Before              | After                    |
-| ----------------- | ----------------- | ------------------- | ------------------------ |
-| custom domain     | custom domain     | 522 (same-zone)     | N/A (Service Binding)    |
-| workers.dev       | workers.dev       | silent fetch fail    | ✅ Service Binding       |
-| custom domain     | workers.dev       | ✅ worked (Track B) | ✅ Service Binding       |
+| Source        | Target        | Before              | After                 |
+| ------------- | ------------- | ------------------- | --------------------- |
+| custom domain | custom domain | 522 (same-zone)     | N/A (Service Binding) |
+| workers.dev   | workers.dev   | silent fetch fail   | ✅ Service Binding    |
+| custom domain | workers.dev   | ✅ worked (Track B) | ✅ Service Binding    |
 
 **Impact:**
 
@@ -2894,14 +3018,24 @@ gh run view --log
 - [x] Staging deployment automated
 - [x] Smoke tests passing
 - [x] CI/CD pipeline fully operational
-- [ ] Production deployment workflow created (next session)
-- [ ] External monitoring configured (next session)
-- [ ] Tier 3 E2E tests implemented (optional)
+- [x] **Sentry error monitoring wired** (PR #9, DSN-gated until user sets env)
+- [x] **Lighthouse CI wired** (PR #9, runs after every Deploy)
+- [x] **Tier 3 E2E tests implemented** (PR #11)
+- [x] **Pre-launch security hardening** (PR #12 + #14 hotfix + #18 CSP report)
+- [x] **Security headers smoke checks in canary** (PR #16)
+- [x] **Observability extensions** — user context, business events, /health enrichment (PR #13)
+- [x] **Performance optimizations** (PR #17)
+- [x] Production deployment workflow created
+- [ ] PR #15 (docs) merged — pending env-flake resolution
+- [ ] PR #19 (e2e fix) — partial, needs root-cause for tier radio attachment
+- [ ] Sentry org/projects + DSNs configured (BLOCKED: user)
+- [ ] External monitoring configured — Better Stack/UptimeRobot (BLOCKED: user)
+- [ ] Production VPS DB + Cloudflare + domain (BLOCKED: user)
 
 ---
 
-**Status**: ✅ **READY FOR PRODUCTION** (pending production secrets configuration)
+**Status**: ✅ **PRE-LAUNCH WORK SUBSTANTIALLY COMPLETE** — only user-gated decisions and PR #19 follow-up remain.
 
-**Next Session Focus**: Production deployment or Tier 3 test enhancements (user choice)
+**Next Session Focus**: Either (a) finish PR #19 deep investigation, (b) start Tier 2 hardening (OpenAPI/Storybook/runbook), or (c) hand back to user for production secrets + domain decisions.
 
 > _Catatan Historis: Seluruh log eksperimen dari ratusan percobaan komparasi Task I telah diarsipkan dengan aman ke `docs/archive/handoff-v1-checkout-optimizations.md` agar konteks pembacaan lebih efisien._
