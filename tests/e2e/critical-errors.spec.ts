@@ -223,11 +223,16 @@ test.describe('Critical Error Scenarios', () => {
     }
 
     await quantityInput.fill('999');
-    // Use Tab to commit the value and trigger the onblur handler that flips
-    // quantityTouched=true. Calling .blur() directly on a <input type=number>
-    // wrapped in a Svelte component doesn't always fire the bubbling
-    // onblur event in headless Chromium.
-    await quantityInput.press('Tab');
+    // Dispatch a native blur event directly. Calling .blur() / .press('Tab')
+    // via Playwright on a Svelte 5 <Input> (component wrapper around <input>)
+    // does not always bubble onblur to the parent's prop handler, so the
+    // quantityTouched state stays false and the inline #quantity-error is
+    // never rendered. Dispatching a 'blur' event explicitly on the DOM node
+    // forces Svelte's event listener to fire.
+    await quantityInput.evaluate((el) => {
+      (el as HTMLInputElement).blur();
+      el.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+    });
 
     const quantityErrorMessage = page.locator('#quantity-error');
     await expect(quantityErrorMessage).toBeVisible({ timeout: 5000 });

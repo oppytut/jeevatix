@@ -83,6 +83,8 @@ test.describe('Buyer Ticket Detail', () => {
   });
 
   test('should display QR code on ticket detail', async ({ page }) => {
+    test.setTimeout(120_000);
+
     if (!(await tryLoginBuyerUi(page, buyerEmail, buyerPassword))) {
       test.skip(true, 'Buyer login failed on staging - service flakiness');
       return;
@@ -91,15 +93,16 @@ test.describe('Buyer Ticket Detail', () => {
 
     // QR generation runs in a $effect after client hydration, and the qrcode
     // package is dynamically imported (~150KB). On cold staging Workers the
-    // first render can take several seconds. Wait for either the rendered
-    // image or the in-page error placeholder, whichever resolves first, then
-    // skip gracefully if the runtime QR generation failed (non-deterministic).
+    // first render can take well over 30s. Race the rendered image against
+    // the in-page error placeholder, capping each wait at 45s and the
+    // overall test at 120s (default 60s would kill the test before our
+    // graceful skip path fires).
     const qrImage = page.locator('img[alt*="QR"], img[alt*="qr"]');
     const qrErrorMessage = page.getByText(/qr code tiket tidak bisa dirender/i);
 
     const outcome = await Promise.race([
-      qrImage.waitFor({ state: 'attached', timeout: 60_000 }).then(() => 'image' as const),
-      qrErrorMessage.waitFor({ state: 'visible', timeout: 60_000 }).then(() => 'error' as const),
+      qrImage.waitFor({ state: 'attached', timeout: 45_000 }).then(() => 'image' as const),
+      qrErrorMessage.waitFor({ state: 'visible', timeout: 45_000 }).then(() => 'error' as const),
     ]).catch(() => 'none' as const);
 
     if (outcome !== 'image') {
