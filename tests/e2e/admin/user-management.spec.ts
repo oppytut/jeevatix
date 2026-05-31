@@ -132,15 +132,28 @@ test.describe('Admin User Management', () => {
     // networkidle is brittle on the admin user-detail page (long-lived
     // connections from notifications + Sentry hold the network busy past 30s).
     // Wait for a stable UI marker — the user heading or any status badge —
-    // which signals SSR-rendered content is ready. Word boundaries prevent
-    // matching unintended substrings (e.g. "nonaktif", "interaktif").
+    // which signals SSR-rendered content is ready.
+    //
+    // Regex notes (pickup from PR #22 review):
+    // - JS \b sits between a word and non-word char, so \baktif\b inside
+    //   "nonaktif" still matches because the boundary exists between "non"
+    //   (word) and "aktif" (still word — no boundary). Use a negative
+    //   lookbehind / lookahead so prefixed/suffixed tokens like "nonaktif"
+    //   or "interaktif" never satisfy the wait.
+    // - This regex is sensitive to copy changes; once the admin status
+    //   badge has a stable data-testid, prefer locating it directly.
+    const STATUS_TEXT_RE =
+      /(?<![\p{L}\p{N}])(aktif|active|ditangguhkan|suspended)(?![\p{L}\p{N}])/iu;
     try {
       await page
         .locator('body')
-        .getByText(/\b(aktif|active|ditangguhkan|suspended)\b/i)
+        .getByText(STATUS_TEXT_RE)
         .first()
         .waitFor({ state: 'visible', timeout: 30_000 });
-    } catch {
+    } catch (error) {
+      console.warn(
+        `[user-management:125] User detail page never showed status text within 30s on ${page.url()}: ${(error as Error).message}`,
+      );
       test.skip(true, 'User detail page did not render status text within 30s');
       return;
     }
@@ -165,14 +178,19 @@ test.describe('Admin User Management', () => {
     }
 
     // Wait for the post-action body to reflect the new active status instead
-    // of relying on networkidle, which can hang on long connections.
+    // of relying on networkidle, which can hang on long connections. Same
+    // negative-lookbehind/lookahead pattern as above.
+    const ACTIVE_TEXT_RE = /(?<![\p{L}\p{N}])(aktif|active)(?![\p{L}\p{N}])/iu;
     try {
       await page
         .locator('body')
-        .getByText(/\b(aktif|active)\b/i)
+        .getByText(ACTIVE_TEXT_RE)
         .first()
         .waitFor({ state: 'visible', timeout: 15_000 });
-    } catch {
+    } catch (error) {
+      console.warn(
+        `[user-management:125] Status text never updated to active within 15s on ${page.url()}: ${(error as Error).message}`,
+      );
       test.skip(true, 'Status text never updated to active within 15s');
       return;
     }

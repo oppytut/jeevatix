@@ -102,7 +102,10 @@ test.describe('Buyer Ticket Detail', () => {
 
     // Attach .catch on each branch so the losing waitFor's rejection (which
     // fires once its 45s budget expires) does not surface as an unhandled
-    // rejection after the race resolves.
+    // rejection after the race resolves. Note: the losing waitFor still polls
+    // in the background until its timeout — Playwright doesn't expose
+    // cancellation here, but the test's outer setTimeout(120s) caps total
+    // wall time and the noise is acceptable for a known-flaky check.
     const outcome = await Promise.race([
       qrImage
         .waitFor({ state: 'attached', timeout: 45_000 })
