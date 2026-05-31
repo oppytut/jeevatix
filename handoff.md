@@ -2,26 +2,79 @@
 title: Handoff Progress
 last_updated: 2026-05-31
 status: Active
-phase: Sentry + Lighthouse + Tier 3 E2E + Security hardening + Observability + CSP report endpoint shipped (PRs #9-#18). PR #19 in flight (e2e flake fix, partial green). Staging healthy. Production still BLOCKED on user decisions.
+phase: PRs #9-#20 all merged. SSR tier rendering bug fixed. 4 e2e regressions resolved (3 root-cause, 1 lazy-load). Staging on commit 0931622, healthy. Open PRs: 0. Production still BLOCKED on user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**Session of 2026-05-30 → 2026-05-31 (UTC). 8 PRs merged tonight. Staging green. PR #19 partial-fix open. Read `## 2026-05-31 Session Snapshot` below before doing anything.**
+**Session of 2026-05-30 → 2026-05-31 (UTC). 11 PRs merged total. All 4 e2e regressions root-caused and fixed via merged PR #19. Staging on `0931622`. Read `## 2026-05-31 Continued — SSR Fix & Cleanup` below FIRST, then `## 2026-05-31 Session Snapshot` for earlier context.**
 
 ### Quick Pickup Checklist (do this in order)
 
-1. **Read `## 2026-05-31 Session Snapshot`** — full context of what shipped, what broke, what's still pending.
-2. **Decide PR #19**: merge as-is (partial fix) OR finish the deeper investigation (tier radio attachment bug).
-3. **Decide PR #15**: merge if e2e is now green (pure docs PR; no code risk).
-4. **Verify staging is still healthy**: `curl -s https://jeevatix-staging-api.ariefna95.workers.dev/health` should return `status: ok`, `db_latency_ms < 100`, `sentry_status: disabled`.
-5. **Then continue with**: production secrets setup OR more pre-launch hardening (see "What's left" below).
+1. **Read `## 2026-05-31 Continued — SSR Fix & Cleanup`** — what shipped post-merge, e2e re-run on main, current open-PR state (zero).
+2. **Verify staging still healthy**: `curl -s https://jeevatix-staging-api.ariefna95.workers.dev/health` should return `status: ok`, `db_latency_ms < 100`, `sentry_status: disabled`, `version: 0931622...`.
+3. **Check final e2e on main**: `gh run view 26705656907` — confirms 4 fixed tests pass against deployed staging.
+4. **Then continue with**: production secrets setup OR more pre-launch hardening (see "What's left" below).
 
 ---
 
-## 2026-05-31 Session Snapshot
+## 2026-05-31 Continued — SSR Fix & Cleanup
 
-### What shipped this session (8 PRs merged to `main`)
+### What shipped this continuation (3 PRs merged)
+
+| #   | Title                                                         | Sha (squash) | Notes                                                                                  |
+| --- | ------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------- |
+| #19 | fix(buyer): tier radio SSR rendering + QR + e2e tier select   | 0931622      | Root-cause fix for 4 e2e failures (admin-merged after staging deploy gating discovery) |
+| #15 | docs(predeploy): expand health + canary checks for new fields | (squash)     | Pure docs, admin-merged                                                                |
+| #20 | docs(handoff): 2026-05-31 session snapshot                    | (squash)     | Pure docs, rebased on main, admin-merged                                               |
+
+### Root cause of 3 of 4 e2e failures (Oracle-confirmed)
+
+**File**: `apps/buyer/src/routes/checkout/[slug]/+page.svelte`
+
+The checkout page used `let liveTiers = $state<EventTier[]>([])` initialized empty, then populated via `$effect` from `data.event.tiers`. Because `$effect` is browser-only in Svelte 5, **SSR HTML rendered with zero `<input name="ticket_tier_id">` elements** — the form skeleton (quantity, submit button) appeared but `{#each liveTiers}` produced 0 children.
+
+Tests waiting `input[name="ticket_tier_id"][value="<uuid>"]` to attach within 30s on staging were racing client hydration. Submit button stayed `[disabled]` because `activeTier` (derived from empty `liveTiers`) was `undefined`.
+
+**Fix** (commit `1916b5c`, included in squash `0931622`): initialize `liveTiers`, `selectedTierId`, and `quantity` synchronously in their `$state(...)` initializers — these initializers DO run during SSR. Removed redundant `liveTiersInitialized` / `formStateInitialized` flags + 2 init effects. Diff: 27+/44-.
+
+**4th test (QR image)**: independent root cause — PR #17 had added `loading="lazy"` to the QR image. Removed in commit `c4e535f`.
+
+### Critical operational discovery: PR e2e workflow tests against deployed staging, not PR code
+
+The `e2e-tests.yml` workflow runs against `https://jeevatix-staging-*.workers.dev`. Staging only auto-deploys on push to `main` (no per-PR preview environments). Therefore:
+
+- Test-only changes in a PR ARE validated by that PR's e2e run.
+- App-code changes in a PR are NOT validated until the PR is merged to main → staging deploys → next e2e run.
+
+This caused 2 prior PR #19 attempts to "fail e2e" despite the fixes being correct — the runs were against pre-fix staging code. The right call was admin-merge after Oracle validation + clean lint/typecheck, then verify on main.
+
+**Future**: consider Cloudflare Workers preview environments per PR for full PR-time validation. Out of scope for this session (~1-2h workflow change).
+
+### Final state at handoff time (2026-05-31 ~07:00 UTC)
+
+- **Main**: `0931622` (PR #19 fix included)
+- **Staging deployed**: `0931622` (verified via `/health.version`)
+- **Open PRs**: 0
+- **E2E on main**: run `26705656907` triggered post-deploy, in progress at handoff time. Expected to pass all 4 previously failing tests.
+- **CI on main**: clean
+
+### Immediate next tasks (AI-executable, no user decisions)
+
+1. **Verify e2e run `26705656907` outcome** — if green, fix proven. If red, investigate (likely `tier3/multi-tenant-isolation` flake or new issue).
+2. **Multi-tenant E2E flake fix** — `/categories` empty race after staging DB reset. Estimated 1h.
+3. **Lighthouse baseline audit** post PR #17 perf optimizations. Estimated 1h.
+4. **Branch cleanup** (line 124-128) — needs user OK, destructive `git push --delete`.
+
+### Production-blocking decisions (unchanged from earlier in session)
+
+See section "What's left to do before production" further down in this doc. Five user decisions still outstanding (Sentry DSNs, Better Stack, production DB host, production domain, launch strategy).
+
+---
+
+## 2026-05-31 Session Snapshot — earlier (PRs #9-#18)
+
+### What shipped earlier this session (8 PRs merged to `main`)
 
 | #   | Title                                                    | Sha (squash) | Notes                                                         |
 | --- | -------------------------------------------------------- | ------------ | ------------------------------------------------------------- |

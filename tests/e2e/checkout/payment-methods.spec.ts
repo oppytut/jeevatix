@@ -11,7 +11,6 @@ import {
 test.describe('Payment Methods', () => {
   test.describe.configure({ mode: 'serial' });
 
-
   let buyerEmail: string;
   let buyerPassword: string;
   let eventSlug: string;
@@ -70,10 +69,10 @@ test.describe('Payment Methods', () => {
 
     await expect(page.getByRole('button', { name: 'Reservasi Tiket' })).toBeVisible();
 
-    // Tier must be selected before quantity input is enabled and the submit
-    // button becomes clickable (per apps/buyer/src/routes/checkout/[slug]/+page.svelte:441).
-    // Tiers render via $effect after hydration (line 128), so the radio may
-    // not be in the DOM at networkidle — wait for attachment explicitly.
+    // Tier must be selected before the submit button becomes clickable
+    // (per apps/buyer/src/routes/checkout/[slug]/+page.svelte). Tier radios
+    // render in SSR HTML, so they're attached at networkidle — but waiting
+    // explicitly avoids cold-start flakiness on staging Workers.
     const tierRadio = page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`);
     await tierRadio.waitFor({ state: 'attached', timeout: 30000 });
     await tierRadio.check({ force: true });
@@ -87,7 +86,10 @@ test.describe('Payment Methods', () => {
 
     // Wait for the countdown timer text that only appears after successful reservation
     const countdownIndicator = page.getByText('Waktu Tersisa');
-    const appeared = await countdownIndicator.waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
+    const appeared = await countdownIndicator
+      .waitFor({ timeout: 30000 })
+      .then(() => true)
+      .catch(() => false);
 
     if (!appeared && page.url().includes('/checkout/')) {
       test.skip(true, 'SvelteKit form action did not complete — known local limitation');
@@ -97,7 +99,10 @@ test.describe('Payment Methods', () => {
     // Verify reservation state: countdown visible OR "Lanjut ke Pembayaran" button present
     const hasReservationState =
       (await countdownIndicator.isVisible().catch(() => false)) ||
-      (await page.getByRole('button', { name: 'Lanjut ke Pembayaran' }).isVisible().catch(() => false)) ||
+      (await page
+        .getByRole('button', { name: 'Lanjut ke Pembayaran' })
+        .isVisible()
+        .catch(() => false)) ||
       !page.url().includes('/checkout/');
 
     expect(hasReservationState).toBeTruthy();
