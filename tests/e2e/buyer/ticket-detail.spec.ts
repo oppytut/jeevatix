@@ -100,10 +100,19 @@ test.describe('Buyer Ticket Detail', () => {
     const qrImage = page.locator('img[alt*="QR"], img[alt*="qr"]');
     const qrErrorMessage = page.getByText(/qr code tiket tidak bisa dirender/i);
 
+    // Attach .catch on each branch so the losing waitFor's rejection (which
+    // fires once its 45s budget expires) does not surface as an unhandled
+    // rejection after the race resolves.
     const outcome = await Promise.race([
-      qrImage.waitFor({ state: 'attached', timeout: 45_000 }).then(() => 'image' as const),
-      qrErrorMessage.waitFor({ state: 'visible', timeout: 45_000 }).then(() => 'error' as const),
-    ]).catch(() => 'none' as const);
+      qrImage
+        .waitFor({ state: 'attached', timeout: 45_000 })
+        .then(() => 'image' as const)
+        .catch(() => 'image-timeout' as const),
+      qrErrorMessage
+        .waitFor({ state: 'visible', timeout: 45_000 })
+        .then(() => 'error' as const)
+        .catch(() => 'error-timeout' as const),
+    ]);
 
     if (outcome !== 'image') {
       test.skip(

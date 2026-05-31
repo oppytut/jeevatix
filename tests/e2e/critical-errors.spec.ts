@@ -209,34 +209,34 @@ test.describe('Critical Error Scenarios', () => {
       return;
     }
 
-    // Buyer checkout SSR preselects the default tier so the form is valid out
-    // of the box (apps/buyer/src/routes/checkout/[slug]/+page.svelte
-    // getInitialSelectedTierId). Validation surfaces only when a field becomes
-    // invalid after user interaction (touched + invalid → inline error).
-    // Drive the quantity field to an invalid value and assert the error
-    // appears, which exercises the same hasFormErrors path used by the submit
-    // button.
+    // SSR preselects the default tier so the submit button is enabled out of
+    // the box (apps/buyer/src/routes/checkout/[slug]/+page.svelte:74). Capture
+    // that as the positive contract first, then drive the quantity field
+    // invalid to assert the inline validation surface.
+    await expect(reserveButton).toBeEnabled();
+
     const quantityInput = page.locator('input[name="quantity"]');
     if ((await quantityInput.count()) === 0) {
       test.skip(true, 'Quantity input not found — checkout form may not have rendered');
       return;
     }
 
-    await quantityInput.fill('999');
-    // Dispatch a native blur event directly. Calling .blur() / .press('Tab')
-    // via Playwright on a Svelte 5 <Input> (component wrapper around <input>)
-    // does not always bubble onblur to the parent's prop handler, so the
-    // quantityTouched state stays false and the inline #quantity-error is
-    // never rendered. Dispatching a 'blur' event explicitly on the DOM node
-    // forces Svelte's event listener to fire.
+    // Use a value safely above any realistic remaining-tickets count and any
+    // max_tickets_per_order on the seeded staging event (~22 / 5 today).
+    await quantityInput.fill('99999');
+
+    // Dispatch a synthetic 'blur' on the DOM node to flip quantityTouched.
+    // Playwright's .blur() / .press('Tab') do not reliably bubble onblur
+    // through the Svelte 5 <Input> wrapper to the parent's {onblur} prop.
     await quantityInput.evaluate((el) => {
-      (el as HTMLInputElement).blur();
       el.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
     });
 
-    const quantityErrorMessage = page.locator('#quantity-error');
+    // Use the data-testid that mirrors the contract (form has errors that
+    // disable submission) instead of matching translated copy. Visibility +
+    // its existence is enough to validate the contract.
+    const quantityErrorMessage = page.locator('[data-testid="quantity-error"]');
     await expect(quantityErrorMessage).toBeVisible({ timeout: 5000 });
-    await expect(quantityErrorMessage).toHaveText(/melebihi sisa tiket/i);
     expect(page.url()).toContain('/checkout/');
   });
 

@@ -392,6 +392,7 @@
             {#if quantityError}
               <p
                 id="quantity-error"
+                data-testid="quantity-error"
                 class="mt-2 text-xs text-rose-600 dark:text-rose-400"
                 aria-live="polite"
               >
