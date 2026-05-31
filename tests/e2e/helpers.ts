@@ -271,16 +271,21 @@ export async function createSellerViaApi(request: APIRequestContext): Promise<Cr
   const password = 'Seller123!';
   const fullName = `Seller ${uniqueSuffix()}`;
   const orgName = `Org ${uniqueSuffix()}`;
-  const result = await apiRequest<AuthPayload>(request, 'POST', '/auth/register/seller', {
-    data: {
-      email,
-      password,
-      full_name: fullName,
-      phone: '081234567890',
-      org_name: orgName,
-      org_description: 'Seller fixture untuk Playwright.',
-    },
-  });
+  // Internal retry hardens against transient INTERNAL_SERVER_ERROR from
+  // Cloudflare Workers cold-start / Neon connection storms during fixture creation.
+  // Outer call-site withRetry (if any) still applies as defense in depth.
+  const result = await withRetry(() =>
+    apiRequest<AuthPayload>(request, 'POST', '/auth/register/seller', {
+      data: {
+        email,
+        password,
+        full_name: fullName,
+        phone: '081234567890',
+        org_name: orgName,
+        org_description: 'Seller fixture untuk Playwright.',
+      },
+    }),
+  );
 
   return {
     email,
@@ -317,11 +322,12 @@ export async function publishEventAsAdmin(
   eventId: string,
   status: 'published' | 'rejected' = 'published',
 ) {
-  const admin = await loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD);
-
-  await apiRequest(request, 'PATCH', `/admin/events/${eventId}/status`, {
-    token: admin.access_token,
-    data: { status },
+  await withRetry(async () => {
+    const admin = await loginApi(request, ADMIN_EMAIL, ADMIN_PASSWORD);
+    await apiRequest(request, 'PATCH', `/admin/events/${eventId}/status`, {
+      token: admin.access_token,
+      data: { status },
+    });
   });
 }
 
@@ -965,9 +971,11 @@ export async function submitEventForReview(
   eventId: string,
   sellerAccessToken: string,
 ) {
-  await apiRequest(request, 'POST', `/seller/events/${eventId}/submit`, {
-    token: sellerAccessToken,
-  });
+  await withRetry(() =>
+    apiRequest(request, 'POST', `/seller/events/${eventId}/submit`, {
+      token: sellerAccessToken,
+    }),
+  );
 }
 
 export async function updateEventViaSellerApi(

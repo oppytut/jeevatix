@@ -10,15 +10,15 @@ jobs:
     timeout-minutes: 45
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
-    
+
     env:
       E2E_TARGET: staging
-      CI: "true"
+      CI: 'true'
       PAYMENT_WEBHOOK_SECRET: ${{ secrets.PAYMENT_WEBHOOK_SECRET }}
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
@@ -38,6 +38,16 @@ jobs:
             https://jeevatix-staging-api.ariefna95.workers.dev/health
           echo ""
           echo "✅ Staging API is healthy"
+
+      - name: Reset staging DB to clean demo state (pre-job)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "DATABASE_URL=$DATABASE_URL" > .env
+          pnpm --filter @jeevatix/core exec tsx src/db/reset-staging.ts
+          pnpm --filter @jeevatix/core run db:push
+          pnpm --filter @jeevatix/core exec tsx src/db/seed-staging.ts
+          echo "✅ Staging DB reset + seeded with clean demo data"
 
       - name: Warm up staging Workers
         run: |
@@ -64,7 +74,7 @@ jobs:
             --project=buyer-features \
             --project=seller-features \
             --project=tier-3
-        
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -72,7 +82,7 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-      - name: Reset staging DB to clean demo state
+      - name: Reset staging DB to clean demo state (post-job cleanup)
         if: always()
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
