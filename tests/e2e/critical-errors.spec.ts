@@ -223,7 +223,11 @@ test.describe('Critical Error Scenarios', () => {
     }
 
     await quantityInput.fill('999');
-    await quantityInput.blur();
+    // Use Tab to commit the value and trigger the onblur handler that flips
+    // quantityTouched=true. Calling .blur() directly on a <input type=number>
+    // wrapped in a Svelte component doesn't always fire the bubbling
+    // onblur event in headless Chromium.
+    await quantityInput.press('Tab');
 
     const quantityErrorMessage = page.locator('#quantity-error');
     await expect(quantityErrorMessage).toBeVisible({ timeout: 5000 });
