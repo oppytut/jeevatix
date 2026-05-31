@@ -139,7 +139,7 @@
 {:else}
   <div class="bg-background text-foreground min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
     <aside
-      class="border-border border-b bg-foreground text-background lg:min-h-screen lg:border-r lg:border-b-0"
+      class="border-border bg-foreground text-background border-b lg:min-h-screen lg:border-r lg:border-b-0"
     >
       <!-- Mobile header bar -->
       <div class="flex items-center justify-between px-6 py-4 lg:hidden">
@@ -147,10 +147,10 @@
           <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.35em] uppercase">
             Jeevatix
           </p>
-          <p class="text-lg font-semibold text-background">Admin Console</p>
+          <p class="text-background text-lg font-semibold">Admin Console</p>
         </div>
         <button
-          class="inline-flex size-10 items-center justify-center rounded-full border border-white/10 text-background transition hover:bg-white/10"
+          class="text-background inline-flex size-10 items-center justify-center rounded-full border border-white/10 transition hover:bg-white/10"
           onclick={() => (mobileNavOpen = !mobileNavOpen)}
           aria-label={mobileNavOpen ? 'Tutup menu' : 'Buka menu'}
           aria-expanded={mobileNavOpen}
@@ -180,7 +180,7 @@
           {#each menuItems as item (item.label)}
             <a
               href={resolve(item.href)}
-              class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-background' : 'border-white/5 text-background/70 hover:border-white/15 hover:bg-white/5 hover:text-background'}`}
+              class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'text-background border-white/20 bg-white/10' : 'text-background/70 hover:text-background border-white/5 hover:border-white/15 hover:bg-white/5'}`}
             >
               <span>{item.label}</span>
               {#if item.label === 'Notifications' && unreadCount > 0}
@@ -200,14 +200,14 @@
             <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.3em] uppercase">
               Session
             </p>
-            <p class="mt-2 text-sm font-medium text-background">{currentUser?.full_name}</p>
+            <p class="text-background mt-2 text-sm font-medium">{currentUser?.full_name}</p>
             <p class="text-muted-foreground/70 text-sm">{currentUser?.email}</p>
           </div>
 
           <div class="flex items-center gap-2">
             <DarkModeToggle />
             <button
-              class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-background/80 transition hover:border-white/20 hover:bg-white/10 hover:text-background"
+              class="text-background/80 hover:text-background flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium transition hover:border-white/20 hover:bg-white/10"
               onclick={handleLogout}
               type="button"
             >
@@ -224,7 +224,7 @@
             {#each menuItems as item (item.label)}
               <a
                 href={resolve(item.href)}
-                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'border-white/20 bg-white/10 text-background' : 'border-white/5 text-background/70 hover:border-white/15 hover:bg-white/5 hover:text-background'}`}
+                class={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm font-medium transition ${isActive(item) ? 'text-background border-white/20 bg-white/10' : 'text-background/70 hover:text-background border-white/5 hover:border-white/15 hover:bg-white/5'}`}
                 onclick={() => (mobileNavOpen = false)}
               >
                 <span>{item.label}</span>
@@ -245,14 +245,14 @@
               <p class="text-muted-foreground/70 text-xs font-semibold tracking-[0.3em] uppercase">
                 Session
               </p>
-              <p class="mt-2 text-sm font-medium text-background">{currentUser?.full_name}</p>
+              <p class="text-background mt-2 text-sm font-medium">{currentUser?.full_name}</p>
               <p class="text-muted-foreground/70 text-sm">{currentUser?.email}</p>
             </div>
 
             <div class="flex items-center gap-2">
               <DarkModeToggle />
               <button
-                class="flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium text-background/80 transition hover:border-white/20 hover:bg-white/10 hover:text-background"
+                class="text-background/80 hover:text-background flex-1 rounded-2xl border border-white/10 px-4 py-3 text-left text-sm font-medium transition hover:border-white/20 hover:bg-white/10"
                 onclick={handleLogout}
                 type="button"
               >
