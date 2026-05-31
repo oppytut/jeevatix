@@ -81,7 +81,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <a href={resolve('/events')} class="group">
             <Button
-              class="h-14 rounded-full bg-[var(--gradient-brand)] px-8 text-base font-bold shadow-[var(--shadow-float)] transition-all hover:scale-105 hover:shadow-[0_20px_60px_rgba(232,93,63,0.28)]"
+              class="h-14 rounded-full bg-[var(--gradient-brand)] px-8 text-base font-bold text-slate-900 shadow-[var(--shadow-float)] transition-all hover:scale-105 hover:shadow-[0_20px_60px_rgba(232,93,63,0.28)] dark:text-white"
             >
               Jelajah Event Sekarang
               <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
@@ -141,7 +141,7 @@
       >
         <div class="flex items-start gap-4">
           <div
-            class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-white shadow-lg"
+            class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-400 text-slate-900 shadow-lg dark:text-white"
           >
             <CalendarRange class="size-7" />
           </div>
