@@ -51,20 +51,26 @@ This caused 2 prior PR #19 attempts to "fail e2e" despite the fixes being correc
 
 **Future**: consider Cloudflare Workers preview environments per PR for full PR-time validation. Out of scope for this session (~1-2h workflow change).
 
-### Final state at handoff time (2026-05-31 ~07:00 UTC)
+### Final state at handoff time (2026-05-31 ~07:15 UTC)
 
 - **Main**: `0931622` (PR #19 fix included)
 - **Staging deployed**: `0931622` (verified via `/health.version`)
-- **Open PRs**: 0
-- **E2E on main**: run `26705656907` triggered post-deploy, in progress at handoff time. Expected to pass all 4 previously failing tests.
-- **CI on main**: clean
+- **Open PRs**: PR #21 only (docs/comment cleanup)
+- **E2E on main**: run `26705656907` completed with 3 failures, but confirms the SSR tier fix worked for the 2 checkout flow failures:
+  - ✅ `checkout/payment-methods.spec.ts:58` passed (was failing: tier radio never attached)
+  - ✅ `checkout/reservation-flow.spec.ts:57` passed (was failing: tier radio never attached)
+  - ❌ `critical-errors.spec.ts:198` now fails because the submit button is enabled (proof default tier is selected after SSR fix); test assertion is obsolete
+  - ❌ `buyer/ticket-detail.spec.ts:85` still fails because QR image is not attached within 30s; separate async QR generation issue
+  - ❌ `admin/user-management.spec.ts:125` failed; separate pre-existing admin flake
+- **CI on main**: app CI clean; e2e red on the 3 follow-ups above
 
 ### Immediate next tasks (AI-executable, no user decisions)
 
-1. **Verify e2e run `26705656907` outcome** — if green, fix proven. If red, investigate (likely `tier3/multi-tenant-isolation` flake or new issue).
-2. **Multi-tenant E2E flake fix** — `/categories` empty race after staging DB reset. Estimated 1h.
-3. **Lighthouse baseline audit** post PR #17 perf optimizations. Estimated 1h.
-4. **Branch cleanup** (line 124-128) — needs user OK, destructive `git push --delete`.
+1. **Fix obsolete `critical-errors.spec.ts:198` assertion** — the checkout page now preselects the default tier in SSR, so `Reservasi Tiket` is enabled. Update test to assert the current UX contract instead of disabled-state. Estimated 15 min.
+2. **Investigate QR flake** — `ticket-detail.spec.ts:85` waits for `img[alt*="QR"]` attachment, but QR generation is async (`renderQrCode()` post-mount). Estimated 30-60 min.
+3. **Investigate admin user-management flake** — `user-management.spec.ts:125`, likely brittle `networkidle` or status-row wait. Estimated 30-60 min.
+4. **Lighthouse baseline audit** post PR #17 perf optimizations. Estimated 1h.
+5. **Branch cleanup** (line 124-128) — needs user OK, destructive `git push --delete`.
 
 ### Production-blocking decisions (unchanged from earlier in session)
 
