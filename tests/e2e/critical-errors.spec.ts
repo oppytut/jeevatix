@@ -209,20 +209,13 @@ test.describe('Critical Error Scenarios', () => {
       return;
     }
 
-    await reserveButton.click({ timeout: 60000 });
-    await page.waitForLoadState('networkidle');
-
-    const bodyText = await page.locator('body').textContent({ timeout: 30000 });
-    const hasValidationOrStaysOnPage =
-      bodyText?.includes('pilih') ||
-      bodyText?.includes('select') ||
-      bodyText?.includes('required') ||
-      bodyText?.includes('wajib') ||
-      bodyText?.includes('reservasi') ||
-      bodyText?.includes('Reservasi') ||
-      page.url().includes('/checkout/');
-
-    expect(hasValidationOrStaysOnPage).toBeTruthy();
+    // The buyer checkout UX prevents submission of an empty form by keeping the
+    // submit button disabled until a tier is selected and the form is valid
+    // (per apps/buyer/src/routes/checkout/[slug]/+page.svelte:441). This is the
+    // "validation before submission" contract — it's enforced via disabled state
+    // rather than a post-submit error message. Assert the contract directly.
+    await expect(reserveButton).toBeDisabled();
+    expect(page.url()).toContain('/checkout/');
   });
 
   test('should handle sold out tiers gracefully', async ({ page }) => {

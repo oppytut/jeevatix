@@ -37,10 +37,32 @@
 
   let { data, form }: { data: CheckoutData; form?: CheckoutForm } = $props();
 
+  function getInitialSelectedTierId() {
+    return (
+      form?.selectedTierId ??
+      data.defaultTierId ??
+      data.event.tiers.find((tier) => tier.remaining > 0)?.id ??
+      data.event.tiers[0]?.id ??
+      ''
+    );
+  }
+
+  function getInitialQuantity() {
+    const parsedQuantity = Number(form?.quantity ?? '1');
+
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1) {
+      return 1;
+    }
+
+    return Math.min(parsedQuantity, data.event.max_tickets_per_order);
+  }
+
   let now = $state(Date.now());
-  let liveTiers = $state<EventTier[]>([]);
-  let liveTiersInitialized = $state(false);
-  let formStateInitialized = $state(false);
+  // Initialize liveTiers synchronously so SSR renders the tier radio inputs.
+  // $effect only runs in the browser, so deferring this to onMount/$effect
+  // produces an empty form skeleton on the server (zero <input name="ticket_tier_id">),
+  // breaking SSR-visible behavior and any test that asserts before hydration.
+  let liveTiers = $state<EventTier[]>(data.event.tiers.map((tier) => ({ ...tier })));
   let showSoldOutModal = $state(false);
   let countdownInterval: ReturnType<typeof setInterval> | null = null;
   let tierTouched = $state(false);
@@ -49,7 +71,7 @@
 
   const availableTiers = $derived(liveTiers.filter((tier: EventTier) => tier.remaining > 0));
   const reservation = $derived(form?.reservation ?? null);
-  let selectedTierId = $state('');
+  let selectedTierId = $state(getInitialSelectedTierId());
   const activeTier = $derived(
     liveTiers.find((tier: EventTier) => tier.id === selectedTierId) ??
       availableTiers[0] ??
@@ -58,7 +80,7 @@
   const maxSelectableQuantity = $derived(
     activeTier ? Math.max(1, Math.min(activeTier.remaining, data.event.max_tickets_per_order)) : 1,
   );
-  let quantity = $state(1);
+  let quantity = $state(getInitialQuantity());
 
   const tierError = $derived(tierTouched && !selectedTierId ? 'Pilih tier tiket' : '');
   const quantityError = $derived(
@@ -81,26 +103,6 @@
     return errorMsg;
   });
 
-  function getInitialSelectedTierId() {
-    return (
-      form?.selectedTierId ??
-      data.defaultTierId ??
-      data.event.tiers.find((tier) => tier.remaining > 0)?.id ??
-      data.event.tiers[0]?.id ??
-      ''
-    );
-  }
-
-  function getInitialQuantity() {
-    const parsedQuantity = Number(form?.quantity ?? '1');
-
-    if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1) {
-      return 1;
-    }
-
-    return Math.min(parsedQuantity, data.event.max_tickets_per_order);
-  }
-
   function decreaseQuantity() {
     quantity = Math.max(1, quantity - 1);
   }
@@ -119,25 +121,6 @@
         : tier.remaining,
     }));
   }
-
-  $effect(() => {
-    if (liveTiersInitialized) {
-      return;
-    }
-
-    liveTiers = data.event.tiers.map((tier) => ({ ...tier }));
-    liveTiersInitialized = true;
-  });
-
-  $effect(() => {
-    if (formStateInitialized || !liveTiersInitialized) {
-      return;
-    }
-
-    selectedTierId = getInitialSelectedTierId();
-    quantity = getInitialQuantity();
-    formStateInitialized = true;
-  });
 
   $effect(() => {
     if (!reservation && activeTier?.remaining === 0) {

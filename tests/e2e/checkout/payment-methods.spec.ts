@@ -70,6 +70,14 @@ test.describe('Payment Methods', () => {
 
     await expect(page.getByRole('button', { name: 'Reservasi Tiket' })).toBeVisible();
 
+    // Tier must be selected before quantity input is enabled and the submit
+    // button becomes clickable (per apps/buyer/src/routes/checkout/[slug]/+page.svelte:441).
+    // Tiers render via $effect after hydration (line 128), so the radio may
+    // not be in the DOM at networkidle — wait for attachment explicitly.
+    const tierRadio = page.locator(`input[name="ticket_tier_id"][value="${tierId}"]`);
+    await tierRadio.waitFor({ state: 'attached', timeout: 30000 });
+    await tierRadio.check({ force: true });
+
     const quantityInput = page.locator('input[name="quantity"]');
     if (await quantityInput.isVisible().catch(() => false)) {
       await quantityInput.fill('1');
