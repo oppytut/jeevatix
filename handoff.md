@@ -2,19 +2,123 @@
 title: Handoff Progress
 last_updated: 2026-05-31
 status: Active
-phase: PRs #9-#20 all merged. SSR tier rendering bug fixed. 4 e2e regressions resolved (3 root-cause, 1 lazy-load). Staging on commit 0931622, healthy. Open PRs: 0. Production still BLOCKED on user decisions.
+phase: PRs #9-#25 merged. Tier3 flake hardened (PR #24). CI dev warnings closed (PR #25). Three consecutive e2e runs on main green (77/0). Staging deployed `1ec88fc` (in flight) on top of `b0f9951`. Production still BLOCKED on user decisions.
 ---
 
 ## ⏭️ Next Session — Pickup Here
 
-**Session of 2026-05-30 → 2026-05-31 (UTC). 11 PRs merged total. All 4 e2e regressions root-caused and fixed via merged PR #19. Staging on `0931622`. Read `## 2026-05-31 Continued — SSR Fix & Cleanup` below FIRST, then `## 2026-05-31 Session Snapshot` for earlier context.**
+**Session of 2026-05-31 (UTC, late afternoon). Continuation of the afternoon arc — pickup if rejoining from a different opencode session. 2 more PRs landed (#24, #25). All 4 P0/P1 todos completed. Read `## 2026-05-31 Late Afternoon Continuation` below FIRST.**
 
 ### Quick Pickup Checklist (do this in order)
 
-1. **Read `## 2026-05-31 Continued — SSR Fix & Cleanup`** — what shipped post-merge, e2e re-run on main, current open-PR state (zero).
-2. **Verify staging still healthy**: `curl -s https://jeevatix-staging-api.ariefna95.workers.dev/health` should return `status: ok`, `db_latency_ms < 100`, `sentry_status: disabled`, `version: 0931622...`.
-3. **Check final e2e on main**: `gh run view 26705656907` — confirms 4 fixed tests pass against deployed staging.
-4. **Then continue with**: production secrets setup OR more pre-launch hardening (see "What's left" below).
+1. **Read `## 2026-05-31 Late Afternoon Continuation`** — what shipped, what's verified, what's still actionable.
+2. **Verify staging is green** for the latest commit:
+   ```bash
+   curl -s https://jeevatix-staging-api.ariefna95.workers.dev/health | jq
+   gh run list --branch main --workflow=deploy.yml --limit 1
+   ```
+   Expect `version: 1ec88fc...` (PR #25) once the in-flight deploy completes. As of handoff write time, `version=b0f9951` (PR #24) and `1ec88fc` deploy is `in_progress`.
+3. **Verify e2e baseline still 77/0** — last 3 e2e runs on main: `26716792479` (PR #22 fixes), `26717521317` (PR #24 verification), `26719145528` (PR #25 verification). All passed `77 passed / 0 failed`.
+4. **Open PRs**: 0. Nothing to triage.
+5. **Production decisions are the only blockers** — see "Open production decisions" below. No more AI-actionable code work without user input. Optional Tier 2 hardening exists but is judgment-call territory (see "Tier 2 — needs user OK").
+
+---
+
+## 2026-05-31 Late Afternoon Continuation
+
+### What shipped this session (2 PRs merged + 1 closed)
+
+| #   | Title                                                              | Sha (squash) | Risk | Notes                                                                    |
+| --- | ------------------------------------------------------------------ | ------------ | ---- | ------------------------------------------------------------------------ |
+| #23 | docs(handoff): 2026-05-31 afternoon continuation                   | (closed)     | —    | Closed as superseded by PR #21. Empty diff after rebase. Branch deleted. |
+| #24 | test(e2e): harden tier3 fixture flake — pre-job DB reset + retries | `b0f9951`    | LOW  | Workflow + helpers only. Test-only change. Admin-merged.                 |
+| #25 | chore: cleanup dev warnings — Node 24 opt-in + unused seed imports | `1ec88fc`    | LOW  | Workflow env + dead-code removal. Admin-merged.                          |
+
+### What PR #24 actually does (tier3 flake mitigation)
+
+Two infra fixes for the tier3 transient flake documented in the previous handoff section:
+
+1. **Pre-job DB reset** added to `e2e-tests.yml` alongside the existing post-job cleanup. Guarantees clean staging DB state for _the current run_ instead of depending on the prior run exiting cleanly.
+2. **Helper retries** wrapped inside `createSellerViaApi`, `publishEventAsAdmin`, `submitEventForReview` in `tests/e2e/helpers.ts`. Hardens against transient `INTERNAL_SERVER_ERROR` and `CATEGORY_NOT_FOUND` from CF Workers cold-start + Neon connection storms when many fixture creators run in parallel. Existing call-site `withRetry` wraps stay (defense in depth, harmless redundancy).
+
+E2E run `26717521317` post-merge: **77 passed / 0 failed (22.0m)**. No tier3 transient failures observed.
+
+### What PR #25 actually does (dev warning cleanup)
+
+1. **Node 24 opt-in** for GitHub Actions runners. Set `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` at workflow-level env on all 6 workflows (`ci.yml`, `deploy.yml`, `deploy-production.yml`, `e2e-tests.yml`, `lighthouse.yml`, `reset-staging-db.yml`). The Node 20 deprecation warning had been firing on every CI run. GitHub forces this default on June 16, 2026 anyway. Verified working — warning text changed from "running on Node.js 20" to "being forced to run on Node.js 24".
+2. **Removed 7 unused imports + 2 unused destructured vars** from `packages/core/src/db/seed-e2e.ts`. The TRUNCATE statement is raw SQL, so the table-object imports (`tickets`, `eventCategories`, `notifications`, `orderItems`, `orders`, `refreshTokens`, `reservations`) were never referenced. `[adminUser]` and `[buyerUser]` destructures from `.returning()` were never read. Closes 9 pre-existing ESLint warnings.
+
+E2E run `26719145528` post-merge: **77 passed / 0 failed (22.4m)**.
+
+### Stable e2e baseline confirmed across 3 consecutive runs
+
+| Run ID        | Trigger              | Result | Time  |
+| ------------- | -------------------- | ------ | ----- |
+| `26716792479` | PR #22 validation    | 77/0   | 23.5m |
+| `26717521317` | PR #24 (tier3 fix)   | 77/0   | 22.0m |
+| `26719145528` | PR #25 (dev cleanup) | 77/0   | 22.4m |
+
+3 green runs in a row across infrastructure changes. Baseline is genuinely stable, not flake-masked.
+
+### Critical operational learning this session
+
+**SST concurrent lock with parallel admin-merges**: When PR #21 and PR #22 were admin-merged within seconds of each other earlier in the day, both deploy workflows fired simultaneously. PR #21's deploy acquired the SST lock; PR #22's hit `Locked: A concurrent update was detected on the app. Run \`sst unlock\``.
+
+The PR #22 commit (`4091186371`) was on main but never deployed to staging until the failed run was re-triggered manually. Handoff note as it stood claimed "Staging deployed 4091186371 + 79b1cd2f45" — this was wrong; only `79b1cd2` had deployed. Caught and corrected in this session via `gh run rerun 26716472641 --failed`.
+
+**Mitigation for future sessions**: when admin-merging multiple PRs back-to-back, wait for each prior deploy to finish before merging the next one. Or accept that the second one will need manual re-run after the lock releases.
+
+### Lighthouse baseline (informational)
+
+Last Lighthouse CI run: `26718296274` (2026-05-31 16:37 UTC, post PR #24 merge). All assertion thresholds passed across 5 URLs:
+
+- `categories:performance` ≥ 0.7 (warn threshold)
+- `categories:accessibility` ≥ 0.85 (error threshold)
+- `categories:best-practices` ≥ 0.85 (warn threshold)
+- `categories:seo` ≥ 0.85 (warn threshold)
+
+Per-URL median scores live in the artifact zip (`lighthouse-results` artifact, `gh run download 26718296274`). The 5 median report URLs are also publicly hosted on `storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/...` (logged in the run output, expire eventually).
+
+### Open production decisions (the only blockers)
+
+Unchanged from earlier handoff. Five user decisions still outstanding:
+
+1. **Sentry DSN** — issuance + production secret push (`SENTRY_DSN_API`, `SENTRY_DSN_BUYER`, `SENTRY_DSN_SELLER`, `SENTRY_DSN_ADMIN`). Currently DSN-gated no-op so Sentry runs harmlessly disabled.
+2. **Better Stack / log drain** — choose provider, issue token, push to all 4 Workers.
+3. **Production DB host** — Neon project ID + branch + connection string for prod tier.
+4. **Production domain** — DNS + Cloudflare zone + Worker custom domain mapping.
+5. **Launch strategy** — soft launch / staged rollout / full launch decision.
+
+### Tier 2 — needs user OK before AI starts
+
+These are AI-actionable but judgment-call (not zero-risk). Don't start without explicit "go":
+
+| Task                                              | Effort | Risk   | Notes                                                                                                          |
+| ------------------------------------------------- | ------ | ------ | -------------------------------------------------------------------------------------------------------------- |
+| Storybook for `packages/ui`                       | 3-4h   | MEDIUM | New dev tooling, lockfile churn, opinionated config decisions                                                  |
+| OpenAPI contract drift CI step (archive `/doc`)   | 1h     | LOW    | Small but opinionated; decide artifact retention + diff strategy first                                         |
+| Cleanup 13 stale remote branches                  | 30min  | LOW    | Handoff explicitly requires explicit user OK before destructive `git push --delete`                            |
+| `apps/buyer` typecheck pre-existing fixes         | 30min  | MEDIUM | `PUBLIC_API_BASE_URL` import + `fetchFn` arg; handoff says doesn't affect runtime; fixing risks masking issues |
+| PR-preview environments (ephemeral Worker per PR) | 2-3h   | MEDIUM | Eliminates cross-run interference entirely; was the third option in tier3 flake plan                           |
+
+### State at end of session (~17:46 UTC)
+
+- `main` HEAD: `1ec88fc` (PR #25 squash)
+- Staging API: `version=b0f9951` at health-check time, `1ec88fc` deploy `in_progress` (run `26719789674` started 17:45 UTC). Verify `version=1ec88fc` once that completes.
+- Open PRs: **0**
+- E2E baseline: **77/0** (3 consecutive runs on main)
+- CI: green
+- Branches deleted from origin during this session: `docs/handoff-afternoon-2026-05-31` (PR #23, superseded), `feat/e2e-tier3-flake-fix` (PR #24, merged), `chore/dev-cleanup-warnings` (PR #25, merged)
+- Stale remote branches still present (cleanup blocked on user OK):
+  `chore/drop-db-disable-cache`, `chore/post-merge-cleanup`, `feat/e2e-coverage-tier1`, `feat/e2e-coverage-tier2`, `feat/observability-extensions`, `feat/ssr-canary-and-internal-api-env`, `feat/tier3-e2e-coverage`, `fix/canary-bypass-cf-block`, `fix/ci-postgres-service`, `fix/e2e-3-remaining-failures`, `fix/e2e-followup-assertions`, `fix/e2e-tier-selection-baseline`
+
+### Next session pickup recommendation
+
+If user has answered any of the 5 production decisions → execute Step 2 of `PRODUCTION_PREDEPLOY_CHECKLIST.md`.
+
+If user wants more pre-launch hardening without deploying production → ask first which Tier 2 task (Storybook, OpenAPI drift, branch cleanup, buyer typecheck, PR-preview) before starting; none are "obvious next" — they're independent and have non-trivial decisions.
+
+If user has nothing new → stop and wait. Don't churn the codebase for activity's sake.
 
 ---
 
