@@ -99,7 +99,7 @@
           <div
             class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
           >
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Featured
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
@@ -112,7 +112,7 @@
           <div
             class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
           >
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Kategori
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
@@ -123,7 +123,7 @@
           <div
             class="border-border bg-card/70 group rounded-[var(--radius-card)] border p-5 backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-lg"
           >
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Upcoming
             </p>
             <p class="text-foreground mt-2.5 text-4xl font-bold">
@@ -146,7 +146,7 @@
             <CalendarRange class="size-7" />
           </div>
           <div>
-            <p class="text-muted-foreground text-[0.65rem] font-bold tracking-[0.26em] uppercase">
+            <p class="text-muted-foreground text-[0.7rem] font-bold tracking-[0.22em] uppercase">
               Agenda Cerdas
             </p>
             <h2 class="text-foreground mt-1 text-xl leading-tight font-bold">
@@ -175,7 +175,7 @@
               <MapPin class="size-7" />
             </div>
             <div>
-              <p class="text-[0.65rem] font-bold tracking-[0.26em] text-white/50 uppercase">
+              <p class="text-[0.7rem] font-bold tracking-[0.22em] text-white/70 uppercase">
                 Kota Populer
               </p>
               <h2 class="mt-1 text-xl leading-tight font-bold">
