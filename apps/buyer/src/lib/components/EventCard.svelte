@@ -42,9 +42,7 @@
       <div class="h-full w-full" style={`background:${fallbackBanner};`}></div>
     {/if}
 
-    <div
-      class="from-foreground/70 via-foreground/10 absolute inset-0 bg-gradient-to-t to-transparent"
-    ></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent"></div>
 
     <div class="absolute top-4 left-4 flex flex-wrap gap-2">
       {#if event.is_featured}

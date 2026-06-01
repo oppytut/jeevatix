@@ -95,19 +95,18 @@
         </a>
 
         <nav class="text-muted-foreground hidden items-center gap-5 text-sm font-medium md:flex">
-          <a class="hover:text-foreground transition" href={resolve('/')}>Beranda</a>
-          <a class="hover:text-foreground transition" href={resolve('/events')}>Explore</a>
+          <a class="hover:text-foreground py-2 transition" href={resolve('/')}>Beranda</a>
+          <a class="hover:text-foreground py-2 transition" href={resolve('/events')}>Explore</a>
           {#if data.currentUser}
-            <a class="hover:text-foreground relative transition" href={resolve('/notifications')}
+            <a
+              class="hover:text-foreground relative py-2 transition"
+              href={resolve('/notifications')}
               >Notifikasi{#if unreadCount > 0}<span
                   class="absolute -top-1.5 -right-2.5 flex size-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white"
                   >{unreadCount > 9 ? '9+' : unreadCount}</span
                 >{/if}</a
             >
-            <a class="hover:text-foreground transition" href={resolve('/profile')}>Profil</a>
-          {:else}
-            <a class="hover:text-foreground transition" href={resolve('/login')}>Login</a>
-            <a class="hover:text-foreground transition" href={resolve('/register')}>Daftar</a>
+            <a class="hover:text-foreground py-2 transition" href={resolve('/profile')}>Profil</a>
           {/if}
         </nav>
 

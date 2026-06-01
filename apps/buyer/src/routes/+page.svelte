@@ -13,7 +13,7 @@
     Wrench,
   } from '@lucide/svelte';
 
-  import { Button, EmptyState } from '@jeevatix/ui';
+  import { EmptyState } from '@jeevatix/ui';
 
   import EventCard from '$lib/components/EventCard.svelte';
   import { formatCompactNumber } from '$lib/utils';
@@ -79,13 +79,12 @@
         </div>
 
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <a href={resolve('/events')} class="group">
-            <Button
-              class="from-jeevatix-600 to-jeevatix-700 hover:from-jeevatix-700 hover:to-jeevatix-700 h-14 bg-gradient-to-br px-8 text-lg font-bold transition-transform duration-200 hover:scale-105"
-            >
-              Jelajah Event Sekarang
-              <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
-            </Button>
+          <a
+            href={resolve('/events')}
+            class="from-jeevatix-600 to-jeevatix-700 hover:from-jeevatix-700 hover:to-jeevatix-700 group focus-visible:ring-ring/40 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br px-8 text-lg font-bold text-white shadow-[var(--shadow-float)] transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:outline-none"
+          >
+            Jelajah Event Sekarang
+            <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
           </a>
           <a
             href="#featured"
@@ -188,7 +187,7 @@
           </p>
           <a
             href={resolve('/events')}
-            class="mt-6 inline-flex items-center gap-2 text-sm font-bold text-amber-300 transition-all hover:gap-3"
+            class="text-jeevatix-300 hover:text-jeevatix-200 mt-6 inline-flex items-center gap-2 text-sm font-bold transition-all hover:gap-3"
           >
             Mulai eksplor sekarang
             <ArrowRight class="size-4" />
@@ -211,7 +210,7 @@
     </div>
     <a
       href={resolve('/events')}
-      class="text-foreground hover:text-foreground text-sm font-semibold transition"
+      class="text-foreground hover:text-jeevatix-600 inline-flex items-center gap-2 text-sm font-semibold underline-offset-4 transition hover:gap-3 hover:underline"
       >Lihat semua event</a
     >
   </div>
