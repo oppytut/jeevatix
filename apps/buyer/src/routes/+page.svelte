@@ -81,7 +81,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <a href={resolve('/events')} class="group">
             <Button
-              class="bg-jeevatix-600 hover:bg-jeevatix-700 dark:bg-jeevatix-500 dark:hover:bg-jeevatix-600 px-8 py-4 text-base text-white"
+              class="h-14 rounded-full bg-gradient-to-br from-orange-600 to-orange-700 px-8 text-lg font-bold text-white shadow-[var(--shadow-float)] transition-all duration-200 hover:scale-105 hover:shadow-[0_24px_60px_rgba(232,93,63,0.32)]"
             >
               Jelajah Event Sekarang
               <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
@@ -89,7 +89,7 @@
           </a>
           <a
             href="#featured"
-            class="border-foreground bg-background text-foreground hover:bg-muted inline-flex items-center justify-center gap-2 rounded-2xl border px-7 py-4 text-base font-semibold shadow-[var(--shadow-edit)] transition-[transform,box-shadow] duration-150 hover:-translate-y-[2px] hover:shadow-[var(--shadow-edit-lifted)] active:translate-y-0 active:shadow-[var(--shadow-edit)]"
+            class="border-border bg-card/60 text-foreground hover:bg-card/90 inline-flex h-14 items-center justify-center gap-2 rounded-full border px-7 text-base font-semibold backdrop-blur-sm transition-all duration-200 hover:scale-[1.02]"
           >
             Lihat Highlight Minggu Ini
           </a>
