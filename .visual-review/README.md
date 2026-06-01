@@ -107,6 +107,10 @@ Update `lessons.md` whenever:
 
 The LLM reads this file as authoritative project context. Keep it concise — too long dilutes signal.
 
+## Tool robustness notes
+
+The global tool normalizes LLM output before writing `llm-issues.json` and `summary.md`. This handles occasional schema drift from the model (`title` vs `summary`, `recommendation` vs `suggestion`, structured `evidence` objects, `modes[]` arrays). If a future run shows `undefined` in `summary.md`, inspect `llm-raw.txt` first, then update `normalizeIssue()` in `~/.config/opencode/tools/visual-review/review.mjs`.
+
 ## Full tool docs
 
 See `~/.config/opencode/tools/visual-review/README.md` for:
@@ -115,6 +119,7 @@ See `~/.config/opencode/tools/visual-review/README.md` for:
 - All CLI flags
 - Output structure breakdown
 - Troubleshooting common issues
+- LLM schema normalization details
 - Extending the tool to other projects
 - CI integration sketch
 - Future: vision augmentation roadmap
