@@ -421,7 +421,7 @@
 
           <Button
             type="submit"
-            class="w-full rounded-full px-6 py-3"
+            class="w-full px-6 py-3"
             disabled={Boolean(reservation) ||
               !activeTier ||
               activeTier.remaining === 0 ||
@@ -521,11 +521,7 @@
               <input type="hidden" name="reservation_expires_at" value={reservation.expires_at} />
               <input type="hidden" name="selected_tier_id" value={selectedTierId} />
               <input type="hidden" name="quantity" value={String(quantity)} />
-              <Button
-                type="submit"
-                class="w-full rounded-full px-6 py-3"
-                disabled={getRemainingMs() <= 0}
-              >
+              <Button type="submit" class="w-full px-6 py-3" disabled={getRemainingMs() <= 0}>
                 Lanjut ke Pembayaran
                 <MoveRight class="size-4" />
               </Button>
@@ -535,7 +531,7 @@
               <input type="hidden" name="reservation_id" value={reservation.reservation_id} />
               <input type="hidden" name="selected_tier_id" value={selectedTierId} />
               <input type="hidden" name="quantity" value={String(quantity)} />
-              <Button type="submit" variant="outline" class="w-full rounded-full px-6 py-3">
+              <Button type="submit" variant="outline" class="w-full px-6 py-3">
                 Batalkan Reservasi
                 <Trash2 class="size-4" />
               </Button>

@@ -59,12 +59,7 @@
   </nav>
 
   <div class="flex items-center justify-between gap-4">
-    <Button
-      type="button"
-      variant="outline"
-      class="rounded-full px-5"
-      onclick={() => goto(resolve('/orders'))}
-    >
+    <Button type="button" variant="outline" class="px-5" onclick={() => goto(resolve('/orders'))}>
       <ArrowLeft class="size-4" />
       Kembali ke Riwayat Order
     </Button>
@@ -262,7 +257,7 @@
         <div class="mt-5 space-y-4">
           {#if data.order.status === 'pending'}
             <Button
-              class="w-full rounded-full px-6 py-3"
+              class="w-full px-6 py-3"
               onclick={() => goto(resolve('/payment/[orderId]', { orderId: data.order.id }))}
             >
               Bayar Sekarang
@@ -273,7 +268,7 @@
               transaksi.
             </p>
           {:else if data.order.status === 'confirmed'}
-            <Button class="w-full rounded-full px-6 py-3" onclick={() => goto(resolve('/tickets'))}>
+            <Button class="w-full px-6 py-3" onclick={() => goto(resolve('/tickets'))}>
               Lihat Tiket Saya
               <Ticket class="size-4" />
             </Button>

@@ -70,7 +70,7 @@
       </div>
 
       <form method="POST" action="?/markAllRead">
-        <Button type="submit" class="rounded-full px-5" disabled={getUnreadCount() === 0}>
+        <Button type="submit" class="px-5" disabled={getUnreadCount() === 0}>
           Tandai Semua Dibaca
         </Button>
       </form>

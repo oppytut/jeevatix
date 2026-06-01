@@ -350,23 +350,21 @@
           Batal
         </Button>
         <Button
-          variant="default"
+          variant="success"
           size="sm"
           type="button"
           onclick={() => bulkUpdateStatus('published')}
           disabled={isBulkProcessing || selectedPendingEvents.length === 0}
-          class="bg-green-600 hover:bg-green-700"
         >
           <CheckCircle class="mr-1 size-4" />
           Setujui Semua
         </Button>
         <Button
-          variant="default"
+          variant="destructive"
           size="sm"
           type="button"
           onclick={() => bulkUpdateStatus('rejected')}
           disabled={isBulkProcessing || selectedPendingEvents.length === 0}
-          class="bg-red-600 hover:bg-red-700"
         >
           <XCircle class="mr-1 size-4" />
           Tolak Semua

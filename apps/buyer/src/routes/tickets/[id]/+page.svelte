@@ -97,12 +97,7 @@
   </nav>
 
   <div class="flex items-center justify-between gap-4">
-    <Button
-      type="button"
-      variant="outline"
-      class="rounded-full px-5"
-      onclick={() => goto(resolve('/tickets'))}
-    >
+    <Button type="button" variant="outline" class="px-5" onclick={() => goto(resolve('/tickets'))}>
       <ArrowLeft class="size-4" />
       Kembali ke Tiket Saya
     </Button>
@@ -275,7 +270,7 @@
       </div>
 
       <div class="mt-6 space-y-4">
-        <Button class="w-full rounded-full px-6 py-3" onclick={downloadQrCode}>
+        <Button class="w-full px-6 py-3" onclick={downloadQrCode}>
           Download QR
           <Download class="size-4" />
         </Button>

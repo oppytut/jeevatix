@@ -279,7 +279,7 @@
       <input type="hidden" name="limit" value={data.filters.limit} />
 
       <div class="flex gap-3">
-        <Button class="flex-1 rounded-full" type="submit">Terapkan Filter</Button>
+        <Button class="flex-1" type="submit">Terapkan Filter</Button>
         <a
           href={resolve('/events')}
           class="border-border text-foreground hover:border-border hover:text-foreground inline-flex flex-1 items-center justify-center rounded-full border px-5 text-sm font-semibold transition"

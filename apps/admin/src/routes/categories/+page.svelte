@@ -367,12 +367,7 @@
         <Button variant="outline" type="button" onclick={() => (isDeleteModalOpen = false)}>
           Batal
         </Button>
-        <Button
-          type="button"
-          class="bg-rose-600 hover:bg-rose-700"
-          onclick={confirmDelete}
-          disabled={isSubmitting}
-        >
+        <Button variant="destructive" type="button" onclick={confirmDelete} disabled={isSubmitting}>
           Hapus Permanen
         </Button>
       </div>
