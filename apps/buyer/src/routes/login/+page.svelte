@@ -196,7 +196,7 @@
       <div class="text-muted-foreground flex items-center justify-between gap-4 text-sm">
         <p>Belum punya akun?</p>
         <a
-          class="font-medium text-orange-700 hover:text-orange-800 focus-visible:underline focus-visible:outline-none dark:text-orange-400 dark:hover:text-orange-300"
+          class="text-sm font-medium text-orange-700 hover:text-orange-800 focus-visible:underline focus-visible:outline-none dark:text-orange-400 dark:hover:text-orange-300"
           href={resolve('/register')}
         >
           Buat akun buyer
