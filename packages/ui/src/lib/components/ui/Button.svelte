@@ -8,26 +8,25 @@
   type ButtonSize = 'default' | 'sm' | 'lg' | 'icon';
 
   const baseClass =
-    'inline-flex items-center justify-center gap-2 rounded-2xl text-sm font-semibold tracking-tight transition-[transform,box-shadow,background-color,color] duration-150 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+    'inline-flex items-center justify-center gap-2 rounded-full text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
   const variantClasses: Record<ButtonVariant, string> = {
     default:
-      'bg-foreground text-background px-5 py-2.5 shadow-[var(--shadow-edit)] hover:-translate-y-[2px] hover:shadow-[var(--shadow-edit-lifted)] active:translate-y-0 active:shadow-[var(--shadow-edit)]',
+      'bg-jeevatix-600 px-5 py-2.5 text-white shadow-[var(--shadow-float)] hover:bg-jeevatix-700',
     outline:
-      'border border-foreground bg-background text-foreground px-5 py-2.5 shadow-[var(--shadow-edit)] hover:-translate-y-[2px] hover:shadow-[var(--shadow-edit-lifted)] active:translate-y-0 active:shadow-[var(--shadow-edit)]',
-    secondary:
-      'bg-muted text-foreground px-5 py-2.5 shadow-[var(--shadow-edit)] hover:-translate-y-[2px] hover:shadow-[var(--shadow-edit-lifted)] active:translate-y-0 active:shadow-[var(--shadow-edit)]',
-    ghost: 'px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-foreground',
+      'border border-border bg-card px-5 py-2.5 text-foreground hover:border-jeevatix-300 hover:bg-jeevatix-50',
+    secondary: 'bg-sea-700 px-5 py-2.5 text-white hover:bg-sea-800',
+    ghost: 'px-4 py-2.5 text-muted-foreground hover:bg-muted',
     success:
-      'bg-emerald-600 text-white px-5 py-2.5 shadow-[var(--shadow-edit)] hover:bg-emerald-700 hover:-translate-y-[2px] hover:shadow-[var(--shadow-edit-lifted)] active:translate-y-0 active:shadow-[var(--shadow-edit)] dark:bg-emerald-500 dark:hover:bg-emerald-600',
+      'bg-emerald-600 px-5 py-2.5 text-white shadow-[var(--shadow-float)] hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600',
     destructive:
-      'bg-red-600 text-white px-5 py-2.5 shadow-[var(--shadow-edit)] hover:bg-red-700 hover:-translate-y-[2px] hover:shadow-[var(--shadow-edit-lifted)] active:translate-y-0 active:shadow-[var(--shadow-edit)] dark:bg-red-500 dark:hover:bg-red-600',
+      'bg-red-600 px-5 py-2.5 text-white shadow-[var(--shadow-float)] hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600',
   };
 
   const sizeClasses: Record<ButtonSize, string> = {
     default: '',
     sm: 'px-4 py-2 text-xs',
-    lg: 'px-7 py-3.5 text-base',
+    lg: 'px-6 py-3 text-base',
     icon: 'size-10 rounded-2xl p-0',
   };
 
