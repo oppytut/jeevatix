@@ -68,7 +68,7 @@
             class="text-foreground max-w-3xl text-5xl leading-[1.1] font-bold tracking-tight sm:text-6xl lg:text-7xl"
           >
             Temukan event yang
-            <span class="bg-[var(--gradient-brand)] bg-clip-text text-transparent">
+            <span class="bg-[image:var(--gradient-brand)] bg-clip-text text-transparent">
               menggerakkan hatimu
             </span>
           </h1>
