@@ -133,7 +133,7 @@
               <p class="text-foreground text-sm font-medium">{data.currentUser.full_name}</p>
             </div>
             <a href={resolve('/profile')}>
-              <Button type="button" class="rounded-full px-5">Akun Saya</Button>
+              <Button type="button" class="px-5">Akun Saya</Button>
             </a>
           {:else}
             <a
@@ -143,7 +143,7 @@
               Login
             </a>
             <a href={resolve('/register')}>
-              <Button type="button" class="rounded-full px-5">Buat Akun</Button>
+              <Button type="button" class="px-5">Buat Akun</Button>
             </a>
           {/if}
         </div>

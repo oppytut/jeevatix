@@ -186,7 +186,7 @@
           description="Order yang Anda buat dari checkout akan tampil di sini lengkap dengan status pembayaran dan detail event."
         >
           {#snippet action()}
-            <Button class="mt-6 rounded-full px-5" onclick={() => goto(resolve('/events'))}
+            <Button class="mt-6 px-5" onclick={() => goto(resolve('/events'))}
               >Jelajahi Event</Button
             >
           {/snippet}
@@ -308,7 +308,7 @@
             <Button
               type="button"
               variant="outline"
-              class="rounded-full px-4"
+              class="px-4"
               disabled={data.meta.page <= 1}
               onclick={() => goToPage(data.meta.page - 1)}
             >
@@ -329,7 +329,7 @@
             <Button
               type="button"
               variant="outline"
-              class="rounded-full px-4"
+              class="px-4"
               disabled={data.meta.page >= data.meta.totalPages}
               onclick={() => goToPage(data.meta.page + 1)}
             >

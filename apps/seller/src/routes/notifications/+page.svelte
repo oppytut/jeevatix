@@ -299,7 +299,7 @@
         <Button
           variant="outline"
           type="button"
-          class="rounded-full px-5"
+          class="px-5"
           onclick={() => loadNotifications(meta.page, true)}
           disabled={isLoading || isRefreshing}
         >
@@ -307,7 +307,7 @@
         </Button>
         <Button
           type="button"
-          class="rounded-full px-5"
+          class="px-5"
           onclick={markAllRead}
           disabled={unreadCount === 0 || isMarkingAll}
         >

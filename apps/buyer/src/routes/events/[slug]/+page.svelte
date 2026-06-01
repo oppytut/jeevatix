@@ -331,7 +331,7 @@
           </div>
         {:else}
           <a href={resolve('/checkout/[slug]', { slug: data.event.slug })} class="mt-5 block">
-            <Button class="w-full rounded-full px-5 py-3">
+            <Button class="w-full px-5 py-3">
               Beli Tiket
               <MoveRight class="size-4" />
             </Button>

@@ -322,7 +322,7 @@
       </label>
 
       <div class="flex items-end">
-        <Button type="button" class="h-12 rounded-full px-6" onclick={applyFilters}>
+        <Button type="button" class="h-12 px-6" onclick={applyFilters}>
           <Filter class="mr-2 size-4" />
           Terapkan Filter
         </Button>

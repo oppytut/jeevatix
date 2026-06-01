@@ -262,7 +262,7 @@
 
         <Button
           type="submit"
-          class="w-full rounded-full px-6 py-3"
+          class="w-full px-6 py-3"
           disabled={getRemainingMs() <= 0 ||
             data.order.status !== 'pending' ||
             !selectedMethod ||

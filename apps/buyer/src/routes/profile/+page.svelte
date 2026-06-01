@@ -231,7 +231,7 @@
           </div>
         {/if}
 
-        <Button type="submit" class="rounded-full px-6">
+        <Button type="submit" class="px-6">
           Simpan Profil
           <Save class="size-4" />
         </Button>
@@ -314,7 +314,7 @@
           </div>
         {/if}
 
-        <Button type="submit" class="rounded-full px-6">
+        <Button type="submit" class="px-6">
           Perbarui Password
           <KeyRound class="size-4" />
         </Button>
