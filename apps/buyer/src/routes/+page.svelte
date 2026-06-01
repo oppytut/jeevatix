@@ -160,16 +160,16 @@
       </div>
 
       <div
-        class="bg-foreground text-background group relative overflow-hidden rounded-[var(--radius-panel)] border border-white/20 p-7 shadow-[0_28px_80px_rgba(15,23,42,0.20)] transition-all hover:scale-[1.02] hover:shadow-2xl sm:p-8"
+        class="bg-jeevatix-900 group relative overflow-hidden rounded-[var(--radius-panel)] border border-white/20 p-7 text-white shadow-[0_28px_80px_rgba(15,23,42,0.20)] transition-all hover:scale-[1.02] hover:shadow-2xl sm:p-8"
       >
         <div
           class="absolute inset-0 opacity-20"
-          style="background: radial-gradient(circle at 80% 20%, rgba(251,191,36,0.4), transparent 50%);"
+          style="background: radial-gradient(circle at 80% 20%, rgba(249,115,22,0.45), transparent 50%);"
         ></div>
         <div class="relative">
           <div class="flex items-start gap-4">
             <div
-              class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-yellow-400 text-slate-900 shadow-lg"
+              class="from-jeevatix-300 to-jeevatix-500 flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg"
             >
               <MapPin class="size-7" />
             </div>
