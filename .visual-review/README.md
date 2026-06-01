@@ -7,24 +7,21 @@ Project-local context for the global `visual-review` tool. Tool runs Playwright 
 | File                     | Purpose                                                                                                                                                                                             |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `lessons.md`             | Project-specific design rules + rejected approaches. Fed to the LLM during review so it doesn't re-suggest patterns the user already rejected.                                                      |
+| `routes.json`            | Routes audited by `visual-review-batch`. Starter set covers public buyer surfaces. Add entries to expand coverage.                                                                                  |
 | `agents.json` (optional) | Override default model chain for this project. Combo pattern — declare role, primary model, and fallback chain. Falls back transparently if primary unavailable. See global README for full schema. |
 | `README.md`              | This file. Quick reference for running the tool from the project root.                                                                                                                              |
 
 ## Run from project root
 
 ```bash
-# Auto-picks up lessons.md
-cd /home/debian/project/jeevatix
+# Single page — auto-picks up lessons.md + agents.json
 visual-review https://jeevatix.my.id
 
-# Specific output dir
-visual-review https://jeevatix.my.id --out=/tmp/vr-$(date +%s)
-
-# Light mode only (skip dark mode capture)
-visual-review https://jeevatix.my.id --modes=light
+# Multiple pages — auto-picks up routes.json + lessons.md + agents.json
+visual-review-batch
 ```
 
-Output goes to `/tmp/visual-review-<timestamp>/`. Open `report.md` to read findings.
+Output goes to `/tmp/visual-review-<timestamp>/` for single-page, `/tmp/visual-review-batch-<timestamp>/` for batch.
 
 ## Run staging health-check first
 
@@ -48,6 +45,23 @@ Tool was first run during PR #37 → #38 (visual-review tooling + post-review fi
 | medium   | other          | Nested `<a><button>` hero CTA → 2 interactives at same rect                                                                 | PR #38: collapse to single `<a>`                    |
 
 After-fix re-run confirmed **4 of 6** LLM findings disappeared. Image scrim still flagged due to tool limitation (can't see stacked overlays).
+
+## Batch run findings (4 routes)
+
+After PR #38 fixes, first batch run on `[/, /events, /login, /register]` (88s via concurrency=3):
+
+```
+46 LLM issues across 4 routes
+  critical: 6  | high: 13  | medium: 15  | low: 12
+
+Top systemic patterns:
+- jeevatix-600 button 3.56:1 — appears on landing + events + login + register
+- FEATURED/PUBLISHED badge contrast — same fail across event cards
+- Image overlay scrim — same issue on all listing routes
+- Touch target 40px theme toggle — appears in shared header
+```
+
+Batch surfaces patterns single-page reviews miss.
 
 ## Model selection (combo pattern)
 
