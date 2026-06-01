@@ -81,7 +81,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <a href={resolve('/events')} class="group">
             <Button
-              class="h-14 rounded-full bg-gradient-to-br from-orange-600 to-orange-700 px-8 text-lg font-bold text-white shadow-[var(--shadow-float)] transition-all duration-200 hover:scale-105 hover:shadow-[0_24px_60px_rgba(232,93,63,0.32)]"
+              class="h-14 rounded-full bg-gradient-to-br from-orange-600 to-orange-700 px-8 text-lg font-bold text-white shadow-[var(--shadow-float)] transition-transform duration-200 hover:scale-105"
             >
               Jelajah Event Sekarang
               <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />
