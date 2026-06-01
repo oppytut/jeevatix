@@ -4,10 +4,11 @@ Project-local context for the global `visual-review` tool. Tool runs Playwright 
 
 ## Files
 
-| File         | Purpose                                                                                                                                        |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lessons.md` | Project-specific design rules + rejected approaches. Fed to the LLM during review so it doesn't re-suggest patterns the user already rejected. |
-| `README.md`  | This file. Quick reference for running the tool from the project root.                                                                         |
+| File                     | Purpose                                                                                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lessons.md`             | Project-specific design rules + rejected approaches. Fed to the LLM during review so it doesn't re-suggest patterns the user already rejected.                                                      |
+| `agents.json` (optional) | Override default model chain for this project. Combo pattern — declare role, primary model, and fallback chain. Falls back transparently if primary unavailable. See global README for full schema. |
+| `README.md`              | This file. Quick reference for running the tool from the project root.                                                                                                                              |
 
 ## Run from project root
 
@@ -47,6 +48,39 @@ Tool was first run during PR #37 → #38 (visual-review tooling + post-review fi
 | medium   | other          | Nested `<a><button>` hero CTA → 2 interactives at same rect                                                                 | PR #38: collapse to single `<a>`                    |
 
 After-fix re-run confirmed **4 of 6** LLM findings disappeared. Image scrim still flagged due to tool limitation (can't see stacked overlays).
+
+## Model selection (combo pattern)
+
+The tool uses **abstract role mapping**, not specific model names. Default chain:
+
+```
+design-reviewer:
+  primary:        visual-engineering    # domain-tuned for UI/UX
+  fallback_chain:
+    - unspecified-high                  # high-effort general
+    - kr/claude-opus-4.7                # specific Claude opus
+    - kr/claude-opus-4.6
+    - kr/claude-sonnet-4.6
+```
+
+Why combo? When `kr/claude-opus-4.7` is unavailable (quota exhausted, deprecated, proxy upstream change), the tool transparently tries the next model. No code change, no manual swap. Same pattern as `~/.config/opencode/oh-my-openagent.json`.
+
+The chosen model is logged in `report.md` header + saved to `llm-attempts.json` for observability.
+
+### Override per project
+
+Drop `.visual-review/agents.json` to override:
+
+```json
+{
+  "design-reviewer": {
+    "primary": "artistry",
+    "fallback_chain": ["visual-engineering", "kr/claude-opus-4.7"]
+  }
+}
+```
+
+Project config deep-merges over the global default.
 
 ## Lessons file maintenance
 
