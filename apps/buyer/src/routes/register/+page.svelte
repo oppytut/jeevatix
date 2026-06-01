@@ -72,7 +72,9 @@
       <Ticket class="size-7" />
     </div>
     <div class="mt-6 space-y-4">
-      <p class="text-sm font-semibold tracking-[0.3em] text-sky-700 uppercase">Create Account</p>
+      <p class="text-sm font-semibold tracking-[0.3em] text-sky-700 uppercase dark:text-sky-400">
+        Create Account
+      </p>
       <h1 class="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
         Buat akun untuk checkout lebih cepat saat event incaran sudah tayang.
       </h1>
@@ -228,7 +230,7 @@
         <p class="text-muted-foreground text-sm">
           Sudah punya akun?
           <a
-            class="font-medium text-sky-700 hover:text-sky-800 focus-visible:underline focus-visible:outline-none"
+            class="font-medium text-sky-700 hover:text-sky-800 focus-visible:underline focus-visible:outline-none dark:text-sky-400 dark:hover:text-sky-300"
             href={resolve('/login')}>Masuk di sini</a
           >
         </p>

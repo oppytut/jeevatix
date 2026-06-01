@@ -4,7 +4,7 @@
   import { navigating } from '$app/stores';
   import { PUBLIC_API_BASE_URL, PUBLIC_PARTYKIT_HOST } from '$env/static/public';
   import './layout.css';
-  import { Button, DarkModeToggle } from '@jeevatix/ui';
+  import { DarkModeToggle } from '@jeevatix/ui';
   import favicon from '$lib/assets/favicon.svg';
   import { Menu, X } from '@lucide/svelte';
 
@@ -131,18 +131,24 @@
               </p>
               <p class="text-foreground text-sm font-medium">{data.currentUser.full_name}</p>
             </div>
-            <a href={resolve('/profile')}>
-              <Button type="button" class="px-5">Akun Saya</Button>
+            <a
+              href={resolve('/profile')}
+              class="bg-jeevatix-600 hover:bg-jeevatix-700 focus-visible:ring-ring inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white shadow-[var(--shadow-float)] transition focus-visible:ring-2 focus-visible:outline-none"
+            >
+              Akun Saya
             </a>
           {:else}
             <a
-              class="text-muted-foreground hover:text-foreground hidden text-sm font-medium transition sm:inline-flex"
+              class="text-muted-foreground hover:text-foreground hidden py-2 text-sm font-medium transition sm:inline-flex"
               href={resolve('/login')}
             >
               Login
             </a>
-            <a href={resolve('/register')}>
-              <Button type="button" class="px-5">Buat Akun</Button>
+            <a
+              href={resolve('/register')}
+              class="bg-jeevatix-600 hover:bg-jeevatix-700 focus-visible:ring-ring inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white shadow-[var(--shadow-float)] transition focus-visible:ring-2 focus-visible:outline-none"
+            >
+              Buat Akun
             </a>
           {/if}
         </div>
