@@ -81,7 +81,7 @@
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
           <a
             href={resolve('/events')}
-            class="from-jeevatix-600 to-jeevatix-700 hover:from-jeevatix-700 hover:to-jeevatix-700 group focus-visible:ring-ring/40 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br px-8 text-lg font-bold text-white shadow-[var(--shadow-float)] transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:outline-none"
+            class="bg-jeevatix-600 from-jeevatix-600 to-jeevatix-700 hover:from-jeevatix-700 hover:to-jeevatix-700 group focus-visible:ring-ring/40 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-gradient-to-br px-8 text-lg font-bold text-white shadow-[var(--shadow-float)] transition-transform duration-200 hover:scale-105 focus-visible:ring-2 focus-visible:outline-none"
           >
             Jelajah Event Sekarang
             <ArrowRight class="size-5 transition-transform group-hover:translate-x-1" />

@@ -240,7 +240,7 @@
             </div>
             <input
               id="price_min"
-              class="h-2 w-full cursor-pointer accent-orange-500"
+              class="accent-jeevatix-500 h-2 w-full cursor-pointer"
               type="range"
               min={data.priceBounds.min}
               max={data.priceBounds.max}
@@ -261,7 +261,7 @@
             </div>
             <input
               id="price_max"
-              class="h-2 w-full cursor-pointer accent-sky-500"
+              class="accent-jeevatix-500 h-2 w-full cursor-pointer"
               type="range"
               min={data.priceBounds.min}
               max={data.priceBounds.max}
