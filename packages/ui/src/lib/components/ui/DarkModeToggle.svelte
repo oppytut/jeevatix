@@ -32,7 +32,7 @@
 
 <button
   onclick={toggle}
-  class="border-border bg-card text-muted-foreground hover:bg-muted flex size-10 items-center justify-center rounded-full border transition"
+  class="border-border bg-card text-muted-foreground hover:bg-muted flex size-11 items-center justify-center rounded-full border transition"
   aria-label="Toggle dark mode"
 >
   {#if isDark}
