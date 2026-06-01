@@ -1,0 +1,24 @@
+{
+  "$schema": "https://example.invalid/visual-review-routes.schema.json",
+  "_meta": {
+    "comment": "Routes audited by visual-review-batch. Starter set covers public buyer surfaces (no auth required). Add more entries to expand coverage. Each entry: name (used as output subdir), url (full https URL), modes (optional, defaults to light + dark)."
+  },
+  "routes": [
+    {
+      "name": "landing",
+      "url": "https://jeevatix.my.id/"
+    },
+    {
+      "name": "events",
+      "url": "https://jeevatix.my.id/events"
+    },
+    {
+      "name": "login",
+      "url": "https://jeevatix.my.id/login"
+    },
+    {
+      "name": "register",
+      "url": "https://jeevatix.my.id/register"
+    }
+  ]
+}
